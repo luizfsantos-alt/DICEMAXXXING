@@ -4,8 +4,9 @@ extends RefCounted
 
 const DICE_COUNT := 6
 const MAX_ACTIVE := 3
-const BASE_HP := 30
-const GLADIATOR_HP_BONUS := 10
+const HP_SCALE := 2 ## Multiplica todas as vidas (jogador, inimigos e chefes).
+const BASE_HP := 30 * HP_SCALE
+const GLADIATOR_HP_BONUS := 10 * HP_SCALE
 const TURN_LIMIT := 60
 const BARRIER_CAP := 20
 const PASSIVE_LIMIT := 3

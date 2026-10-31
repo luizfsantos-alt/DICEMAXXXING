@@ -63,7 +63,7 @@ Cada item declara quantos dados aceita (mínimo e máximo) e os requisitos de va
 - Trava de segurança contra duelos infinitos: se um duelo chegar ao **turno 60**, conta como derrota do jogador. *(Salvaguarda técnica; ajustável.)*
 
 ### 2.5 Vida
-- Jogador: 30 base + modificadores. Gladiador: +10 (Casca Grossa).
+- Jogador: **60** base + modificadores. Gladiador: **+20** (Casca Grossa). *(Vidas dobradas após a primeira simulação: `Config.HP_SCALE = 2`.)*
 - **A vida é totalmente restaurada após cada batalha.**
 - Toda cura respeita a vida máxima.
 
@@ -218,7 +218,7 @@ Sempre ativos. **Limite de 3.** Podem ser vendidos na loja.
 
 | Código | Nome | Itens iniciais | Passiva |
 |---|---|---|---|
-| P1 | O Gladiador | Canhão de Dados + Escudo de Madeira | **Casca Grossa**: +10 de vida máxima. |
+| P1 | O Gladiador | Canhão de Dados + Escudo de Madeira | **Casca Grossa**: +20 de vida máxima. |
 | P2 | O Carrasco *(futuro)* | Clava Pesada + Muralha | Excesso de dano vira moedas. |
 | P3 | O Penitente *(futuro)* | Foice + Fênix | +3 de vida máxima por vitória. |
 
@@ -234,9 +234,9 @@ Sempre ativos. **Limite de 3.** Podem ser vendidos na loja.
 
 | Bloco | Lutas | Vida | Pool |
 |---|---|---|---|
-| 1 | 1–10 | 18–24 | Canhão, sem defesa. |
-| 2 | 11–20 | 22–28 | Ataque A1–A10, defesa D1–D10. |
-| 3 | 21–30 | 26–32 | + D11 e D12. |
+| 1 | 1–10 | 36–48 | Canhão, sem defesa. |
+| 2 | 11–20 | 44–56 | Ataque A1–A10, defesa D1–D10. |
+| 3 | 21–30 | 52–64 | + D11 e D12. |
 | 4–10 | 31–100 | — | Como na v1 (proposta; fora do protótipo). |
 
 ### 8.3 Personalidades (protótipo)
@@ -253,9 +253,9 @@ Título + nome + epíteto, em tom brainrot (lista em `data/texts_pt_br.json`).
 
 | Código | Luta | Nome | Vida | Itens | Regra |
 |---|---|---|---|---|---|
-| C1 | 10 | Cleitinho, o Porteiro | 35 | Canhão, sem defesa | Rola 7 dados e descarta o menor. |
-| C2 | 20 | Dona Neide, Mãe dos Escudos | 40 | Canhão + Escudo de Madeira | Começa todo turno com 5 de escudo. |
-| C3 | 30 | **Kevin, Reflexo de Bolinha** | 45 | Martelo de Pares + Cota de Malha | Cada 6 que você lançar é refletido em você (pela regra do Espelho; a Cota dele não reduz o reflexo). |
+| C1 | 10 | Cleitinho, o Porteiro | 70 | Canhão, sem defesa | Rola 7 dados e descarta o menor. |
+| C2 | 20 | Dona Neide, Mãe dos Escudos | 80 | Canhão + Escudo de Madeira | Começa todo turno com 5 de escudo. |
+| C3 | 30 | **Kevin, Reflexo de Bolinha** | 90 | Martelo de Pares + Cota de Malha | Cada 6 que você lançar é refletido em você (pela regra do Espelho; a Cota dele não reduz o reflexo). |
 | C4–C10 | 40–100 | Como na v1 | | | Fora do protótipo. |
 
 ---

@@ -18,7 +18,7 @@ static func create(fight: int, rng: RandomNumberGenerator) -> Fighter:
 	var b := block_of(fight)
 	var f := Fighter.new()
 	var lo := 18 + 4 * (b - 1)
-	f.max_hp = rng.randi_range(lo, lo + 6)
+	f.max_hp = rng.randi_range(lo, lo + 6) * Config.HP_SCALE
 	f.hp = f.max_hp
 	f.dice_sides = [6, 6, 6, 6, 6, 6]
 	f.attack_id = "A1"
@@ -38,18 +38,18 @@ static func boss(fight: int) -> Fighter:
 	match fight:
 		10:
 			f.boss_id = "C1"
-			f.max_hp = 35
+			f.max_hp = 35 * Config.HP_SCALE
 			f.attack_id = "A1"
 			f.personality = "bruto"
 		20:
 			f.boss_id = "C2"
-			f.max_hp = 40
+			f.max_hp = 40 * Config.HP_SCALE
 			f.attack_id = "A1"
 			f.defense_id = "D1"
 			f.personality = "cauteloso"
 		_:
 			f.boss_id = "C3"
-			f.max_hp = 45
+			f.max_hp = 45 * Config.HP_SCALE
 			f.attack_id = "A2"
 			f.defense_id = "D9"
 			f.personality = "cauteloso"
