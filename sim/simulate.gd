@@ -1,17 +1,21 @@
 extends SceneTree
 ## Simulador headless de jornadas para balanceamento.
 ## Uso: godot --headless -s res://sim/simulate.gd -- --runs=2000 --seed=1
-## Bot: os 3 maiores dados no ataque, sem defesa; compra a oferta se puder.
+## Bots: "bruto" (os 3 maiores no ataque, sem defesa) ou "cauteloso" (usa a defesa
+## como a IA cautelosa). Ambos compram a oferta da loja se puderem.
 
 
 func _init() -> void:
 	var runs := 1000
 	var seed0 := 1
+	var bot := "bruto"
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--runs="):
 			runs = int(a.split("=")[1])
 		elif a.begins_with("--seed="):
 			seed0 = int(a.split("=")[1])
+		elif a.begins_with("--bot="):
+			bot = a.split("=")[1]
 	var reached := {}
 	var died_at := {}
 	var turns_total := 0
@@ -20,7 +24,8 @@ func _init() -> void:
 		var run := RunState.new_run(seed0 + i)
 		while run.phase in ["duel", "shop"]:
 			if run.phase == "duel":
-				run.duel.submit(EnemyAI.brute(run.duel.player))
+				var p := run.duel.player
+				run.duel.submit(EnemyAI.cautious(p) if bot == "cauteloso" else EnemyAI.brute(p))
 				if run.duel.state != "choosing":
 					turns_total += run.duel.turn
 					duels_total += 1
@@ -35,7 +40,7 @@ func _init() -> void:
 			reached[f] = reached.get(f, 0) + 1
 		if run.phase == "defeat":
 			died_at[run.fight] = died_at.get(run.fight, 0) + 1
-	print("Jornadas: %d" % runs)
+	print("Bot: %s · Jornadas: %d" % [bot, runs])
 	print("Turnos médios por duelo: %.2f" % (float(turns_total) / maxi(1, duels_total)))
 	for f in [5, 9, 10, 15, 19, 20, 25, 29, 30]:
 		print("Venceu a luta %2d: %5.1f%%" % [f, 100.0 * reached.get(f, 0) / runs])

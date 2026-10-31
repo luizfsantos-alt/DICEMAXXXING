@@ -29,7 +29,9 @@ jobs:
         run: godot --headless -s addons/gut/gut_cmdln.gd -gexit
 
       - name: Simulação de balanceamento
-        run: godot --headless -s res://sim/simulate.gd -- --runs=1000 --seed=1 | tee simulation.txt
+        run: |
+          godot --headless -s res://sim/simulate.gd -- --runs=1000 --seed=1 --bot=bruto | tee simulation.txt
+          godot --headless -s res://sim/simulate.gd -- --runs=1000 --seed=1 --bot=cauteloso | tee -a simulation.txt
 
       - uses: actions/upload-artifact@v4
         with:
@@ -49,6 +51,8 @@ jobs:
           java-version: "17"
 
       - uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools"
 
       - name: Componentes do Android SDK
         run: sdkmanager "platform-tools" "build-tools;35.0.0" "platforms;android-35"
