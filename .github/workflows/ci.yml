@@ -83,6 +83,7 @@ jobs:
           mkdir -p build
           godot --headless --export-debug "Android" build/dicemaxxing.apk
           ls -la build
+          unzip -l build/dicemaxxing.apk | grep -E "texts_pt_br|\.pck" || (echo "Textos não exportados"; exit 1)
 
       - uses: actions/upload-artifact@v4
         with:
