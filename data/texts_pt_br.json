@@ -1,10 +1,10 @@
 {
   "items": {
     "A1": ["Canhão de Dados", "Dano = soma dos dados."],
-    "A2": ["Martelo de Pares", "Com par no ataque: +30% no total. Sem par: −20%. Lançamento em grupo."],
-    "A3": ["Lança Trina", "Com trio (3 dados): dano x2. Sem trio: −20%. Lançamento em grupo."],
-    "A4": ["Arco da Sequência", "Com sequência de 3 (ex.: 3-4-5): +10 de dano. Lançamento em grupo."],
-    "A5": ["Clava Pesada", "O primeiro dado lançado conta em dobro."],
+    "A2": ["Martelo de Pares", "Com par no ataque: +30% no total. Sem par: −20%."],
+    "A3": ["Lança Trina", "Com trio (3 dados): dano x2. Sem trio: −20%."],
+    "A4": ["Arco da Sequência", "Com sequência de 3 (ex.: 3-4-5): +10 de dano."],
+    "A5": ["Clava Pesada", "O dado do slot 1 conta em dobro."],
     "A6": ["Mangual dos Fracos", "Dados 1 e 2 no ataque valem 6."],
     "A7": ["Chicote Explosivo", "Cada 6 no ataque rola um dado extra e soma. Extra 6 explode de novo."],
     "A8": ["Adaga Ímpar", "Cada dado ímpar no ataque causa +2."],

@@ -1,6 +1,6 @@
 class_name TurnChoice
 extends RefCounted
-## Alocação de um lado: índices dos dados lançados (em ordem de lançamento)
+## Alocação de um lado: índices dos dados no ataque (na ordem dos slots)
 ## e encaixados na defesa. Todo o resto é autodano.
 
 var attack: Array = []
