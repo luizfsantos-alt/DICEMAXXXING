@@ -42,8 +42,10 @@ static func base(archetype: String) -> Fighter:
 	f.archetype = archetype
 	var grid: Vector2i = Config.SORCERER_GRID if archetype == "sorcerer" else Config.ASSASSIN_GRID
 	f.inventory = Inventory.make(grid.x, grid.y)
-	for id in Spells.STARTING[archetype]:
-		f.inventory.add(id)
+	var ids: Array = Spells.STARTING[archetype]
+	for k in ids.size():
+		var pos: Array = Spells.STARTING_LAYOUT[archetype][k]
+		f.inventory.items.append({"id": ids[k], "level": 1, "x": pos[0], "y": pos[1], "rot": pos[2]})
 	for _i in Config.START_BAG:
 		f.bag.append(Die.basic())
 	f.hand_size = Config.HAND_SIZE + (Config.ASSASSIN_HAND_BONUS if archetype == "assassin" else 0)

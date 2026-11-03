@@ -52,16 +52,73 @@ func find_spot(id: String) -> Dictionary:
 	return {}
 
 
+## Cabe, mesmo que seja preciso reorganizar as outras peças?
 func fits(id: String) -> bool:
-	return not find_spot(id).is_empty()
+	return not find_spot(id).is_empty() or not _repack(id).is_empty()
 
 
+## Adiciona no primeiro lugar livre; se não houver, reorganiza tudo (se algum arranjo servir).
 func add(id: String, level: int = 1) -> bool:
 	var s := find_spot(id)
-	if s.is_empty():
+	if not s.is_empty():
+		items.append({"id": id, "level": level, "x": s.x, "y": s.y, "rot": s.rot})
+		return true
+	var packed := _repack(id)
+	if packed.is_empty():
 		return false
-	items.append({"id": id, "level": level, "x": s.x, "y": s.y, "rot": s.rot})
+	var news: Dictionary = packed.pop_back()
+	for i in items.size():
+		items[i].x = packed[i].x
+		items[i].y = packed[i].y
+		items[i].rot = packed[i].rot
+	items.append({"id": id, "level": level, "x": news.x, "y": news.y, "rot": news.rot})
 	return true
+
+
+## Busca um arranjo para as peças atuais + a nova. Retorna as posições na ordem
+## de `items` (a nova por último), ou [] se não existe.
+func _repack(id: String) -> Array:
+	var ids_all := ids()
+	ids_all.append(id)
+	var free := width * height
+	for x in ids_all:
+		free -= Spells.shape(x).size()
+	if free < 0:
+		return []
+	var order_idx := range(ids_all.size())
+	order_idx.sort_custom(func(a, b): return Spells.shape(ids_all[a]).size() > Spells.shape(ids_all[b]).size())
+	var tmp := Inventory.make(width, height)
+	var placed := {}
+	_steps = 0
+	if not _place_rec(tmp, ids_all, order_idx, 0, placed):
+		return []
+	var out := []
+	for i in ids_all.size():
+		out.append(placed[i])
+	return out
+
+
+var _steps := 0
+const REPACK_BUDGET := 20000 ## Desiste de buscas longas demais (grade quase cheia).
+
+
+func _place_rec(tmp: Inventory, ids_all: Array, order_idx: Array, k: int, placed: Dictionary) -> bool:
+	if k >= order_idx.size():
+		return true
+	_steps += 1
+	if _steps > REPACK_BUDGET:
+		return false
+	var i: int = order_idx[k]
+	for rot in 4:
+		for y in height:
+			for x in width:
+				if tmp.can_place(ids_all[i], rot, x, y):
+					tmp.items.append({"id": ids_all[i], "level": 1, "x": x, "y": y, "rot": rot})
+					placed[i] = {"x": x, "y": y, "rot": rot}
+					if _place_rec(tmp, ids_all, order_idx, k + 1, placed):
+						return true
+					tmp.items.pop_back()
+	return false
 
 
 func move(index: int, x: int, y: int, rot: int) -> bool:

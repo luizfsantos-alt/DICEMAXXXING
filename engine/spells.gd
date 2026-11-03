@@ -31,6 +31,11 @@ const STARTING := {
 	"sorcerer": ["faisca", "escudo", "bola"],
 	"assassin": ["estocada", "esquiva", "corte"],
 }
+## Arranjo inicial: [x, y, rot] de cada magia inicial. O do Feiticeiro deixa um L livre.
+const STARTING_LAYOUT := {
+	"sorcerer": [[3, 0, 0], [2, 0, 0], [0, 0, 0]],
+	"assassin": [[0, 0, 0], [1, 0, 0], [2, 0, 0]],
+}
 const ERUDITE_CHOICES := ["espelho", "remendo", "sacrificio", "transfusao", "meteoro"]
 
 

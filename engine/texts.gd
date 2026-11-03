@@ -24,6 +24,8 @@ static func t(key: String, args: Dictionary = {}) -> String:
 	for p in key.split("."):
 		if node is Dictionary and node.has(p):
 			node = node[p]
+		elif node is Array and p.is_valid_int() and int(p) < node.size():
+			node = node[int(p)]
 		else:
 			return key
 	var s := str(node)

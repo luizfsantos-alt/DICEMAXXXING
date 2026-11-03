@@ -45,10 +45,13 @@ static func school(hero: Fighter, rng: RandomNumberGenerator) -> Array:
 		{"kind": "spell", "id": pool[0], "price": 0, "needs": ""},
 		{"kind": "spell", "id": pool[1], "price": 0, "needs": ""},
 	]
+	var evolvable := []
 	for i in hero.inventory.items.size():
-		var it: Dictionary = hero.inventory.items[i]
-		if int(it.level) < Config.MAX_LEVEL:
-			out.append({"kind": "evolve", "id": it.id, "item": i, "price": 0, "needs": ""})
+		if int(hero.inventory.items[i].level) < Config.MAX_LEVEL:
+			evolvable.append(i)
+	Fighter._shuffle(evolvable, rng)
+	for i in evolvable.slice(0, 3):
+		out.append({"kind": "evolve", "id": hero.inventory.items[i].id, "item": i, "price": 0, "needs": ""})
 	return out
 
 

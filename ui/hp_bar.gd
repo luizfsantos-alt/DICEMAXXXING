@@ -1,6 +1,6 @@
 class_name HpBar
 extends Control
-## Barra de vida com números ("47 / 80") e escudo/barreira em azul.
+## Barra de vida com números ("47 / 80") e bloqueio em azul.
 
 var max_hp: int = 1
 var hp: int = 1
@@ -37,10 +37,5 @@ func _draw() -> void:
 	var fs := 24
 	var y := size.y / 2.0 + fs * 0.35
 	draw_string(font, Vector2(0, y), "%d / %d" % [maxi(0, hp), max_hp], HORIZONTAL_ALIGNMENT_CENTER, size.x, fs, Kit.TEXT)
-	var extra := []
 	if shield > 0:
-		extra.append(Texts.t("ui.shield", {"n": shield}))
-	if barrier > 0:
-		extra.append(Texts.t("ui.barrier", {"n": barrier}))
-	if not extra.is_empty():
-		draw_string(font, Vector2(0, y - 2), "  ".join(extra) + "  ", HORIZONTAL_ALIGNMENT_RIGHT, size.x, 18, Kit.SHIELD.lightened(0.4))
+		draw_string(font, Vector2(0, y - 2), Texts.t("ui.block", {"n": shield}) + "  ", HORIZONTAL_ALIGNMENT_RIGHT, size.x, 18, Kit.SHIELD.lightened(0.4))

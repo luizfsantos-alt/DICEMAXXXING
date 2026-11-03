@@ -1,6 +1,6 @@
 class_name EndScreen
 extends Control
-## Fim da jornada: vitória do protótipo ou "morreu, zerou".
+## Fim da jornada: vitória da fatia vertical ou "perdeu, morreu".
 
 signal finished
 
@@ -11,7 +11,7 @@ func setup(r: RunState) -> EndScreen:
 	cc.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(cc)
 	var v := Kit.vbox(18)
-	v.custom_minimum_size = Vector2(760, 0)
+	v.custom_minimum_size = Vector2(900, 0)
 	cc.add_child(v)
 	var won := r.phase == "victory"
 	var t := Kit.label(Texts.t("ui.victory_title" if won else "ui.defeat_title"), 44, Kit.ACCENT if won else Kit.DANGER, true)
@@ -23,8 +23,7 @@ func setup(r: RunState) -> EndScreen:
 	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var sv := Kit.vbox(6)
 	sp.add_child(sv)
-	sv.add_child(Kit.label(Texts.t("ui.fight", {"n": r.fight, "max": Config.LAST_FIGHT}), 24, Kit.MUTED))
-	sv.add_child(Kit.label(Texts.t("ui.stats", {
+	sv.add_child(Kit.label(Texts.t("ui.stats", {"floor": r.floor_n,
 		"wins": r.stats.wins, "dealt": r.stats.dealt, "taken": r.stats.taken, "coins": r.stats.coins}), 22))
 	cols.add_child(sp)
 	var bp := Kit.panel()
@@ -32,11 +31,20 @@ func setup(r: RunState) -> EndScreen:
 	var bv := Kit.vbox(6)
 	bp.add_child(bv)
 	bv.add_child(Kit.label(Texts.t("ui.build"), 22, Kit.MUTED))
-	bv.add_child(Kit.label("Vida máxima: %d" % r.player_max_hp(), 20))
-	bv.add_child(Kit.label("Ataque: " + Texts.item_name(r.attack_id), 20))
-	bv.add_child(Kit.label("Defesa: " + Texts.item_name(r.defense_id), 20))
-	for id in r.passives:
-		bv.add_child(Kit.label("• " + Texts.item_name(id), 20))
+	bv.add_child(Kit.label(Texts.t("ui.consult_hp", {"hp": maxi(0, r.hero.hp), "max": r.hero.max_hp}), 20))
+	var g := GrimoireView.new().setup(r.hero.inventory, 64, null)
+	g.compact = true
+	g.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bv.add_child(g)
+	var stick := 0
+	var els := []
+	for d in r.hero.bag:
+		stick += d.sticker_count()
+		if d.element != "":
+			els.append(Texts.element_name(d.element))
+	bv.add_child(Kit.label(Texts.t("ui.bag", {"n": r.hero.bag.size()}) + "  ·  " + Texts.t("ui.consult_stickers", {"n": stick}), 18, Kit.MUTED, true))
+	if not els.is_empty():
+		bv.add_child(Kit.label(", ".join(els), 18, Kit.MUTED, true))
 	cols.add_child(bp)
 	var b := Kit.button(Texts.t("ui.menu"), func(): finished.emit(), Kit.PANEL_HI)
 	b.custom_minimum_size = Vector2(0, 72)

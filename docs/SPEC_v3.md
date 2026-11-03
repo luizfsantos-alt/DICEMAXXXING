@@ -1,6 +1,6 @@
 # DICEMAXXING — Especificação v3
 
-> **Status: spec de design fechada.** Saiu da conversa de design sobre "batalhas parecidas demais, sem sensação de progresso". O código atual ainda segue a [`SPEC.md`](SPEC.md) (v2) até a v3 ser implementada. Os números marcados com *(inicial)* são pontos de partida para o simulador ajustar.
+> **Status: fonte da verdade.** Saiu da conversa de design sobre "batalhas parecidas demais, sem sensação de progresso". A **fatia vertical** (seção 12) está implementada. Os números marcados com *(inicial)* são pontos de partida; os valores em uso estão em `engine/config.gd`.
 
 ---
 
@@ -209,4 +209,24 @@ Alguns inimigos põem dados-lixo na sua bolsa durante a luta. **Os dados-lixo fi
 
 ## 11. Próximo passo
 
-**Fatia vertical** para testar a jogada antes de investir em conteúdo: só o Feiticeiro; bolsa com ~5 elementos; ~8 magias; 10 andares com portas, uma trifurcação e o Porteiro de Chumbo; inimigos montados por orçamento.
+Jogar a fatia vertical e decidir o que ajustar antes de investir em conteúdo.
+
+---
+
+## 12. Fatia vertical (implementada)
+
+**Escopo:** só o Feiticeiro jogável; inimigos Feiticeiro e Assassino (com as variantes Lixeiro e Piromante); 6 elementos (Hidrogênio, Ósmio, Urânio, Sódio, Mercúrio e Chumbo); 11 magias (as 10 da seção 5, menos Golpe nas Sombras, mais as 3 do Assassino); 10 andares com portas, trifurcação a cada 3 lutas e o Porteiro de Chumbo no andar 10. Vencer o andar 10 encerra a jornada.
+
+**Decisões tomadas na implementação** (revisar depois de jogar):
+- **Evolução** de magia só melhora o **efeito** (×1; ×1,5; ×2). Melhorar exigência ou formato fica para depois.
+- **Urânio**: faces 3 a 8. **Chumbo** (lixo): faces 1, 1, 1 (travadas), 2, 2, 3.
+- **Queima**: causa o valor acumulado no início do turno de quem queima e cai 1 por turno. **Veneno** não cai durante a luta.
+- **Espelho e Esquiva** valem até o início do próximo turno de quem os ergueu, como o bloqueio.
+- **Lixeiro**: no primeiro turno dele, põe 1 Chumbo na sua bolsa (permanente).
+- **Adicionar magia** reorganiza o grimório sozinho quando ela só cabe mexendo nas outras peças. "Não cabe" só aparece quando nenhum arranjo serve.
+- **Arranjo inicial** do Feiticeiro deixa um espaço em L, para o Meteoro caber.
+- **Recompensa do Mestre** (+casas ou +1 na mão) não existe na fatia, porque o Mestre é a última luta.
+- O inimigo recebe **0,4 melhoria por andar** × o multiplicador da porta (fácil 0,8; normal 1,0; difícil 1,3; insana 1,7).
+- **Vida:** Feiticeiro 90; inimigo 36 + 6 por andar (× porta); Mestre ×1,6.
+
+**Simulador** (`sim/simulate.gd`, bot com a IA cautelosa, 400 jornadas): lutas com cerca de 4 turnos de cada lado. Chegam ao fim do andar 10 cerca de 11% pela porta fácil, 9% pela normal e 2% pela difícil. Um humano escolhendo portas, recompensas e paradas deve ir melhor que o bot.

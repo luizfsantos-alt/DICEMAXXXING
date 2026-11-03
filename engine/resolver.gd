@@ -29,7 +29,10 @@ static func draw_and_roll(f: Fighter, foe: Fighter, rng: RandomNumberGenerator, 
 		f.add_temp(Elements.lead())
 		ev.append({"t": "lead_hand", "side": side(f)})
 	f.roll_hand(rng, foe.last_hand)
-	ev.append({"t": "hand", "side": side(f), "values": f.hand_values()})
+	var els := []
+	for e in f.hand:
+		els.append(f.die_of(e).element)
+	ev.append({"t": "hand", "side": side(f), "values": f.hand_values(), "elements": els})
 
 
 ## Efeitos de quem age no próprio turno que mexem na bolsa do outro (Lixeiro).

@@ -1,10 +1,10 @@
 # DICEMAXXING
 
-Jogo de dados para Android num coliseu de 100 lutas. Feito em Godot 4.7 + GDScript.
+Jogo de dados para Android: suba uma torre com uma bolsa de dados e um grimório de magias. Feito em Godot 4.7 + GDScript.
 Tela em paisagem.
 
-- Regras: [`docs/SPEC.md`](docs/SPEC.md) (v2, fonte da verdade do código atual).
-- Próxima versão (design fechado, ainda não implementada): [`docs/SPEC_v3.md`](docs/SPEC_v3.md) — bolsa de dados, magias, torre.
+- Regras: [`docs/SPEC_v3.md`](docs/SPEC_v3.md) (v3, fonte da verdade). A fatia vertical (seção 12) está implementada.
+- Histórico: [`docs/SPEC.md`](docs/SPEC.md) (v2, coliseu com equipamentos; substituída).
 - Motor de regras (sem cenas, testável): `engine/`.
 - Interface (placeholders, paisagem): `ui/`. A tela de duelo anima os eventos do motor.
 - Textos PT-BR: `data/texts_pt_br.json`.
@@ -16,7 +16,8 @@ Tela em paisagem.
 ```sh
 godot --headless --import
 godot --headless -s addons/gut/gut_cmdln.gd -gexit                 # testes
-godot --headless -s res://sim/simulate.gd -- --runs=2000 --seed=1   # simulação
+godot --headless -s res://sim/check.gd                              # scripts sem erro
+godot --headless -s res://sim/simulate.gd -- --runs=1000 --door=normal   # simulação
 ```
 
 ## APK

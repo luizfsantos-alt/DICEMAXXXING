@@ -110,6 +110,34 @@ func test_ordem_de_resolucao_cima_para_baixo_esquerda_para_direita():
 	assert_eq(inv.order(), [2, 0, 1])
 
 
+func test_arranjo_inicial_e_valido_e_todas_as_magias_cabem():
+	for arch in ["sorcerer", "assassin"]:
+		var f := EnemyFactory.base(arch)
+		var occ := 0
+		for it in f.inventory.items:
+			occ += Spells.shape(it.id).size()
+		assert_eq(f.inventory.occupied().size(), occ, "sem sobreposição (%s)" % arch)
+	var s := EnemyFactory.base("sorcerer")
+	for id in Spells.ERUDITE_CHOICES:
+		assert_true(s.inventory.fits(id), "%s cabe no início" % id)
+
+
+func test_adicionar_reorganiza_quando_preciso():
+	var inv := Inventory.make(4, 3)
+	inv.items = [
+		{"id": "faisca", "level": 1, "x": 0, "y": 0, "rot": 0},
+		{"id": "escudo", "level": 1, "x": 1, "y": 0, "rot": 0},
+		{"id": "bola", "level": 1, "x": 2, "y": 0, "rot": 0},
+	]
+	assert_true(inv.find_spot("meteoro").is_empty(), "não cabe sem mexer")
+	assert_true(inv.add("meteoro"), "reorganiza")
+	var occ := 0
+	for it in inv.items:
+		occ += Spells.shape(it.id).size()
+	assert_eq(inv.occupied().size(), occ)
+	assert_false(inv.fits("bola"), "sem espaço para outra 2×2")
+
+
 func test_mover_respeita_limites():
 	var inv := Inventory.make(4, 3)
 	inv.add("faisca")
