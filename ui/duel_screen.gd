@@ -1,35 +1,60 @@
 class_name DuelScreen
 extends Control
-## Tela do duelo: bandeja de 6 dados, encaixe de ataque e de defesa, swipe para lançar.
+## Tela do duelo em paisagem (docs/SPEC.md §10).
+##
+## Fases do turno:
+## - "player":  você põe dados nos slots do seu equipamento (palco central).
+## - "enemy":   o equipamento do inimigo aparece e os dados dele voam para os slots (não pulável).
+## - "resolve": o palco some e os eventos do motor são animados na ordem oficial (tocar pula).
+## - "between": pausa curta antes do próximo turno (tocar adianta).
+## - "over":    aviso de vitória ou derrota.
 
 signal finished
 
+const DIE := 92 ## Dado do jogador.
+const EDIE := 60 ## Dado do inimigo.
+const SLOT := 104
+const PARALLEL := ["attack", "damage", "self"] ## Tipos simultâneos na regra (etapas F, J e L).
+
 var run: RunState
 var duel: Duel
+var fast := false ## Testes: sem esperas.
 
-# Estado da interação do turno.
-var launched: Array = []
-var staged: Array = []
-var defense: Array = []
-var selected: int = -1
-var group_done: bool = false
-var locked: bool = false
+var phase := "player"
+var attack: Array = [] ## Índices dos dados nos slots de ataque, em ordem (slot 1, 2, 3).
+var defense: int = -1
+var skip := false
+var shown := {} ## Valores exibidos nas barras: side -> {hp, max, shield, barrier}.
+var seq := 0 ## Invalida animações de início de turno antigas.
+var last_log: Array = []
+var snap := {} ## Dados do turno em resolução (o próximo turno já foi rolado).
 
 # Nós.
-var enemy_info: VBoxContainer
-var enemy_dice_row: HBoxContainer
+var hud_label: Label
+var log_panel: PanelContainer
 var log_label: RichTextLabel
-var player_info: VBoxContainer
-var attack_slot: PanelContainer
-var attack_content: VBoxContainer
-var defense_slot: PanelContainer
-var defense_content: VBoxContainer
+var bars := {} ## side -> HpBar
+var portraits := {} ## side -> PanelContainer
+var bar_rows := {} ## side -> HBoxContainer (quadradinho de passiva + barra)
+var chips := {"player": {}, "enemy": {}} ## side -> {id -> Chip}
+var items_row: HBoxContainer
+var medal_box: Control
+var enemy_tray: HBoxContainer
 var tray: HBoxContainer
-var hint: Label
-var action_row: HBoxContainer
-var overlay: Control
 var tray_views: Array = []
-var _slot_press := Vector2.ZERO
+var enemy_views: Array = []
+var stage: HBoxContainer
+var atk_panel: PanelContainer
+var atk_title: Label
+var atk_slots: Array = []
+var def_panel: PanelContainer
+var def_title: Label
+var def_slot: PanelContainer
+var end_btn: Button
+var info_label: Label
+var fx: Control
+var catcher: Control
+var end_overlay: Control
 
 
 func setup(r: RunState) -> DuelScreen:
@@ -37,402 +62,507 @@ func setup(r: RunState) -> DuelScreen:
 	duel = r.duel
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	_build()
-	_new_turn_ui()
+	_sync_shown()
+	_new_turn([])
 	return self
 
 
-# ------------------------------------------------------------------ Layout
+# ================================================================== Layout
 func _build() -> void:
 	var root := Kit.vbox(10)
-	var m := Kit.margin(root, 16)
+	var m := Kit.margin(root, 12)
 	m.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(m)
 
-	var ep := Kit.panel()
-	enemy_info = Kit.vbox(6)
-	ep.add_child(enemy_info)
-	root.add_child(ep)
+	# --- Topo: HUD, barra e dados do inimigo | retrato do inimigo.
+	var top := Kit.hbox(16)
+	root.add_child(top)
+	var top_left := Kit.vbox(8)
+	top_left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top.add_child(top_left)
+	var hud_row := Kit.hbox(12)
+	hud_label = Kit.label("", 20, Kit.MUTED)
+	hud_row.add_child(hud_label)
+	if OS.is_debug_build():
+		var lb := Kit.button(Texts.t("ui.log_button"), _toggle_log, Kit.PANEL_HI, 18)
+		lb.custom_minimum_size = Vector2(70, 32)
+		hud_row.add_child(lb)
+	top_left.add_child(hud_row)
+	top_left.add_child(_bar_row("enemy"))
+	enemy_tray = Kit.hbox(8)
+	top_left.add_child(enemy_tray)
+	top.add_child(_portrait("enemy"))
 
-	enemy_dice_row = Kit.hbox(8)
-	enemy_dice_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	root.add_child(enemy_dice_row)
+	# --- Centro: palco (ataque retangular + defesa circular).
+	var mid := CenterContainer.new()
+	mid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.add_child(mid)
+	stage = Kit.hbox(28)
+	stage.alignment = BoxContainer.ALIGNMENT_CENTER
+	mid.add_child(stage)
+	atk_panel = Kit.panel(Color(0.3, 0.13, 0.15))
+	var av := Kit.vbox(6)
+	atk_panel.add_child(av)
+	atk_title = Kit.label("", 20, Kit.TEXT)
+	atk_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	av.add_child(atk_title)
+	var srow := Kit.hbox(10)
+	av.add_child(srow)
+	for k in Items.ATTACK_MAX_DICE:
+		var s := _slot_box()
+		srow.add_child(s)
+		atk_slots.append(s)
+	stage.add_child(atk_panel)
+	def_panel = PanelContainer.new()
+	def_panel.custom_minimum_size = Vector2(196, 196)
+	def_panel.add_theme_stylebox_override("panel", Kit.box(Color(0.12, 0.2, 0.32), 98, 12))
+	var dv := Kit.vbox(4)
+	dv.alignment = BoxContainer.ALIGNMENT_CENTER
+	def_panel.add_child(dv)
+	def_title = Kit.label("", 16, Kit.TEXT, true)
+	def_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	def_title.custom_minimum_size = Vector2(150, 0)
+	dv.add_child(def_title)
+	var dc := CenterContainer.new()
+	def_slot = _slot_box()
+	dc.add_child(def_slot)
+	dv.add_child(dc)
+	stage.add_child(def_panel)
 
-	var lp := Kit.panel(Color(0.11, 0.1, 0.14))
-	lp.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	log_label = RichTextLabel.new()
-	log_label.bbcode_enabled = true
-	log_label.scroll_following = true
-	log_label.add_theme_font_size_override("normal_font_size", 22)
-	log_label.add_theme_color_override("default_color", Kit.MUTED)
-	lp.add_child(log_label)
-	root.add_child(lp)
+	# --- Botão "Terminar turno", sempre abaixo do palco.
+	var brow := Kit.hbox(16)
+	brow.alignment = BoxContainer.ALIGNMENT_CENTER
+	info_label = Kit.label("", 20, Kit.MUTED)
+	info_label.custom_minimum_size = Vector2(380, 0)
+	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	brow.add_child(info_label)
+	end_btn = Kit.button(Texts.t("ui.end_turn"), _on_end_turn_pressed, Kit.ACCENT.darkened(0.55), 26)
+	end_btn.custom_minimum_size = Vector2(320, 64)
+	brow.add_child(end_btn)
+	var pad := Control.new()
+	pad.custom_minimum_size = Vector2(380, 0)
+	brow.add_child(pad)
+	root.add_child(brow)
 
-	var pp := Kit.panel()
-	player_info = Kit.vbox(6)
-	pp.add_child(player_info)
-	root.add_child(pp)
-
-	var slots := Kit.hbox(10)
-	attack_slot = Kit.panel(Color(0.3, 0.13, 0.15))
-	attack_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	attack_slot.custom_minimum_size = Vector2(0, 190)
-	attack_content = Kit.vbox(4)
-	attack_slot.add_child(attack_content)
-	attack_slot.gui_input.connect(_on_attack_slot_input)
-	slots.add_child(attack_slot)
-	defense_slot = Kit.panel(Color(0.12, 0.2, 0.32))
-	defense_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	defense_slot.custom_minimum_size = Vector2(0, 190)
-	defense_content = Kit.vbox(4)
-	defense_slot.add_child(defense_content)
-	defense_slot.gui_input.connect(_on_defense_slot_input)
-	slots.add_child(defense_slot)
-	root.add_child(slots)
-
-	tray = Kit.hbox(8)
+	# --- Base: retrato do jogador | bandeja e barra do jogador.
+	var bottom := Kit.hbox(16)
+	root.add_child(bottom)
+	var pl := Kit.vbox(8)
+	var prow := Kit.hbox(8)
+	prow.add_child(_portrait("player"))
+	medal_box = CenterContainer.new()
+	medal_box.custom_minimum_size = Vector2(Chip.SIZE, 0)
+	prow.add_child(medal_box)
+	pl.add_child(prow)
+	items_row = Kit.hbox(8)
+	pl.add_child(items_row)
+	bottom.add_child(pl)
+	var br := Kit.vbox(8)
+	br.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bottom.add_child(br)
+	tray = Kit.hbox(10)
 	tray.alignment = BoxContainer.ALIGNMENT_CENTER
-	tray.custom_minimum_size = Vector2(0, 108)
-	root.add_child(tray)
+	tray.custom_minimum_size = Vector2(0, DIE)
+	br.add_child(tray)
+	br.add_child(_bar_row("player"))
 
-	hint = Kit.label("", 22, Kit.MUTED, true)
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	root.add_child(hint)
-
-	action_row = Kit.hbox(10)
-	root.add_child(action_row)
-
-	overlay = Control.new()
-	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(overlay)
-
-
-# ------------------------------------------------------------------ Turno
-func _new_turn_ui() -> void:
-	launched = []
-	staged = []
-	defense = []
-	selected = -1
-	group_done = false
-	locked = false
-	_render_enemy_dice(duel.enemy.dice, duel.enemy.dice_sides, null)
-	_render_tray(duel.player.dice, duel.player.dice_sides)
-	_render_info()
-	_render_slots()
-	_set_log(duel.turn_log)
-	_set_hint_default()
-	Kit.clear(action_row)
-	var b := Kit.button(Texts.t("ui.end_turn"), _on_end_turn_pressed, Kit.PANEL_HI)
-	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	action_row.add_child(b)
+	# --- Camadas: efeitos, toque para pular, log de debug.
+	fx = Control.new()
+	fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fx.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(fx)
+	catcher = Control.new()
+	catcher.set_anchors_preset(Control.PRESET_FULL_RECT)
+	catcher.mouse_filter = Control.MOUSE_FILTER_STOP
+	catcher.visible = false
+	catcher.gui_input.connect(_on_catcher_input)
+	add_child(catcher)
+	log_panel = Kit.panel(Color(0.06, 0.05, 0.08, 0.96))
+	log_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	log_panel.visible = false
+	log_label = RichTextLabel.new()
+	log_label.bbcode_enabled = false
+	log_label.scroll_following = true
+	log_label.add_theme_font_size_override("normal_font_size", 20)
+	log_label.add_theme_color_override("default_color", Kit.MUTED)
+	var lv := Kit.vbox(8)
+	var close := Kit.button(Texts.t("ui.log_button") + "  ✕", _toggle_log, Kit.PANEL_HI, 18)
+	close.custom_minimum_size = Vector2(0, 40)
+	lv.add_child(close)
+	log_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	lv.add_child(log_label)
+	log_panel.add_child(lv)
+	add_child(log_panel)
 
 
-func _render_info() -> void:
-	Kit.clear(enemy_info)
-	var e := duel.enemy
-	var title := e.name + ("  · " + Texts.t("ui.boss") if e.boss_id != "" else "")
-	enemy_info.add_child(Kit.label(title, 26, Kit.ACCENT if e.boss_id != "" else Kit.TEXT, true))
-	var fight_l := Kit.label(Texts.t("ui.fight", {"n": run.fight, "max": Config.LAST_FIGHT}), 20, Kit.MUTED)
-	enemy_info.add_child(fight_l)
-	enemy_info.add_child(Kit.hp_bar(e.max_hp, e.hp, Kit.DANGER))
-	enemy_info.add_child(Kit.label(Texts.t("ui.hp", {"hp": maxi(0, e.hp), "max": e.max_hp}) + _shield_text(e), 22))
-	var items := "Ataque: " + Texts.item_name(e.attack_id)
-	if e.defense_id != "":
-		items += "   Defesa: " + Texts.item_name(e.defense_id)
-	enemy_info.add_child(Kit.label(items, 20, Kit.MUTED, true))
-	if e.boss_id != "":
-		enemy_info.add_child(Kit.label("★ " + Texts.boss_desc(e.boss_id), 20, Kit.ACCENT, true))
-
-	Kit.clear(player_info)
-	var p := duel.player
-	player_info.add_child(Kit.hp_bar(p.max_hp, p.hp, Kit.OK))
-	var line := Texts.t("ui.hp", {"hp": maxi(0, p.hp), "max": p.max_hp}) + _shield_text(p)
-	line += "   " + Texts.t("ui.coins", {"n": run.coins})
-	player_info.add_child(Kit.label(line, 22))
-	var extras := []
-	for id in p.passives:
-		extras.append(Texts.item_name(id))
-	if p.death_defy:
-		extras.append(Texts.item_name("DEATH_DEFY"))
-	if not extras.is_empty():
-		player_info.add_child(Kit.label(" · ".join(extras), 18, Kit.MUTED, true))
-
-
-func _shield_text(f: Fighter) -> String:
-	var s := ""
-	if f.round_shield + f.placa_shield > 0:
-		s += "   " + Texts.t("ui.shield", {"n": f.round_shield + f.placa_shield})
-	if f.barrier > 0:
-		s += "   " + Texts.t("ui.barrier", {"n": f.barrier})
+func _slot_box() -> PanelContainer:
+	var s := PanelContainer.new()
+	s.custom_minimum_size = Vector2(SLOT, SLOT)
+	s.add_theme_stylebox_override("panel", Kit.box(Color(0, 0, 0, 0.3), 12, 6))
 	return s
 
 
-func _render_enemy_dice(values: Array, sides: Array, choice: TurnChoice) -> void:
-	Kit.clear(enemy_dice_row)
-	for i in values.size():
-		var v := DieView.new()
-		v.interactive = false
-		v.setup(i, values[i], sides[i] if i < sides.size() else 6, 64)
-		if choice != null:
-			if i in choice.attack:
-				v.set_state("attack")
-			elif i in choice.defense:
-				v.set_state("defense")
-			else:
-				v.set_state("self")
-		enemy_dice_row.add_child(v)
+func _bar_row(side: String) -> HBoxContainer:
+	var row := Kit.hbox(10)
+	row.name = "BarRow_" + side
+	bar_rows[side] = row
+	var bar := HpBar.new().setup(Kit.DANGER if side == "enemy" else Kit.OK)
+	bars[side] = bar
+	row.add_child(bar)
+	return row
 
 
-func _render_tray(values: Array, sides: Array) -> void:
+func _portrait(side: String) -> PanelContainer:
+	var p := Kit.panel(Color(0.2, 0.17, 0.25) if side == "enemy" else Color(0.17, 0.2, 0.25))
+	p.custom_minimum_size = Vector2(230, 140 if side == "enemy" else 104)
+	var v := Kit.vbox(2)
+	v.alignment = BoxContainer.ALIGNMENT_CENTER
+	p.add_child(v)
+	portraits[side] = p
+	if side == "enemy":
+		p.gui_input.connect(_on_enemy_portrait_input)
+	return p
+
+
+func _fill_portraits() -> void:
+	var e := duel.enemy
+	var ev: VBoxContainer = portraits.enemy.get_child(0)
+	Kit.clear(ev)
+	if e.boss_id != "":
+		ev.add_child(Kit.label("★ " + Texts.t("ui.boss"), 16, Kit.ACCENT))
+	ev.add_child(Kit.label(e.name, 20, Kit.TEXT, true))
+	ev.add_child(Kit.label(Texts.t("ui.front_view") + "  ·  " + Texts.t("ui.tap_to_view"), 14, Kit.MUTED))
+	var pv: VBoxContainer = portraits.player.get_child(0)
+	Kit.clear(pv)
+	pv.add_child(Kit.label(Texts.t("ui.you"), 22, Kit.TEXT))
+	pv.add_child(Kit.label(Texts.character("P1")[0] + "  " + Texts.t("ui.back_view"), 14, Kit.MUTED))
+	_fill_chips()
+
+
+## Quadradinho de passiva (na ponta da barra), fileira de itens e medalha.
+func _fill_chips() -> void:
+	chips = {"player": {}, "enemy": {}}
+	for side in ["player", "enemy"]:
+		var row: HBoxContainer = bar_rows[side]
+		for c in row.get_children():
+			if c is Chip:
+				row.remove_child(c)
+				c.queue_free()
+		var pid := "P1" if side == "player" else duel.enemy.boss_id
+		var chip := _chip(side, pid)
+		row.add_child(chip)
+		row.move_child(chip, 0)
+	Kit.clear(items_row)
+	for id in duel.player.passives:
+		items_row.add_child(_chip("player", id))
+	Kit.clear(medal_box)
+	if duel.player.death_defy:
+		medal_box.add_child(_chip("player", "DEATH_DEFY", true))
+
+
+func _chip(side: String, id: String, medal := false) -> Chip:
+	var c := Chip.make(id, medal)
+	if id != "":
+		chips[side][id] = c
+		c.pressed.connect(_on_chip_pressed)
+	return c
+
+
+func _entry(id: String) -> Array:
+	if id == "P1":
+		var ch := Texts.character("P1")
+		return [Texts.t("ui.c_passive") + " · " + ch[0], ch[1], ch[2]]
+	if Texts.data().get("bosses", {}).has(id):
+		return [Texts.t("ui.c_boss_rule"), Texts.boss_name(id), Texts.boss_desc(id)]
+	if id == "DEATH_DEFY":
+		return [Texts.t("ui.c_medal"), Texts.item_name(id), Texts.item_desc(id)]
+	if id in Items.ATTACK:
+		return [Texts.t("ui.c_attack"), Texts.item_name(id), Texts.item_desc(id)]
+	if id in Items.DEFENSE:
+		return [Texts.t("ui.c_defense"), Texts.item_name(id), Texts.item_desc(id)]
+	return [Texts.t("ui.c_item"), Texts.item_name(id), Texts.item_desc(id)]
+
+
+func _on_chip_pressed(c: Chip) -> void:
+	if phase in ["resolve", "between"]:
+		return
+	Consult.open(self, "", [_entry(c.id)])
+
+
+## Consulta de tudo do inimigo: vida, equipamentos e regra de chefe.
+func _on_enemy_portrait_input(e: InputEvent) -> void:
+	if not (e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT and not e.pressed):
+		return
+	if phase in ["resolve", "between"]:
+		return
+	open_enemy_consult()
+
+
+func open_enemy_consult() -> Consult:
+	var en := duel.enemy
+	var entries := [_entry(en.attack_id)]
+	if en.defense_id != "":
+		entries.append(_entry(en.defense_id))
+	else:
+		entries.append([Texts.t("ui.c_defense"), Texts.t("ui.no_defense"), ""])
+	if en.boss_id != "":
+		entries.append(_entry(en.boss_id))
+	else:
+		entries.append([Texts.t("ui.c_passive"), Texts.t("ui.c_no_passive"), ""])
+	var title := en.name + "  ·  " + Texts.t("ui.c_hp", {"hp": maxi(0, en.hp), "max": en.max_hp})
+	return Consult.open(self, title, entries)
+
+
+# ================================================================== Valores exibidos
+func _fighter(side: String) -> Fighter:
+	return duel.player if side == "player" else duel.enemy
+
+
+func _state_of(f: Fighter) -> Dictionary:
+	return {"hp": f.hp, "max": f.max_hp, "shield": f.round_shield + f.placa_shield, "barrier": f.barrier}
+
+
+func _sync_shown() -> void:
+	shown = {"player": _state_of(duel.player), "enemy": _state_of(duel.enemy)}
+	_draw_bars()
+
+
+func _draw_bars() -> void:
+	for side in bars:
+		var s: Dictionary = shown[side]
+		bars[side].set_values(s.max, s.hp, s.shield, s.barrier)
+	hud_label.text = Texts.t("ui.hud", {"n": run.fight, "max": Config.LAST_FIGHT, "coins": run.coins})
+
+
+# ================================================================== Seu turno
+func _new_turn(start_events: Array) -> void:
+	phase = "player"
+	seq += 1
+	attack = []
+	defense = -1
+	skip = false
+	catcher.visible = false
+	Kit.clear(fx)
+	stage.modulate.a = 1.0
+	_fill_portraits()
+	_render_trays()
+	_render_stage_player()
+	_refresh()
+	_set_log(last_log + duel.turn_log)
+	end_btn.disabled = false
+	end_btn.visible = true
+	if not start_events.is_empty():
+		_play_start(start_events, seq)
+
+
+func _render_trays() -> void:
 	Kit.clear(tray)
 	tray_views = []
-	for i in values.size():
+	var p := duel.player
+	for i in p.dice.size():
 		var v := DieView.new()
-		v.setup(i, values[i], sides[i], 100)
+		v.setup(i, p.dice[i], p.dice_sides[i], DIE)
 		v.tapped.connect(_on_die_tapped)
 		v.released.connect(_on_die_released)
 		tray.add_child(v)
 		tray_views.append(v)
+	Kit.clear(enemy_tray)
+	enemy_views = []
+	var e := duel.enemy
+	for i in e.dice.size():
+		var v := DieView.new()
+		v.interactive = false
+		v.setup(i, e.dice[i], e.dice_sides[i] if i < e.dice_sides.size() else 6, EDIE)
+		enemy_tray.add_child(v)
+		enemy_views.append(v)
 
 
-func _render_slots() -> void:
+func _render_stage_player() -> void:
 	var p := duel.player
-	Kit.clear(attack_content)
-	attack_content.add_child(Kit.label(Texts.t("ui.attack_slot"), 18, Kit.MUTED))
-	attack_content.add_child(Kit.label(Texts.item_name(p.attack_id), 24, Kit.TEXT, true))
-	attack_content.add_child(Kit.label(Texts.item_desc(p.attack_id), 17, Kit.MUTED, true))
-	var row := Kit.hbox(4)
-	for i in launched + staged:
-		var mini := DieView.new()
-		mini.interactive = false
-		mini.setup(i, duel.player.dice[i], duel.player.dice_sides[i], 46)
-		mini.set_state("launched" if i in launched else "staged")
-		row.add_child(mini)
-	attack_content.add_child(row)
+	atk_panel.add_theme_stylebox_override("panel", Kit.box(Color(0.3, 0.13, 0.15)))
+	atk_title.text = Texts.t("ui.attack_title", {"item": Texts.item_name(p.attack_id)})
+	def_panel.add_theme_stylebox_override("panel", Kit.box(Color(0.12, 0.2, 0.32), 98, 12))
+	def_title.text = Texts.item_name(p.defense_id) if p.defense_id != "" else Texts.t("ui.no_defense")
+	def_slot.modulate.a = 1.0 if p.defense_id != "" else 0.3
 
-	Kit.clear(defense_content)
-	defense_content.add_child(Kit.label(Texts.t("ui.defense_slot"), 18, Kit.MUTED))
-	if p.defense_id == "":
-		defense_content.add_child(Kit.label(Texts.t("ui.no_defense"), 22, Kit.MUTED, true))
-	else:
-		defense_content.add_child(Kit.label(Texts.item_name(p.defense_id), 24, Kit.TEXT, true))
-		defense_content.add_child(Kit.label(Texts.item_desc(p.defense_id), 17, Kit.MUTED, true))
-		var drow := Kit.hbox(4)
-		for i in defense:
-			var mini := DieView.new()
-			mini.interactive = false
-			mini.setup(i, duel.player.dice[i], duel.player.dice_sides[i], 46)
-			mini.set_state("defense")
-			drow.add_child(mini)
-		defense_content.add_child(drow)
+
+func _clear_slot(s: PanelContainer, mark: String) -> void:
+	Kit.clear(s)
+	if mark != "":
+		var l := Kit.label(mark, 22, Color(1, 1, 1, 0.35))
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		s.add_child(l)
+
+
+func _slot_mark(attack_id: String, k: int) -> String:
+	return "×2" if attack_id == "A5" and k == 0 else str(k + 1)
 
 
 func _refresh() -> void:
-	for v in tray_views:
-		var i: int = v.index
-		if i in launched:
-			v.set_state("launched")
-		elif i in staged:
-			v.set_state("staged")
-		elif i in defense:
-			v.set_state("defense")
-		elif i == selected:
-			v.set_state("selected")
+	var p := duel.player
+	for k in atk_slots.size():
+		var s: PanelContainer = atk_slots[k]
+		if k < attack.size():
+			Kit.clear(s)
+			s.add_child(_placed_view(attack[k], "staged"))
 		else:
-			v.set_state("free")
-	_render_slots()
-	var used := launched.size() + staged.size() + defense.size()
-	var self_sum := 0
+			_clear_slot(s, _slot_mark(p.attack_id, k))
+	if defense != -1:
+		Kit.clear(def_slot)
+		def_slot.add_child(_placed_view(defense, "defense"))
+	else:
+		_clear_slot(def_slot, "")
+	for v in tray_views:
+		v.set_state("launched" if (v.index in attack or v.index == defense) else "free")
+	var used := _used()
+	if used == 0:
+		info_label.text = Texts.t("ui.place_hint")
+	else:
+		info_label.text = Texts.t("ui.active_count", {"sum": _self_sum(), "n": used, "max": Config.MAX_ACTIVE})
+
+
+func _placed_view(i: int, state: String) -> DieView:
+	var v := DieView.new()
+	v.setup(i, duel.player.dice[i], duel.player.dice_sides[i], DIE)
+	v.set_state(state)
+	v.tapped.connect(_on_die_tapped)
+	v.released.connect(_on_die_released)
+	return v
+
+
+func _used() -> int:
+	return attack.size() + (1 if defense != -1 else 0)
+
+
+func _self_sum() -> int:
+	var s := 0
 	for i in duel.player.dice.size():
-		if not (i in launched) and not (i in staged) and not (i in defense):
-			self_sum += duel.player.dice[i]
-	if used > 0:
-		hint.text = Texts.t("ui.self_damage", {"sum": self_sum}) + "  ·  ativos %d/%d" % [used, Config.MAX_ACTIVE]
-
-
-func _set_hint_default() -> void:
-	hint.text = Texts.t("ui.swipe_hint_group" if Items.is_group_launch(duel.player.attack_id) else "ui.swipe_hint_single")
-
-
-func _set_log(lines: Array) -> void:
-	log_label.text = "\n".join(lines)
+		if not (i in attack) and i != defense:
+			s += duel.player.dice[i]
+	return s
 
 
 # ------------------------------------------------------------------ Entrada
-func _used() -> int:
-	return launched.size() + staged.size() + defense.size()
-
-
-func _is_group() -> bool:
-	return Items.is_group_launch(duel.player.attack_id)
-
-
 func _on_die_tapped(v: DieView) -> void:
-	if locked:
+	if phase != "player":
 		return
 	var i := v.index
-	if i in staged:
-		staged.erase(i)
-	elif i in defense:
-		defense.erase(i)
-	elif selected == i:
-		selected = -1
+	if i in attack or i == defense:
+		_return(i)
 	else:
-		selected = i
-	_refresh()
+		_place_attack(i)
 
 
-func _on_die_released(v: DieView, pos: Vector2, d: Vector2) -> void:
-	if locked:
+func _on_die_released(v: DieView, pos: Vector2, _d: Vector2) -> void:
+	if phase != "player":
 		return
 	var i := v.index
-	selected = -1
-	if defense_slot.get_global_rect().has_point(pos):
-		_fit_defense(i)
-	elif attack_slot.get_global_rect().has_point(pos) or (d.y < -60.0 and absf(d.y) > absf(d.x)):
-		if _is_group():
-			if i in staged:
-				_launch_group()
-			else:
-				_stage(i)
-		else:
-			_launch(i)
+	for k in atk_slots.size():
+		if atk_slots[k].get_global_rect().has_point(pos):
+			_place_attack(i, k)
+			return
+	if atk_panel.get_global_rect().has_point(pos):
+		_place_attack(i)
+	elif def_panel.get_global_rect().has_point(pos):
+		_place_defense(i)
+	elif i in attack or i == defense:
+		_return(i)
+
+
+func _hint(text: String) -> void:
+	info_label.text = text
+
+
+func _return(i: int) -> void:
+	attack.erase(i)
+	if defense == i:
+		defense = -1
 	_refresh()
 
 
-func _on_attack_slot_input(e: InputEvent) -> void:
-	if locked or not (e is InputEventMouseButton) or e.button_index != MOUSE_BUTTON_LEFT:
+## Põe o dado `i` no ataque, no slot `at` (ou no fim). Os demais deslizam.
+func _place_attack(i: int, at: int = -1) -> void:
+	var was_def := defense == i
+	var old_pos := attack.find(i)
+	attack.erase(i)
+	if was_def:
+		defense = -1
+	if _used() >= Config.MAX_ACTIVE or attack.size() >= Items.ATTACK_MAX_DICE:
+		# Sem espaço: desfaz.
+		if old_pos != -1:
+			attack.insert(old_pos, i)
+		if was_def:
+			defense = i
+		_refresh()
+		_hint(Texts.t("ui.max_active", {"n": Config.MAX_ACTIVE}))
 		return
-	if e.pressed:
-		_slot_press = e.global_position
-		return
-	var d: Vector2 = e.global_position - _slot_press
-	if d.y < -50.0 and _is_group() and not staged.is_empty():
-		_launch_group()
-	elif d.length() < 16.0 and selected != -1:
-		var i := selected
-		selected = -1
-		if _is_group():
-			_stage(i)
-		else:
-			_launch(i)
+	if at < 0 or at > attack.size():
+		at = attack.size()
+	attack.insert(at, i)
 	_refresh()
 
 
-func _on_defense_slot_input(e: InputEvent) -> void:
-	if locked or not (e is InputEventMouseButton) or e.button_index != MOUSE_BUTTON_LEFT or e.pressed:
+func _place_defense(i: int) -> void:
+	var p := duel.player
+	if p.defense_id == "":
 		return
-	if selected != -1:
-		var i := selected
-		selected = -1
-		_fit_defense(i)
-	elif not defense.is_empty():
-		defense.clear()
+	var old_pos := attack.find(i)
+	attack.erase(i)
+	var old_def := defense
+	defense = -1
+	if _used() >= Config.MAX_ACTIVE:
+		if old_pos != -1:
+			attack.insert(old_pos, i)
+		defense = old_def
+		_refresh()
+		_hint(Texts.t("ui.max_active", {"n": Config.MAX_ACTIVE}))
+		return
+	defense = i
 	_refresh()
-
-
-func _has_room_for(i: int) -> bool:
-	var used := _used()
-	if i in staged or i in defense:
-		used -= 1
-	if used >= Config.MAX_ACTIVE:
-		hint.text = "Máximo de %d dados ativos." % Config.MAX_ACTIVE
-		return false
-	return true
-
-
-func _stage(i: int) -> void:
-	if group_done or i in launched or i in staged:
-		return
-	if not _has_room_for(i):
-		return
-	defense.erase(i)
-	staged.append(i)
-
-
-func _fit_defense(i: int) -> void:
-	if duel.player.defense_id == "" or i in launched:
-		return
-	var old: Array = defense.duplicate()
-	defense.clear()
-	if not _has_room_for(i):
-		defense = old
-		return
-	staged.erase(i)
-	defense = [i]
-	if not Items.defense_accepts(duel.player.defense_id, duel.player.dice[i]):
-		hint.text = Texts.t("log.def_invalid", {"who": "Atenção", "item": Texts.item_name(duel.player.defense_id), "n": duel.player.dice[i]})
-
-
-func _launch(i: int) -> void:
-	if group_done or i in launched:
-		return
-	if not _has_room_for(i):
-		return
-	defense.erase(i)
-	launched.append(i)
-	_fly(tray_views[i], enemy_info)
-	_refresh()
-	if launched.size() + defense.size() >= Config.MAX_ACTIVE:
-		_auto_submit()
-
-
-func _launch_group() -> void:
-	if staged.is_empty() or group_done:
-		return
-	for i in staged:
-		launched.append(i)
-		_fly(tray_views[i], enemy_info)
-	staged.clear()
-	group_done = true
-	_refresh()
-	if launched.size() + defense.size() >= Config.MAX_ACTIVE:
-		_auto_submit()
-
-
-func _auto_submit() -> void:
-	locked = true
-	await get_tree().create_timer(0.45).timeout
-	_submit()
+	if not Items.defense_accepts(p.defense_id, p.dice[i]):
+		_hint(Texts.t("log.def_invalid", {"who": "Atenção", "item": Texts.item_name(p.defense_id), "n": p.dice[i]}))
 
 
 func _on_end_turn_pressed() -> void:
-	if locked:
+	if phase != "player":
 		return
-	var used := launched.size() + defense.size()
-	if used >= Config.MAX_ACTIVE and staged.is_empty():
+	if _used() >= Config.MAX_ACTIVE:
 		_submit()
 		return
-	var n := duel.player.dice.size() - used
-	var s := 0
-	for i in duel.player.dice.size():
-		if not (i in launched) and not (i in defense):
-			s += duel.player.dice[i]
 	var dlg := ConfirmationDialog.new()
-	dlg.dialog_text = Texts.t("ui.end_turn_warn", {"n": n, "sum": s})
+	dlg.dialog_text = Texts.t("ui.end_turn_warn", {"n": duel.player.dice.size() - _used(), "sum": _self_sum()})
 	dlg.ok_button_text = Texts.t("ui.confirm")
 	dlg.cancel_button_text = Texts.t("ui.cancel")
 	dlg.confirmed.connect(_submit)
 	add_child(dlg)
-	dlg.popup_centered(Vector2i(560, 260))
+	dlg.popup_centered(Vector2i(620, 220))
 
 
-# ------------------------------------------------------------------ Resolução
+# ================================================================== Resolução
 func _submit() -> void:
-	locked = true
-	staged.clear()
-	var snap := {
+	if phase != "player":
+		return
+	seq += 1
+	var choice := TurnChoice.make(attack, [defense] if defense != -1 else [])
+	snap = {
 		"pdice": duel.player.dice.duplicate(), "psides": duel.player.dice_sides.duplicate(),
 		"edice": duel.enemy.dice.duplicate(), "esides": duel.enemy.dice_sides.duplicate(),
 	}
-	var rep := duel.submit(TurnChoice.make(launched, defense))
+	_sync_shown()
+	var rep := duel.submit(choice)
 	if rep.has("error"):
-		hint.text = str(rep.error)
-		locked = false
+		_hint(str(rep.error))
 		return
+	phase = "enemy"
+	end_btn.disabled = true
+	var post := {"player": _state_of(duel.player), "enemy": _state_of(duel.enemy)}
+	var start_events: Array = []
 	# Salva já com o próximo turno rolado: fechar o app não rerrola nada.
 	if duel.state == "choosing":
 		duel.begin_turn()
+		start_events = duel.turn_events
 		SaveGame.save(run)
 	else:
 		run.finish_duel()
@@ -440,47 +570,430 @@ func _submit() -> void:
 			SaveGame.clear()
 		else:
 			SaveGame.save(run)
-	_show_result(rep, snap)
+	last_log = rep.log
+	_set_log(last_log)
 
-
-func _show_result(rep: Dictionary, snap: Dictionary) -> void:
-	var ec: TurnChoice = rep.enemy_choice
-	_render_enemy_dice(snap.edice, snap.esides, ec)
-	for v in enemy_dice_row.get_children():
-		if v.index in ec.attack:
-			_fly(v, player_info)
-	_render_info()
-	_set_log(rep.log)
-	Kit.clear(action_row)
-	var b: Button
-	match duel.state:
-		"choosing":
-			hint.text = ""
-			b = Kit.button(Texts.t("ui.next_turn"), _new_turn_ui, Kit.PANEL_HI)
-		"won":
-			hint.text = Texts.t("ui.won_duel", {"name": duel.enemy.name, "coins": run.last_reward})
-			var label := Texts.t("ui.to_shop") if run.phase == "shop" else Texts.t("ui.victory_title")
-			b = Kit.button(label, func(): finished.emit(), Kit.OK.darkened(0.4))
-		_:
-			hint.text = Texts.t("ui.defeat_title")
-			b = Kit.button(Texts.t("ui.defeat_title"), func(): finished.emit(), Kit.DANGER.darkened(0.4))
-	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	action_row.add_child(b)
-
-
-## Único efeito animado: o dado voa até o alvo e some (wow factor).
-func _fly(from: Control, to: Control) -> void:
-	if not is_inside_tree() or not (from is DieView):
+	await _enemy_phase(rep.enemy_choice)
+	if not _alive():
 		return
-	var src := from as DieView
-	var ghost := DieView.new()
-	ghost.interactive = false
-	ghost.setup(-1, src.value, src.sides, int(src.size.x))
-	ghost.set_state("attack" if src.state != "launched" else "selected")
-	overlay.add_child(ghost)
-	ghost.global_position = src.global_position
-	var target := to.get_global_rect().get_center() - ghost.size / 2.0
+	await _resolve_phase(rep, choice, post)
+	if not _alive():
+		return
+	if duel.state == "choosing":
+		phase = "between"
+		skip = false
+		catcher.visible = true
+		await _wait(0.5)
+		if not _alive():
+			return
+		_new_turn(start_events)
+	else:
+		_show_end()
+
+
+func _alive() -> bool:
+	return is_inside_tree() and not is_queued_for_deletion()
+
+
+func _wait(t: float, skippable := true) -> void:
+	if not _alive():
+		return
+	if fast or t <= 0.0:
+		await get_tree().process_frame
+		return
+	var end := Time.get_ticks_msec() + int(t * 1000.0)
+	while Time.get_ticks_msec() < end:
+		if skippable and skip:
+			return
+		await get_tree().process_frame
+		if not _alive():
+			return
+
+
+func _on_catcher_input(e: InputEvent) -> void:
+	if e is InputEventMouseButton and e.pressed:
+		skip = true
+		accept_event()
+
+
+## Fase do inimigo: equipamento dele no palco e dados voando para os slots. Não pulável.
+func _enemy_phase(ec: TurnChoice) -> void:
+	var e := duel.enemy
+	info_label.text = Texts.t("ui.enemy_turn")
+	end_btn.visible = false
+	for v in tray_views:
+		v.set_state("launched")
+	atk_panel.add_theme_stylebox_override("panel", Kit.box(Color(0.36, 0.1, 0.22)))
+	atk_title.text = Texts.t("ui.attack_title", {"item": Texts.item_name(e.attack_id)})
+	def_panel.add_theme_stylebox_override("panel", Kit.box(Color(0.2, 0.14, 0.34), 98, 12))
+	def_title.text = Texts.item_name(e.defense_id) if e.defense_id != "" else Texts.t("ui.no_defense")
+	def_slot.modulate.a = 1.0 if e.defense_id != "" else 0.3
+	for k in atk_slots.size():
+		_clear_slot(atk_slots[k], _slot_mark(e.attack_id, k))
+	_clear_slot(def_slot, "")
+	await _wait(0.25, false)
+	var targets := []
+	for k in ec.attack.size():
+		targets.append([ec.attack[k], atk_slots[k], "attack"])
+	for i in ec.defense:
+		targets.append([i, def_slot, "defense"])
+	for t in targets:
+		if not _alive():
+			return
+		var i: int = t[0]
+		var slot: PanelContainer = t[1]
+		var src: DieView = enemy_views[i]
+		_fly_ghost(src.global_position, src.size.x, slot.global_position + Vector2(6, 6), SLOT - 12,
+			snap.edice[i], snap.esides[i], t[2], 0.2)
+		src.set_state("launched")
+		await _wait(0.22, false)
+		if not _alive():
+			return
+		Kit.clear(slot)
+		var v := DieView.new()
+		v.interactive = false
+		v.setup(i, snap.edice[i], snap.esides[i], SLOT - 12)
+		v.set_state(t[2])
+		slot.add_child(v)
+	await _wait(0.3, false)
+
+
+## Resolução: o palco some; cada evento vira um efeito visual, na ordem oficial.
+func _resolve_phase(rep: Dictionary, pc: TurnChoice, post: Dictionary) -> void:
+	phase = "resolve"
+	skip = false
+	catcher.visible = true
+	info_label.text = ""
+	stage.modulate.a = 0.0
+	# Bandejas mostram o papel de cada dado: ataque, defesa, autodano.
+	var ec: TurnChoice = rep.enemy_choice
+	for side in ["player", "enemy"]:
+		var views: Array = tray_views if side == "player" else enemy_views
+		var c: TurnChoice = pc if side == "player" else ec
+		var vals: Array = snap.pdice if side == "player" else snap.edice
+		for v in views:
+			v.value = vals[v.index]
+			v.set_state("attack" if v.index in c.attack else ("defense" if v.index in c.defense else "self"))
+	var events: Array = rep.events
+	var k := 0
+	while k < events.size() and not skip:
+		var ev: Dictionary = events[k]
+		var dur := _play(ev)
+		# Etapas simultâneas na regra animam juntas.
+		while ev.t in PARALLEL and k + 1 < events.size() and events[k + 1].t == ev.t:
+			k += 1
+			dur = maxf(dur, _play(events[k]))
+		k += 1
+		await _wait(dur)
+		if not _alive():
+			return
+	Kit.clear(fx)
+	shown = post
+	_draw_bars()
+	for side in ["player", "enemy"]:
+		var views: Array = tray_views if side == "player" else enemy_views
+		for v in views:
+			if v.state == "self":
+				v.set_state("launched")
+	catcher.visible = false
+
+
+## Efeitos do início do turno (curas, escudos, dados alterados): destaque breve, sem travar.
+func _play_start(events: Array, my_seq: int) -> void:
+	for ev in events:
+		if seq != my_seq or not _alive():
+			return
+		await _wait(_play(ev) * 0.8, false)
+	if seq == my_seq and _alive():
+		_sync_shown()
+
+
+# ------------------------------------------------------------------ Um evento
+## Dispara o efeito visual de um evento e devolve quanto tempo ele pede.
+func _play(ev: Dictionary) -> float:
+	var side: String = ev.side
+	var other := "enemy" if side == "player" else "player"
+	var n := int(ev.get("n", 0))
+	var src: String = str(ev.get("src", ""))
+	match ev.t:
+		"heal":
+			_pulse(side, src)
+			_hp(side, n)
+			return 0.35
+		"shield":
+			_pulse(side, src)
+			shown[side].shield += n
+			_draw_bars()
+			_float_at_bar(side, Texts.t("ui.fx_shield", {"n": n}), Kit.SHIELD)
+			return 0.35
+		"barrier":
+			_pulse(side, src)
+			shown[side].barrier = int(ev.get("total", shown[side].barrier + n))
+			_draw_bars()
+			_float_at_bar(side, Texts.t("ui.barrier", {"n": shown[side].barrier}), Kit.SHIELD)
+			return 0.35
+		"proc":
+			_pulse(side, src)
+			if src in ["DD10", "DF9"]:
+				return 0.12
+			_float_at_portrait(side, _src_name(src), Kit.ACCENT)
+			return 0.35
+		"coin":
+			_pulse(side, src)
+			_float_at(hud_label.get_global_rect().get_center(), Texts.t("ui.fx_coin", {"n": n}), Kit.ACCENT)
+			return 0.3
+		"dice_change":
+			var v := _die(side, int(ev.die))
+			if v:
+				v.value = int(ev.to)
+				v.queue_redraw()
+				_ring(v, Kit.ACCENT)
+			_pulse(side, src)
+			return 0.35
+		"chain", "chapeu":
+			if ev.t == "chapeu":
+				_pulse(side, "DF8")
+				_float_at_portrait(side, _src_name("DF8"), Kit.ACCENT)
+				if ev.get("effect", "") != "chain":
+					return 0.4
+			var views: Array = tray_views if side == "player" else enemy_views
+			if ev.t == "chain":
+				var a: DieView = views[int(ev.active)]
+				var b: DieView = views[int(ev.self)]
+				fx.add_child(Fx.chain(_center(a), _center(b), a.size.x * 0.62))
+				var st := a.state
+				a.set_state("self")
+				b.set_state(st)
+			else:
+				var pr: Control = portraits[side]
+				var c := _center(pr)
+				fx.add_child(Fx.chain(c + Vector2(-70, 0), c + Vector2(70, 0), 30.0, true))
+			return 0.7
+		"def_invalid":
+			var v := _die(side, int(ev.die))
+			if v:
+				_mark(v, "cross", Kit.MUTED)
+				_float_at(_center(v), Texts.t("ui.fx_invalid"), Kit.MUTED)
+			return 0.35
+		"annul":
+			var v := _die(side, int(ev.die))
+			if v:
+				_mark(v, "cross", Kit.DANGER)
+			return 0.3
+		"reduce_die":
+			for i in ev.get("dice", []):
+				var v := _die(side, int(i))
+				if v:
+					_float_at(_center(v), "−%d" % n, Kit.SHIELD)
+			return 0.3
+		"explode":
+			var v := _die(side, int(ev.die))
+			if v:
+				_ring(v, Color(1.0, 0.55, 0.15))
+				_float_at(_center(v), "BOOM +%d" % n, Color(1.0, 0.6, 0.2))
+			return 0.4
+		"attack":
+			var dice: Array = ev.get("dice", [])
+			if dice.is_empty():
+				return 0.0
+			var from := _center(portraits[side])
+			var to := _center(portraits[other])
+			var eff: Array = ev.get("eff", [])
+			var f := _fighter(side)
+			for j in dice.size():
+				var idx: int = dice[j]
+				var sides: int = f.dice_sides[idx] if idx < f.dice_sides.size() else 6
+				var val: int = eff[j] if j < eff.size() else 0
+				_fly_ghost(from + Vector2((j - 1) * 30, 0) - Vector2(30, 30), 60, to - Vector2(30, 30), 60,
+					val, sides, "attack", 0.4 + j * 0.05)
+			_float_at(to + Vector2(0, -60), str(n), Kit.DANGER.lightened(0.2), 34)
+			return 0.6
+		"mirror":
+			var idx := int(ev.die)
+			var vals: Array = snap.pdice if side == "player" else snap.edice
+			var sides_l: Array = snap.psides if side == "player" else snap.esides
+			var sides: int = sides_l[idx] if idx < sides_l.size() else 6
+			var from := _center(portraits[other])
+			var to := _center(portraits[side])
+			_fly_ghost(from - Vector2(30, 30), 60, to - Vector2(30, 30), 60, vals[idx], sides, "mirror", 0.45)
+			_pulse(other, src)
+			_float_at(to + Vector2(0, -40), Texts.t("ui.fx_reflected", {"n": n}), Color(0.85, 0.88, 0.95))
+			return 0.6
+		"thorns":
+			var pr: Control = portraits[other]
+			fx.add_child(Fx.make("spikes", pr.get_global_rect().grow(10), Color(0.55, 0.85, 0.4, 0.85)))
+			_float_at(_center(portraits[side]), Texts.t("ui.fx_thorns", {"n": n}), Color(0.6, 0.9, 0.45))
+			return 0.5
+		"block":
+			_pulse(side, src)
+			_float_at_bar(side, Texts.t("ui.fx_blocked", {"n": n}), Kit.SHIELD)
+			return 0.3
+		"absorb":
+			var s: Dictionary = shown[side]
+			var bar_used: int = maxi(0, s.barrier - int(ev.get("barrier", s.barrier)))
+			s.barrier = int(ev.get("barrier", s.barrier))
+			s.shield = maxi(0, s.shield - maxi(0, n - bar_used))
+			_draw_bars()
+			_float_at_bar(side, Texts.t("ui.fx_absorb", {"n": n}), Kit.SHIELD)
+			return 0.3
+		"damage":
+			_hp(side, -n)
+			_shake(portraits[side])
+			return 0.45
+		"self":
+			var views: Array = tray_views if side == "player" else enemy_views
+			for i in ev.get("dice", []):
+				if int(i) < views.size():
+					views[int(i)].set_state("launched")
+			if n > 0:
+				shown[side].hp -= n
+				_draw_bars()
+				_float_at_bar(side, Texts.t("ui.fx_self", {"n": n}), Color(0.75, 0.55, 0.95))
+			return 0.45 if n > 0 else 0.15
+		"death_defy":
+			var medal: Chip = chips[side].get("DEATH_DEFY")
+			if medal and not fast:
+				medal.break_apart()
+			shown[side].hp = int(ev.get("hp", shown[side].max))
+			_draw_bars()
+			_float_at(_center(portraits[side]), Texts.t("ui.fx_death_defy"), Kit.ACCENT, 34)
+			_ring(portraits[side], Kit.ACCENT)
+			return 0.9
+		"turn_limit":
+			_float_at(get_global_rect().get_center(), Texts.t("ui.fx_turn_limit"), Kit.DANGER, 36)
+			return 0.8
+	return 0.0
+
+
+func _src_name(src: String) -> String:
+	if Texts.data().get("bosses", {}).has(src):
+		return Texts.boss_name(src)
+	return Texts.item_name(src)
+
+
+func _die(side: String, i: int) -> DieView:
+	var views: Array = tray_views if side == "player" else enemy_views
+	return views[i] if i >= 0 and i < views.size() else null
+
+
+## Passivas, itens e medalha piscam quando agem.
+func _pulse(side: String, src: String) -> void:
+	var c: Chip = chips.get(side, {}).get(src)
+	if c and not fast:
+		c.pulse()
+
+
+func _hp(side: String, delta: int) -> void:
+	if delta == 0:
+		return
+	shown[side].hp = mini(shown[side].max, shown[side].hp + delta)
+	_draw_bars()
+	_float_at_bar(side, ("+%d" % delta) if delta > 0 else ("−%d" % -delta), Kit.OK if delta > 0 else Kit.DANGER, 30)
+
+
+# ------------------------------------------------------------------ Efeitos
+func _center(c: Control) -> Vector2:
+	return c.get_global_rect().get_center()
+
+
+func _float_at_bar(side: String, text: String, color: Color, size_px := 24) -> void:
+	var r: Rect2 = bars[side].get_global_rect()
+	_float_at(Vector2(r.position.x + r.size.x * 0.5, r.position.y - 4), text, color, size_px)
+
+
+func _float_at_portrait(side: String, text: String, color: Color) -> void:
+	_float_at(_center(portraits[side]) + Vector2(0, -50), text, color, 22)
+
+
+func _float_at(at: Vector2, text: String, color: Color, size_px := 24) -> void:
+	if fast:
+		return
+	var l := Kit.label(text, size_px, color)
+	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	l.add_theme_constant_override("outline_size", 6)
+	fx.add_child(l)
+	l.reset_size()
+	l.global_position = at - l.size / 2.0
 	var tw := create_tween().set_parallel(true)
-	tw.tween_property(ghost, "global_position", target, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.tween_property(ghost, "modulate:a", 0.0, 0.35).set_delay(0.15)
-	tw.chain().tween_callback(ghost.queue_free)
+	tw.tween_property(l, "global_position:y", l.global_position.y - 46.0, 0.9).set_ease(Tween.EASE_OUT)
+	tw.tween_property(l, "modulate:a", 0.0, 0.5).set_delay(0.5)
+	tw.chain().tween_callback(l.queue_free)
+
+
+func _ring(c: Control, color: Color) -> void:
+	if fast:
+		return
+	var f := Fx.make("ring", c.get_global_rect().grow(6), color)
+	fx.add_child(f)
+	var tw := create_tween()
+	tw.tween_property(f, "modulate:a", 0.0, 0.6).set_delay(0.2)
+	tw.tween_callback(f.queue_free)
+
+
+func _mark(c: Control, kind: String, color: Color) -> void:
+	fx.add_child(Fx.make(kind, c.get_global_rect(), color))
+
+
+func _shake(c: Control) -> void:
+	if fast:
+		return
+	var x := c.position.x
+	var tw := create_tween()
+	for k in 3:
+		tw.tween_property(c, "position:x", x + 8.0, 0.04)
+		tw.tween_property(c, "position:x", x - 8.0, 0.04)
+	tw.tween_property(c, "position:x", x, 0.04)
+
+
+func _fly_ghost(from: Vector2, from_px: float, to: Vector2, to_px: float, value: int, sides: int, state: String, t: float) -> void:
+	if fast:
+		return
+	var g := DieView.new()
+	g.interactive = false
+	g.setup(-1, value, sides, int(from_px))
+	g.set_state(state)
+	fx.add_child(g)
+	g.global_position = from
+	var s := to_px / maxf(1.0, from_px)
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(g, "global_position", to, t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(g, "scale", Vector2(s, s), t)
+	tw.chain().tween_callback(g.queue_free)
+
+
+# ================================================================== Fim e log
+func _show_end() -> void:
+	phase = "over"
+	catcher.visible = false
+	stage.modulate.a = 0.0
+	end_overlay = ColorRect.new()
+	end_overlay.color = Color(0, 0, 0, 0.6)
+	end_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(end_overlay)
+	var cc := CenterContainer.new()
+	cc.set_anchors_preset(Control.PRESET_FULL_RECT)
+	end_overlay.add_child(cc)
+	var p := Kit.panel(Kit.PANEL_HI)
+	p.custom_minimum_size = Vector2(560, 0)
+	var v := Kit.vbox(18)
+	p.add_child(v)
+	cc.add_child(p)
+	var won := duel.state == "won"
+	var title := Texts.t("ui.won_duel", {"name": duel.enemy.name, "coins": run.last_reward}) if won else Texts.t("ui.defeat_title")
+	var t := Kit.label(title, 30, Kit.OK if won else Kit.DANGER, true)
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(t)
+	var label := Texts.t("ui.to_shop") if run.phase == "shop" else (Texts.t("ui.victory_title") if won else Texts.t("ui.defeat_title"))
+	var b := Kit.button(label, func(): finished.emit(), (Kit.OK if won else Kit.DANGER).darkened(0.45))
+	b.custom_minimum_size = Vector2(0, 72)
+	v.add_child(b)
+
+
+func _set_log(lines: Array) -> void:
+	log_label.text = "\n".join(lines)
+
+
+func _toggle_log() -> void:
+	log_panel.visible = not log_panel.visible
+	if log_panel.visible:
+		move_child(log_panel, get_child_count() - 1)

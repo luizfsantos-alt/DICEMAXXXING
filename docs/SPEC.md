@@ -2,6 +2,8 @@
 
 Consolida a v1 com todas as decisões tomadas na sessão de design. Onde houver conflito com a v1, **esta versão vale**.
 
+> **Revisão v2.1 (interface em paisagem).** Tela de duelo horizontal com fases do jogador, do inimigo e da resolução animada; dados postos nos slots (sem swipe) e reversíveis até o fim do turno; passivos comprados passam a se chamar **itens**. Nenhuma regra de cálculo mudou.
+
 Jogo de dados leve, de "desligar o cérebro", num coliseu de 100 lutas. Brutal, mas com poucas decisões calculadas.
 
 ---
@@ -13,7 +15,7 @@ Jogo de dados leve, de "desligar o cérebro", num coliseu de 100 lutas. Brutal, 
 | Plataforma | Só Android. |
 | Tecnologia | Godot 4 (4.7.x estável) + GDScript. Motor de regras em classes puras, testado com GUT, com simulador headless. |
 | Build | GitHub Actions roda os testes e gera APK de debug a cada push. |
-| Conteúdo | **Blocos 1 a 3** (lutas 1–30, chefes C1–C3). Todos os itens e passivos no pool da loja. |
+| Conteúdo | **Blocos 1 a 3** (lutas 1–30, chefes C1–C3). Todos os equipamentos e itens no pool da loja. |
 | Personagem | Só o Gladiador. |
 | Rede | 100% offline, sem conta, sem anúncios, sem compras. |
 | Salvamento | Automático a cada turno (já com os dados rolados) e a cada visita à loja. Fechar e abrir o app não rerrola nada. |
@@ -40,22 +42,20 @@ Jogo de dados leve, de "desligar o cérebro", num coliseu de 100 lutas. Brutal, 
 ### 2.2 Turno — visão do jogador
 1. Os dois lados rolam. **Ambos veem todos os resultados.** Não há sugestão pré-preenchida: os 6 dados ficam soltos na bandeja.
 2. O jogador usa **no máximo 3 dados ativos**, somando:
-   - dados **lançados** no item de ataque;
-   - dados **encaixados** no item de defesa.
+   - dados postos nos **slots de ataque** (até 3);
+   - dado posto no **slot de defesa** (até 1).
 3. **Autodano = todos os dados que sobraram** quando o turno termina (no mínimo 3; se o jogador encerrar usando só 2 ativos, são 4 de autodano, e assim por diante).
-4. **Lançamento (swipe):** sem efeito mecânico de direção, força ou timing — é só *wow factor*.
-   - Itens **de padrão** (Martelo, Lança, Arco): o jogador monta o grupo de 1 a 3 dados dentro do item e dá **um único swipe**. Depois disso não lança mais nada no turno.
-   - Demais itens: dados lançados **um a um** com swipe.
-   - Dado lançado é **irreversível**. O dado encaixado na defesa pode ser retirado até o fim do turno. Os demais ficam livres.
-   - A ordem de lançamento só importa quando um item diz isso (ex.: Clava).
+4. **Colocação:** não há lançamento nem swipe. Tocar num dado da bandeja põe no primeiro slot de ataque livre; arrastar escolhe o slot (de ataque ou a defesa); tocar num dado colocado devolve à bandeja.
+   - **Tudo é reversível** até o jogador terminar o turno. Os dados são disparados automaticamente na resolução.
+   - A **ordem do ataque é a posição do slot** (slot 1, 2, 3). Só importa quando um item diz isso (ex.: Clava, que dobra o slot 1). Arrastar para um slot ocupado empurra os outros.
 5. Item de defesa é só um **encaixe**: encaixou, está ativo ao fim do turno.
-6. O turno termina **automaticamente** quando os 3 ativos tiverem sido usados, ou pelo botão **"Terminar turno"** (com aviso de quantos dados irão para o autodano e o total).
+6. O turno termina **só** pelo botão **"Terminar turno"**. Com menos de 3 ativos, aparece um aviso com quantos dados irão para o autodano e o total.
 7. As escolhas são **simultâneas**: o inimigo decide vendo só os dados rolados (exceção futura: A Banca).
 8. Resolução na ordem oficial (seção 3).
 
 ### 2.3 Itens declaram seus dados
 Cada item declara quantos dados aceita (mínimo e máximo) e os requisitos de valor. Hoje:
-- Ataque: 0 a 3 dados (0 só se o jogador encerrar sem lançar).
+- Ataque: 0 a 3 dados (0 só se o jogador encerrar sem atacar).
 - Defesa: 0 ou 1 dado.
 
 ### 2.4 Vitória, derrota e empate
@@ -146,18 +146,18 @@ Reflexo e espinhos **não** sofrem reduções por dado de ataque (Colete, Cota, 
 
 ### 5.1 Ataque
 
-| Código | Nome | Lançamento | Efeito |
-|---|---|---|---|
-| A1 | Canhão de Dados (inicial) | um a um | Dano = soma dos dados. |
-| A2 | Martelo de Pares | grupo | Com par entre os dados do ataque: +30% no total. Sem par: −20%. |
-| A3 | Lança Trina | grupo | Com trio (3 dados no ataque): total ×2. Sem trio: −20%. |
-| A4 | Arco da Sequência | grupo | Com sequência de 3 (ex.: 3-4-5): +10. Sem: normal. |
-| A5 | Clava Pesada | um a um | **O primeiro dado lançado conta em dobro.** |
-| A6 | Mangual dos Fracos | um a um | Dados 1 e 2 no ataque valem 6. |
-| A7 | Chicote Explosivo | um a um | Cada dado de valor 6 rola um dado extra **do mesmo tipo** e soma; se o extra der 6, explode de novo. A explosão acontece mesmo que o oponente reduza o dado. |
-| A8 | Adaga Ímpar | um a um | Cada dado ímpar causa +2. |
-| A9 | Machado Sanguessuga | um a um | Cada dado de ataque de valor 5 ou mais cura 2. |
-| A10 | Foice do Desespero | um a um | +dano igual ao **maior dado de autodano** (após a Corrente). Exige ao menos 1 dado no ataque. |
+| Código | Nome | Efeito |
+|---|---|---|
+| A1 | Canhão de Dados (inicial) | Dano = soma dos dados. |
+| A2 | Martelo de Pares | Com par entre os dados do ataque: +30% no total. Sem par: −20%. |
+| A3 | Lança Trina | Com trio (3 dados no ataque): total ×2. Sem trio: −20%. |
+| A4 | Arco da Sequência | Com sequência de 3 (ex.: 3-4-5): +10. Sem: normal. |
+| A5 | Clava Pesada | **O dado do slot 1 conta em dobro.** |
+| A6 | Mangual dos Fracos | Dados 1 e 2 no ataque valem 6. |
+| A7 | Chicote Explosivo | Cada dado de valor 6 rola um dado extra **do mesmo tipo** e soma; se o extra der 6, explode de novo. A explosão acontece mesmo que o oponente reduza o dado. |
+| A8 | Adaga Ímpar | Cada dado ímpar causa +2. |
+| A9 | Machado Sanguessuga | Cada dado de ataque de valor 5 ou mais cura 2. |
+| A10 | Foice do Desespero | +dano igual ao **maior dado de autodano** (após a Corrente). Exige ao menos 1 dado no ataque. |
 
 ### 5.2 Defesa (recebem 1 dado de valor X)
 
@@ -178,9 +178,11 @@ Reflexo e espinhos **não** sofrem reduções por dado de ataque (Colete, Cota, 
 
 ---
 
-## 6. Itens passivos
+## 6. Itens
 
-Sempre ativos. **Limite de 3.** Podem ser vendidos na loja.
+Comprados na loja (antes chamados "itens passivos"). Sempre ativos. **Limite de 3.** Podem ser vendidos na loja. No código continuam em `passives`.
+
+Não confundir com a **passiva** do personagem (seção 7) ou a **regra de chefe** (8.5), que são fixas.
 
 ### 6.1 Defensivos
 
@@ -227,8 +229,9 @@ Sempre ativos. **Limite de 3.** Podem ser vendidos na loja.
 ## 8. Inimigos
 
 ### 8.1 Princípios
-- Mesmas regras do jogador. Personalidade **oculta**; dados, vida, itens e passivos visíveis.
+- Mesmas regras do jogador. Personalidade **oculta**; dados, vida, equipamentos e regra de chefe visíveis (consultáveis a qualquer momento tocando no inimigo).
 - Inimigos comuns **não têm habilidades**.
+- Inimigos **nunca têm itens**.
 
 ### 8.2 Blocos
 
@@ -269,20 +272,36 @@ Valores iniciais, ajustáveis em `engine/config.gd`.
 - Preços:
   - Vida máxima +5: 6 moedas, +3 a cada compra.
   - Equipamento: 12.
-  - Passivo: 15; venda por metade (arredondada para cima).
+  - Item: 15; venda por metade (arredondada para cima).
   - Desafio à Morte: 40.
   - d8 / d10 / d20: 10 / 16 / 25 — só a partir do bloco em que o tipo é liberado (d8 na luta 31, d10 na 51, d20 na 81). **O protótipo não vende dados.** O jogador pode trocar qualquer dado seu por qualquer dado da loja.
-- Raridade do sorteio: **comum 70%** (vida máxima, equipamentos), **raro 25%** (passivos), **Desafio 5%**.
+- Raridade do sorteio: **comum 70%** (vida máxima, equipamentos), **raro 25%** (itens), **Desafio 5%**.
 - **Desafio à Morte**: ao chegar a 0 de vida (inclusive empate), é consumido e o jogador volta com vida cheia na mesma batalha. Só 1 por vez.
 
 ---
 
 ## 10. Interface (protótipo)
 
-- Retrato. Placeholders na disposição final, sem texturas.
+- **Paisagem** (1280×720, gira entre as duas horizontais). Placeholders na disposição final, sem texturas.
 - Dados 2D com forma por tipo (d6 quadrado, d8 losango, d10 pentágono, d20 triângulo), valor grande e tipo pequeno.
-- Única animação: o voo do dado no swipe (e dos dados do inimigo na revelação).
-- Resultado instantâneo + painel de log com cada etapa + botão "Próximo turno".
+
+### 10.1 Disposição do duelo
+- **Inimigo** no alto à direita (de frente); tocar nele abre a consulta de tudo dele (vida, equipamentos, regra de chefe). Barra de vida no alto, com o **quadradinho de passiva** na ponta (regra do chefe; vazio, mas presente, no inimigo comum). Bandeja de dados do inimigo logo abaixo.
+- **Jogador** embaixo à esquerda (de costas), com a **medalha do Desafio à Morte** ao lado e a **fileira de até 3 itens** abaixo. Bandeja de dados e barra de vida embaixo, com o quadradinho da passiva do personagem.
+- Barras com números ("47 / 80"), escudo e barreira; cada mudança mostra "−9"/"+2" por um instante.
+- **Palco central**: ataque retangular (3 slots) e defesa circular (1 slot). Botão **"Terminar turno"** sempre abaixo do palco.
+- Quadradinhos: sigla de 2 a 3 letras e cor por categoria (placeholder até haver ícones). Tocar abre a consulta, exceto durante a resolução. **Piscam quando de fato agem.**
+- Linha no canto superior esquerdo: "Luta 12/30 · 15 moedas". Em build de debug, botão **"Log"** abre e fecha o log completo; em build de lançamento ele não existe.
+
+### 10.2 Fases do turno
+1. **Seu turno**: o seu equipamento no palco; você põe os dados nos slots (seção 2.2).
+2. **Vez do inimigo** (não pulável, até ~1,5 s): o equipamento dele aparece no palco e os dados voam para os slots, do maior para o menor.
+3. **Resolução** (tocar pula para o resultado): o palco some e cada evento do motor vira um efeito visual, **na ordem oficial** (seção 3): Corrente (elos e troca de lugar; elos que se quebram com o Chapéu), dados de ataque voando do personagem até o oponente (os dois lados juntos), Espelho (o dado volta e fere quem atacou), espinhos, escudos, curas, autodano (dados apagando na bandeja), Desafio à Morte (a medalha racha).
+4. O **próximo turno começa sozinho** após ~0,5 s (tocar adianta). Efeitos de início de turno (Bandeide, escudo da Dona Neide, dados alterados) aparecem com um destaque breve.
+5. Fim do duelo: aviso sobre a tela com as moedas e o botão para a loja (ou o fim).
+
+### 10.3 Eventos do motor
+O resolver emite, junto com o log, uma lista de eventos `{t, side, who, ...}` na ordem de resolução (`Duel.turn_events` para o início do turno; `rep.events` para C–N). Tipos: `heal`, `shield`, `barrier`, `dice_change`, `proc` (item/passiva agiu), `coin`, `chain`, `chapeu`, `def_invalid`, `annul`, `reduce_die`, `explode`, `attack`, `mirror`, `thorns`, `block`, `absorb`, `damage`, `self`, `death_defy`, `turn_limit`. Eles só descrevem o que aconteceu; nenhuma regra depende deles.
 
 ---
 

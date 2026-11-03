@@ -51,5 +51,16 @@ static func boss_desc(id: String) -> String:
 	return b[id][1] if b.has(id) else ""
 
 
+## Sigla de 2 a 3 letras dos quadradinhos (placeholder até haver ícones).
+static func abbr(id: String) -> String:
+	return str(data().get("abbr", {}).get(id, id.left(3)))
+
+
+## [nome do personagem, nome da passiva, descrição da passiva].
+static func character(id: String) -> Array:
+	var c: Array = data().get("characters", {}).get(id, [id, id, ""])
+	return [c[0], c[1], str(c[2]).format({"n": Config.GLADIATOR_HP_BONUS})]
+
+
 static func name_list(kind: String) -> Array:
 	return data().get("names", {}).get(kind, [])

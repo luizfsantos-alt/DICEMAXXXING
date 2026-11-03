@@ -5,3 +5,8 @@ build/
 *.keystore
 export_credentials.cfg
 .DS_Store
+# .uid gerados pelo Godot para os scripts do projeto (os do GUT já vêm versionados).
+/engine/*.uid
+/ui/*.uid
+/tests/*.uid
+/sim/*.uid

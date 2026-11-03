@@ -1,7 +1,7 @@
 class_name DieView
 extends Control
 ## Dado 2D placeholder: forma por tipo (d6 quadrado, d8 losango, d10 pentágono,
-## d20 triângulo), valor grande e tipo pequeno. Detecta toque, arraste e swipe.
+## d20 triângulo), valor grande e tipo pequeno. Detecta toque e arraste.
 
 signal tapped(view: DieView)
 signal released(view: DieView, global_pos: Vector2, delta: Vector2)
@@ -14,6 +14,7 @@ const COLORS := {
 	"launched": Color(0.3, 0.28, 0.33),
 	"attack": Color(0.93, 0.35, 0.35),
 	"self": Color(0.45, 0.42, 0.5),
+	"mirror": Color(0.82, 0.86, 0.92),
 }
 
 var index: int = -1
