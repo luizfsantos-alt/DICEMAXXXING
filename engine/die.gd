@@ -1,0 +1,65 @@
+class_name Die
+extends RefCounted
+## Um dado da bolsa: sempre d6, com faces editáveis, um elemento opcional
+## e adesivos ×2 (docs/SPEC_v3.md §4).
+
+var faces: Array = [1, 2, 3, 4, 5, 6]
+var element: String = "" ## "", H, Os, U, Pb, Na, Hg
+var stickers: Array = [0, 0, 0, 0, 0, 0] ## Adesivos ×2 por face.
+var locked: Array = [false, false, false, false, false, false] ## Faces que não podem ser editadas.
+
+
+static func basic() -> Die:
+	return Die.new()
+
+
+static func with_element(el: String) -> Die:
+	var d := Die.new()
+	Elements.apply(d, el)
+	return d
+
+
+func value(face: int) -> int:
+	return int(faces[face]) * int(pow(2, int(stickers[face])))
+
+
+func sticker_count() -> int:
+	var n := 0
+	for s in stickers:
+		n += int(s)
+	return n
+
+
+## Retorna false se a face estiver travada (Chumbo).
+func add_sticker(face: int) -> bool:
+	if locked[face]:
+		return false
+	stickers[face] = int(stickers[face]) + 1
+	return true
+
+
+func copy() -> Die:
+	return Die.from_dict(to_dict())
+
+
+func to_dict() -> Dictionary:
+	return {"faces": faces.duplicate(), "element": element, "stickers": stickers.duplicate(), "locked": locked.duplicate()}
+
+
+static func from_dict(d: Dictionary) -> Die:
+	var x := Die.new()
+	x.faces = _ints(d.get("faces", [1, 2, 3, 4, 5, 6]))
+	x.element = str(d.get("element", ""))
+	x.stickers = _ints(d.get("stickers", [0, 0, 0, 0, 0, 0]))
+	var lk: Array = d.get("locked", [])
+	x.locked = []
+	for i in 6:
+		x.locked.append(bool(lk[i]) if i < lk.size() else false)
+	return x
+
+
+static func _ints(a: Array) -> Array:
+	var out := []
+	for v in a:
+		out.append(int(v))
+	return out
