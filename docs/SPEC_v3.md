@@ -15,7 +15,7 @@
 | Gladiador | **Personagens jogáveis por arquétipo** (Mago, Assassino) |
 | 30 lutas em linha, vida cheia a cada luta | **Torre** com bifurcações, **vida persistente** |
 | Inimigos sem itens | Inimigos com **bolsa e grimório visíveis**, nos mesmos arquétipos |
-| Dano de 10 a 20 do começo ao fim | **Números explodem** pelas faces dos dados e pela evolução das magias |
+| Dano de 10 a 20 do começo ao fim | **Números explodem para os dois lados**: faces dos dados, evolução das magias e vida crescem juntos |
 
 **Mantém:** só dados d6; resolução simultânea; tudo visível depois da rolagem; **perdeu, morreu** (a jornada zera); tom brainrot BR nos nomes.
 
@@ -34,7 +34,7 @@
 
 - O jogador sobe uma torre andar por andar. **Perder uma luta = fim da jornada.**
 - **A vida não é restaurada entre as lutas.** A cura é recurso: parada de Cura, magias, elementos.
-- **Bifurcação comum** (antes de cada luta): 2 ou 3 portas de **dificuldade diferente**. O inimigo não é revelado; só a dificuldade e a recompensa.
+- **Bifurcação comum** (antes de cada luta): 2 ou 3 portas de **dificuldade diferente**. Cada porta mostra **só a dificuldade e a recompensa**; o inimigo e o arquétipo dele (Mago, Assassino…) ficam ocultos até a luta começar.
 - **Trifurcação sem combate** (a cada 3 ou 4 lutas): escolhe-se uma entre
   - **Loja**: magias, dados, modificações.
   - **Cura**: recupera vida.
@@ -45,6 +45,16 @@
 - Protótipo sugerido: andares 1–30, três Mestres.
 
 ---
+
+### 2.1 Escala e vida
+
+- **Tudo cresce junto.** Os inimigos seguem exatamente as mesmas regras do jogador: também têm faces com adesivo ×2, magias evoluídas e vida maior a cada andar. Nunca são inofensivos, nem na aparência.
+- Por isso **vida máxima é investimento**: comprar ou gerar vida na hora certa é uma das decisões centrais da jornada, disputando moedas e escolhas com dados e magias.
+- Fontes de vida:
+  - **Loja**: vida máxima (preço crescente por compra).
+  - **Cura** (parada da torre): recupera vida, não aumenta a máxima.
+  - **Magias de vida**: curam na luta ou, raramente, aumentam a vida máxima (ex.: *Transfusão*, abaixo).
+  - **Recompensa pós-luta**: vida máxima como uma das 3 opções.
 
 ## 3. Personagens
 
@@ -113,6 +123,8 @@ Cada magia tem **formato** (no grimório), **exigência** (quais dados aceita), 
 | Espelho | 1×1 | um 1 | reflete o próximo golpe recebido | sempre |
 | Golpe nas Sombras | 3×1 | um 6 | dano ignora bloqueio | 1× por luta |
 | Sacrifício | 1×1 | um 1 | destrói o dado usado; +5 de dano em todas as magias nesta luta | sempre |
+| Remendo | 1×1 | qualquer dado | cura = valor | 1× por luta |
+| Transfusão | 2×1 | dois iguais | +valor de um deles na vida máxima, permanente | 1× por luta |
 
 - **Cada dado alimenta uma magia por turno; cada magia é usada no máximo 1 vez por turno.**
 - **Formatos que não combinam** são o custo das magias fortes: o L do Meteoro deixa buracos que só peças 1×1 tapam.
@@ -157,7 +169,7 @@ Cada magia tem **formato** (no grimório), **exigência** (quais dados aceita), 
 
 ## 9. Em aberto
 
-- **Escala:** a vida do jogador também cresce, ou fica pequena enquanto o dano explode?
+- Curva de crescimento dos inimigos por andar (vida, adesivos, nível das magias) e preço da vida máxima.
 - Tamanho da bolsa inicial e da mão (8 / 5).
 - Quantas portas por bifurcação e o ritmo das trifurcações (3 ou 4 lutas).
 - Lista final de magias por personagem e da loja; regras dos Mestres de Andar.
