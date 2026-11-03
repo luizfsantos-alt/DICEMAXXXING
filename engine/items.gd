@@ -9,9 +9,6 @@ const PASSIVES := [
 	"DD1", "DD2", "DD3", "DD4", "DD5", "DD6", "DD7", "DD8", "DD9", "DD10",
 ]
 
-## Itens de padrão: o grupo é lançado com um único swipe.
-const GROUP_LAUNCH := ["A2", "A3", "A4"]
-
 ## Requisitos de valor do dado encaixado na defesa.
 const DEFENSE_REQUIREMENTS := {
 	"D2": [5],
@@ -23,10 +20,6 @@ const DEFENSE_REQUIREMENTS := {
 ## Quantos dados cada tipo de item aceita.
 const ATTACK_MAX_DICE := 3
 const DEFENSE_MAX_DICE := 1
-
-
-static func is_group_launch(attack_id: String) -> bool:
-	return attack_id in GROUP_LAUNCH
 
 
 static func defense_accepts(defense_id: String, value: int) -> bool:
