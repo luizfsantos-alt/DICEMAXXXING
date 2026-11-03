@@ -117,10 +117,10 @@ func test_save_roundtrip_mantem_dados_e_rng():
 func test_blocos_de_inimigos():
 	var rng := H.rng(1)
 	var e1 := EnemyFactory.create(3, rng)
-	assert_eq(e1.attack_id, "A1")
-	assert_eq(e1.defense_id, "")
+	assert_true(e1.attack_id in EnemyFactory.BLOCK1_ATTACKS)
+	assert_true(e1.defense_id in ["", "D1"])
 	assert_between(e1.max_hp, 36, 48)
 	var e2 := EnemyFactory.create(15, rng)
-	assert_between(e2.max_hp, 44, 56)
+	assert_between(e2.max_hp, 42, 54)
 	assert_ne(e2.defense_id, "")
 	assert_eq(EnemyFactory.create(30, rng).name, "Kevin, Reflexo de Bolinha")

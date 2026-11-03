@@ -3,6 +3,8 @@
 Consolida a v1 com todas as decisões tomadas na sessão de design. Onde houver conflito com a v1, **esta versão vale**.
 
 > **Revisão v2.1 (interface em paisagem).** Tela de duelo horizontal com fases do jogador, do inimigo e da resolução animada; dados postos nos slots (sem swipe) e reversíveis até o fim do turno; passivos comprados passam a se chamar **itens**. Nenhuma regra de cálculo mudou.
+>
+> **Revisão v2.2 (inimigos menos previsíveis).** Bloco 1 com ataques variados e Escudo de Madeira em metade dos inimigos; personalidades reagem ao estado do duelo e às vezes fogem do padrão; novo **Calculista** a partir do bloco 2. Vida dos inimigos comuns dos blocos 2 e 3 recalibrada.
 
 Jogo de dados leve, de "desligar o cérebro", num coliseu de 100 lutas. Brutal, mas com poucas decisões calculadas.
 
@@ -237,16 +239,27 @@ Não confundir com a **passiva** do personagem (seção 7) ou a **regra de chefe
 
 | Bloco | Lutas | Vida | Pool |
 |---|---|---|---|
-| 1 | 1–10 | 36–48 | Canhão, sem defesa. |
-| 2 | 11–20 | 44–56 | Ataque A1–A10, defesa D1–D10. |
-| 3 | 21–30 | 52–64 | + D11 e D12. |
+| 1 | 1–10 | 36–48 | Ataque: Canhão, Clava, Mangual ou Adaga. Defesa: Escudo de Madeira em 50%, senão nenhuma. |
+| 2 | 11–20 | 42–54 | Ataque A1–A10, defesa D1–D10. |
+| 3 | 21–30 | 50–62 | + D11 e D12. |
+
+Personalidade dos inimigos comuns: Bruto, Cauteloso ou Caótico, sorteados por igual; a partir do bloco 2, parte deles é **Calculista** (25% no bloco 2, 33% no bloco 3). Valores em `engine/enemy_factory.gd`.
 | 4–10 | 31–100 | — | Como na v1 (proposta; fora do protótipo). |
 
 ### 8.3 Personalidades (protótipo)
-A IA sempre usa 3 dados ativos e lança do maior para o menor.
-- **Bruto**: os 3 maiores no ataque; nunca defende.
-- **Cauteloso**: os 3 maiores ativos; o melhor dado válido vai para a defesa (com requisito de valor, um dado válido entra no lugar do menor dos três). Sem dado válido, ataca com os três.
-- **Caótico**: 3 dados aleatórios, defesa aleatória, ordem aleatória.
+A IA sempre usa 3 dados ativos e põe o ataque do maior para o menor. Ela decide vendo os dados rolados, a vida e os escudos dos dois lados — nunca a escolha do jogador.
+
+Jogadas-base:
+- **Ataque total**: os 3 maiores no ataque.
+- **Defensiva**: os 3 maiores ativos; o melhor dado válido vai para a defesa (com requisito de valor, um dado válido entra no lugar do menor dos três). Sem dado válido, ataca com os três.
+
+Personalidades:
+- **Bruto**: ataque total. Guarda um dado para a defesa se o oponente tem 6 ou mais de escudo/barreira, exceto quando o ataque total é letal.
+- **Cauteloso**: ataque total, mas joga na defensiva quando a própria vida está abaixo de 60% ou quando os 3 maiores dados do oponente somam 14 ou mais. Se o ataque total é letal, vai com tudo.
+- **Fuga do padrão**: em 15% dos turnos, o Bruto joga como Cauteloso e vice-versa.
+- **Caótico**: 3 dados aleatórios entre os 5 maiores (nunca o menor), defesa aleatória só com dado válido.
+- **Calculista** (a partir do bloco 2): simula com o motor todas as jogadas de 3 ativos contra a jogada óbvia do oponente (3 maiores no ataque, sem defesa) e dá nota a cada uma (dano causado − dano sofrido, incluindo autodano, reflexo e espinhos; vitória/derrota pesam muito; barreira ganha conta meio ponto). Sorteia entre as 3 melhores: 60% / 25% / 15%.
+- **Chefes** usam as personalidades reativas: Cleitinho é Bruto; Dona Neide e Kevin são Cautelosos. Nunca são Calculistas.
 - **Esperto**: a partir do bloco 7 (fora do protótipo).
 
 ### 8.4 Nomes
@@ -307,8 +320,9 @@ O resolver emite, junto com o log, uma lista de eventos `{t, side, who, ...}` na
 
 ## 11. Balanceamento
 
-- Simulador headless com um bot que põe os 3 maiores no ataque, sem defesa.
+- Simulador headless com dois bots: **cauteloso** (referência para as metas) e **bruto** (comparação). Ambos compram a oferta da loja.
 - Metas: vencer o bloco 1 em ~90% das jornadas; chegar à luta 30 em ~25%.
+- v2.2 (1000 jornadas, bot cauteloso): vence a luta 10 em ~91%; sobrevivência entre chefes ~81% nos blocos 2 e 3. **A meta da luta 30 não é atingida** (~2%): a parede está nos chefes C2 (luta 20) e C3 (luta 30), já presente antes da v2.2.
 - Notas da v1 continuam valendo (Arco, Martelo, Lança, D2/D3, DD1, DD9).
 
 ## 12. Pendências

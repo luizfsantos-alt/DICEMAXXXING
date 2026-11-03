@@ -34,7 +34,7 @@ func begin_turn() -> void:
 	Resolver.start_turn(enemy, turn, turn_log)
 	Resolver.roll(player, rng, turn, turn_log)
 	Resolver.roll(enemy, rng, turn, turn_log)
-	enemy_choice = EnemyAI.choose(enemy, rng)
+	enemy_choice = EnemyAI.choose(enemy, rng, player)
 	turn_events = Resolver.take_events()
 
 
