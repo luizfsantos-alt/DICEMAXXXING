@@ -3,7 +3,8 @@
 Jogo de dados para Android num coliseu de 100 lutas. Feito em Godot 4.7 + GDScript.
 Tela em paisagem.
 
-- Regras: [`docs/SPEC.md`](docs/SPEC.md) (v2, fonte da verdade).
+- Regras: [`docs/SPEC.md`](docs/SPEC.md) (v2, fonte da verdade do código atual).
+- Direção futura (rascunho): [`docs/SPEC_v3.md`](docs/SPEC_v3.md) — bolsa de dados, magias, torre.
 - Motor de regras (sem cenas, testável): `engine/`.
 - Interface (placeholders, paisagem): `ui/`. A tela de duelo anima os eventos do motor.
 - Textos PT-BR: `data/texts_pt_br.json`.
