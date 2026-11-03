@@ -1,6 +1,6 @@
-# DICEMAXXING — Direção v3 (rascunho)
+# DICEMAXXING — Especificação v3
 
-> **Status: rascunho de direção.** Saiu da conversa de design sobre "batalhas parecidas demais, sem sensação de progresso". O código atual ainda segue a [`SPEC.md`](SPEC.md) (v2). Os números aqui são pontos de partida, não balanceamento.
+> **Status: spec de design fechada.** Saiu da conversa de design sobre "batalhas parecidas demais, sem sensação de progresso". O código atual ainda segue a [`SPEC.md`](SPEC.md) (v2) até a v3 ser implementada. Os números marcados com *(inicial)* são pontos de partida para o simulador ajustar.
 
 ---
 
@@ -10,78 +10,79 @@
 |---|---|
 | Sempre 6d6 iguais | **Bolsa de dados** que cresce, encolhe e se modifica |
 | Escolher 3 ativos; o resto vira autodano | **Magias pedem dados**; quem não serve a nenhuma magia volta para a bolsa |
-| Autodano como regra geral | Autodano/veneno só como **propriedade de alguns elementos** (Urânio) |
-| 1 arma + 1 defesa + 3 itens | **Grimório**: grade onde as magias, com formatos, precisam caber |
-| Gladiador | **Personagens jogáveis por arquétipo** (Mago, Assassino) |
-| 30 lutas em linha, vida cheia a cada luta | **Torre** com bifurcações, **vida persistente** |
-| Inimigos sem itens | Inimigos com **bolsa e grimório visíveis**, nos mesmos arquétipos |
-| Dano de 10 a 20 do começo ao fim | **Números explodem para os dois lados**: faces dos dados, evolução das magias e vida crescem juntos |
+| Autodano como regra geral | Veneno só como **propriedade de alguns elementos** (Urânio) |
+| 1 arma + 1 defesa + 3 itens | **Inventário com formato**, onde as magias precisam caber |
+| Gladiador | **Feiticeiro** e **Assassino** jogáveis |
+| Turno simultâneo | **Turnos sequenciais** |
+| 30 lutas em linha, vida cheia a cada luta | **Torre** com portas, **vida persistente** |
+| Inimigos sem itens | Inimigos montados **com as mesmas regras do jogador** |
+| Dano de 10 a 20 do começo ao fim | **Números explodem para os dois lados** |
 
-**Mantém:** só dados d6; resolução simultânea; tudo visível depois da rolagem; **perdeu, morreu** (a jornada zera); tom brainrot BR nos nomes.
+**Mantém:** só dados d6; **perdeu, morreu** (a jornada zera); tom brainrot BR nos nomes; offline, Android, paisagem.
 
 ---
 
 ## 1. Pilares
 
 1. **O dado é a build.** O progresso está escrito nos dados: faces alteradas, elementos.
-2. **Profundidade fora do turno, turno rápido.** O quebra-cabeça pesado é montar a bolsa e o grimório; o turno é "qual dado vai em qual magia".
+2. **Profundidade fora do turno, turno rápido.** O quebra-cabeça pesado é montar a bolsa e o inventário; o turno é "qual dado vai em qual magia".
 3. **Química é tempero, não tema.** Os elementos dão nome e personalidade aos dados. Não há reações, fusão nem tabela para decorar.
-4. **Cada luta tem outra leitura.** Ela vem do inimigo (arquétipo, bolsa e grimório dele), não de regras novas.
+4. **Cada luta tem outra leitura.** Ela vem do inimigo (arquétipo, bolsa, inventário), não de regras novas.
+5. **Inimigos seguem as mesmas regras.** Nunca são inofensivos, nem na aparência.
 
 ---
 
 ## 2. Torre
 
-- O jogador sobe uma torre andar por andar. **Perder uma luta = fim da jornada.**
-- **A vida não é restaurada entre as lutas.** A cura é recurso: parada de Cura, magias, elementos.
-- **Bifurcação comum** (antes de cada luta): 2 ou 3 portas de **dificuldade diferente**. Cada porta mostra **só a dificuldade e a recompensa**; o inimigo e o arquétipo dele (Mago, Assassino…) ficam ocultos até a luta começar.
-- **Trifurcação sem combate** (a cada 3 ou 4 lutas): escolhe-se uma entre
-  - **Loja**: magias, dados, modificações.
-  - **Cura**: recupera vida.
-  - **Escola de Magia**: aprender uma magia ou **evoluir** uma conhecida (mais efeito, menos exigência ou formato menor).
+- O jogador sobe uma torre andar por andar. **Perder uma luta = fim da jornada.** Empate = derrota do jogador.
+- **Protótipo: 30 andares.**
+- **A vida não é restaurada entre as lutas.**
+- **Portas** (antes de cada luta): normalmente **2**, às vezes **3** (a terceira é uma porta "insana", que paga muito). Cada porta mostra **só a dificuldade e a recompensa**; o inimigo e o arquétipo dele ficam ocultos até a luta começar.
+- **Trifurcação sem luta, a cada 3 lutas.** Escolhe-se uma entre:
+  - **Loja**: magias, dados, vida máxima.
+  - **Cura**: recupera vida (*inicial: 50% da vida máxima*).
+  - **Escola de Magia**: aprender uma magia ou **evoluir** uma conhecida.
   - **Poço de Modificação**: aplicar elemento, adesivo ×2, editar face, destruir dado.
-- **Recompensa pós-luta:** escolher 1 entre 3 (dado, modificação ou magia simples), ou pular e levar moedas.
-- **Mestre de Andar** (chefe) a cada 10 andares, com uma regra própria e recompensa grande: espaço no grimório ou +1 na mão.
-- Protótipo sugerido: andares 1–30, três Mestres.
-
----
+- **Recompensa pós-luta:** escolher 1 entre 3 (dado, modificação, magia simples ou vida máxima), ou pular e levar moedas.
+- **Mestre de Andar** nos andares 10, 20 e 30 (seção 8.3). A recompensa é escolher uma: **+casas no inventário** ou **+1 dado na mão**.
 
 ### 2.1 Escala e vida
 
-- **Tudo cresce junto.** Os inimigos seguem exatamente as mesmas regras do jogador: também têm faces com adesivo ×2, magias evoluídas e vida maior a cada andar. Nunca são inofensivos, nem na aparência.
-- Por isso **vida máxima é investimento**: comprar ou gerar vida na hora certa é uma das decisões centrais da jornada, disputando moedas e escolhas com dados e magias.
-- Fontes de vida:
-  - **Loja**: vida máxima (preço crescente por compra).
-  - **Cura** (parada da torre): recupera vida, não aumenta a máxima.
-  - **Magias de vida**: curam na luta ou, raramente, aumentam a vida máxima (ex.: *Transfusão*, abaixo).
-  - **Recompensa pós-luta**: vida máxima como uma das 3 opções.
+- **Tudo cresce junto.** Os inimigos têm faces com adesivo ×2, magias evoluídas e vida maior a cada andar.
+- **Vida máxima é investimento:** comprar ou gerar vida na hora certa disputa moedas e escolhas com dados e magias.
+- Fontes de vida: Loja (vida máxima, preço crescente), Cura (recupera, não aumenta a máxima), magias de vida, recompensa pós-luta.
+
+---
 
 ## 3. Personagens
 
-Jogáveis, escolhidos no início. **O formato do inventário é a identidade.** As peças podem girar.
+Jogáveis, escolhidos no início. O **formato do inventário** é a identidade; cada personagem tem também **uma passiva simples**. As peças podem girar.
 
-| Personagem | Inventário | Estilo | Magias iniciais |
-|---|---|---|---|
-| **Mago** | Grimório **4×3** | Magias grandes e exigentes (pares, sequências), efeitos fortes, muitas com uso único por luta | Faísca, Escudo Arcano, Bola de Fogo |
-| **Assassino** | Cinto **6×1** | Técnicas finas que aceitam quase qualquer dado; força na quantidade | Estocada, Esquiva, Corte Duplo |
+| Personagem | Inventário | Passiva | Vida *(inicial)* | Magias iniciais |
+|---|---|---|---|---|
+| **Feiticeiro** | Grade **4×3** | **Erudito**: começa com 1 magia extra, à escolha entre 3. | 50 | Faísca, Escudo Arcano, Bola de Fogo |
+| **Assassino** | Cinto **6×1** | **Ágil**: mão de **6** dados (em vez de 5). | 40 | Estocada, Esquiva, Corte Duplo |
 
-A loja é a mesma para todos, mas peças 2×2 ou em L simplesmente não cabem num cinto. Cada personagem "enxerga" um mundo diferente na mesma loja.
-
-Personagens futuros: outros formatos de inventário (ex.: cruz, 2×5, grade com buracos).
+- **Feiticeiro**: magias grandes e exigentes (pares, sequências), efeitos fortes, várias de uso único por luta.
+- **Assassino**: técnicas finas que aceitam quase qualquer dado; força na quantidade e na esquiva.
+- A loja é a mesma para todos, mas peças 2×2 ou em L não cabem num cinto.
+- **Futuro:** vários outros arquétipos, cada um com um formato de inventário próprio (ex.: cruz, 2×5, grade com buracos). Inimigos ganham os mesmos arquétipos quando eles forem criados.
 
 ---
 
 ## 4. Bolsa de dados
 
-- Começa com **8 d6 comuns**. Todos os dados são d6, sempre.
-- Por turno, **tira 5 dados** (a "mão") e rola. Os usados e os não usados vão para o descarte; quando a bolsa esvazia, o descarte volta para ela.
+- Começa com **8 d6 comuns** *(inicial)*. Todos os dados são d6, sempre.
+- **Cada luta começa com a bolsa cheia e embaralhada.**
+- No início do seu turno você **tira a mão** (5 dados; 6 para o Assassino) e rola.
+- No fim do turno, todos os dados da mão vão para o **descarte**. Quando a bolsa esvazia, o descarte volta para ela.
 - **Adicionar dados tem consequência real:** dilui os bons, mas alimenta dados que gostam de bolsa grande.
-- **Destruir dados é caro:** Poço de Modificação, com preço crescente por jornada.
-- A mão cresce com recompensas raras (Mestres): 5 → 6 → 7.
+- **Destruir dados é caro:** Poço de Modificação, preço crescente por jornada *(inicial: 10 moedas, +10 por uso)*.
+- **Dados-lixo** que um inimigo põe na sua bolsa **ficam com você depois da luta**, até serem destruídos. Só alguns inimigos fazem isso.
 
-### 4.1 Elementos (tempero)
+### 4.1 Elementos
 
-Cada dado pode ter **um** elemento. O efeito vem de uma característica real, escrito em uma linha.
+Cada dado pode ter **um** elemento, além de qualquer número de adesivos. O efeito vem de uma característica real, escrito em uma linha.
 
 | Elemento | Efeito |
 |---|---|
@@ -90,10 +91,10 @@ Cada dado pode ter **um** elemento. O efeito vem de uma característica real, es
 | **Carbono** | Cadeia: +1 para cada outro Carbono na bolsa. |
 | **Ósmio** | Âncora: sempre sai na primeira mão de cada luta; não pode ser roubado. |
 | **Oganessônio** | Faces enormes; desintegra (sai da bolsa) após 1 uso. |
-| **Urânio** | Valor alto; se ficar na mão sem uso, **envenena** você (acumula entre turnos). |
-| **Chumbo** | **3 faces são 1 fixo** (não podem ser editadas). Normalmente é lixo que o inimigo põe na sua bolsa. |
-| **Sódio** | Ao ser usado, **queima** o inimigo (dano por alguns turnos). |
-| **Mercúrio** | Amálgama: copia o valor do **maior dado da mesa** (dos dois lados). |
+| **Urânio** | Valor alto; se ficar na mão sem uso até o fim do seu turno, **envenena** você (acumula). |
+| **Chumbo** | **3 faces são 1 fixo** (não podem ser editadas). Normalmente é lixo posto pelo inimigo. |
+| **Sódio** | Ao ser usado, **queima** o inimigo por alguns turnos. |
+| **Mercúrio** | Amálgama: copia o maior valor entre a sua mão e a **última mão do inimigo**. |
 | **Ferro** | Magnético: ao sair, puxa outro Ferro da bolsa para a mão. |
 | **Ouro** | Ao ser usado com 6, dá moedas. |
 | **Hélio** | Inerte: imune a efeitos do inimigo. |
@@ -101,7 +102,7 @@ Cada dado pode ter **um** elemento. O efeito vem de uma característica real, es
 
 ### 4.2 Faces
 
-- **Adesivo ×2:** dobra aquela face **para sempre**; acumula (6 → 12 → 24).
+- **Adesivo ×2:** dobra aquela face **para sempre**; acumula (6 → 12 → 24). O preço sobe a cada adesivo no mesmo dado.
 - **Editar face:** troca o número de uma face (ex.: 1 → 5).
 - É por aqui que **os números explodem**. Um 24 é ótimo numa Faísca e inútil numa magia que pede "dado ≤ 3".
 
@@ -109,14 +110,14 @@ Cada dado pode ter **um** elemento. O efeito vem de uma característica real, es
 
 ## 5. Magias
 
-Cada magia tem **formato** (no grimório), **exigência** (quais dados aceita), **efeito** e **uso** (sempre ou **1× por luta**).
+Cada magia tem **formato** (no inventário), **exigência** (quais dados aceita), **efeito** e **uso** (sempre ou **1× por luta**).
 
 | Magia | Formato | Pede | Efeito | Uso |
 |---|---|---|---|---|
 | Faísca | 1×1 | qualquer dado | dano = valor | sempre |
 | Estocada | 1×1 | qualquer dado | dano = valor +1 | sempre |
 | Escudo Arcano | 1×2 | dado ≤ 3 | bloqueio = valor ×3 | sempre |
-| Esquiva | 1×1 | dado ≤ 2 | anula o maior golpe inimigo do turno | 1× por luta |
+| Esquiva | 1×1 | dado ≤ 2 | anula o **próximo golpe** do inimigo | 1× por luta |
 | Corte Duplo | 2×1 | dois dados | soma; se ambos ímpares, golpeia de novo | sempre |
 | Bola de Fogo | 2×2 | dois iguais | soma ×3 e queima | 1× por luta |
 | Meteoro | L (4 casas) | sequência de 3 | 40 de dano | 1× por luta |
@@ -127,51 +128,85 @@ Cada magia tem **formato** (no grimório), **exigência** (quais dados aceita), 
 | Transfusão | 2×1 | dois iguais | +valor de um deles na vida máxima, permanente | 1× por luta |
 
 - **Cada dado alimenta uma magia por turno; cada magia é usada no máximo 1 vez por turno.**
-- **Formatos que não combinam** são o custo das magias fortes: o L do Meteoro deixa buracos que só peças 1×1 tapam.
-- O **grimório se mantém** entre as lutas; reorganizar é opcional, antes de cada luta.
-- Evoluir uma magia (Escola de Magia) aumenta o efeito, afrouxa a exigência ou diminui o formato.
+- **Cópias da mesma magia são permitidas**, se couberem no inventário.
+- Se nenhuma magia aceita os dados da mão, **o turno passa em branco**.
+- **Formatos que não combinam** são o custo das magias fortes.
+- O inventário **se mantém** entre as lutas; reorganizar é opcional, antes de cada luta. Ele **só cresce pelos Mestres de Andar**.
+- **Evolução: 3 níveis.** Cada nível melhora uma coisa: efeito, exigência ou formato (Escola de Magia).
+- Magias podem ser **vendidas** por metade do preço.
 
 ---
 
-## 6. Turno
+## 6. Turno (sequencial)
 
-1. **Início:** veneno, queima e outros efeitos contínuos.
-2. **Rolagem:** os dois lados tiram a mão da bolsa e rolam; todos veem tudo. Efeitos de dado (Mercúrio, Ferro…).
-3. **Alocação simultânea:** cada lado põe dados nas magias. Tudo é reversível até "Terminar turno".
-4. **Resolução:** proteções (bloqueio, esquiva, espelho) → dano → curas → efeitos de fim (Urânio na mão envenena, Vidro quebra, Sacrifício destrói).
-5. **Descarte:** todos os dados da mão vão para o descarte.
-6. Vida 0 = derrota. Empate = derrota do jogador.
+Os lados se alternam. **O jogador começa** *(inicial; o simulador avalia se o primeiro turno precisa de compensação)*.
 
----
+**Turno de um lado:**
+1. **Início:** veneno e queima desse lado causam dano. Os bloqueios que **esse lado** criou no turno anterior somem (ver abaixo).
+2. **Mão:** tira os dados da bolsa e rola. Efeitos de dado (Ósmio, Ferro, Mercúrio, Vidro…).
+3. **Alocação:** põe dados nas magias. Tudo é reversível até "Terminar turno". Durante a alocação o jogador vê a vida, os bloqueios, a bolsa (composição) e o inventário do inimigo, e a última mão dele.
+4. **Resolução:** as magias acontecem na ordem dos slots do inventário (da esquerda para a direita, de cima para baixo), com animação.
+5. **Fim:** Urânio que ficou na mão envenena; Vidro usado testa a quebra; Sacrifício e Oganessônio saem da bolsa; a mão vai para o descarte.
+6. **Morte:** quem chega a 0 de vida perde imediatamente.
 
-## 7. Inimigos
+**Bloqueio e proteções:** duram **até o fim do turno seguinte do adversário**, salvo quando a magia diz explicitamente outra coisa. Na prática: você se protege no seu turno e a proteção vale contra o ataque que vem logo depois; ela some no início do seu próximo turno.
 
-- Seguem **os mesmos arquétipos** dos personagens, **inclusive o formato do inventário** (Mago inimigo com grimório 4×3, Assassino inimigo com cinto 6×1).
-- **Bolsa e grimório visíveis** (composição da bolsa, não a ordem). É isso que diferencia uma luta da outra.
-- **Contaminação:** cada inimigo pode pôr um dado-lixo na sua bolsa, que fica com você depois da luta (Chumbo, Urânio...).
-- Variantes dentro do arquétipo pelo conteúdo: o "Lixeiro" (Assassino que joga Chumbo), o "Piromante" (Mago de Sódio e Bola de Fogo) etc.
-- A IA reaproveita as personalidades da v2 (Bruto, Cauteloso, Caótico), adaptadas para escolher magias.
+- **Trava de segurança:** se a luta chegar ao **turno 60** (contando os dois lados), conta como derrota do jogador.
 
 ---
 
-## 8. Reaproveitamento do motor atual
+## 7. Economia *(valores iniciais)*
+
+- Vitória: moedas conforme a porta (fácil < normal < insana).
+- Preços: magia, dado novo, elemento, adesivo ×2 (crescente por dado), editar face, destruir dado (crescente por jornada), vida máxima (crescente por compra).
+- Valores exatos em `engine/config.gd` quando implementado.
+
+---
+
+## 8. Inimigos
+
+### 8.1 Princípios
+- **Mesmos arquétipos** dos personagens (Feiticeiro e Assassino no protótipo), **inclusive o formato do inventário**.
+- **Bolsa (composição), inventário, vida e bloqueios visíveis**, consultáveis a qualquer momento.
+- **Montados como um jogador:** um inimigo do andar N recebe o orçamento de recompensas de uma jornada de N andares e "compra" na mesma loja, com as mesmas regras. A dificuldade da porta escala esse orçamento *(inicial: fácil 80%, normal 100%, insana 130%)*.
+- A vantagem do jogador é a **sinergia**: o inimigo monta de forma genérica.
+- Variantes de conteúdo dentro do arquétipo: o **Lixeiro** (Assassino que põe Chumbo na sua bolsa), o **Piromante** (Feiticeiro de Sódio e Bola de Fogo) etc.
+- IA: reaproveita as personalidades da v2 (Bruto, Cauteloso, Caótico), adaptadas para escolher magias.
+
+### 8.2 Contaminação
+Alguns inimigos põem dados-lixo na sua bolsa durante a luta. **Os dados-lixo ficam depois da luta**, até serem destruídos no Poço.
+
+### 8.3 Mestres de Andar (protótipo)
+
+| Andar | Mestre | Regra |
+|---|---|---|
+| 10 | **Porteiro de Chumbo** | No início de cada turno seu, põe 1 Chumbo na sua mão (só durante a luta). |
+| 20 | **A Alquimista** | No início de cada turno seu, o seu maior dado troca de valor com o menor dado da última mão dela (reaproveita a Corrente da v2). |
+| 30 | **O Reator** | Bolsa cheia de Urânio. No fim de cada turno, **todo** dado que sobrou na mão envenena quem o rolou (dos dois lados). |
+
+---
+
+## 9. Meta-progressão
+
+- **Nenhuma no protótipo.**
+- Futuro: desbloquear personagens e magias novas na loja, **sem poder permanente**.
+
+---
+
+## 10. Reaproveitamento do motor atual
 
 | Hoje (v2) | Na v3 |
 |---|---|
 | Requisitos de valor da defesa (`DEFENSE_REQUIREMENTS`), par, trio e sequência (Martelo, Lança, Arco) | Viram **exigências de magia** |
-| Escudo, Espelho, espinhos, cura, anulação (`resolver.gd`) | Viram **efeitos de magia** |
+| Escudo, Espelho, espinhos, cura, anulação, Corrente (`resolver.gd`) | Viram **efeitos de magia** e regra da Alquimista |
 | Eventos do motor (`rep.events`) e animação da resolução | Continuam; ganham tipos novos (veneno, queima, quebra) |
-| `Duel`, `RunState`, `SaveGame`, simulador, testes GUT | Base mantida; mudam os dados do lutador (bolsa + grimório) e a progressão (torre) |
+| `Duel`, `RunState`, `SaveGame`, simulador, testes GUT | Base mantida; o duelo passa a alternar turnos; mudam os dados do lutador (bolsa + inventário) e a progressão (torre) |
 | `Fighter.dice` (6 inteiros) | Vira **bolsa de objetos** (faces + elemento) |
-| Equipamentos, itens, autodano geral | Saem |
+| Personalidades da IA | Adaptadas para escolher magias |
+| Equipamentos, itens, autodano geral, resolução simultânea | Saem |
 
 ---
 
-## 9. Em aberto
+## 11. Próximo passo
 
-- Curva de crescimento dos inimigos por andar (vida, adesivos, nível das magias) e preço da vida máxima.
-- Tamanho da bolsa inicial e da mão (8 / 5).
-- Quantas portas por bifurcação e o ritmo das trifurcações (3 ou 4 lutas).
-- Lista final de magias por personagem e da loja; regras dos Mestres de Andar.
-- Como o jogador vê a bolsa do inimigo na tela em paisagem.
-- Meta-progressão entre jornadas (ex.: desbloquear magias e personagens).
+**Fatia vertical** para testar a jogada antes de investir em conteúdo: só o Feiticeiro; bolsa com ~5 elementos; ~8 magias; 10 andares com portas, uma trifurcação e o Porteiro de Chumbo; inimigos montados por orçamento.
