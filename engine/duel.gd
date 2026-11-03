@@ -10,6 +10,7 @@ var enemy_choice: TurnChoice
 var state: String = "choosing" ## choosing, won, lost
 var turn_log: Array = [] ## Eventos do início do turno atual (antes da escolha).
 var last_log: Array = [] ## Log completo do último turno resolvido.
+var turn_events: Array = [] ## Eventos estruturados do início do turno atual (não salvos).
 var dealt: int = 0
 var taken: int = 0
 
@@ -27,12 +28,14 @@ func setup(p: Fighter, e: Fighter, duel_seed: int) -> void:
 ## A e B da ordem oficial, mais a escolha (oculta) do inimigo.
 func begin_turn() -> void:
 	turn += 1
+	Resolver.events = []
 	turn_log = [Texts.t("log.turn", {"n": turn})]
 	Resolver.start_turn(player, turn, turn_log)
 	Resolver.start_turn(enemy, turn, turn_log)
 	Resolver.roll(player, rng, turn, turn_log)
 	Resolver.roll(enemy, rng, turn, turn_log)
 	enemy_choice = EnemyAI.choose(enemy, rng)
+	turn_events = Resolver.take_events()
 
 
 ## C a N. Retorna o relatório do turno (ou {"error": ...}).
@@ -53,6 +56,7 @@ func submit(choice: TurnChoice) -> Dictionary:
 		player.hp = player.max_hp
 		player_dead = false
 		lg.append(Texts.t("log.death_defy", {"who": player.name}))
+		rep.events.append({"t": "death_defy", "side": "player", "who": player.name, "hp": player.hp})
 	if player_dead:
 		state = "lost"
 	elif enemy.hp <= 0:
@@ -60,6 +64,7 @@ func submit(choice: TurnChoice) -> Dictionary:
 	elif turn >= Config.TURN_LIMIT:
 		state = "lost"
 		lg.append(Texts.t("log.turn_limit"))
+		rep.events.append({"t": "turn_limit", "side": "player", "who": player.name})
 	rep.log = lg
 	rep.enemy_choice = enemy_choice
 	rep.player_choice = choice

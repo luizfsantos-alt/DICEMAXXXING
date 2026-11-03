@@ -2,6 +2,28 @@ class_name Resolver
 extends RefCounted
 ## Motor de regras: implementa a ordem oficial de resolução (docs/SPEC.md, seção 3).
 ## Tudo é estático e determinístico dado o RNG, para testes e simulação.
+##
+## Além do log em texto, cada etapa emite **eventos estruturados** (na mesma ordem),
+## usados pela interface para animar a resolução. Eventos não mudam nenhuma regra.
+## Formato: {t: tipo, side: "player"|"enemy", who: nome, ...dados}. Ver docs/SPEC.md §10.
+
+static var events: Array = []
+
+
+## Registra um evento do lado `f`.
+static func ev(f: Fighter, type: String, data: Dictionary = {}) -> void:
+	var e := data.duplicate()
+	e["t"] = type
+	e["side"] = "player" if f.is_player else "enemy"
+	e["who"] = f.name
+	events.append(e)
+
+
+## Devolve e limpa os eventos acumulados.
+static func take_events() -> Array:
+	var out := events
+	events = []
+	return out
 
 
 # ---------------------------------------------------------------- A. Início
@@ -12,13 +34,17 @@ static func start_turn(f: Fighter, turn: int, lg: Array) -> void:
 		var h := f.heal(2)
 		if h > 0:
 			lg.append(Texts.t("log.bandeide", {"who": f.name, "n": h}))
+			ev(f, "heal", {"n": h, "src": "DF5"})
 	if f.boss_id == "C2":
 		f.round_shield += 5
 		lg.append(Texts.t("log.neide", {"who": f.name, "n": 5}))
+		ev(f, "shield", {"n": 5, "src": "C2"})
 	if turn == 1 and f.has("DF4"):
 		var s := f.shield_value(3)
 		f.round_shield += s
 		lg.append(Texts.t("log.pochete", {"who": f.name, "n": s}))
+		_shield_procs(f)
+		ev(f, "shield", {"n": s, "src": "DF4"})
 	f.hp_at_start = f.hp
 	f.full_at_start = f.hp >= f.max_hp
 
@@ -37,6 +63,7 @@ static func roll(f: Fighter, rng: RandomNumberGenerator, turn: int, lg: Array) -
 			seven.append(roll_die(f, 6, rng))
 		var lo_i := argmin(seven)
 		lg.append(Texts.t("log.seven_dice", {"who": f.name, "n": seven[lo_i]}))
+		ev(f, "proc", {"src": "C1", "n": seven[lo_i]})
 		seven.remove_at(lo_i)
 		values = seven
 	else:
@@ -54,16 +81,19 @@ static func apply_dice_passives(f: Fighter, rng: RandomNumberGenerator, turn: in
 			if f.dice[i] == 1:
 				f.dice[i] = roll_die(f, f.dice_sides[i], rng)
 				n += 1
+				ev(f, "dice_change", {"die": i, "from": 1, "to": f.dice[i], "src": "DD3"})
 		if n > 0:
 			lg.append(Texts.t("log.pe_coelho", {"who": f.name, "n": n}))
 	if f.has("DD6") and f.ioio_carry >= 0:
 		var i := argmin(f.dice)
 		lg.append(Texts.t("log.ioio", {"who": f.name, "from": f.dice[i], "to": f.ioio_carry}))
+		ev(f, "dice_change", {"die": i, "from": f.dice[i], "to": f.ioio_carry, "src": "DD6"})
 		f.dice[i] = f.ioio_carry
 	if f.has("DD1"):
 		var i := argmin(f.dice)
 		var to := maxi(1, int(f.dice_sides[i]) + 1 - int(f.dice[i]))
 		lg.append(Texts.t("log.viciado", {"who": f.name, "from": f.dice[i], "to": to}))
+		ev(f, "dice_change", {"die": i, "from": f.dice[i], "to": to, "src": "DD1"})
 		f.dice[i] = to
 	if f.has("DD8"):
 		var m := max_of(f.dice)
@@ -73,6 +103,7 @@ static func apply_dice_passives(f: Fighter, rng: RandomNumberGenerator, turn: in
 				j = i
 		if j != -1:
 			lg.append(Texts.t("log.figurinha", {"who": f.name, "from": f.dice[j], "to": m}))
+			ev(f, "dice_change", {"die": j, "from": f.dice[j], "to": m, "src": "DD8"})
 			f.dice[j] = m
 	if f.has("DD6"):
 		f.ioio_carry = max_of(f.dice)
@@ -86,6 +117,7 @@ static func apply_dice_passives(f: Fighter, rng: RandomNumberGenerator, turn: in
 		f.raspadinha = all_faces
 		if all_faces:
 			lg.append(Texts.t("log.raspadinha", {"who": f.name}))
+			ev(f, "proc", {"src": "DD2"})
 	if f.has("DD5"):
 		var counts := {}
 		for v in f.dice:
@@ -94,6 +126,7 @@ static func apply_dice_passives(f: Fighter, rng: RandomNumberGenerator, turn: in
 			if counts[v] >= 3:
 				f.coins_earned += 1
 				lg.append(Texts.t("log.nota3", {"who": f.name}))
+				ev(f, "coin", {"n": 1, "src": "DD5"})
 				break
 
 
@@ -102,6 +135,7 @@ static func apply_dice_passives(f: Fighter, rng: RandomNumberGenerator, turn: in
 ## Retorna {lg, dmg_to_a, dmg_to_b, self_a, self_b}.
 static func resolve(a: Fighter, b: Fighter, ca: TurnChoice, cb: TurnChoice,
 		rng: RandomNumberGenerator, turn: int, lg: Array = []) -> Dictionary:
+	events = []
 	var pa := placement(a, ca)
 	var pb := placement(b, cb)
 
@@ -140,8 +174,10 @@ static func resolve(a: Fighter, b: Fighter, ca: TurnChoice, cb: TurnChoice,
 	b.hp -= dmg_b
 	if dmg_a > 0:
 		lg.append(Texts.t("log.takes", {"who": a.name, "n": dmg_a}))
+		ev(a, "damage", {"n": dmg_a})
 	if dmg_b > 0:
 		lg.append(Texts.t("log.takes", {"who": b.name, "n": dmg_b}))
+		ev(b, "damage", {"n": dmg_b})
 	machado(a, sa, lg)
 	machado(b, sb, lg)
 
@@ -154,12 +190,15 @@ static func resolve(a: Fighter, b: Fighter, ca: TurnChoice, cb: TurnChoice,
 	var self_b := self_damage(b, sb, turn, lg)
 	a.hp -= self_a
 	b.hp -= self_b
+	ev(a, "self", {"n": self_a, "dice": sa.pl.self.duplicate()})
+	ev(b, "self", {"n": self_b, "dice": sb.pl.self.duplicate()})
 
 	# M. Fim do turno.
 	end_turn(a, lg)
 	end_turn(b, lg)
 
-	return {"log": lg, "dmg_to_a": dmg_a, "dmg_to_b": dmg_b, "self_a": self_a, "self_b": self_b}
+	return {"log": lg, "dmg_to_a": dmg_a, "dmg_to_b": dmg_b, "self_a": self_a, "self_b": self_b,
+		"events": take_events()}
 
 
 static func placement(f: Fighter, c: TurnChoice) -> Dictionary:
@@ -180,6 +219,7 @@ static func corrente(t: Fighter, pl: Dictionary, lg: Array) -> void:
 	if t.has("DF8") and not t.chapeu_used:
 		t.chapeu_used = true
 		lg.append(Texts.t("log.chapeu", {"who": t.name, "effect": "a Corrente"}))
+		ev(t, "chapeu", {"src": "DF8", "effect": "chain"})
 		return
 	var actives: Array = pl.attack + pl.defense
 	if actives.is_empty() or pl.self.is_empty():
@@ -198,6 +238,7 @@ static func corrente(t: Fighter, pl: Dictionary, lg: Array) -> void:
 		pl.defense[pl.defense.find(big)] = low
 	pl.self[pl.self.find(low)] = big
 	lg.append(Texts.t("log.corrente", {"who": t.name, "from": t.dice[big], "to": t.dice[low]}))
+	ev(t, "chain", {"active": big, "self": low, "src": "D12"})
 
 
 # ---------------------------------------------------------------- E. Condições
@@ -209,7 +250,9 @@ static func side_state(f: Fighter, pl: Dictionary, lg: Array) -> Dictionary:
 			v = 6
 		vals.append(v)
 	if f.has("DD4") and not vals.is_empty():
-		vals[argmin(vals)] += 1
+		var k := argmin(vals)
+		vals[k] += 1
+		ev(f, "proc", {"src": "DD4", "die": pl.attack[k]})
 	var s := {
 		"pl": pl,
 		"vals": vals,
@@ -225,6 +268,7 @@ static func side_state(f: Fighter, pl: Dictionary, lg: Array) -> Dictionary:
 		s.def_active = Items.defense_accepts(f.defense_id, x)
 		if not s.def_active:
 			lg.append(Texts.t("log.def_invalid", {"who": f.name, "item": Texts.item_name(f.defense_id), "n": x}))
+			ev(f, "def_invalid", {"die": pl.defense[0], "src": f.defense_id})
 	return s
 
 
@@ -237,14 +281,21 @@ static func defense_shields(f: Fighter, s: Dictionary, lg: Array) -> void:
 			var v := f.shield_value(2 * x)
 			f.round_shield += v
 			lg.append(Texts.t("log.def_shield", {"who": f.name, "item": Texts.item_name("D1"), "n": v}))
+			_shield_procs(f)
+			ev(f, "shield", {"n": v, "src": "D1"})
 		"D5":
 			var v := f.shield_value(x)
+			var before := f.barrier
 			f.barrier = mini(Config.BARRIER_CAP, f.barrier + v)
 			lg.append(Texts.t("log.def_barrier", {"who": f.name, "n": f.barrier}))
+			_shield_procs(f)
+			ev(f, "barrier", {"n": f.barrier - before, "total": f.barrier, "src": "D5"})
 		"D10":
 			var v := f.shield_value(x)
 			f.placa_shield += v
 			lg.append(Texts.t("log.def_shield", {"who": f.name, "item": Texts.item_name("D10"), "n": v}))
+			_shield_procs(f)
+			ev(f, "shield", {"n": v, "src": "D10"})
 
 
 # ---------------------------------------------------------------- F. Ataque
@@ -266,11 +317,14 @@ static func attack(f: Fighter, s: Dictionary, o: Fighter, so: Dictionary,
 			eff[i] += 2
 		if f.attack_id == "A7" and vals[i] == 6:
 			var sides: int = f.dice_sides[pl.attack[i]]
+			var extra := 0
 			for _k in 50:
 				var e := roll_die(f, sides, rng)
-				eff[i] += e
+				extra += e
 				if e != 6:
 					break
+			eff[i] += extra
+			ev(f, "explode", {"die": pl.attack[i], "n": extra, "src": "A7"})
 
 	# F2. Modificadores do oponente por dado.
 	var annulled := []
@@ -283,17 +337,21 @@ static func attack(f: Fighter, s: Dictionary, o: Fighter, so: Dictionary,
 					if vals[i] == so.x:
 						annulled[i] = true
 						lg.append(Texts.t("log.annul", {"who": o.name, "item": Texts.item_name("D7"), "n": vals[i]}))
+						ev(f, "annul", {"die": pl.attack[i], "src": "D7"})
 			"D8":
 				var parity: int = so.x % 2
 				for i in n:
 					if vals[i] % 2 == parity:
 						annulled[i] = true
 						lg.append(Texts.t("log.annul", {"who": o.name, "item": Texts.item_name("D8"), "n": vals[i]}))
+						ev(f, "annul", {"die": pl.attack[i], "src": "D8"})
 			"D9":
 				var r: int = Config.ceil_div(so.x, 2) + o.whey()
 				for i in n:
 					eff[i] = maxi(0, eff[i] - r)
 				lg.append(Texts.t("log.reduce_die", {"who": o.name, "item": Texts.item_name("D9"), "n": r}))
+				_whey_proc(o)
+				ev(f, "reduce_die", {"dice": pl.attack.duplicate(), "n": r, "src": "D9"})
 	for i in n:
 		if annulled[i]:
 			eff[i] = 0
@@ -306,6 +364,9 @@ static func attack(f: Fighter, s: Dictionary, o: Fighter, so: Dictionary,
 			var r := 1 + o.whey()
 			eff[big] = maxi(0, eff[big] - r)
 			lg.append(Texts.t("log.reduce_die", {"who": o.name, "item": Texts.item_name("DF3"), "n": r}))
+			ev(o, "proc", {"src": "DF3"})
+			_whey_proc(o)
+			ev(f, "reduce_die", {"dice": [pl.attack[big]], "n": r, "src": "DF3"})
 
 	# F3. Fórmula do item.
 	var w := sum_of(eff)
@@ -341,6 +402,7 @@ static func attack(f: Fighter, s: Dictionary, o: Fighter, so: Dictionary,
 	if f.raspadinha:
 		total *= 2
 		bonus += " (Raspadinha x2)"
+		ev(f, "proc", {"src": "DD2"})
 
 	var parts := []
 	for v in eff:
@@ -351,6 +413,7 @@ static func attack(f: Fighter, s: Dictionary, o: Fighter, so: Dictionary,
 	result.eff = eff
 	result.annulled = annulled
 	result.total = total
+	ev(f, "attack", {"dice": pl.attack.duplicate(), "eff": eff.duplicate(), "n": total, "src": f.attack_id})
 	return result
 
 
@@ -387,8 +450,10 @@ static func mirrors(f: Fighter, s: Dictionary, atk: Dictionary, o: Fighter, so: 
 	for i in mirrored:
 		var part := contribution(original_total, eff, i)
 		reflected += part
-		var key := "log.kevin" if (o.boss_id == "C3" and s.vals[i] == 6) else "log.mirror"
+		var kevin: bool = o.boss_id == "C3" and s.vals[i] == 6
+		var key := "log.kevin" if kevin else "log.mirror"
 		lg.append(Texts.t(key, {"who": o.name, "n": part}))
+		ev(f, "mirror", {"die": s.pl.attack[i], "n": part, "src": "C3" if kevin else "D11"})
 	reflected = mini(reflected, original_total)
 	atk.total = original_total - reflected
 	return reflected
@@ -407,10 +472,13 @@ static func thorns(f: Fighter, atk: Dictionary, o: Fighter, so: Dictionary, lg: 
 	if f.has("DF8") and not f.chapeu_used:
 		f.chapeu_used = true
 		lg.append(Texts.t("log.chapeu", {"who": f.name, "effect": "os espinhos"}))
+		ev(f, "chapeu", {"src": "DF8", "effect": "thorns"})
 		return 0
 	var k: int = Config.ceil_div(so.x, 2) + o.whey()
 	var dmg := k * count
 	lg.append(Texts.t("log.thorns", {"who": o.name, "n": dmg}))
+	_whey_proc(o)
+	ev(f, "thorns", {"n": dmg, "src": "D6"})
 	return dmg
 
 
@@ -422,10 +490,14 @@ static func reduce(f: Fighter, s: Dictionary, amount: int, lg: Array) -> int:
 		var cut := mini(amount, 2 + f.whey())
 		amount -= cut
 		lg.append(Texts.t("log.meia", {"who": f.name, "n": cut}))
+		_whey_proc(f)
+		ev(f, "block", {"n": cut, "src": "DF6"})
 	if s.def_active and f.defense_id == "D3" and amount > 0:
 		var blocked := mini(amount, Config.ceil_div(amount, 2) + f.whey())
 		amount -= blocked
 		lg.append(Texts.t("log.muralha", {"who": f.name, "n": blocked}))
+		_whey_proc(f)
+		ev(f, "block", {"n": blocked, "src": "D3"})
 	var absorbed := 0
 	var take := mini(amount, f.round_shield)
 	f.round_shield -= take
@@ -441,6 +513,7 @@ static func reduce(f: Fighter, s: Dictionary, amount: int, lg: Array) -> int:
 	absorbed += take
 	if absorbed > 0:
 		lg.append(Texts.t("log.shield_absorb", {"who": f.name, "n": absorbed}))
+		ev(f, "absorb", {"n": absorbed, "barrier": f.barrier})
 	return amount
 
 
@@ -456,12 +529,15 @@ static func machado(f: Fighter, s: Dictionary, lg: Array) -> void:
 		var h := f.heal(n)
 		if h > 0:
 			lg.append(Texts.t("log.machado", {"who": f.name, "n": h}))
+			ev(f, "heal", {"n": h, "src": "A9"})
 
 
 static func fenix(f: Fighter, s: Dictionary, lg: Array) -> void:
 	if s.def_active and f.defense_id == "D4":
 		var h := f.heal(2 * int(s.x) + f.whey())
 		lg.append(Texts.t("log.fenix", {"who": f.name, "n": h}))
+		_whey_proc(f)
+		ev(f, "heal", {"n": h, "src": "D4"})
 
 
 # ---------------------------------------------------------------- L. Autodano
@@ -469,16 +545,28 @@ static func self_damage(f: Fighter, s: Dictionary, turn: int, lg: Array) -> int:
 	var pl: Dictionary = s.pl
 	if turn == 1 and f.has("DF2"):
 		lg.append(Texts.t("log.capacete", {"who": f.name}))
+		ev(f, "proc", {"src": "DF2"})
 		return 0
 	var values := []
 	for i in pl.self:
 		values.append(f.dice[i])
 	if s.def_active and f.defense_id == "D7":
+		for i in pl.self:
+			if f.dice[i] == s.x:
+				ev(f, "annul", {"die": i, "src": "D7"})
 		values = values.filter(func(v): return v != s.x)
 	if f.has("DD7"):
 		var counts := {}
 		for v in values:
 			counts[v] = counts.get(v, 0) + 1
+		var annul_ima := false
+		for i in pl.self:
+			var dv: int = f.dice[i]
+			if counts.get(dv, 0) > 1 and not (s.def_active and f.defense_id == "D7" and dv == s.x):
+				ev(f, "annul", {"die": i, "src": "DD7"})
+				annul_ima = true
+		if annul_ima:
+			ev(f, "proc", {"src": "DD7"})
 		values = values.filter(func(v): return counts[v] == 1)
 	var total := sum_of(values)
 	var parts := []
@@ -488,12 +576,15 @@ static func self_damage(f: Fighter, s: Dictionary, turn: int, lg: Array) -> int:
 	if s.def_active and f.defense_id == "D2":
 		total = maxi(0, Config.ceil_div(total, 2) - f.whey())
 		lg.append(Texts.t("log.balsamo", {"who": f.name, "n": total}))
+		_whey_proc(f)
 	if f.has("DF7") and f.hp_at_start <= 10:
 		total = Config.ceil_div(total, 2)
 		lg.append(Texts.t("log.garrafa", {"who": f.name, "n": total}))
+		ev(f, "proc", {"src": "DF7"})
 	if f.has("DF10") and total > 10:
 		total = 10
 		lg.append(Texts.t("log.cadeado", {"who": f.name, "n": total}))
+		ev(f, "proc", {"src": "DF10"})
 	return total
 
 
@@ -503,12 +594,25 @@ static func end_turn(f: Fighter, lg: Array) -> void:
 		var h := f.heal(f.placa_shield)
 		if h > 0:
 			lg.append(Texts.t("log.placa", {"who": f.name, "n": h}))
+			ev(f, "heal", {"n": h, "src": "D10"})
 	f.placa_shield = 0
 	f.round_shield = 0
 	f.barrier = mini(f.barrier, Config.BARRIER_CAP)
 
 
 # ---------------------------------------------------------------- Utilidades
+## Piscar de itens que só modificam números: Whey (+1) e Boné (+20% nos escudos).
+static func _whey_proc(f: Fighter) -> void:
+	if f.whey() > 0:
+		ev(f, "proc", {"src": "DD10"})
+
+
+static func _shield_procs(f: Fighter) -> void:
+	_whey_proc(f)
+	if f.has("DF9"):
+		ev(f, "proc", {"src": "DF9"})
+
+
 static func argmin(a: Array) -> int:
 	var j := 0
 	for i in a.size():
