@@ -79,6 +79,41 @@ func test_resolucao_pode_ser_pulada():
 	assert_true(d.phase in ["player", "over"], "tocar adianta o próximo turno")
 
 
+func test_passiva_itens_medalha_e_consulta():
+	var run := RunState.new_run(9)
+	run.fight = 30
+	run.passives = ["DF5", "DD2"]
+	run.death_defy = true
+	run.start_duel()
+	var d := DuelScreen.new().setup(run)
+	d.fast = true
+	add_child_autofree(d)
+	await wait_process_frames(2)
+	assert_true(d.chips.player.has("P1"), "passiva do personagem na barra")
+	assert_true(d.chips.enemy.has("C3"), "regra do chefe na barra do inimigo")
+	assert_eq(d.items_row.get_child_count(), 2, "fileira de itens do jogador")
+	assert_true(d.chips.player.has("DEATH_DEFY"), "medalha do Desafio à Morte")
+	var c := d.open_enemy_consult()
+	await wait_process_frames(1)
+	assert_true(is_instance_valid(c) and c.is_inside_tree())
+	c.queue_free()
+	d._on_chip_pressed(d.chips.player["DF5"])
+	await wait_process_frames(1)
+	assert_true(d.get_children().any(func(x): return x is Consult))
+
+
+func test_inimigo_comum_tem_passiva_vazia_e_sem_itens():
+	var run := RunState.new_run(9)
+	var d := DuelScreen.new().setup(run)
+	d.fast = true
+	add_child_autofree(d)
+	await wait_process_frames(2)
+	assert_true(d.chips.enemy.is_empty(), "sem passiva, quadrado vazio")
+	var row: HBoxContainer = d.bar_rows.enemy
+	assert_true(row.get_child(0) is Chip, "mas o quadrado está presente")
+	assert_eq(run.duel.enemy.passives, [], "inimigo nunca tem itens")
+
+
 func test_loja_e_fim():
 	var run := RunState.new_run(5)
 	run.phase = "shop"

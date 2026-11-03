@@ -35,6 +35,10 @@ var log_panel: PanelContainer
 var log_label: RichTextLabel
 var bars := {} ## side -> HpBar
 var portraits := {} ## side -> PanelContainer
+var bar_rows := {} ## side -> HBoxContainer (quadradinho de passiva + barra)
+var chips := {"player": {}, "enemy": {}} ## side -> {id -> Chip}
+var items_row: HBoxContainer
+var medal_box: Control
 var enemy_tray: HBoxContainer
 var tray: HBoxContainer
 var tray_views: Array = []
@@ -144,7 +148,16 @@ func _build() -> void:
 	# --- Base: retrato do jogador | bandeja e barra do jogador.
 	var bottom := Kit.hbox(16)
 	root.add_child(bottom)
-	bottom.add_child(_portrait("player"))
+	var pl := Kit.vbox(8)
+	var prow := Kit.hbox(8)
+	prow.add_child(_portrait("player"))
+	medal_box = CenterContainer.new()
+	medal_box.custom_minimum_size = Vector2(Chip.SIZE, 0)
+	prow.add_child(medal_box)
+	pl.add_child(prow)
+	items_row = Kit.hbox(8)
+	pl.add_child(items_row)
+	bottom.add_child(pl)
 	var br := Kit.vbox(8)
 	br.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bottom.add_child(br)
@@ -193,6 +206,7 @@ func _slot_box() -> PanelContainer:
 func _bar_row(side: String) -> HBoxContainer:
 	var row := Kit.hbox(10)
 	row.name = "BarRow_" + side
+	bar_rows[side] = row
 	var bar := HpBar.new().setup(Kit.DANGER if side == "enemy" else Kit.OK)
 	bars[side] = bar
 	row.add_child(bar)
@@ -201,11 +215,13 @@ func _bar_row(side: String) -> HBoxContainer:
 
 func _portrait(side: String) -> PanelContainer:
 	var p := Kit.panel(Color(0.2, 0.17, 0.25) if side == "enemy" else Color(0.17, 0.2, 0.25))
-	p.custom_minimum_size = Vector2(230, 140 if side == "enemy" else 110)
+	p.custom_minimum_size = Vector2(230, 140 if side == "enemy" else 104)
 	var v := Kit.vbox(2)
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	p.add_child(v)
 	portraits[side] = p
+	if side == "enemy":
+		p.gui_input.connect(_on_enemy_portrait_input)
 	return p
 
 
@@ -216,11 +232,86 @@ func _fill_portraits() -> void:
 	if e.boss_id != "":
 		ev.add_child(Kit.label("★ " + Texts.t("ui.boss"), 16, Kit.ACCENT))
 	ev.add_child(Kit.label(e.name, 20, Kit.TEXT, true))
-	ev.add_child(Kit.label(Texts.t("ui.front_view"), 14, Kit.MUTED))
+	ev.add_child(Kit.label(Texts.t("ui.front_view") + "  ·  " + Texts.t("ui.tap_to_view"), 14, Kit.MUTED))
 	var pv: VBoxContainer = portraits.player.get_child(0)
 	Kit.clear(pv)
 	pv.add_child(Kit.label(Texts.t("ui.you"), 22, Kit.TEXT))
-	pv.add_child(Kit.label(Texts.t("ui.back_view"), 14, Kit.MUTED))
+	pv.add_child(Kit.label(Texts.character("P1")[0] + "  " + Texts.t("ui.back_view"), 14, Kit.MUTED))
+	_fill_chips()
+
+
+## Quadradinho de passiva (na ponta da barra), fileira de itens e medalha.
+func _fill_chips() -> void:
+	chips = {"player": {}, "enemy": {}}
+	for side in ["player", "enemy"]:
+		var row: HBoxContainer = bar_rows[side]
+		for c in row.get_children():
+			if c is Chip:
+				row.remove_child(c)
+				c.queue_free()
+		var pid := "P1" if side == "player" else duel.enemy.boss_id
+		var chip := _chip(side, pid)
+		row.add_child(chip)
+		row.move_child(chip, 0)
+	Kit.clear(items_row)
+	for id in duel.player.passives:
+		items_row.add_child(_chip("player", id))
+	Kit.clear(medal_box)
+	if duel.player.death_defy:
+		medal_box.add_child(_chip("player", "DEATH_DEFY", true))
+
+
+func _chip(side: String, id: String, medal := false) -> Chip:
+	var c := Chip.make(id, medal)
+	if id != "":
+		chips[side][id] = c
+		c.pressed.connect(_on_chip_pressed)
+	return c
+
+
+func _entry(id: String) -> Array:
+	if id == "P1":
+		var ch := Texts.character("P1")
+		return [Texts.t("ui.c_passive") + " · " + ch[0], ch[1], ch[2]]
+	if Texts.data().get("bosses", {}).has(id):
+		return [Texts.t("ui.c_boss_rule"), Texts.boss_name(id), Texts.boss_desc(id)]
+	if id == "DEATH_DEFY":
+		return [Texts.t("ui.c_medal"), Texts.item_name(id), Texts.item_desc(id)]
+	if id in Items.ATTACK:
+		return [Texts.t("ui.c_attack"), Texts.item_name(id), Texts.item_desc(id)]
+	if id in Items.DEFENSE:
+		return [Texts.t("ui.c_defense"), Texts.item_name(id), Texts.item_desc(id)]
+	return [Texts.t("ui.c_item"), Texts.item_name(id), Texts.item_desc(id)]
+
+
+func _on_chip_pressed(c: Chip) -> void:
+	if phase in ["resolve", "between"]:
+		return
+	Consult.open(self, "", [_entry(c.id)])
+
+
+## Consulta de tudo do inimigo: vida, equipamentos e regra de chefe.
+func _on_enemy_portrait_input(e: InputEvent) -> void:
+	if not (e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT and not e.pressed):
+		return
+	if phase in ["resolve", "between"]:
+		return
+	open_enemy_consult()
+
+
+func open_enemy_consult() -> Consult:
+	var en := duel.enemy
+	var entries := [_entry(en.attack_id)]
+	if en.defense_id != "":
+		entries.append(_entry(en.defense_id))
+	else:
+		entries.append([Texts.t("ui.c_defense"), Texts.t("ui.no_defense"), ""])
+	if en.boss_id != "":
+		entries.append(_entry(en.boss_id))
+	else:
+		entries.append([Texts.t("ui.c_passive"), Texts.t("ui.c_no_passive"), ""])
+	var title := en.name + "  ·  " + Texts.t("ui.c_hp", {"hp": maxi(0, en.hp), "max": en.max_hp})
+	return Consult.open(self, title, entries)
 
 
 # ================================================================== Valores exibidos
@@ -626,14 +717,17 @@ func _play(ev: Dictionary) -> float:
 	var src: String = str(ev.get("src", ""))
 	match ev.t:
 		"heal":
+			_pulse(side, src)
 			_hp(side, n)
 			return 0.35
 		"shield":
+			_pulse(side, src)
 			shown[side].shield += n
 			_draw_bars()
 			_float_at_bar(side, Texts.t("ui.fx_shield", {"n": n}), Kit.SHIELD)
 			return 0.35
 		"barrier":
+			_pulse(side, src)
 			shown[side].barrier = int(ev.get("total", shown[side].barrier + n))
 			_draw_bars()
 			_float_at_bar(side, Texts.t("ui.barrier", {"n": shown[side].barrier}), Kit.SHIELD)
@@ -757,6 +851,9 @@ func _play(ev: Dictionary) -> float:
 				_float_at_bar(side, Texts.t("ui.fx_self", {"n": n}), Color(0.75, 0.55, 0.95))
 			return 0.45 if n > 0 else 0.15
 		"death_defy":
+			var medal: Chip = chips[side].get("DEATH_DEFY")
+			if medal and not fast:
+				medal.break_apart()
 			shown[side].hp = int(ev.get("hp", shown[side].max))
 			_draw_bars()
 			_float_at(_center(portraits[side]), Texts.t("ui.fx_death_defy"), Kit.ACCENT, 34)
@@ -779,9 +876,11 @@ func _die(side: String, i: int) -> DieView:
 	return views[i] if i >= 0 and i < views.size() else null
 
 
-## Passivas, itens e medalha piscam quando agem (preenchido na etapa de quadradinhos).
-func _pulse(_side: String, _src: String) -> void:
-	pass
+## Passivas, itens e medalha piscam quando agem.
+func _pulse(side: String, src: String) -> void:
+	var c: Chip = chips.get(side, {}).get(src)
+	if c and not fast:
+		c.pulse()
 
 
 func _hp(side: String, delta: int) -> void:

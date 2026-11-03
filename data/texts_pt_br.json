@@ -45,6 +45,18 @@
     "HP": ["Vida Máxima +5", "Aumenta sua vida máxima em 5."],
     "DEATH_DEFY": ["Desafio à Morte", "Ao morrer, volta com vida cheia. Consumido ao usar."]
   },
+  "characters": {
+    "P1": ["O Gladiador", "Casca Grossa", "+{n} de vida máxima."]
+  },
+  "abbr": {
+    "P1": "CG",
+    "C1": "7D", "C2": "NEI", "C3": "KEV",
+    "DEATH_DEFY": "DM",
+    "DF1": "CHI", "DF2": "CAP", "DF3": "COL", "DF4": "POC", "DF5": "BAN",
+    "DF6": "MEI", "DF7": "GAR", "DF8": "CHA", "DF9": "BON", "DF10": "CAD",
+    "DD1": "VIC", "DD2": "RAS", "DD3": "COE", "DD4": "CAL", "DD5": "N3",
+    "DD6": "IOI", "DD7": "ÍMÃ", "DD8": "FIG", "DD9": "GAT", "DD10": "WHE"
+  },
   "bosses": {
     "C1": ["Cleitinho, o Porteiro", "Rola 7 dados e descarta o menor."],
     "C2": ["Dona Neide, Mãe dos Escudos", "Começa todo turno com 5 de escudo."],
@@ -121,7 +133,15 @@
     "fx_invalid": "não aceita",
     "fx_coin": "+{n} moeda",
     "fx_turn_limit": "Limite de turnos!",
-    "fx_death_defy": "DESAFIO À MORTE!"
+    "fx_death_defy": "DESAFIO À MORTE!",
+    "c_passive": "PASSIVA",
+    "c_boss_rule": "REGRA DO CHEFE",
+    "c_item": "ITEM",
+    "c_medal": "MEDALHA",
+    "c_attack": "EQUIPAMENTO DE ATAQUE",
+    "c_defense": "EQUIPAMENTO DE DEFESA",
+    "c_no_passive": "Sem passiva.",
+    "c_hp": "Vida {hp}/{max}"
   },
   "log": {
     "turn": "— Turno {n} —",
