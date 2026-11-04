@@ -1,6 +1,17 @@
 # Raridade de magias e dados (proposta)
 
-> **Status: proposta, aguardando feedback.** Cada magia e cada dado com elemento recebe uma **classe de raridade**. A classe controla a **chance de aparecer** nas ofertas, o **preço** e **a partir de quando os inimigos podem ter**. O efeito da magia não muda com a raridade. Números *(iniciais)*, a passar pelo simulador. Inclui as magias e o Amianto propostos em `docs/PERSONAGENS.md`.
+> **Status: proposta, rodada 2.** Classes aprovadas (rodada 1). Cada magia e cada dado com elemento recebe uma **classe de raridade**. A classe controla a **chance de aparecer** nas ofertas, o **preço** e **a partir de quando os inimigos podem ter**. O efeito da magia não muda com a raridade. Números *(iniciais)*, a passar pelo simulador. Inclui as magias e o Amianto propostos em `docs/PERSONAGENS.md`.
+
+---
+
+## Feedback (rodada 1)
+
+| Tema | Decisão |
+|---|---|
+| Classes | **Mantidas** as três (Comum, Incomum, Rara). A Lendária fica para depois. |
+| Evolução de Rara | Custa o **preço de uma magia Rara** (18) na Escola. |
+| Recompensa do Mestre | Ganha a opção "magia Rara". |
+| Ósmio | Passa a sair **em toda mão** (`docs/PERSONAGENS.md` §5.3) e sobe para **Raro**. |
 
 ---
 
@@ -64,9 +75,9 @@ Os **kits iniciais** ignoram a raridade (o Copista começa com a Imitação Bara
 
 | Classe | Dados | Por quê |
 |---|---|---|
-| **Comum** | Sódio, Ósmio, **Amianto** | Efeito simples, sem risco grande. |
+| **Comum** | Sódio, **Amianto** | Efeito simples, sem risco grande. |
 | **Incomum** | Urânio, Mercúrio | Valor alto com custo, ou valor que depende do inimigo. |
-| **Raro** | Hidrogênio | ×3 define a build (bolsa pequena). |
+| **Raro** | Hidrogênio, Ósmio | O Hidrogênio (×3) define a build da bolsa pequena. O Ósmio sai em toda mão: com adesivos, é um valor alto garantido todo turno. |
 | — | Chumbo | Lixo: só o inimigo dá. Para o Metalurgista, conta como Comum. |
 
 O **dado sem elemento** não tem classe: pela proposta de `docs/PERSONAGENS.md` §5.3, ele deixa de ser oferecido. **Adesivo ×2** e **editar face** são modificações, não dados: ficam fora da raridade.
@@ -91,7 +102,7 @@ Cada oferta de magia ou dado sorteia primeiro a **classe** e depois um item dent
 | 4 a 6 | 3,4% | 1,6% | 1,4% |
 | 7 a 10 | 2,8% | 1,8% | 2,2% |
 
-**Chance de um dado específico** em cada oferta de dado: no andar 1, cada Comum tem 23%, cada Incomum 12,5% e o Hidrogênio 5%. Nos andares 7 a 10: 15%, 17,5% e 20%.
+**Chance de um dado específico** em cada oferta de dado (2 em cada classe): no andar 1, cada Comum tem 35%, cada Incomum 12,5% e cada Raro 2,5%. Nos andares 7 a 10: 22,5%, 17,5% e 10%.
 
 ### 5.1 Onde as chances mudam
 
@@ -126,10 +137,15 @@ Hoje: magia 10, dado 6 (+8 com elemento), elemento no Poço 8, venda pela metade
 
 ---
 
-## 8. Em aberto
+## 8. Decisões
+
+| Tema | Decisão |
+|---|---|
+| Evolução | Na Escola, evoluir uma magia **Rara custa 18** (o preço dela na Loja). Comum e Incomum continuam grátis. |
+| Recompensa do Mestre | Três opções, escolher uma: **+casas no inventário**, **+1 dado na mão** ou **uma magia Rara** (escolhida entre 3). |
+
+## 9. Em aberto
 
 | Tema | Pergunta |
 |---|---|
-| Quatro classes? | Uma classe **Lendária** (1 a 2% das ofertas) para as magias que hoje ficam no limite (Matemática Superior, Golpe para a Foto)? |
-| Evolução | Evoluir uma magia Rara deveria custar mais na Escola? (Hoje a evolução é grátis na Escola.) |
-| Recompensa do Mestre | "Escolha 1 magia Rara" como terceira opção, além de +casas e +1 na mão? |
+| Lendária | Uma 4ª classe (1 a 2% das ofertas) para as magias no limite (Matemática Superior, Golpe para a Foto). Fica para depois. |

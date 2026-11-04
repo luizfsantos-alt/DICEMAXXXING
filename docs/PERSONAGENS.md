@@ -1,6 +1,6 @@
 # Personagens novos (proposta)
 
-> **Status: proposta, rodada 5.** São 6 arquétipos novos (os 5 da proposta mais o Bárbaro), além do Feiticeiro e do Assassino, que continuam, jogáveis e usados pelos inimigos, no padrão de `docs/SPEC_v3.md` §3: **formato do inventário**, **uma passiva**, vida, mão, bolsa inicial e magias iniciais. Seguem o tom de `docs/TOM.md` e os princípios de `docs/CATALOGO_MAGIAS.md` §1. Números *(iniciais)*, a passar pelo simulador.
+> **Status: proposta, rodada 6.** São 6 arquétipos novos (os 5 da proposta mais o Bárbaro), além do Feiticeiro e do Assassino, que continuam, jogáveis e usados pelos inimigos, no padrão de `docs/SPEC_v3.md` §3: **formato do inventário**, **uma passiva**, vida, mão, bolsa inicial e magias iniciais. Seguem o tom de `docs/TOM.md` e os princípios de `docs/CATALOGO_MAGIAS.md` §1. Números *(iniciais)*, a passar pelo simulador.
 
 ---
 
@@ -37,6 +37,13 @@
 | Raridade | Falta classe de raridade para magias e dados: proposta em `docs/RARIDADE.md`. |
 
 ## Feedback (rodada 5)
+
+| Tema | Decisão |
+|---|---|
+| Ósmio | Deve sair **em toda mão**, não só na primeira. Fica forte: sobe para **Raro** (`docs/RARIDADE.md`). |
+| Raridade | Respostas em `docs/RARIDADE.md` §8. |
+
+## Feedback (rodada 6)
 
 *(Em branco.)*
 
@@ -134,7 +141,7 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro   Bárbaro
 
 ### 2.4 Perfeccionista: "Ainda não está bom. Vai ficar."
 
-- **Plano:** nunca usa a mão inteira. O Ósmio inicial sai sempre na primeira mão: um dado conhecido para começar o par. No fim do turno, guarda até 2 dados que sobraram (**marca**: entram na próxima mão com o mesmo valor, sem rolar, além da mão normal). Com dois 6 guardados, a próxima mão de 5 tem 60% de chance de completar o trio para a **Obra-Prima** (3 dados iguais: dano = soma ×2; três 6 = 36).
+- **Plano:** nunca usa a mão inteira. O Ósmio inicial sai em toda mão: um dado garantido para começar o par, turno após turno. No fim do turno, guarda até 2 dados que sobraram (**marca**: entram na próxima mão com o mesmo valor, sem rolar, além da mão normal). Com dois 6 guardados, a próxima mão de 5 tem 60% de chance de completar o trio para a **Obra-Prima** (3 dados iguais: dano = soma ×2; três 6 = 36).
 - **Por que se vira:** no 1º turno, Dardo Arcano num par (~6) e guarda o par; no 2º, Obra-Prima (~27) + Dardo. O inimigo do andar 1 cai entre o 2º e o 3º turno. Os turnos são lentos e o pico é alto.
 - **Como cresce:** adesivos ×2 em várias faces do mesmo número (três 12 = 72). Combina com todas as magias de par e sequência.
 - **Inventário:** a Moldura não tem o meio. Não cabem 2×2 (Bola de Fogo), T nem Cruz. Cabem Reta 4 (em cima ou embaixo), Retas 3, 1×2 nas laterais e L de 3 e de 4 nos cantos.
@@ -239,7 +246,7 @@ Cada dado pode ter **um** elemento, que dá uma regra de uma linha a ele. No jog
 | Elemento | Na prática |
 |---|---|
 | **Hidrogênio** | Vale ×3, mas só com a bolsa de 8 dados ou menos (a bolsa inicial tem 8: comprar um dado já desliga). |
-| **Ósmio** | Âncora: sai sempre na primeira mão da luta. Também **não pode ser roubado nem arrancado** (Roubar a Cena e Arrancar das Mãos o pulam). O valor rola normalmente: é um dado comum que você sabe que vem. |
+| **Ósmio** | Âncora: sai sempre na primeira mão da luta. Também **não pode ser roubado nem arrancado** (Roubar a Cena e Arrancar das Mãos o pulam). O valor rola normalmente: é um dado comum que você sabe que vem. **Proposta (rodada 5): sai em toda mão** (ver 5.3). |
 | **Urânio** | Faces de 3 a 8. Se sobrar na mão sem uso, envenena **você** em 2 (o veneno não cai durante a luta). |
 | **Sódio** | Ao ser usado numa magia, queima o inimigo em 2. |
 | **Mercúrio** | Ao rolar, vale o maior valor entre a sua mão e a última mão do inimigo. |
@@ -264,7 +271,8 @@ A sensação procede: **é raro ver um elemento, e quando aparece, a tela não e
 2. **Dado oferecido sempre tem elemento.** Na recompensa e na loja, o "dado comum" sai. Preço na loja: 10 (igual a uma magia).
 3. **Todo inimigo tem pelo menos 1 elemento**, pelo arquétipo (os mesmos da lista acima), a partir do andar 1. Assim o jogador vê o efeito agindo contra ele.
 4. **Tocar e segurar um dado** (na mão, na bolsa ou na mão do inimigo) mostra o nome e o efeito do elemento. No lugar do tooltip.
-5. **O efeito se anuncia** quando acontece: "Sódio: queima 2", "Urânio: veneno 2", "Mercúrio: copiou 6", "Hidrogênio ×3".
+5. **Ósmio em toda mão.** Âncora: sai em **toda** mão, ocupando uma das vagas (não é dado extra). Não volta para a bolsa: no fim do turno, fica reservado para a próxima mão. Com mais Ósmios que vagas, a mão inteira é de Ósmio. Mexidas na mão (Interrupção Rude) cortam primeiro os outros dados. Continua sem poder ser roubado nem arrancado. Com adesivos, vira um valor alto garantido todo turno: por isso passa a ser **Raro**.
+6. **O efeito se anuncia** quando acontece: "Sódio: queima 2", "Urânio: veneno 2", "Mercúrio: copiou 6", "Hidrogênio ×3".
 
 Elementos novos (Hélio, Vidro, Ferro, Ouro… da `SPEC_v3.md` §4.1) ficam para depois: primeiro os 6 atuais precisam aparecer e ser entendidos.
 
