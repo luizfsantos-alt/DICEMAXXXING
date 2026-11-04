@@ -1,6 +1,6 @@
 # Magias de dano físico (proposta)
 
-> **Status: proposta, nada implementado.** São 10 ofensivas e 10 defensivas para **magos de dano físico**: os que acham que o músculo é o feitiço mais avançado de todos. Seguem o tom de `docs/TOM.md` (duelo de egos) e as diretrizes do feedback da rodada 1 (`docs/MAGIAS_DICE_FUCKERY.md`, "Feedback"). Números *(iniciais)*, a passar pelo simulador.
+> **Status: histórico.** O resultado está em `docs/CATALOGO_MAGIAS.md`. Proposta original: São 10 ofensivas e 10 defensivas para **magos de dano físico**: os que acham que o músculo é o feitiço mais avançado de todos. Seguem o tom de `docs/TOM.md` (duelo de egos) e as diretrizes do feedback da rodada 1 (`docs/MAGIAS_DICE_FUCKERY.md`, "Feedback"). Números *(iniciais)*, a passar pelo simulador.
 
 ---
 

@@ -1,0 +1,185 @@
+# Catálogo de magias
+
+> **Status: fonte da verdade para o conteúdo de magias.** Junta as magias da `docs/SPEC_v3.md` §5 com as aprovadas nas duas rodadas de proposta (`docs/MAGIAS_DICE_FUCKERY.md` e `docs/MAGIAS_FISICAS.md`, que passam a ser histórico), já com os ajustes do feedback. Só as magias base estão implementadas (menos a Golpe nas Sombras). Números *(iniciais)*, a passar pelo simulador.
+
+**39 magias:** 21 ofensivas e 18 defensivas. Vêm 12 da base, 11 da rodada 1 e 16 da rodada 2. 31 são retas e cabem no cinto do Assassino.
+
+---
+
+## 1. Princípios de design
+
+Saíram das duas rodadas de feedback e valem para toda magia nova.
+
+1. **A magia só usa os dados que estão nos slots agora.** Ela não lê a mão anterior do inimigo nem depende de um valor que só se descobre no turno dele. Ela **pode** deixar uma consequência simples para a próxima mão dele (menos dados, metade do valor, dado roubado).
+2. **Tudo passa por dado posto em slot.** Não existe efeito que mexe em outro dado da mão sem passar por um buraco. Uma magia pode **devolver dados para a mão** ou **marcar** um dado para a próxima.
+3. **Um dado que volta tem que voltar com certeza.** Mexer num dado da bolsa até o fim da luta vale pouco, porque ele pode não sair de novo. Fica reservado a efeitos muito fortes.
+4. **O que diverte é fazer conta com a mão:** quebrar, fundir, multiplicar, golpear várias vezes, estourar na face máxima. O jogador deve conseguir calcular o resultado antes de "Terminar turno".
+5. **Uma regra que vale para todos é melhor que uma regra que escolhe alvo.** Escreva "todos os dados", "efeitos negativos em geral". Evite "2 dados aleatórios".
+6. **Sorte pura não diverte.** Rolar de novo só funciona quando o jogador controla a chance (o Bis! pede a face máxima).
+7. **Magia forte se paga com formato e exigência**, não com "1× por luta": peça maior, exigência mais difícil.
+8. **Enfraquecer o inimigo sempre reduz.** Nada aumenta os dados dele nem lhe dá pares.
+9. **A magia não pode atrapalhar mais quem lança do que o alvo.**
+10. **Efeito pouco intuitivo não paga formato grande.**
+
+---
+
+## 2. Regras de apoio
+
+### 2.1 Durações
+
+| Etiqueta | Dura até |
+|---|---|
+| **neste turno** | o fim do seu turno |
+| **próxima mão dele** | o fim do próximo turno do inimigo |
+| **nesta luta** | o fim da luta; tudo volta ao normal na tela de recompensa |
+
+Nada é permanente, salvo quando o cartão diz "para sempre" (Sacrifício, Transfusão). A bolsa salva nunca guarda efeito temporário.
+
+### 2.2 Dados devolvidos para a mão
+
+Imitação Barata e Força Desnecessária devolvem dados à bandeja **na hora em que o dado entra no buraco**. Os dados devolvidos são temporários e podem alimentar outras magias **neste turno**. Tirar o dado do buraco recolhe os devolvidos e solta as magias que eles alimentavam. No fim do turno, eles somem.
+
+### 2.3 Marca para a próxima mão
+
+Pose Congelada, Impulso Calculado, Recuo Estratégico e Concentrar Força **marcam** um dado. Ele não vai para o descarte: entra na sua próxima mão **além da mão normal**, com o valor que o cartão diz (o Impulso Calculado rola com +2 em todas as faces). **Uma marca por vez**: uma marca nova substitui a anterior.
+
+### 2.4 Efeito negativo
+
+É tudo o que o inimigo aplica em você e não é dano direto: veneno, queima, dado posto ou tirado da sua bolsa ou da sua mão, mão menor, valor alterado. Imune a Críticas anula o próximo; Suor de Campeão remove os que estão ativos.
+
+### 2.5 Exigências
+
+| No buraco | Significado |
+|---|---|
+| (vazio) | qualquer dado |
+| "≤ 3", "≥ 4" | valor até / a partir de v |
+| "3" | valor exato |
+| "=" entre buracos | dados iguais |
+| "→" entre buracos | sequência |
+| "par" / "ímpar" | paridade |
+| "MÁX" | o dado está na face mais alta que ele tem |
+| "≤ 3" num dos buracos | n dados, e pelo menos um é ≤ v (Física Aplicada) |
+
+**A exigência checa o valor rolado** (ou o valor da marca).
+
+### 2.6 Formatos
+
+As peças giram. As peças com buraco (**Diagonal**, **Cruz**) têm casas que não se tocam, e outra peça pode ocupar o vão. **No cinto 6×1 do Assassino só cabem as retas.**
+
+```
+Diagonal (2)  Diagonal (3)  L (3)   L (4)   T (4)   Cruz (5)   Reta 4
+#.            #..           #.      #.      ###     .#.        ####
+.#            .#.           ##      #.      .#.     ###
+              ..#                   ##              .#.
+```
+
+### 2.7 Hélio, Ósmio e Chumbo
+
+- **Hélio** é imune a efeitos do inimigo: todo efeito na mão ou na bolsa dele **pula dados de Hélio**.
+- **Ósmio** não pode ser roubado nem arrancado.
+- **Chumbo**: faces travadas não recebem adesivo, nem roubado.
+
+### 2.8 Os inimigos usam o catálogo
+
+O inimigo compra deste catálogo com as mesmas regras. Ele usa as magias do grupo do arquétipo dele e as marcadas como "qualquer".
+
+---
+
+## 3. Ofensivas
+
+| # | Magia | Formato | Grupo | Pede | Efeito | Uso | Origem |
+|---|---|---|---|---|---|---|---|
+| 1 | **Faísca** | 1×1 | Feiticeiro | qualquer dado | Dano = valor. | sempre | base |
+| 2 | **Estocada** | 1×1 | Assassino | qualquer dado | Dano = valor + 1. | sempre | base |
+| 3 | **Corte Duplo** | 2×1 | Assassino | 2 dados | Dano = soma; se os dois forem ímpares, golpeia de novo. | sempre | base |
+| 4 | **Bola de Fogo** | 2×2 | Feiticeiro | 2 dados iguais | Dano = soma ×3 e queima 3. | 1× por luta | base |
+| 5 | **Meteoro** | L (4) | Feiticeiro | sequência de 3 | 40 de dano. | 1× por luta | base |
+| 6 | **Golpe nas Sombras** | 3×1 | Assassino | um 6 | Dano = valor, ignora bloqueio. | 1× por luta | base (planejada) |
+| 7 | **Sacrifício** | 1×1 | Feiticeiro | um 1 | Destrói o dado para sempre; +5 de dano em todas as magias de dano nesta luta. | sempre | base |
+| 8 | **Bis!** | 3×1 | Feiticeiro | dado na face MÁX | Dano = valor. Rola o dado de novo e soma enquanto sair a face máxima dele (até 5 vezes). | sempre | rodada 1 |
+| 9 | **Plágio** | 1×2 | Feiticeiro | dado ≤ 2 | Rouba 1 adesivo ×2 do dado com mais adesivos da bolsa do inimigo e cola na face usada, até o fim da luta. Dano = valor novo. Se o inimigo não tiver adesivo: dano = valor. | 1× por luta | rodada 1 |
+| 10 | **Roubar a Cena** | 1×1 | Feiticeiro | um 2 | O maior dado da próxima mão do inimigo sai da mão dele e entra na sua próxima mão com o mesmo valor. Depois volta para a bolsa dele. | 1× por luta | rodada 1 |
+| 11 | **Imitação Barata** | 2×1 | Feiticeiro | qualquer dado | O dado entra no slot e voltam à mão 2 dados iguais a ele (valor e elemento), para outras magias neste turno. | sempre | rodada 1 |
+| 12 | **Expectativa Tóxica** | T (4) | Feiticeiro | dado ≥ 5 | Dano = valor ×2. Na próxima mão do inimigo, cada dado que ele não usar o envenena em 2. | 1× por luta | rodada 1 |
+| 13 | **Matemática Superior** | Cruz (5) | Feiticeiro | 3 dados ≤ 4 | Dano = produto dos três (4 × 4 × 4 = 64). | 1× por luta | rodada 1 |
+| 14 | **Força Desnecessária** | 1×1 | Assassino | dado ≥ 4 | Dano = valor. O dado se parte: voltam à mão 2 dados com metade do valor cada (arredonda para cima), para outras magias neste turno. | sempre | rodada 2 |
+| 15 | **Física Aplicada** | 3×1 | Assassino | 2 dados, um ≤ 3 | Dano = maior × menor (12 × 3 = 36). | sempre | rodada 2 |
+| 16 | **Arrancar das Mãos** | 1×2 | Assassino | dado ≤ 2 | Dano = valor. O dado mais forte da bolsa do inimigo (maior soma de faces) fica fora da bolsa dele até o fim da luta. Ósmio não sai. | 1× por luta | rodada 2 |
+| 17 | **Exibição de Velocidade** | 3×1 | Assassino | 3 dados ≤ 3 | 3 golpes separados, cada um = valor ×2. Esquiva e Espelho só param o primeiro. Se os 3 forem iguais: 6 golpes. | sempre | rodada 2 |
+| 18 | **Levantar Peso** | 1×1 | Assassino | um 1 | Dano = 4 × quantos dados de valor 1 há na sua mão (contando este). | sempre | rodada 2 |
+| 19 | **Impulso Calculado** | 1×2 | Assassino | qualquer dado | Dano = valor. O dado volta obrigatoriamente na sua próxima mão, além da mão normal, com +2 em todas as faces, e é rolado. O +2 dura essa mão. | sempre | rodada 2 |
+| 20 | **Lição de Anatomia** | L (3) | Assassino | 2 dados iguais | Dano = soma ×2. Na próxima mão do inimigo, todo dado que cair na face mais alta vale 1. | 1× por luta | rodada 2 |
+| 21 | **Golpe para a Foto** | Reta 4 | Assassino | 4 dados ≥ 6 | Dano = o maior dado × 4 (um 24 dá 96). | 1× por luta | rodada 2 |
+
+## 4. Defensivas
+
+| # | Magia | Formato | Grupo | Pede | Efeito | Uso | Origem |
+|---|---|---|---|---|---|---|---|
+| 22 | **Escudo Arcano** | 1×2 | Feiticeiro | dado ≤ 3 | Bloqueio = valor ×3. | sempre | base |
+| 23 | **Esquiva** | 1×1 | Assassino | dado ≤ 2 | Anula o próximo golpe do inimigo. | 1× por luta | base |
+| 24 | **Espelho** | 1×1 | Feiticeiro | um 1 | Reflete o próximo golpe recebido. | sempre | base |
+| 25 | **Remendo** | 1×1 | qualquer | qualquer dado | Cura = valor. | 1× por luta | base |
+| 26 | **Transfusão** | 2×1 | Feiticeiro | 2 dados iguais | + valor de um deles na vida máxima, para sempre. | 1× por luta | base |
+| 27 | **Meia Verdade** | 1×1 | Feiticeiro | um 6 | Na próxima mão do inimigo, todos os dados de valor par viram 1. | 1× por luta | rodada 1 |
+| 28 | **Interrupção Rude** | Diagonal (2) | Feiticeiro | 2 dados ≤ 3 | O inimigo tira 2 dados a menos na próxima mão (mínimo 2). | 1× por luta | rodada 1 |
+| 29 | **Pose Congelada** | 1×2 | Feiticeiro | qualquer dado | Bloqueio = valor. O dado fica marcado: entra na sua próxima mão com o mesmo valor, sem rolar. | sempre | rodada 1 |
+| 30 | **Improviso Brilhante** | Reta 4 | Feiticeiro | um 1 | No fim deste turno, cada dado que sobrou na mão vira bloqueio = valor. Urânio que sobrou não envenena. | sempre | rodada 1 |
+| 31 | **Imune a Críticas** | 1×1 | Feiticeiro | dado par | Bloqueio = valor ×2. O próximo efeito negativo que o inimigo aplicar em você é anulado. | 1× por luta | rodada 1 |
+| 32 | **Revide Elegante** | 2×1 | Assassino | dado ≤ 3 | Bloqueio = valor ×2. Cada golpe que acertar você enquanto este bloqueio existir devolve dano = valor ao atacante. | sempre | rodada 2 |
+| 33 | **Chave de Braço Didática** | 1×1 | Assassino | um 3 | Na próxima mão do inimigo, todos os dados valem metade (arredonda para baixo, mínimo 1). | 1× por luta | rodada 2 |
+| 34 | **Rasteira Humilhante** | Diagonal (3) | Assassino | 2 dados ≤ 2 | Bloqueio = soma ×2. O inimigo tira 1 dado a menos na próxima mão. | sempre | rodada 2 |
+| 35 | **Suor de Campeão** | 1×1 | Assassino | dado ímpar | Remove todos os efeitos negativos em você. Bloqueio = valor. | sempre | rodada 2 |
+| 36 | **Armadura de Músculo** | 2×1 | Assassino | 2 dados ≤ 3 | Bloqueio = produto ×2 (3 × 3 × 2 = 18). | sempre | rodada 2 |
+| 37 | **Recuo Estratégico** | 1×1 | Assassino | dado ≤ 2 | Anula o próximo golpe. O dado fica marcado: entra na sua próxima mão valendo 6, sem rolar. | 1× por luta | rodada 2 |
+| 38 | **Presença Imponente** | 1×2 | Assassino | um 6 | Bloqueio = 3 × quantos dados você tem na mão agora (contando os postos e os devolvidos). | sempre | rodada 2 |
+| 39 | **Concentrar Força** | L (3) | Assassino | 2 dados iguais | Bloqueio = soma. Os dois dados se fundem: um dado marcado entra na sua próxima mão valendo a soma, sem rolar. | sempre | rodada 2 |
+
+---
+
+## 5. O que mudou em relação às propostas
+
+| Magia | Mudança |
+|---|---|
+| Golpe nas Sombras | Ainda não implementada (spec §5). |
+| Plágio | Texto do feedback; sem adesivo, dano = dado. |
+| Imitação Barata | Deixou de ser Truque: agora é dado no slot e 2 cópias na mão. |
+| Expectativa Tóxica | Dano dobrado agora, para compensar o veneno que só vem depois (interpretação do feedback). |
+| Física Aplicada | Peça maior: de 2×1 para 3×1. |
+| Levantar Peso | Nome: era Levantar Peso Morto. |
+| Impulso Calculado | Antes voltava com valor +2 fixo; agora +2 em todas as faces e volta com certeza. |
+| Lição de Anatomia | Simplificada: sem dados aleatórios da bolsa, efeito só na próxima mão. |
+| Golpe para a Foto | Exigência mais difícil: todos os dados ≥ 6. |
+| Meia Verdade | Pede um dado específico (um 6) e a paridade fica fixa: par. |
+| Imune a Críticas | Antes: 3 dados imunes. Agora: imunidade a 1 efeito. |
+| Revide Elegante | Devolve valor simples (era ×2). |
+| Chave de Braço Didática | Todos os dados, não só o maior. |
+| Rasteira Humilhante | Peça maior: Diagonal de 3 casas. |
+| Suor de Campeão | Simplificada: efeitos negativos em geral. |
+
+**Cortadas:** Lance de Gênio, Refutação, Ego Inflado, Crítica Pesada, Taxa de Humildade, Diploma Cassado, Originalidade Obrigatória, Mediocridade, Dublê, Combo Ensaiado, Elegância Marcial, Calo de Orgulho, Agarrão Técnico. **Regras cortadas:** Truque, ordem do inventário como mecânica de magia, exigência "igual a um dado da mão anterior dele".
+
+---
+
+## 6. Pontos a confirmar
+
+| Tema | Pergunta |
+|---|---|
+| Tirar a ordem de resolução | Você quer tirar a ordem do inventário no futuro. Precisa de regra para: morte no meio do turno, bloqueio antes ou depois do dano, Sacrifício (+5 vale para as magias do mesmo turno?). |
+| Mão anterior do inimigo | Mercúrio (copia o maior valor dela), a Alquimista (Mestre do andar 20) e a tela de duelo usam a última mão do inimigo, o que vai contra o princípio 1. Manter como exceção ou trocar? |
+| Uma marca por vez | Pose Congelada, Impulso Calculado, Recuo Estratégico e Concentrar Força disputam a mesma marca. Manter a disputa ou permitir uma marca por magia? |
+| Suor de Campeão sempre | Remover todos os efeitos negativos todo turno anula o Reator (andar 30) e o Urânio. Manter sempre ou passar a 1× por luta? |
+| Interrupção Rude x Rasteira | Interrupção Rude tira 2 dados numa Diagonal de 2 (1× por luta); Rasteira tira 1 dado e dá bloqueio numa Diagonal de 3 (sempre). Os formatos estão coerentes? |
+| Golpe para a Foto: 4 dados ≥ 6 | Com dados comuns, precisa de quatro 6. Só funciona com adesivos e Urânio. É essa a intenção? |
+
+---
+
+## 7. Combos para o simulador medir primeiro
+
+| Combo | Por quê |
+|---|---|
+| Força Desnecessária → Física Aplicada / Exibição de Velocidade / Armadura de Músculo | Um dado alto vira dados baixos que pagam várias exigências ≤ 3; tudo "sempre" e reto. É o candidato mais forte do Assassino. |
+| Imitação Barata → Bola de Fogo ou Transfusão | Fabrica o par na hora. |
+| Concentrar Força → Golpe para a Foto | A fusão é o caminho mais fácil para um dado ≥ 6, sem adesivos. |
+| Levantar Peso contra o Porteiro de Chumbo | O Chumbo dele vira dano. |
+| Suor de Campeão contra o Reator | Pode anular o Mestre do andar 30. |
+| Chave de Braço Didática + Meia Verdade | Os dados pares viram 1 e o resto vale metade: uma mão inteira quase inútil. |

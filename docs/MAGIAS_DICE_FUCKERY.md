@@ -1,6 +1,6 @@
 # Magias de "dice-fuckery" (proposta)
 
-> **Status: proposta, nada implementado.** São 10 magias ofensivas e 10 defensivas que mexem **temporariamente** no valor e nas características dos dados (face, adesivo, elemento, quantidade na mão). Os números são *(iniciais)* e devem passar pelo simulador. Nomes e falas seguem o tom de `docs/TOM.md` (disputa de ego entre magos). Formato, exigência, efeito e uso seguem o padrão de `docs/SPEC_v3.md` §5.
+> **Status: histórico.** O resultado está em `docs/CATALOGO_MAGIAS.md`. Proposta original: São 10 magias ofensivas e 10 defensivas que mexem **temporariamente** no valor e nas características dos dados (face, adesivo, elemento, quantidade na mão). Os números são *(iniciais)* e devem passar pelo simulador. Nomes e falas seguem o tom de `docs/TOM.md` (disputa de ego entre magos). Formato, exigência, efeito e uso seguem o padrão de `docs/SPEC_v3.md` §5.
 
 ---
 
