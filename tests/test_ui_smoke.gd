@@ -66,6 +66,7 @@ func test_duelo_pela_interface():
 func test_exigencia_recusa_dado_errado():
 	var run := _run_at_duel(5)
 	var p := run.duel.player
+	p.inventory.add("escudo") ## Não vem mais no kit inicial.
 	var escudo := p.inventory.ids().find("escudo")
 	p.hand[0].value = 6
 	var d := DuelScreen.new().setup(run)
@@ -165,6 +166,7 @@ func test_fim_de_jornada():
 func test_cartoes_buracos_previa_e_historico():
 	var run := _run_at_duel(12)
 	var p := run.duel.player
+	p.inventory.add("escudo") ## Não vem mais no kit inicial.
 	var faisca := p.inventory.ids().find("faisca")
 	var escudo := p.inventory.ids().find("escudo")
 	p.hand[0].value = 6

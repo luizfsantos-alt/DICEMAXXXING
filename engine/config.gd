@@ -37,8 +37,8 @@ const DOORS := {
 }
 
 # Inimigos.
-const ENEMY_HP_BASE := 36
-const ENEMY_HP_PER_FLOOR := 6
+const ENEMY_HP_BASE := 31
+const ENEMY_HP_PER_FLOOR := 5
 const MASTER_HP_MULT := 1.6
 const ENEMY_UPGRADES_PER_FLOOR := 0.4 ## Melhorias do inimigo por andar (orçamento).
 

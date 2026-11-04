@@ -60,11 +60,12 @@ Jogáveis, escolhidos no início. O **formato do inventário** é a identidade; 
 
 | Personagem | Inventário | Passiva | Vida *(inicial)* | Magias iniciais |
 |---|---|---|---|---|
-| **Feiticeiro** | Grade **4×3** | **Erudito**: começa com 1 magia extra, à escolha entre 3. | 50 | Faísca, Escudo Arcano, Bola de Fogo |
-| **Assassino** | Cinto **6×1** | **Ágil**: mão de **6** dados (em vez de 5). | 40 | Estocada, Esquiva, Corte Duplo |
+| **Feiticeiro** | Grade **4×3** | **Erudito**: começa com 1 magia extra, à escolha entre 3. | 50 | Faísca, Bola de Fogo (+1 do Erudito) |
+| **Assassino** | Cinto **6×1** | **Ágil**: mão de **6** dados (em vez de 5). | 40 | Estocada, Corte Duplo |
 
 - **Feiticeiro**: magias grandes e exigentes (pares, sequências), efeitos fortes, várias de uso único por luta.
 - **Assassino**: técnicas finas que aceitam quase qualquer dado; força na quantidade e na esquiva.
+- **Ninguém começa com defesa** (jogador e inimigos): Escudo Arcano e Esquiva vêm da loja, da escola, das recompensas e das melhorias do inimigo, como qualquer magia.
 - A loja é a mesma para todos, mas peças 2×2 ou em L não cabem num cinto.
 - **Futuro:** vários outros arquétipos, cada um com um formato de inventário próprio (ex.: cruz, 2×5, grade com buracos). Inimigos ganham os mesmos arquétipos quando eles forem criados.
 
@@ -229,9 +230,9 @@ Jogar a fatia vertical e decidir o que ajustar antes de investir em conteúdo.
 - **Arranjo inicial** do Feiticeiro deixa um espaço em L, para o Meteoro caber.
 - **Recompensa do Mestre** (+casas ou +1 na mão) não existe na fatia, porque o Mestre é a última luta.
 - O inimigo recebe **0,4 melhoria por andar** × o multiplicador da porta (fácil 0,8; normal 1,0; difícil 1,3; insana 1,7).
-- **Vida:** Feiticeiro 90; inimigo 36 + 6 por andar (× porta); Mestre ×1,6.
+- **Vida:** Feiticeiro 90; inimigo 31 + 5 por andar (× porta); Mestre ×1,6.
 
-**Simulador** (`sim/simulate.gd`, bot com a IA cautelosa, 400 jornadas): lutas com cerca de 4 turnos de cada lado. Chegam ao fim do andar 10 cerca de 11% pela porta fácil, 9% pela normal e 2% pela difícil. Um humano escolhendo portas, recompensas e paradas deve ir melhor que o bot.
+**Simulador** (`sim/simulate.gd`, bot com a IA cautelosa, 400 jornadas): lutas com cerca de 2 a 3 turnos de cada lado (4 a 5 somados). Chegam ao fim do andar 10 cerca de 10% pela porta fácil, 5% pela normal e 1% pela difícil. Histórico: com Escudo e Esquiva no kit, eram 10 a 13 turnos somados e lutas contra Feiticeiro cauteloso batendo a trava de 60; sem defesa no kit e com a vida antiga dos inimigos (36 + 6), só 4%, 2% e 0% chegavam ao fim. Um humano escolhendo portas, recompensas e paradas deve ir melhor que o bot.
 
 ---
 
