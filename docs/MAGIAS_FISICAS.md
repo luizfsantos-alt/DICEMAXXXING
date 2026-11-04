@@ -4,6 +4,19 @@
 
 ---
 
+## Feedback (rodada 2)
+
+Respostas completas em `docs/MAGIAS_FISICAS_opinioes.xlsx`.
+
+| Veredito | Magias |
+|---|---|
+| **Manter** | Força Desnecessária, Arrancar das Mãos, Exibição de Velocidade, Levantar Peso Morto (**renomear para "Levantar Peso"**), Armadura de Músculo, Recuo Estratégico, Presença Imponente, Concentrar Força |
+| **Ajustar** | **Física Aplicada**: peça maior, porque é forte. **Impulso Calculado**: o dado volta com **+2 em todas as faces** e aparece **obrigatoriamente** na próxima mão. **Lição de Anatomia**: a dinâmica é boa, mas o texto é difícil de entender rápido. **Golpe para a Foto**: todos os dados > 5. **Revide Elegante**: devolve valor simples, não ×2. **Chave de Braço Didática**: **todos** os dados dele valem metade. **Rasteira Humilhante**: Diagonal de 3 casas. **Suor de Campeão**: reduz efeitos negativos em geral. |
+| **Cortar** | Combo Ensaiado e a regra da ordem do inventário (a ordem de resolução deve sair do jogo no futuro); Elegância Marcial e Agarrão Técnico (leem a mão anterior do inimigo); Calo de Orgulho (alterar um dado da bolsa até o fim da luta vale pouco, porque ele pode não voltar à mão) |
+| **Regras mantidas** | Dados devolvidos para a mão, marca para a próxima mão, exigências novas (menos a `match`) |
+
+---
+
 ## 0. Como estas magias foram pensadas
 
 ### 0.1 A identidade física
