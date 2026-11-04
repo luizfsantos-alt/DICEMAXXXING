@@ -17,7 +17,7 @@ func setup() -> MenuScreen:
 	var t := Kit.label(Texts.t("ui.title"), 72, Kit.ACCENT)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)
-	var sub := Kit.label("O coliseu de 100 lutas. Morreu, zerou.", 24, Kit.MUTED, true)
+	var sub := Kit.label(Texts.t("ui.subtitle"), 24, Kit.MUTED, true)
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(sub)
 	var gap := Control.new()

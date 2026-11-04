@@ -1,112 +1,216 @@
 class_name RunState
 extends RefCounted
-## Uma jornada completa no coliseu.
+## Uma jornada na torre (docs/SPEC_v3.md §2). A vida do herói persiste entre as lutas.
+##
+## Fases: start_pick (Erudito), doors, duel, reward, rest, shop, school, well,
+## victory, defeat. As fases de escolha usam `options` e `choose()`.
 
-var fight: int = 1
+var character: String = "sorcerer"
+var hero: Fighter
+var floor_n: int = 1
 var coins: int = 0
-var rerolls: int = Config.FREE_REROLLS
 var hp_bought: int = 0
-var chinelo_bonus: int = 0
-var dice_sides: Array = [6, 6, 6, 6, 6, 6]
-var attack_id: String = "A1"
-var defense_id: String = "D1"
-var passives: Array = []
-var death_defy: bool = false
-var phase: String = "duel" ## duel, shop, victory, defeat
+var destroys_used: int = 0
+var since_rest: int = 0
+var door: String = "normal"
+var phase: String = "start_pick"
+var options: Array = []
 var duel: Duel
-var offer: Dictionary = {}
 var rng := RandomNumberGenerator.new()
 var stats := {"wins": 0, "dealt": 0, "taken": 0, "coins": 0}
 var last_reward: int = 0
 
 
-static func new_run(run_seed: int) -> RunState:
+static func new_run(run_seed: int, char_id := "sorcerer") -> RunState:
 	var r := RunState.new()
 	r.rng.seed = run_seed
-	r.start_duel()
+	r.character = char_id
+	r.hero = EnemyFactory.base(char_id)
+	r.hero.name = Texts.t("ui.you")
+	r.hero.is_player = true
+	r.hero.max_hp = Config.SORCERER_HP if char_id == "sorcerer" else Config.ASSASSIN_HP
+	r.hero.hp = r.hero.max_hp
+	if char_id == "sorcerer":
+		r.phase = "start_pick"
+		var pool := Spells.ERUDITE_CHOICES.duplicate()
+		Fighter._shuffle(pool, r.rng)
+		r.options = []
+		for id in pool.slice(0, 3):
+			r.options.append({"kind": "spell", "id": id, "price": 0, "needs": ""})
+	else:
+		r._to_doors()
 	return r
 
 
-func player_max_hp() -> int:
-	return Config.BASE_HP + Config.GLADIATOR_HP_BONUS + hp_bought * Config.HP_UPGRADE + chinelo_bonus
+func _to_doors() -> void:
+	phase = "doors"
+	if EnemyFactory.is_master(floor_n):
+		options = [{"kind": "door", "id": "mestre", "price": 0, "needs": ""}]
+		return
+	var pool := ["facil", "normal", "dificil"]
+	Fighter._shuffle(pool, rng)
+	var two := pool.slice(0, 2)
+	two.sort_custom(func(a, b): return Config.DOORS[a][0] < Config.DOORS[b][0])
+	if rng.randf() < Config.INSANE_DOOR_CHANCE:
+		two.append("insana")
+	options = []
+	for id in two:
+		options.append({"kind": "door", "id": id, "price": 0, "needs": "", "coins": door_coins(id)})
 
 
-func make_player() -> Fighter:
-	var p := Fighter.new()
-	p.name = "Você"
-	p.is_player = true
-	p.max_hp = player_max_hp()
-	p.hp = p.max_hp
-	p.dice_sides = dice_sides.duplicate()
-	p.attack_id = attack_id
-	p.defense_id = defense_id
-	p.passives = passives.duplicate()
-	p.death_defy = death_defy
-	return p
+static func door_coins(id: String) -> int:
+	return int(Config.DOORS.get(id, Config.DOORS.normal)[1])
+
+
+func is_master_floor() -> bool:
+	return EnemyFactory.is_master(floor_n)
+
+
+## Escolhe a opção i (target: {die, face} quando a oferta pede). Retorna "" ou a chave do erro.
+func choose(i: int, target: Dictionary = {}) -> String:
+	if i < 0 or i >= options.size():
+		return "ui.invalid"
+	var o: Dictionary = options[i]
+	match phase:
+		"doors":
+			door = o.id if o.id != "mestre" else "normal"
+			start_duel()
+			return ""
+		"rest":
+			return _enter_stop(o.id)
+	var err := Shop.check(o, hero, target)
+	if err != "":
+		return err
+	var price := Shop.price_of(o, hero, target, destroys_used)
+	if coins < price:
+		return "ui.not_enough"
+	coins -= price
+	Shop.apply(o, hero, target)
+	match phase:
+		"start_pick", "school":
+			_to_doors()
+		"reward":
+			_advance()
+		"shop":
+			if o.kind == "maxhp":
+				hp_bought += 1
+				o.price = Config.PRICE_HP + hp_bought * Config.PRICE_HP_STEP
+			else:
+				options.remove_at(i)
+		"well":
+			if o.kind == "destroy":
+				destroys_used += 1
+	return ""
+
+
+## Sai da Loja, do Poço ou da Escola sem (mais) compras; pula a recompensa (+moedas).
+func leave() -> void:
+	if phase == "reward":
+		coins += Config.SKIP_REWARD_COINS
+		stats.coins += Config.SKIP_REWARD_COINS
+		_advance()
+	elif phase in ["shop", "well", "school"]:
+		_to_doors()
+
+
+func sell_spell(item: int) -> bool:
+	if phase != "shop" or item < 0 or item >= hero.inventory.items.size():
+		return false
+	var it: Dictionary = hero.inventory.remove(item)
+	coins += Spells.sell_price(int(it.level))
+	return true
+
+
+func _enter_stop(id: String) -> String:
+	match id:
+		"heal":
+			hero.heal(int(ceil(hero.max_hp * Config.HEAL_STOP_FRACTION)))
+			_to_doors()
+		"shop":
+			phase = "shop"
+			options = Shop.shop(hero, rng, hp_bought)
+		"school":
+			phase = "school"
+			options = Shop.school(hero, rng)
+		"well":
+			phase = "well"
+			options = Shop.well(rng)
+	return ""
 
 
 func start_duel() -> void:
 	phase = "duel"
-	var enemy := EnemyFactory.create(fight, rng)
+	options = []
+	var enemy := EnemyFactory.create(floor_n, door, rng)
 	duel = Duel.new()
-	duel.setup(make_player(), enemy, rng.randi())
+	duel.setup(hero, enemy, rng.randi())
 
 
 ## Chamar quando duel.state deixar de ser "choosing".
 func finish_duel() -> void:
-	death_defy = duel.player.death_defy
 	stats.dealt += duel.dealt
 	stats.taken += duel.taken
-	if duel.state == "won":
-		stats.wins += 1
-		last_reward = (Config.COINS_BOSS if EnemyFactory.is_boss(fight) else Config.COINS_WIN) + duel.player.coins_earned
-		coins += last_reward
-		stats.coins += last_reward
-		if "DF1" in passives:
-			chinelo_bonus += 1
-		if fight >= Config.LAST_FIGHT:
-			phase = "victory"
-		else:
-			phase = "shop"
-			offer = Shop.generate(self)
-	else:
+	hero = duel.player
+	var won := duel.state == "won"
+	duel = null
+	if not won:
 		phase = "defeat"
+		return
+	stats.wins += 1
+	last_reward = door_coins(door) if not is_master_floor() else 20
+	coins += last_reward
+	stats.coins += last_reward
+	if floor_n >= Config.LAST_FLOOR:
+		phase = "victory"
+		return
+	phase = "reward"
+	options = Shop.reward(hero, rng)
 
 
-func next_fight() -> void:
-	fight += 1
-	offer = {}
-	start_duel()
+func _advance() -> void:
+	floor_n += 1
+	since_rest += 1
+	if since_rest >= Config.REST_EVERY:
+		since_rest = 0
+		phase = "rest"
+		options = Shop.rest_stops(rng)
+	else:
+		_to_doors()
 
 
 func to_dict() -> Dictionary:
 	return {
-		"version": 1, "fight": fight, "coins": coins, "rerolls": rerolls,
-		"hp_bought": hp_bought, "chinelo_bonus": chinelo_bonus, "dice_sides": dice_sides,
-		"attack_id": attack_id, "defense_id": defense_id, "passives": passives,
-		"death_defy": death_defy, "phase": phase, "offer": offer, "stats": stats,
-		"last_reward": last_reward,
+		"version": 3, "character": character, "hero": hero.to_dict(), "floor": floor_n,
+		"coins": coins, "hp_bought": hp_bought, "destroys_used": destroys_used,
+		"since_rest": since_rest, "door": door, "phase": phase, "options": options,
+		"stats": stats, "last_reward": last_reward,
 		"seed": str(rng.seed), "rng_state": str(rng.state),
 		"duel": duel.to_dict() if duel else {},
 	}
 
 
 static func from_dict(d: Dictionary) -> RunState:
+	if int(d.get("version", 0)) != 3:
+		return null
 	var r := RunState.new()
-	r.fight = int(d.get("fight", 1))
+	r.character = str(d.get("character", "sorcerer"))
+	r.hero = Fighter.from_dict(d.get("hero", {}))
+	r.floor_n = int(d.get("floor", 1))
 	r.coins = int(d.get("coins", 0))
-	r.rerolls = int(d.get("rerolls", Config.FREE_REROLLS))
 	r.hp_bought = int(d.get("hp_bought", 0))
-	r.chinelo_bonus = int(d.get("chinelo_bonus", 0))
-	r.dice_sides = Fighter._ints(d.get("dice_sides", [6, 6, 6, 6, 6, 6]))
-	r.attack_id = d.get("attack_id", "A1")
-	r.defense_id = d.get("defense_id", "D1")
-	r.passives = Array(d.get("passives", []))
-	r.death_defy = d.get("death_defy", false)
-	r.phase = d.get("phase", "duel")
-	r.offer = d.get("offer", {})
-	if r.offer.has("price"):
-		r.offer.price = int(r.offer.price)
+	r.destroys_used = int(d.get("destroys_used", 0))
+	r.since_rest = int(d.get("since_rest", 0))
+	r.door = str(d.get("door", "normal"))
+	r.phase = str(d.get("phase", "doors"))
+	r.options = []
+	for o in d.get("options", []):
+		var oo: Dictionary = o.duplicate()
+		oo.price = int(oo.get("price", 0))
+		if oo.has("item"):
+			oo.item = int(oo.item)
+		if oo.has("coins"):
+			oo.coins = int(oo.coins)
+		r.options.append(oo)
 	var st: Dictionary = d.get("stats", {})
 	for k in r.stats:
 		r.stats[k] = int(st.get(k, 0))
@@ -116,4 +220,5 @@ static func from_dict(d: Dictionary) -> RunState:
 	var dd: Dictionary = d.get("duel", {})
 	if not dd.is_empty():
 		r.duel = Duel.from_dict(dd)
+		r.hero = r.duel.player
 	return r

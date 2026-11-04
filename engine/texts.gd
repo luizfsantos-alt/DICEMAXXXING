@@ -20,46 +20,49 @@ static func data() -> Dictionary:
 
 ## Busca "secao.chave" e formata com {placeholders}.
 static func t(key: String, args: Dictionary = {}) -> String:
-	var parts := key.split(".")
 	var node = data()
-	for p in parts:
+	for p in key.split("."):
 		if node is Dictionary and node.has(p):
 			node = node[p]
+		elif node is Array and p.is_valid_int() and int(p) < node.size():
+			node = node[int(p)]
 		else:
 			return key
 	var s := str(node)
 	return s.format(args) if not args.is_empty() else s
 
 
-static func item_name(id: String) -> String:
-	var items: Dictionary = data().get("items", {})
-	return items[id][0] if items.has(id) else id
+static func _pair(section: String, id: String, k: int) -> String:
+	var sec: Dictionary = data().get(section, {})
+	return str(sec[id][k]) if sec.has(id) else id
 
 
-static func item_desc(id: String) -> String:
-	var items: Dictionary = data().get("items", {})
-	return items[id][1] if items.has(id) else ""
+static func spell_name(id: String) -> String:
+	return _pair("spells", id, 0)
 
 
-static func boss_name(id: String) -> String:
-	var b: Dictionary = data().get("bosses", {})
-	return b[id][0] if b.has(id) else id
+static func spell_desc(id: String) -> String:
+	return _pair("spells", id, 1)
 
 
-static func boss_desc(id: String) -> String:
-	var b: Dictionary = data().get("bosses", {})
-	return b[id][1] if b.has(id) else ""
+static func element_name(id: String) -> String:
+	return _pair("elements", id, 0) if id != "" else t("ui.plain_die")
 
 
-## Sigla de 2 a 3 letras dos quadradinhos (placeholder até haver ícones).
-static func abbr(id: String) -> String:
-	return str(data().get("abbr", {}).get(id, id.left(3)))
+static func element_desc(id: String) -> String:
+	return _pair("elements", id, 1) if id != "" else ""
 
 
-## [nome do personagem, nome da passiva, descrição da passiva].
+static func master_name(id: String) -> String:
+	return _pair("masters", id, 0)
+
+
+static func master_desc(id: String) -> String:
+	return _pair("masters", id, 1)
+
+
 static func character(id: String) -> Array:
-	var c: Array = data().get("characters", {}).get(id, [id, id, ""])
-	return [c[0], c[1], str(c[2]).format({"n": Config.GLADIATOR_HP_BONUS})]
+	return data().get("characters", {}).get(id, [id, "", ""])
 
 
 static func name_list(kind: String) -> Array:

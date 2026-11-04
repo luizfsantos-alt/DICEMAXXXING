@@ -2,32 +2,43 @@ extends RefCounted
 ## Utilitários para montar cenários determinísticos.
 
 
-static func fighter(name: String, dice: Array, attack_id := "A1", defense_id := "", passives := [], hp := 40) -> Fighter:
+static func fighter(name: String, spells: Array, hp := 40, player := false, grid := Vector2i(4, 3)) -> Fighter:
 	var f := Fighter.new()
 	f.name = name
+	f.is_player = player
 	f.max_hp = hp
 	f.hp = hp
-	f.dice = dice.duplicate()
-	f.dice_sides = [6, 6, 6, 6, 6, 6]
-	f.attack_id = attack_id
-	f.defense_id = defense_id
-	f.passives = passives.duplicate()
+	f.inventory = Inventory.make(grid.x, grid.y)
+	for id in spells:
+		f.inventory.add(id)
+	for _i in 8:
+		f.bag.append(Die.basic())
+	f.reset_fight_state()
 	return f
+
+
+## Põe uma mão com valores fixos (dados da bolsa 0..n-1).
+static func hand(f: Fighter, values: Array) -> void:
+	f.hand = []
+	for i in values.size():
+		f.hand.append({"bag": i, "temp": null, "face": 0, "value": int(values[i])})
+
+
+static func item(f: Fighter, id: String) -> int:
+	return f.inventory.ids().find(id)
+
+
+static func cast(a: Fighter, b: Fighter, casts: Dictionary) -> Array:
+	var ev := []
+	var c := TurnChoice.new()
+	for id in casts:
+		c.casts[item(a, id)] = casts[id]
+	var used := Resolver.cast_all(a, b, c, ev)
+	Resolver.end_turn(a, used, ev)
+	return ev
 
 
 static func rng(s := 1) -> RandomNumberGenerator:
 	var r := RandomNumberGenerator.new()
 	r.seed = s
 	return r
-
-
-## Resolve um turno com start_turn (sem rolagem: os dados já estão definidos).
-static func play(a: Fighter, b: Fighter, ca: TurnChoice, cb: TurnChoice, turn := 2, seed := 1) -> Dictionary:
-	var lg := []
-	Resolver.start_turn(a, turn, lg)
-	Resolver.start_turn(b, turn, lg)
-	return Resolver.resolve(a, b, ca, cb, rng(seed), turn, lg)
-
-
-static func idle() -> TurnChoice:
-	return TurnChoice.make([], [])

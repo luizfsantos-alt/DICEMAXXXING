@@ -1,5 +1,7 @@
 # DICEMAXXING — Especificação de Regras (v2)
 
+> **Substituída pela [v3](SPEC_v3.md).** Mantida só como histórico; o código não segue mais este documento.
+
 Consolida a v1 com todas as decisões tomadas na sessão de design. Onde houver conflito com a v1, **esta versão vale**.
 
 > **Revisão v2.1 (interface em paisagem).** Tela de duelo horizontal com fases do jogador, do inimigo e da resolução animada; dados postos nos slots (sem swipe) e reversíveis até o fim do turno; passivos comprados passam a se chamar **itens**. Nenhuma regra de cálculo mudou.

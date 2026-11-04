@@ -1,56 +1,91 @@
 class_name TurnChoice
 extends RefCounted
-## Alocação de um lado: índices dos dados no ataque (na ordem dos slots)
-## e encaixados na defesa. Todo o resto é autodano.
+## Alocação de um turno: quais dados da mão (índices) vão em qual magia
+## (índice no inventário). A magia resolve na ordem do inventário.
 
-var attack: Array = []
-var defense: Array = []
-
-
-static func make(attack_idx: Array, defense_idx: Array = []) -> TurnChoice:
-	var c := TurnChoice.new()
-	c.attack = attack_idx.duplicate()
-	c.defense = defense_idx.duplicate()
-	return c
+var casts: Dictionary = {} ## item -> Array de índices da mão
 
 
-func active_count() -> int:
-	return attack.size() + defense.size()
+static func make(c: Dictionary = {}) -> TurnChoice:
+	var t := TurnChoice.new()
+	for k in c:
+		t.casts[int(k)] = Die._ints(c[k])
+	return t
 
 
-func self_indices(dice_count: int) -> Array:
+func used_dice() -> Array:
 	var out := []
-	for i in dice_count:
-		if not (i in attack) and not (i in defense):
-			out.append(i)
+	for k in casts:
+		out.append_array(casts[k])
 	return out
 
 
-func duplicate_choice() -> TurnChoice:
-	return TurnChoice.make(attack, defense)
+func dice_in(item: int) -> Array:
+	return casts.get(item, [])
 
 
-## Retorna "" se válida, ou a descrição do problema.
+func values_in(f: Fighter, item: int) -> Array:
+	var out := []
+	for h in dice_in(item):
+		out.append(int(f.hand[h].value))
+	return out
+
+
+## Tenta pôr o dado h na magia; retorna false se a exigência não aceitar.
+func place(f: Fighter, item: int, h: int) -> bool:
+	if h in used_dice() or not can_cast(f, item):
+		return false
+	var id: String = f.inventory.items[item].id
+	if not Spells.accepts_partial(id, values_in(f, item), int(f.hand[h].value)):
+		return false
+	if not casts.has(item):
+		casts[item] = []
+	casts[item].append(h)
+	return true
+
+
+func remove_die(h: int) -> void:
+	for k in casts.keys():
+		casts[k].erase(h)
+		if casts[k].is_empty():
+			casts.erase(k)
+
+
+static func can_cast(f: Fighter, item: int) -> bool:
+	var id: String = f.inventory.items[item].id
+	return not (Spells.is_once(id) and item in f.once_used)
+
+
+## Magias com exigência completa (as incompletas não são lançadas).
+func ready_items(f: Fighter) -> Array:
+	var out := []
+	for item in f.inventory.order():
+		if casts.has(item) and Spells.complete(f.inventory.items[item].id, values_in(f, item)):
+			out.append(item)
+	return out
+
+
+## "" se válida, ou a descrição do problema.
 func validate(f: Fighter) -> String:
 	var seen := {}
-	for i in attack + defense:
-		if i < 0 or i >= f.dice.size():
-			return "índice inválido"
-		if seen.has(i):
-			return "dado repetido"
-		seen[i] = true
-	if active_count() > Config.MAX_ACTIVE:
-		return "mais de %d dados ativos" % Config.MAX_ACTIVE
-	if attack.size() > Items.ATTACK_MAX_DICE:
-		return "dados demais no ataque"
-	if defense.size() > (Items.DEFENSE_MAX_DICE if f.defense_id != "" else 0):
-		return "dados demais na defesa"
+	for item in casts:
+		if item < 0 or item >= f.inventory.items.size():
+			return "magia inválida"
+		if not can_cast(f, item):
+			return "magia já usada nesta luta"
+		for h in casts[item]:
+			if h < 0 or h >= f.hand.size() or seen.has(h):
+				return "dado inválido"
+			seen[h] = true
 	return ""
 
 
 func to_dict() -> Dictionary:
-	return {"attack": attack, "defense": defense}
+	var d := {}
+	for k in casts:
+		d[str(k)] = casts[k]
+	return d
 
 
 static func from_dict(d: Dictionary) -> TurnChoice:
-	return TurnChoice.make(Fighter._ints(d.get("attack", [])), Fighter._ints(d.get("defense", [])))
+	return TurnChoice.make(d)

@@ -1,71 +1,92 @@
 class_name EnemyAI
 extends RefCounted
-## Personalidades (docs/SPEC.md 8.3). A IA sempre usa 3 dados ativos e
-## lança do maior para o menor (exceto o Caótico).
+## Escolha de magias (gulosa) para inimigos e para o bot do simulador.
+## Percorre as magias numa ordem de prioridade e dá a cada uma os melhores dados livres.
 
 const PERSONALITIES := ["bruto", "cauteloso", "caotico"]
+const OFFENSE := ["meteoro", "bola", "corte", "sacrificio", "faisca", "estocada"]
+const DEFENSE := ["esquiva", "espelho", "escudo", "remendo", "transfusao"]
 
 
-static func choose(f: Fighter, rng: RandomNumberGenerator) -> TurnChoice:
-	match f.personality:
-		"cauteloso":
-			return cautious(f)
-		"caotico":
-			return chaotic(f, rng)
-		_:
-			return brute(f)
+static func choose(f: Fighter, foe: Fighter, rng: RandomNumberGenerator) -> TurnChoice:
+	var items := range(f.inventory.items.size())
+	var prio := {}
+	for i in items:
+		prio[i] = _priority(f, foe, f.inventory.items[i].id)
+	if f.personality == "caotico":
+		Fighter._shuffle(items, rng)
+	else:
+		items.sort_custom(func(a, b): return prio[a] > prio[b] or (prio[a] == prio[b] and a < b))
+	var c := TurnChoice.new()
+	for item in items:
+		if prio[item] <= 0 or not TurnChoice.can_cast(f, item):
+			continue
+		var pick := best_dice(f, f.inventory.items[item].id, c.used_dice())
+		if not pick.is_empty():
+			c.casts[item] = pick
+	return c
 
 
-static func sorted_desc(f: Fighter) -> Array:
-	var idx := range(f.dice.size())
-	idx.sort_custom(func(x, y): return f.dice[x] > f.dice[y] or (f.dice[x] == f.dice[y] and x < y))
-	return idx
+static func _priority(f: Fighter, foe: Fighter, id: String) -> int:
+	var low := f.hp * 2 < f.max_hp
+	var base := 0
+	if id in OFFENSE:
+		base = 100 - OFFENSE.find(id) * 10
+	elif id in DEFENSE:
+		base = 50 - DEFENSE.find(id) * 5
+	match id:
+		"remendo":
+			if f.hp >= f.max_hp:
+				return 0
+			base += 60 if low else 0
+		"escudo", "esquiva", "espelho":
+			if f.personality == "bruto":
+				return 0
+			if low or f.personality == "cauteloso":
+				base += 60
+		"sacrificio":
+			if foe.hp <= 10:
+				return 0
+	return base
 
 
-static func brute(f: Fighter) -> TurnChoice:
-	var idx := sorted_desc(f)
-	return TurnChoice.make(idx.slice(0, Config.MAX_ACTIVE))
+## Melhores dados livres para a exigência, ou [] se não há.
+static func best_dice(f: Fighter, id: String, taken: Array) -> Array:
+	var free := []
+	for h in f.hand.size():
+		if not (h in taken):
+			free.append(h)
+	# Do maior para o menor; Urânio primeiro em empate (parado envenena).
+	free.sort_custom(func(a, b):
+		var va := int(f.hand[a].value)
+		var vb := int(f.hand[b].value)
+		return va > vb or (va == vb and a < b))
+	var d := Spells.get_def(id)
+	match str(d.req):
+		"any":
+			var n := int(d.get("n", 1))
+			return free.slice(0, n) if free.size() >= n else []
+		"max", "exact":
+			for h in free:
+				if Spells.accepts_partial(id, [], int(f.hand[h].value)):
+					return [h]
+		"pair":
+			for i in free.size():
+				for j in range(i + 1, free.size()):
+					if f.hand[free[i]].value == f.hand[free[j]].value:
+						return [free[i], free[j]]
+		"seq3":
+			for i in free.size():
+				var v := int(f.hand[free[i]].value)
+				var a := _find(f, free, v - 1)
+				var b := _find(f, free, v - 2)
+				if a >= 0 and b >= 0:
+					return [free[i], a, b]
+	return []
 
 
-static func cautious(f: Fighter) -> TurnChoice:
-	var idx := sorted_desc(f)
-	var top := idx.slice(0, Config.MAX_ACTIVE)
-	if f.defense_id == "":
-		return TurnChoice.make(top)
-	if not Items.has_requirement(f.defense_id):
-		var d: int = top[top.size() - 1]
-		return TurnChoice.make(top.slice(0, top.size() - 1), [d])
-	# Com requisito de valor: prefere um dado válido dentro do top 3,
-	# senão um de fora entra no lugar do menor dos três.
-	for i in range(top.size() - 1, -1, -1):
-		if Items.defense_accepts(f.defense_id, f.dice[top[i]]):
-			var d: int = top[i]
-			var atk := top.duplicate()
-			atk.remove_at(i)
-			return TurnChoice.make(atk, [d])
-	for i in idx.slice(Config.MAX_ACTIVE):
-		if Items.defense_accepts(f.defense_id, f.dice[i]):
-			return TurnChoice.make(top.slice(0, top.size() - 1), [i])
-	return TurnChoice.make(top)
-
-
-static func chaotic(f: Fighter, rng: RandomNumberGenerator) -> TurnChoice:
-	var idx := range(f.dice.size())
-	shuffle(idx, rng)
-	var picked := idx.slice(0, Config.MAX_ACTIVE)
-	var defense := []
-	if f.defense_id != "" and rng.randf() < 0.5:
-		for i in picked.size():
-			if Items.defense_accepts(f.defense_id, f.dice[picked[i]]):
-				defense.append(picked[i])
-				picked.remove_at(i)
-				break
-	return TurnChoice.make(picked, defense)
-
-
-static func shuffle(a: Array, rng: RandomNumberGenerator) -> void:
-	for i in range(a.size() - 1, 0, -1):
-		var j := rng.randi_range(0, i)
-		var tmp = a[i]
-		a[i] = a[j]
-		a[j] = tmp
+static func _find(f: Fighter, free: Array, v: int) -> int:
+	for h in free:
+		if int(f.hand[h].value) == v:
+			return h
+	return -1

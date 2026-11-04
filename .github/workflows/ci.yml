@@ -25,13 +25,17 @@ jobs:
       - name: Importar projeto
         run: godot --headless --import
 
+      - name: Scripts sem erro de análise
+        run: godot --headless -s res://sim/check.gd
+
       - name: Testes (GUT)
         run: godot --headless -s addons/gut/gut_cmdln.gd -gexit
 
       - name: Simulação de balanceamento
         run: |
-          godot --headless -s res://sim/simulate.gd -- --runs=1000 --seed=1 --bot=bruto | tee simulation.txt
-          godot --headless -s res://sim/simulate.gd -- --runs=1000 --seed=1 --bot=cauteloso | tee -a simulation.txt
+          godot --headless -s res://sim/simulate.gd -- --runs=1000 --seed=1 --door=facil | tee simulation.txt
+          godot --headless -s res://sim/simulate.gd -- --runs=1000 --seed=1 --door=normal | tee -a simulation.txt
+          godot --headless -s res://sim/simulate.gd -- --runs=1000 --seed=1 --door=dificil | tee -a simulation.txt
 
       - uses: actions/upload-artifact@v4
         with:

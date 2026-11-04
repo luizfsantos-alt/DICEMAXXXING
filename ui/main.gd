@@ -52,11 +52,12 @@ func show_phase() -> void:
 			var d := DuelScreen.new().setup(run)
 			d.finished.connect(show_phase)
 			_swap(d)
-		"shop":
-			var s := ShopScreen.new().setup(run)
-			s.finished.connect(show_phase)
-			_swap(s)
-		_:
+		"victory", "defeat":
+			SaveGame.clear()
 			var e := EndScreen.new().setup(run)
 			e.finished.connect(show_menu)
 			_swap(e)
+		_:
+			var t := TowerScreen.new().setup(run)
+			t.finished.connect(show_phase)
+			_swap(t)
