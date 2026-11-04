@@ -76,8 +76,6 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array) ->
 				hit(foe, f, n, ev)
 			if def.has("burn") and foe.hp > 0:
 				_burn(foe, int(def.burn), ev)
-		"meteor":
-			hit(foe, f, Config.scale(int(def.base), lvl) + f.sacrifice_bonus, ev)
 		"block":
 			var b := Config.scale(total * int(def.get("mult", 1)), lvl)
 			f.block += b

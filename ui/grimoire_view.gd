@@ -6,7 +6,7 @@ extends Control
 signal cell_tapped(cell: Vector2i, item: int)
 
 const FX_COLORS := {
-	"dmg": Color(0.75, 0.25, 0.25), "meteor": Color(0.85, 0.35, 0.15),
+	"dmg": Color(0.75, 0.25, 0.25),
 	"block": Color(0.25, 0.45, 0.8), "dodge": Color(0.3, 0.6, 0.7), "mirror": Color(0.55, 0.6, 0.75),
 	"heal": Color(0.3, 0.65, 0.35), "maxhp": Color(0.35, 0.7, 0.5), "sacrifice": Color(0.55, 0.3, 0.65),
 }

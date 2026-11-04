@@ -108,11 +108,11 @@
   ],
   "bola": [
    "Bola de Fogo",
-   "Dois dados iguais. Dano igual à soma ×3 e queima 3. Uma vez por luta."
+   "Dois dados iguais. Dano igual à soma ×2 e queima 3. Uma vez por luta."
   ],
   "meteoro": [
    "Meteoro",
-   "Três dados em sequência (ex.: 3-4-5). 40 de dano. Uma vez por luta."
+   "Três dados em sequência (ex.: 3-4-5). Dano igual à soma +10. Uma vez por luta."
   ],
   "espelho": [
    "Espelho",
@@ -363,8 +363,8 @@
  "spell_fx": {
   "faisca": "Dano = valor",
   "escudo": "Bloqueio = valor ×3",
-  "bola": "Soma ×3 e queima 3",
-  "meteoro": "40 de dano",
+  "bola": "Soma ×2 e queima 3",
+  "meteoro": "Dano = soma + 10",
   "espelho": "Reflete o próximo golpe recebido",
   "sacrificio": "Destrói o dado; +5 de dano nas magias desta luta",
   "remendo": "Cura = valor",

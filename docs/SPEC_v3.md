@@ -121,10 +121,10 @@ Cada magia tem **formato** (no inventário), **exigência** (quais dados aceita)
 | Escudo Arcano | 1×2 | dado ≤ 3 | bloqueio = valor ×3 | sempre |
 | Esquiva | 1×1 | dado ≤ 2 | anula o **próximo golpe** do inimigo | 1× por luta |
 | Corte Duplo | 2×1 | dois dados | soma; se ambos ímpares, golpeia de novo | sempre |
-| Bola de Fogo | 2×2 | dois iguais | soma ×3 e queima | 1× por luta |
-| Meteoro | L (4 casas) | sequência de 3 | 40 de dano | 1× por luta |
+| Bola de Fogo | 2×2 | dois iguais | soma ×2 e queima | 1× por luta |
+| Meteoro | L (4 casas) | sequência de 3 | dano = soma + 10 | 1× por luta |
 | Espelho | 1×1 | um 1 | reflete o próximo golpe recebido | sempre |
-| Golpe nas Sombras | 3×1 | um 6 | dano ignora bloqueio | 1× por luta |
+| Golpe nas Sombras | 3×1 | um 6 | dano ignora todas as defesas | 1× por luta |
 | Sacrifício | 1×1 | um 1 | destrói o dado usado; +5 de dano em todas as magias nesta luta | sempre |
 | Remendo | 1×1 | qualquer dado | cura = valor | 1× por luta |
 | Transfusão | 2×1 | dois iguais | +valor de um deles na vida máxima, permanente | 1× por luta |

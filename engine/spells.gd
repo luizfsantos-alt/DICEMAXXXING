@@ -10,14 +10,14 @@ extends RefCounted
 ## - seq3: 3 dados em sequência (ex.: 3-4-5).
 ##
 ## Efeitos ("fx"): dmg (dano = soma + "plus"; × "mult"), block, dodge, mirror,
-## heal, maxhp, sacrifice, meteor (dano fixo "base"). "burn" opcional; "odd_twice"
+## heal, maxhp, sacrifice. "burn" opcional; "odd_twice"
 ## golpeia de novo se todos os dados forem ímpares.
 
 const DATA := {
 	"faisca": {"shape": [Vector2i(0, 0)], "req": "any", "n": 1, "fx": "dmg", "use": "always", "pool": "sorcerer"},
 	"escudo": {"shape": [Vector2i(0, 0), Vector2i(0, 1)], "req": "max", "v": 3, "fx": "block", "mult": 3, "use": "always", "pool": "sorcerer"},
-	"bola": {"shape": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)], "req": "pair", "fx": "dmg", "mult": 3, "burn": 3, "use": "once", "pool": "sorcerer"},
-	"meteoro": {"shape": [Vector2i(0, 0), Vector2i(0, 1), Vector2i(0, 2), Vector2i(1, 2)], "req": "seq3", "fx": "meteor", "base": 40, "use": "once", "pool": "sorcerer"},
+	"bola": {"shape": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)], "req": "pair", "fx": "dmg", "mult": 2, "burn": 3, "use": "once", "pool": "sorcerer"},
+	"meteoro": {"shape": [Vector2i(0, 0), Vector2i(0, 1), Vector2i(0, 2), Vector2i(1, 2)], "req": "seq3", "fx": "dmg", "plus": 10, "use": "once", "pool": "sorcerer"},
 	"espelho": {"shape": [Vector2i(0, 0)], "req": "exact", "v": 1, "fx": "mirror", "use": "always", "pool": "sorcerer"},
 	"sacrificio": {"shape": [Vector2i(0, 0)], "req": "exact", "v": 1, "fx": "sacrifice", "use": "always", "pool": "sorcerer"},
 	"remendo": {"shape": [Vector2i(0, 0)], "req": "any", "n": 1, "fx": "heal", "use": "once", "pool": "any"},

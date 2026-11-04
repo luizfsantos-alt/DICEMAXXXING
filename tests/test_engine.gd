@@ -192,12 +192,21 @@ func test_bola_de_fogo_uma_vez_por_luta_e_queima():
 	var b := H.fighter("b", [], 100)
 	H.hand(a, [4, 4])
 	H.cast(a, b, {"bola": [0, 1]})
-	assert_eq(b.hp, 100 - 24)
+	assert_eq(b.hp, 100 - 16, "soma ×2")
 	assert_eq(b.burn, 3)
 	assert_false(TurnChoice.can_cast(a, 0), "uso único na luta")
 	a.reset_fight_state()
 	assert_true(TurnChoice.can_cast(a, 0), "volta na próxima luta")
 
+
+
+func test_meteoro_soma_mais_dez():
+	var a := H.fighter("a", ["meteoro"])
+	var b := H.fighter("b", [], 100)
+	H.hand(a, [3, 4, 5])
+	H.cast(a, b, {"meteoro": [0, 1, 2]})
+	assert_eq(b.hp, 100 - 22)
+	assert_false(TurnChoice.can_cast(a, 0), "uso único na luta")
 
 func test_espelho_devolve_e_reflexo_nao_volta():
 	var a := H.fighter("a", ["espelho", "faisca"])

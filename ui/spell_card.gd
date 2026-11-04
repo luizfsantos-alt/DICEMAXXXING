@@ -6,7 +6,7 @@ extends PanelContainer
 signal tapped(item: int)
 
 const FX_COLORS := {
-	"dmg": Color(0.94, 0.44, 0.37), "meteor": Color(0.94, 0.44, 0.37),
+	"dmg": Color(0.94, 0.44, 0.37),
 	"block": Color(0.44, 0.66, 1.0), "dodge": Color(0.5, 0.83, 0.86), "mirror": Color(0.76, 0.65, 1.0),
 	"heal": Color(0.44, 0.82, 0.55), "maxhp": Color(0.44, 0.82, 0.55), "sacrifice": Color(0.76, 0.65, 1.0),
 }
@@ -194,8 +194,6 @@ static func preview_text(f: Fighter, i: int, values: Array) -> String:
 			if d.has("burn"):
 				s += " · " + Texts.t("ui.burn", {"n": d.burn}).to_lower()
 			return s
-		"meteor":
-			return Texts.t("ui.pv_dmg", {"n": Config.scale(int(d.base), lvl) + f.sacrifice_bonus})
 		"block":
 			return Texts.t("ui.pv_block", {"n": Config.scale(total * int(d.get("mult", 1)), lvl)})
 		"dodge":
