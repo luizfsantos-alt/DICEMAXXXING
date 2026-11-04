@@ -1,18 +1,20 @@
 # Personagens novos (proposta)
 
-> **Status: proposta, aguardando feedback.** São 5 arquétipos novos, jogáveis e usados pelos inimigos, no padrão de `docs/SPEC_v3.md` §3: **formato do inventário**, **uma passiva**, vida, mão, bolsa inicial e magias iniciais. Seguem o tom de `docs/TOM.md` e os princípios de `docs/CATALOGO_MAGIAS.md` §1. Números *(iniciais)*, a passar pelo simulador.
+> **Status: proposta, rodada 2.** São 5 arquétipos novos, jogáveis e usados pelos inimigos, no padrão de `docs/SPEC_v3.md` §3: **formato do inventário**, **uma passiva**, vida, mão, bolsa inicial e magias iniciais. Seguem o tom de `docs/TOM.md` e os princípios de `docs/CATALOGO_MAGIAS.md` §1. Números *(iniciais)*, a passar pelo simulador.
 
 ---
 
 ## Feedback (rodada 1)
 
-*(Em branco. Quando um personagem for cortado, entra outro no lugar, até termos 5 aprovados.)*
-
 | Veredito | Personagens |
 |---|---|
-| **Manter** | |
-| **Ajustar** | |
-| **Cortar** | |
+| **Manter** | Minimalista, Metalurgista, Perfeccionista |
+| **Ajustar** | **Copista**: copia uma magia **aleatória** do inimigo que caiba, não a maior. Deixar espaço livre no inventário deve ser uma decisão séria, por isso a Mesa de Empréstimo saiu: a cópia vai para as casas livres da grade dele. |
+| **Cortar** | **Populista** (com o Nitrogênio e o Abaixo-Assinado). No lugar: **Vampiro**, com magias de dano, cura e ganho de vida. |
+
+## Feedback (rodada 2)
+
+*(Em branco: Copista ajustado e Vampiro novo.)*
 
 ---
 
@@ -28,21 +30,19 @@ Cada um **testa uma regra diferente** do jogo, para que nenhum seja "o Feiticeir
 |---|---|---|
 | **Minimalista** | bolsa pequena (Hidrogênio) | Grade 3×2 |
 | **Metalurgista** | dados ruins viram combustível (Chumbo e 1) | Esteira 5×2 |
-| **Copista** | o inventário do inimigo | Grade 3×2 + Mesa de Empréstimo 2×2 |
+| **Copista** | o inventário do inimigo e o espaço livre do seu | Grade 4×2 |
 | **Perfeccionista** | guardar dados entre turnos (marca) | Moldura 4×3, sem o meio |
-| **Populista** | bolsa grande (Nitrogênio) | Palanque em cruz (11 casas) |
-
-O **Minimalista** e o **Populista** são rivais de propósito: um acha que talento é ter pouco; o outro, que talento é ter muitos.
+| **Vampiro** | vida como recurso (dano que cura, cura que vira vida máxima) | Caixão 2×4 |
 
 ### 0.2 Regras mantidas
 
 | Regra | Como aparece aqui |
 |---|---|
-| **Ninguém começa com defesa** | Nenhum kit tem bloqueio, Esquiva ou Espelho. A única coisa parecida é o Remendo do Populista (cura 1× por luta, a mesma opção que o Erudito já oferece). |
-| Passiva simples | Uma linha de regra cada (a do Metalurgista tem duas frases curtas). |
+| **Ninguém começa com defesa** | Nenhum kit tem bloqueio, Esquiva ou Espelho. O Vampiro cura, mas só causando dano. |
+| Passiva simples | Uma linha de regra cada (a do Metalurgista e a do Vampiro têm duas frases curtas). |
 | Inimigos com as mesmas regras | Cada arquétipo também aparece como inimigo, com a mesma passiva, a mesma bolsa e o mesmo inventário (seção 3). |
 | A loja é a mesma para todos | O formato do inventário filtra o que cabe. A única exceção é o Chumbo do Metalurgista. |
-| Princípios do catálogo | As duas magias novas só usam os dados nos slots e têm resultado calculável antes de "Terminar turno". |
+| Princípios do catálogo | As magias novas só usam os dados nos slots e têm resultado calculável antes de "Terminar turno". |
 
 ### 0.3 Referência de força
 
@@ -56,20 +56,21 @@ Para comparar: o **Feiticeiro** tem 90 de vida, mão de 5 e causa uns **6 a 8 de
 |---|---|---|---|---|---|---|
 | **Minimalista** | Grade **3×2** (6 casas) | **Voto de Pobreza**: destruir dado no Poço é grátis, e toda recompensa pós-luta tem a opção "destruir 1 dado". | 70 | **4** | **5 dados**: 3 Hidrogênio + 2 comuns | Faísca, Faísca |
 | **Metalurgista** | Esteira **5×2** (10 casas) | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado da bolsa para a mão. A Loja e o Poço vendem Chumbo para você. | 100 | 5 | 8 dados: 5 comuns + 3 Chumbo | Levantar Peso (nível 2), Estocada |
-| **Copista** | Grade **3×2** + **Mesa de Empréstimo 2×2** | **Inspiração**: no início de cada luta, a maior magia do inimigo que cabe na Mesa é copiada nela, no mesmo nível, até o fim da luta. | 80 | 5 | 8 comuns | Faísca, Imitação Barata |
+| **Copista** | Grade **4×2** (8 casas) | **Inspiração**: no início de cada luta, uma magia aleatória do inimigo que caiba nas suas casas livres é copiada nelas, no mesmo nível, até o fim da luta. | 80 | 5 | 8 comuns | Faísca, Imitação Barata |
 | **Perfeccionista** | **Moldura 4×3** sem as 2 casas do meio (10 casas) | **Ainda Não Está Bom**: no fim do turno, até 2 dados que sobraram na mão ficam marcados. Você pode ter 2 marcas. | 80 | 5 | 8 comuns | Faísca, **Obra-Prima** (nova) |
-| **Populista** | **Palanque**: cruz 5×3 sem os 4 cantos (11 casas) | **Aclamação**: todo dado que você ganha (Loja ou recompensa) vem com uma cópia igual. | 90 | **6** | **12 dados**: 8 comuns + 4 Nitrogênio (novo) | **Abaixo-Assinado** (nova), Remendo |
+| **Vampiro** | **Caixão 2×4** (2 de largura, 4 de altura) | **Sede**: a cura que passaria da vida máxima vira vida máxima, para sempre (até 5 por luta). Queima causa o dobro de dano em você. | **60** | 5 | 8 comuns | **Mordida** (nova), **Banquete** (nova) |
 
 ### 1.1 Formatos
 
 ```
-Minimalista   Metalurgista   Copista           Perfeccionista   Populista
-###           #####          ###   Mesa: ##    ####             .###.
-###           #####          ###         ##    #..#             #####
-                                               ####             .###.
+Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro
+###           #####          ####      ####             ##
+###           #####          ####      #..#             ##
+                                       ####             ##
+                                                        ##
 ```
 
-`.` = casa que não existe. A Mesa de Empréstimo do Copista é separada da grade: só a magia copiada fica nela, e ela some no fim da luta.
+`.` = casa que não existe.
 
 ---
 
@@ -96,11 +97,11 @@ Minimalista   Metalurgista   Copista           Perfeccionista   Populista
 
 ### 2.3 Copista: "Não é cópia. É homenagem, com melhorias."
 
-- **Plano:** o inventário dele é pequeno, mas toda luta ele ganha a melhor peça do inimigo. A **Mesa de Empréstimo** (2×2) recebe uma cópia da maior magia do inimigo que caiba nela (em empate, a primeira na ordem do inventário dele), **no mesmo nível**. A cópia tem os próprios usos ("1× por luta" conta separado da do inimigo).
-- **Por que se vira:** no andar 1, o Feiticeiro inimigo traz a Bola de Fogo e o Assassino traz o Corte Duplo. Com a Imitação Barata, qualquer dado vira um par: dado X na Imitação → dois X na mão → Bola de Fogo de **4X, mais queima 3** (com um 5: 20 + queima). Mais a Faísca, o 1º turno passa de **25**. Contra o Assassino, a cópia é o Corte Duplo, que alimentado pela Imitação dá **2X, ou 4X se X for ímpar, todo turno** (~12 a 15 por turno com a Faísca).
-- **Como cresce:** quanto mais alto o andar, mais magias e níveis o inimigo traz, e melhor a cópia. As compras dele vão para magias que **combinam com qualquer coisa** (Imitação, Faísca, Pose Congelada).
-- **Inventário:** grade 3×2 (6 casas, 3 livres) + a Mesa. Cabem 1×1, 1×2, 2×1, Reta 3 e L de 3.
-- **Ponto fraco:** inimigos com magias que não cabem na Mesa (Reta 4, Cruz, T) ou que só têm magias de 1 casa entregam pouco. Ele precisa ler o inimigo antes de jogar.
+- **Plano:** no início de cada luta, sorteia uma magia do inimigo entre as que **cabem nas casas livres** do inventário dele, do jeito que as peças estão (a cópia pode girar, mas nada é movido). A cópia entra **no mesmo nível** e some no fim da luta. Ela tem os próprios usos ("1× por luta" conta separado do inimigo). Se nada couber, não há cópia.
+- **A decisão:** toda casa livre é uma aposta. Comprar uma magia fixa é garantido; deixar 4 casas livres (um 2×2, uma Reta 4, um L) abre espaço para as peças grandes do inimigo, mas a cópia pode ser uma Faísca. O arranjo também pesa: 4 casas em quadrado aceitam a Bola de Fogo; 4 em linha, não.
+- **Por que se vira:** a grade 4×2 começa com 3 casas ocupadas e 5 livres. No andar 1, o Feiticeiro inimigo tem Faísca e Bola de Fogo; o Assassino, Estocada e Corte Duplo: metade das vezes vem a peça forte. Com a Imitação Barata, qualquer dado vira um par: dado X na Imitação → dois X na mão → Bola de Fogo de **4X, mais queima 3**, ou Corte Duplo de **2X (4X se X for ímpar) todo turno**. Quando a cópia é fraca, ele tem duas Faíscas (a sua e a copiada) e a Imitação: ~10 a 12 por turno.
+- **Como cresce:** quanto mais alto o andar, mais magias e níveis o inimigo traz, e o sorteio fica mais rico. As compras dele vão para magias que **combinam com qualquer coisa** (Imitação, Faísca, Pose Congelada), sempre pesando quanto espaço sobra.
+- **Ponto fraco:** sorte no sorteio, e a escolha entre poder fixo e espaço livre a cada compra. Inimigos com uma magia boa e várias pequenas costumam entregar a pequena.
 - **Combos do catálogo:** Imitação Barata → qualquer magia de par copiada (Bola de Fogo, Transfusão, Concentrar Força, Lição de Anatomia).
 
 ### 2.4 Perfeccionista: "Ainda não está bom. Vai ficar."
@@ -112,14 +113,14 @@ Minimalista   Metalurgista   Copista           Perfeccionista   Populista
 - **Ponto fraco:** as mexidas do inimigo na próxima mão também pegam os dados guardados (é a mesma regra da marca hoje): a **Meia Verdade** transforma o par de 6 guardado em dois 1. A Interrupção Rude não tira os guardados, porque eles entram além da mão.
 - **Combos do catálogo:** Pose Congelada, Concentrar Força e Impulso Calculado (marcas que agora convivem), Meteoro e Matemática Superior (o trio guardado também serve), Transfusão.
 
-### 2.5 Populista: "Se tanta gente concorda comigo, devo estar certo."
+### 2.5 Vampiro: "Não bebo sangue. Recebo homenagens."
 
-- **Plano:** bolsa enorme. O **Nitrogênio** (novo) ganha +1 em cada face para cada 4 dados na bolsa: com 12 dados, rola de 4 a 9. O **Abaixo-Assinado** (novo) pede 4 dados quaisquer e causa dano = soma + 1 para cada 2 dados na bolsa (+6 com 12).
-- **Por que se vira:** 4 dados de ~4,5 + 6 = **~24 de dano por turno**, sem exigência. Com mão de 6, sobram 2 dados: um vai no Remendo (1× por luta) quando precisar.
-- **Como cresce:** a passiva dobra cada dado ganho, então a bolsa passa de 20 rápido. Isso alimenta o Nitrogênio e o Abaixo-Assinado. Adesivo rende pouco: o dado bom sai raramente numa bolsa grande.
-- **Inventário:** a cruz tem a linha do meio com 5 casas (Reta 4 + 1). Cabem Cruz, T, L e Retas 3; não cabe 2×2 nos braços.
-- **Ponto fraco:** precisa de quantidade, não de qualidade. Magias de exigência exata (um 6, um 1) quase nunca acham o dado. O Hidrogênio é inútil para ele. Inimigos que cortam a mão (Interrupção Rude, Rasteira) derrubam o Abaixo-Assinado.
-- **Combos do catálogo:** Presença Imponente (bloqueio por dado na mão), Exibição de Velocidade (se o Nitrogênio não passar de 3), Golpe para a Foto (4 dados ≥ 5: o Nitrogênio facilita).
+- **Plano:** começa com pouca vida (60) e se mantém de pé batendo. A **Mordida** (nova) causa dano = valor e cura metade. O **Banquete** (novo) pede 3 dados, causa dano = soma e cura o menor dado. A passiva transforma a cura que sobra em **vida máxima**: quanto mais cheio ele entra na luta, mais cresce.
+- **Por que se vira:** Mordida com o melhor dado (~5) + Banquete com os 3 seguintes (~11): **~16 de dano e ~5 de cura por turno**. O inimigo do andar 1 cai em 2 turnos, e o Vampiro sai quase com a vida com que entrou.
+- **Como cresce:** a vida máxima sobe até 5 por luta (até +50 numa fatia de 10 andares), sem comprar vida na Loja. O Remendo e a Transfusão rendem mais nele: o Remendo com vida cheia vira vida máxima.
+- **Inventário:** o Caixão é estreito e alto. Cabem 1×1, 1×2, 2×1, 2×2, Retas 3 e 4 em pé e L de 3 e de 4; não cabem T, Cruz nem a Diagonal de 3.
+- **Ponto fraco:** a vida baixa, e a **queima em dobro**: o Piromante, a Bola de Fogo e o Sódio são o pesadelo dele. A Interrupção Rude e a Rasteira cortam o Banquete. A cura só vem com dano, então quando a mão é ruim, ele não se recupera.
+- **Combos do catálogo:** Transfusão (ganho de vida máxima direto), Remendo (com a vida cheia, vira vida máxima), Suor de Campeão (tira a queima, o maior perigo dele), Imitação Barata (as cópias alimentam o Banquete).
 
 ---
 
@@ -130,30 +131,24 @@ Minimalista   Metalurgista   Copista           Perfeccionista   Populista
 | Magia | Formato | Grupo | Pede | Efeito | Uso | De quem |
 |---|---|---|---|---|---|---|
 | **Obra-Prima** | L (4) | Perfeccionista | **3 dados iguais** | Dano = soma ×2. | sempre | Perfeccionista |
-| **Abaixo-Assinado** | Reta 4 | Populista | 4 dados quaisquer | Dano = soma + 1 para cada 2 dados na sua bolsa. | sempre | Populista |
+| **Mordida** | 1×1 | Vampiro | qualquer dado | Dano = valor. Cura metade do valor (arredonda para cima). | sempre | Vampiro |
+| **Banquete** | Reta 3 | Vampiro | 3 dados quaisquer | Dano = soma. Cura = o menor dos três. | sempre | Vampiro |
 
 - **Exigência nova: "trio"** (3 dados iguais). Os buracos mostram "=" entre os três.
-- As duas entram no catálogo e na loja para todos, como as outras.
+- As três entram no catálogo e na loja para todos, como as outras. A cura delas cresce com o nível, como o dano.
 
-### 3.2 Elemento
-
-| Elemento | Efeito | Na loja? |
-|---|---|---|
-| **Nitrogênio** | Multidão: +1 em cada face para cada 4 dados na bolsa. | sim |
-
-Já estava na `SPEC_v3.md` §4.1. O bônus conta a bolsa inteira (descarte e dados fora da luta também) e é calculado ao rolar.
-
-### 3.3 Regras
+### 3.2 Regras
 
 | Regra | Onde | O que muda |
 |---|---|---|
 | **Destruir na recompensa** | Minimalista | A tela de recompensa pós-luta ganha uma 4ª opção: "destruir 1 dado". |
 | **Chumbo à venda** | Metalurgista | A Loja oferece "dado de Chumbo" e o Poço oferece "aplicar Chumbo". Só para ele. |
-| **Mesa de Empréstimo** | Copista | Área separada do inventário, 2×2, que só recebe a cópia. A cópia não pode ser vendida, evoluída nem movida. |
+| **Cópia nas casas livres** | Copista | A cópia ocupa casas livres do inventário até o fim da luta. Ela não pode ser vendida, evoluída nem movida; o resto do grimório não se mexe para abrir espaço. |
+| **Cura vira vida máxima** | Vampiro | A cura que passaria do máximo aumenta a vida máxima, até 5 por luta. Vale para toda cura dele (Mordida, Banquete, Remendo, a parada de Cura). |
 | **Duas marcas** | Perfeccionista | Exceção à regra "uma marca por vez" do catálogo (§2.3): ele pode ter 2. Uma marca nova substitui a mais antiga. |
 | **Escolher dados no fim do turno** | Perfeccionista | Antes de "Terminar turno", tocar em até 2 dados livres da mão para marcá-los. |
 
-### 3.4 Grupos de magia (o que cada inimigo compra)
+### 3.3 Grupos de magia (o que cada inimigo compra)
 
 Hoje os inimigos só compram do próprio grupo (Feiticeiro ou Assassino) e do "qualquer". Os novos usam uma lista:
 
@@ -163,7 +158,7 @@ Hoje os inimigos só compram do próprio grupo (Feiticeiro ou Assassino) e do "q
 | Metalurgista | Assassino + magias que pedem um 1 (Espelho, Sacrifício, Improviso Brilhante) |
 | Copista | Feiticeiro |
 | Perfeccionista | Feiticeiro + Assassino, só as de par, trio e sequência, e as de marca |
-| Populista | Assassino + Abaixo-Assinado |
+| Vampiro | Feiticeiro + Assassino, só as de dano, mais Remendo, Transfusão, Mordida e Banquete |
 
 ---
 
@@ -173,9 +168,9 @@ Hoje os inimigos só compram do próprio grupo (Feiticeiro ou Assassino) e do "q
 |---|---|---|
 | **Minimalista** | Bate forte e cedo, morre rápido. Vida do inimigo ×0,8 para compensar o Hidrogênio. | **Monge do Silêncio**: só 4 dados, todos Hidrogênio. Aparece a partir do andar 5. |
 | **Metalurgista** | Lento e resistente; a passiva vale para ele. | **Fundidor**: no primeiro turno, transforma 1 dado comum **seu** em Chumbo até o fim da luta (diferente do Lixeiro, que adiciona). |
-| **Copista** | **Copia a sua maior magia que cabe na Mesa.** A sua build vira a arma dele. | — |
+| **Copista** | **Copia uma magia aleatória sua** que caiba nas casas livres dele. A sua build vira a arma dele. | — |
 | **Perfeccionista** | A IA guarda os dois dados de valor mais repetido. | — |
-| **Populista** | Mão de 6 e bolsa grande, sempre visível. O Arrancar das Mãos rende pouco contra ele. | **Cabo Eleitoral**: no primeiro turno, põe 1 dado comum na **sua** bolsa até o fim da luta (dilui, mas não fica depois). |
+| **Vampiro** | Alonga a luta curando. Como inimigo, a vida dele começa cheia, então a passiva já faz ele crescer durante a luta. | — |
 
 ---
 
@@ -186,10 +181,11 @@ Hoje os inimigos só compram do próprio grupo (Feiticeiro ou Assassino) e do "q
 | Minimalista no andar 1 | Duas Faíscas com Hidrogênio podem matar em 1 turno quando sai 18 + 18. Medir a chance. |
 | Minimalista + Bis! | Hidrogênio na face máxima rola de novo e soma ×3 a cada rolagem. Pode passar de 100. |
 | Metalurgista contra o Porteiro | O Mestre do andar 10 vira o melhor matchup dele. |
-| Copista contra Feiticeiro com Matemática Superior | Não cabe na Mesa (Cruz): medir quantas lutas ele fica sem cópia útil. |
-| Copista inimigo contra o jogador | Copiar a magia do jogador pode ser forte demais quando o jogador tem uma Bola de Fogo nível 3. |
+| Copista com 0, 2 e 4 casas livres | Medir quanto o espaço livre vale contra uma magia fixa comprada. |
+| Copista inimigo contra o jogador | Sortear a Bola de Fogo nível 3 do jogador pode ser forte demais. |
 | Perfeccionista com Obra-Prima evoluída | Três 12 com nível 3 = 144. Medir em que andar isso aparece. |
-| Populista com 30 dados | Abaixo-Assinado com +15 e Nitrogênio +7 em cada face. Medir se a bolsa cresce rápido demais com a Aclamação. |
+| Vampiro em 10 andares | Medir quanta vida máxima ele junta (teto de +50) e se a trava de 60 turnos aparece contra o Vampiro inimigo. |
+| Vampiro contra o Piromante | Queima em dobro: medir se o matchup é perdido de saída. |
 
 ---
 
@@ -197,7 +193,7 @@ Hoje os inimigos só compram do próprio grupo (Feiticeiro ou Assassino) e do "q
 
 | Tema | Pergunta |
 |---|---|
-| Vida dos personagens | 70 a 100: o simulador deve dizer se a ordem (Minimalista mais frágil, Metalurgista mais resistente) faz sentido. |
+| Vida dos personagens | 60 a 100: o simulador deve dizer se a ordem (Vampiro e Minimalista mais frágeis, Metalurgista mais resistente) faz sentido. |
 | Feiticeiro e Assassino | Continuam como os "genéricos" ou são substituídos pelos novos? O Assassino ainda não é jogável. |
 | Escolha de personagem | Todos liberados desde o começo (a SPEC não tem meta-progressão no protótipo). |
-| Nomes | Os cinco são substantivos que servem para qualquer gênero (TOM §5). |
+| Nomes | Minimalista, Metalurgista, Copista e Perfeccionista servem para qualquer gênero (TOM §5). "Vampiro" não: manter assim? |
