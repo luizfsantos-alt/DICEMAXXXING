@@ -1,6 +1,6 @@
 # Personagens novos (proposta)
 
-> **Status: proposta, rodada 2.** São 5 arquétipos novos, jogáveis e usados pelos inimigos, no padrão de `docs/SPEC_v3.md` §3: **formato do inventário**, **uma passiva**, vida, mão, bolsa inicial e magias iniciais. Seguem o tom de `docs/TOM.md` e os princípios de `docs/CATALOGO_MAGIAS.md` §1. Números *(iniciais)*, a passar pelo simulador.
+> **Status: proposta, rodada 3.** São 6 arquétipos novos (os 5 da proposta mais o Bárbaro), além do Feiticeiro e do Assassino, que continuam, jogáveis e usados pelos inimigos, no padrão de `docs/SPEC_v3.md` §3: **formato do inventário**, **uma passiva**, vida, mão, bolsa inicial e magias iniciais. Seguem o tom de `docs/TOM.md` e os princípios de `docs/CATALOGO_MAGIAS.md` §1. Números *(iniciais)*, a passar pelo simulador.
 
 ---
 
@@ -14,7 +14,16 @@
 
 ## Feedback (rodada 2)
 
-*(Em branco: Copista ajustado e Vampiro novo.)*
+| Tema | Decisão |
+|---|---|
+| Faísca demais | Criar outra magia **básica**: **Dardo Arcano** (seção 3.1). Ela entra no lugar da 2ª Faísca do Minimalista e da Faísca do Perfeccionista. |
+| Feiticeiro e Assassino | **Continuam** jogáveis, ao lado dos novos. |
+| Elementos | "Não estão comuns o suficiente, ou não entendi como funcionam." Diagnóstico e proposta na seção 4. |
+| Personagem novo | **Bárbaro**: cura a si mesmo e causa mais dano com pouca vida (seção 2.6). |
+
+## Feedback (rodada 3)
+
+*(Em branco.)*
 
 ---
 
@@ -33,12 +42,15 @@ Cada um **testa uma regra diferente** do jogo, para que nenhum seja "o Feiticeir
 | **Copista** | o inventário do inimigo e o espaço livre do seu | Grade 4×2 |
 | **Perfeccionista** | guardar dados entre turnos (marca) | Moldura 4×3, sem o meio |
 | **Vampiro** | vida como recurso (dano que cura, cura que vira vida máxima) | Caixão 2×4 |
+| **Bárbaro** | vida baixa como arma (Fúria) e autocura | Grade 3×3 |
+
+O **Vampiro** e o **Bárbaro** mexem os dois com vida, em direções opostas: o Vampiro quer a vida cheia (a cura que sobra vira vida máxima); o Bárbaro quer a vida baixa (Fúria), e se cura só para não morrer.
 
 ### 0.2 Regras mantidas
 
 | Regra | Como aparece aqui |
 |---|---|
-| **Ninguém começa com defesa** | Nenhum kit tem bloqueio, Esquiva ou Espelho. O Vampiro cura, mas só causando dano. |
+| **Ninguém começa com defesa** | Nenhum kit tem bloqueio, Esquiva ou Espelho. O Vampiro cura causando dano; o Bárbaro tem uma cura limitada (2× por luta). |
 | Passiva simples | Uma linha de regra cada (a do Metalurgista e a do Vampiro têm duas frases curtas). |
 | Inimigos com as mesmas regras | Cada arquétipo também aparece como inimigo, com a mesma passiva, a mesma bolsa e o mesmo inventário (seção 3). |
 | A loja é a mesma para todos | O formato do inventário filtra o que cabe. A única exceção é o Chumbo do Metalurgista. |
@@ -54,19 +66,20 @@ Para comparar: o **Feiticeiro** tem 90 de vida, mão de 5 e causa uns **6 a 8 de
 
 | Personagem | Inventário | Passiva | Vida | Mão | Bolsa inicial | Magias iniciais |
 |---|---|---|---|---|---|---|
-| **Minimalista** | Grade **3×2** (6 casas) | **Voto de Pobreza**: destruir dado no Poço é grátis, e toda recompensa pós-luta tem a opção "destruir 1 dado". | 70 | **4** | **5 dados**: 3 Hidrogênio + 2 comuns | Faísca, Faísca |
+| **Minimalista** | Grade **3×2** (6 casas) | **Voto de Pobreza**: destruir dado no Poço é grátis, e toda recompensa pós-luta tem a opção "destruir 1 dado". | 70 | **4** | **5 dados**: 3 Hidrogênio + 2 comuns | Faísca, **Dardo Arcano** (nova) |
 | **Metalurgista** | Esteira **5×2** (10 casas) | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado da bolsa para a mão. A Loja e o Poço vendem Chumbo para você. | 100 | 5 | 8 dados: 5 comuns + 3 Chumbo | Levantar Peso (nível 2), Estocada |
-| **Copista** | Grade **4×2** (8 casas) | **Inspiração**: no início de cada luta, uma magia aleatória do inimigo que caiba nas suas casas livres é copiada nelas, no mesmo nível, até o fim da luta. | 80 | 5 | 8 comuns | Faísca, Imitação Barata |
-| **Perfeccionista** | **Moldura 4×3** sem as 2 casas do meio (10 casas) | **Ainda Não Está Bom**: no fim do turno, até 2 dados que sobraram na mão ficam marcados. Você pode ter 2 marcas. | 80 | 5 | 8 comuns | Faísca, **Obra-Prima** (nova) |
-| **Vampiro** | **Caixão 2×4** (2 de largura, 4 de altura) | **Sede**: a cura que passaria da vida máxima vira vida máxima, para sempre (até 5 por luta). Queima causa o dobro de dano em você. | **60** | 5 | 8 comuns | **Mordida** (nova), **Banquete** (nova) |
+| **Copista** | Grade **4×2** (8 casas) | **Inspiração**: no início de cada luta, uma magia aleatória do inimigo que caiba nas suas casas livres é copiada nelas, no mesmo nível, até o fim da luta. | 80 | 5 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
+| **Perfeccionista** | **Moldura 4×3** sem as 2 casas do meio (10 casas) | **Ainda Não Está Bom**: no fim do turno, até 2 dados que sobraram na mão ficam marcados. Você pode ter 2 marcas. | 80 | 5 | 7 comuns + 1 Ósmio | **Dardo Arcano** (nova), **Obra-Prima** (nova) |
+| **Vampiro** | **Caixão 2×4** (2 de largura, 4 de altura) | **Sede**: a cura que passaria da vida máxima vira vida máxima, para sempre (até 5 por luta). Queima causa o dobro de dano em você. | **60** | 5 | 7 comuns + 1 Sódio | **Mordida** (nova), **Banquete** (nova) |
+| **Bárbaro** | Grade **3×3** (9 casas) | **Fúria**: toda magia de dano causa +1 por golpe para cada 10 de vida que você perdeu. | **110** | 5 | 6 comuns + 2 Urânio | **Machadada** (nova), **Cerrar os Dentes** (nova) |
 
 ### 1.1 Formatos
 
 ```
-Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro
-###           #####          ####      ####             ##
-###           #####          ####      #..#             ##
-                                       ####             ##
+Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro   Bárbaro
+###           #####          ####      ####             ##        ###
+###           #####          ####      #..#             ##        ###
+                                       ####             ##        ###
                                                         ##
 ```
 
@@ -78,8 +91,8 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro
 
 ### 2.1 Minimalista: "Possuo cinco dados. Os outros possuem desculpas."
 
-- **Plano:** bolsa minúscula. Com 5 dados e mão de 4, quase todo turno sai a bolsa inteira, e o Hidrogênio (×3 com bolsa de 8 ou menos) vale de 3 a 18. Duas Faíscas usam os dois maiores.
-- **Por que se vira:** dois dados de 9 a 18 por turno dão uns **20 a 24 de dano**. O inimigo do andar 1 cai em 2 turnos. A vida baixa (70) é o preço.
+- **Plano:** bolsa minúscula. Com 5 dados e mão de 4, quase todo turno sai a bolsa inteira, e o Hidrogênio (×3 com bolsa de 8 ou menos) vale de 3 a 18. A Faísca e o Dardo Arcano usam os dois maiores: o Dardo pede um valor par, e o Hidrogênio ×3 dá 6, 12 ou 18 nas faces pares.
+- **Por que se vira:** dois dados de 9 a 18 por turno (+2 no Dardo) dão uns **20 a 24 de dano**. O inimigo do andar 1 cai em 2 turnos. A vida baixa (70) é o preço.
 - **Como cresce:** adesivos ×2 nos Hidrogênios (um 6 com adesivo vale 36). Cada dado novo é uma decisão séria: com 9 dados, o Hidrogênio desliga. A passiva deixa limpar a bolsa de graça.
 - **Inventário:** 6 casas, 2 já ocupadas. Cabem o Meteoro (L de 4) ou uma Reta 3, não os dois.
 - **Ponto fraco:** o Lixeiro (Chumbo na bolsa), o Arrancar das Mãos (tira o melhor dado de uma bolsa de 5) e a Interrupção Rude (mão de 4 vira 2) machucam muito mais que nos outros.
@@ -99,15 +112,15 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro
 
 - **Plano:** no início de cada luta, sorteia uma magia do inimigo entre as que **cabem nas casas livres** do inventário dele, do jeito que as peças estão (a cópia pode girar, mas nada é movido). A cópia entra **no mesmo nível** e some no fim da luta. Ela tem os próprios usos ("1× por luta" conta separado do inimigo). Se nada couber, não há cópia.
 - **A decisão:** toda casa livre é uma aposta. Comprar uma magia fixa é garantido; deixar 4 casas livres (um 2×2, uma Reta 4, um L) abre espaço para as peças grandes do inimigo, mas a cópia pode ser uma Faísca. O arranjo também pesa: 4 casas em quadrado aceitam a Bola de Fogo; 4 em linha, não.
-- **Por que se vira:** a grade 4×2 começa com 3 casas ocupadas e 5 livres. No andar 1, o Feiticeiro inimigo tem Faísca e Bola de Fogo; o Assassino, Estocada e Corte Duplo: metade das vezes vem a peça forte. Com a Imitação Barata, qualquer dado vira um par: dado X na Imitação → dois X na mão → Bola de Fogo de **4X, mais queima 3**, ou Corte Duplo de **2X (4X se X for ímpar) todo turno**. Quando a cópia é fraca, ele tem duas Faíscas (a sua e a copiada) e a Imitação: ~10 a 12 por turno.
+- **Por que se vira:** a grade 4×2 começa com 3 casas ocupadas e 5 livres. No andar 1, o Feiticeiro inimigo tem Faísca e Bola de Fogo; o Assassino, Estocada e Corte Duplo: metade das vezes vem a peça forte. O Mercúrio inicial copia o maior valor da mão ou da última mão do inimigo: é o dado ideal para a Imitação. Com ela, qualquer dado vira um par: dado X na Imitação → dois X na mão → Bola de Fogo de **4X, mais queima 3**, ou Corte Duplo de **2X (4X se X for ímpar) todo turno**. Quando a cópia é fraca, ele tem duas Faíscas (a sua e a copiada) e a Imitação: ~10 a 12 por turno.
 - **Como cresce:** quanto mais alto o andar, mais magias e níveis o inimigo traz, e o sorteio fica mais rico. As compras dele vão para magias que **combinam com qualquer coisa** (Imitação, Faísca, Pose Congelada), sempre pesando quanto espaço sobra.
 - **Ponto fraco:** sorte no sorteio, e a escolha entre poder fixo e espaço livre a cada compra. Inimigos com uma magia boa e várias pequenas costumam entregar a pequena.
 - **Combos do catálogo:** Imitação Barata → qualquer magia de par copiada (Bola de Fogo, Transfusão, Concentrar Força, Lição de Anatomia).
 
 ### 2.4 Perfeccionista: "Ainda não está bom. Vai ficar."
 
-- **Plano:** nunca usa a mão inteira. No fim do turno, guarda até 2 dados que sobraram (**marca**: entram na próxima mão com o mesmo valor, sem rolar, além da mão normal). Com dois 6 guardados, a próxima mão de 5 tem 60% de chance de completar o trio para a **Obra-Prima** (3 dados iguais: dano = soma ×2; três 6 = 36).
-- **Por que se vira:** no 1º turno, Faísca (~5) e guarda o par; no 2º, Obra-Prima (~27) + Faísca. O inimigo do andar 1 cai entre o 2º e o 3º turno. Os turnos são lentos e o pico é alto.
+- **Plano:** nunca usa a mão inteira. O Ósmio inicial sai sempre na primeira mão: um dado conhecido para começar o par. No fim do turno, guarda até 2 dados que sobraram (**marca**: entram na próxima mão com o mesmo valor, sem rolar, além da mão normal). Com dois 6 guardados, a próxima mão de 5 tem 60% de chance de completar o trio para a **Obra-Prima** (3 dados iguais: dano = soma ×2; três 6 = 36).
+- **Por que se vira:** no 1º turno, Dardo Arcano num par (~6) e guarda o par; no 2º, Obra-Prima (~27) + Dardo. O inimigo do andar 1 cai entre o 2º e o 3º turno. Os turnos são lentos e o pico é alto.
 - **Como cresce:** adesivos ×2 em várias faces do mesmo número (três 12 = 72). Combina com todas as magias de par e sequência.
 - **Inventário:** a Moldura não tem o meio. Não cabem 2×2 (Bola de Fogo), T nem Cruz. Cabem Reta 4 (em cima ou embaixo), Retas 3, 1×2 nas laterais e L de 3 e de 4 nos cantos.
 - **Ponto fraco:** as mexidas do inimigo na próxima mão também pegam os dados guardados (é a mesma regra da marca hoje): a **Meia Verdade** transforma o par de 6 guardado em dois 1. A Interrupção Rude não tira os guardados, porque eles entram além da mão.
@@ -119,8 +132,19 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro
 - **Por que se vira:** Mordida com o melhor dado (~5) + Banquete com os 3 seguintes (~11): **~16 de dano e ~5 de cura por turno**. O inimigo do andar 1 cai em 2 turnos, e o Vampiro sai quase com a vida com que entrou.
 - **Como cresce:** a vida máxima sobe até 5 por luta (até +50 numa fatia de 10 andares), sem comprar vida na Loja. O Remendo e a Transfusão rendem mais nele: o Remendo com vida cheia vira vida máxima.
 - **Inventário:** o Caixão é estreito e alto. Cabem 1×1, 1×2, 2×1, 2×2, Retas 3 e 4 em pé e L de 3 e de 4; não cabem T, Cruz nem a Diagonal de 3.
+- **Elemento:** o Sódio inicial queima o inimigo quando usado. Ele odeia fogo, mas adora pôr fogo nos outros.
 - **Ponto fraco:** a vida baixa, e a **queima em dobro**: o Piromante, a Bola de Fogo e o Sódio são o pesadelo dele. A Interrupção Rude e a Rasteira cortam o Banquete. A cura só vem com dano, então quando a mão é ruim, ele não se recupera.
 - **Combos do catálogo:** Transfusão (ganho de vida máxima direto), Remendo (com a vida cheia, vira vida máxima), Suor de Campeão (tira a queima, o maior perigo dele), Imitação Barata (as cópias alimentam o Banquete).
+
+### 2.6 Bárbaro: "Li um livro uma vez. Depois bati em quem escreveu."
+
+- **Plano:** muita vida (110) e a **Fúria**: toda magia de dano causa **+1 por golpe para cada 10 de vida perdida** (vida máxima − vida atual, arredondando para baixo). Com 50 de vida, a Machadada ganha +6. A **Machadada** (nova) pede um dado ≥ 4 e causa dano = valor ×2. O **Cerrar os Dentes** (nova) pede um dado ≤ 3 e cura valor ×3 (2× por luta).
+- **A decisão:** curar tira Fúria. Cada Cerrar os Dentes, cada parada de Cura e cada compra de vida máxima é uma escolha entre ficar vivo e bater forte.
+- **Por que se vira:** a Machadada com o melhor dado alto: ~11 no começo, ~15 a 18 com 40 de vida perdida. Os 2 Urânio (faces 3 a 8) quase sempre pagam a Machadada. O Urânio que sobra envenena, mas veneno vira Fúria.
+- **Como cresce:** magias de vários golpes multiplicam a Fúria (Corte Duplo ímpar, Exibição de Velocidade, Bis!). Adesivos nos Urânios para a Machadada.
+- **Inventário:** 3×3, quadrado. Cabe quase tudo, inclusive T e Cruz, mas tem só 9 casas.
+- **Ponto fraco:** o dano depende de já ter apanhado. Um inimigo que bate muito forte de uma vez mata antes de a Fúria render. O Espelho do inimigo devolve a Machadada inteira, com a Fúria. A Chave de Braço (metade) derruba os dados ≥ 4.
+- **Combos do catálogo:** Exibição de Velocidade (3 golpes, +Fúria em cada), Corte Duplo, Remendo (cura de emergência), Sacrifício (+5 por magia, soma com a Fúria).
 
 ---
 
@@ -131,11 +155,15 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro
 | Magia | Formato | Grupo | Pede | Efeito | Uso | De quem |
 |---|---|---|---|---|---|---|
 | **Obra-Prima** | L (4) | Perfeccionista | **3 dados iguais** | Dano = soma ×2. | sempre | Perfeccionista |
+| **Dardo Arcano** | 1×1 | qualquer | **dado par** | Dano = valor + 2. | sempre | básica (Minimalista, Perfeccionista) |
 | **Mordida** | 1×1 | Vampiro | qualquer dado | Dano = valor. Cura metade do valor (arredonda para cima). | sempre | Vampiro |
 | **Banquete** | Reta 3 | Vampiro | 3 dados quaisquer | Dano = soma. Cura = o menor dos três. | sempre | Vampiro |
+| **Machadada** | 1×2 | Bárbaro | dado ≥ 4 | Dano = valor ×2. | sempre | Bárbaro |
+| **Cerrar os Dentes** | 1×1 | Bárbaro | dado ≤ 3 | Cura = valor ×3. | 2× por luta | Bárbaro |
 
 - **Exigência nova: "trio"** (3 dados iguais). Os buracos mostram "=" entre os três.
-- As três entram no catálogo e na loja para todos, como as outras. A cura delas cresce com o nível, como o dano.
+- **Dardo Arcano** é a 2ª magia básica: tão simples quanto a Faísca, mas com uma escolha (só aceita par, e paga +2 por isso). Com ela, a Faísca fica só no Feiticeiro, no Copista e no Minimalista.
+- Todas entram no catálogo e na loja para todos, como as outras. A cura cresce com o nível, como o dano.
 
 ### 3.2 Regras
 
@@ -144,6 +172,7 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro
 | **Destruir na recompensa** | Minimalista | A tela de recompensa pós-luta ganha uma 4ª opção: "destruir 1 dado". |
 | **Chumbo à venda** | Metalurgista | A Loja oferece "dado de Chumbo" e o Poço oferece "aplicar Chumbo". Só para ele. |
 | **Cópia nas casas livres** | Copista | A cópia ocupa casas livres do inventário até o fim da luta. Ela não pode ser vendida, evoluída nem movida; o resto do grimório não se mexe para abrir espaço. |
+| **Fúria** | Bárbaro | "+1 por golpe": cada golpe de uma magia de vários golpes ganha o bônus (como o Sacrifício). Conta no momento do golpe. |
 | **Cura vira vida máxima** | Vampiro | A cura que passaria do máximo aumenta a vida máxima, até 5 por luta. Vale para toda cura dele (Mordida, Banquete, Remendo, a parada de Cura). |
 | **Duas marcas** | Perfeccionista | Exceção à regra "uma marca por vez" do catálogo (§2.3): ele pode ter 2. Uma marca nova substitui a mais antiga. |
 | **Escolher dados no fim do turno** | Perfeccionista | Antes de "Terminar turno", tocar em até 2 dados livres da mão para marcá-los. |
@@ -159,6 +188,7 @@ Hoje os inimigos só compram do próprio grupo (Feiticeiro ou Assassino) e do "q
 | Copista | Feiticeiro |
 | Perfeccionista | Feiticeiro + Assassino, só as de par, trio e sequência, e as de marca |
 | Vampiro | Feiticeiro + Assassino, só as de dano, mais Remendo, Transfusão, Mordida e Banquete |
+| Bárbaro | Assassino, mais Remendo, Machadada e Cerrar os Dentes |
 
 ---
 
@@ -170,11 +200,52 @@ Hoje os inimigos só compram do próprio grupo (Feiticeiro ou Assassino) e do "q
 | **Metalurgista** | Lento e resistente; a passiva vale para ele. | **Fundidor**: no primeiro turno, transforma 1 dado comum **seu** em Chumbo até o fim da luta (diferente do Lixeiro, que adiciona). |
 | **Copista** | **Copia uma magia aleatória sua** que caiba nas casas livres dele. A sua build vira a arma dele. | — |
 | **Perfeccionista** | A IA guarda os dois dados de valor mais repetido. | — |
+| **Bárbaro** | Fica mais perigoso a cada golpe que você dá. Contra ele, vale juntar dano e acabar num turno só. | — |
 | **Vampiro** | Alonga a luta curando. Como inimigo, a vida dele começa cheia, então a passiva já faz ele crescer durante a luta. | — |
 
 ---
 
-## 5. Combos para o simulador medir primeiro
+## 5. Elementos: por que quase não aparecem
+
+### 5.1 Como funcionam hoje
+
+Cada dado pode ter **um** elemento, que dá uma regra de uma linha a ele. No jogo existem 6:
+
+| Elemento | Na prática |
+|---|---|
+| **Hidrogênio** | Vale ×3, mas só com a bolsa de 8 dados ou menos (a bolsa inicial tem 8: comprar um dado já desliga). |
+| **Ósmio** | Sai sempre na primeira mão da luta. |
+| **Urânio** | Faces de 3 a 8. Se sobrar na mão sem uso, envenena **você** em 2 (o veneno não cai durante a luta). |
+| **Sódio** | Ao ser usado numa magia, queima o inimigo em 2. |
+| **Mercúrio** | Ao rolar, vale o maior valor entre a sua mão e a última mão do inimigo. |
+| **Chumbo** | Lixo: três faces 1 travadas. Só vem do inimigo. |
+
+### 5.2 Diagnóstico
+
+A sensação procede: **é raro ver um elemento, e quando aparece, a tela não explica**.
+
+| Problema | Por quê (no código) |
+|---|---|
+| Ninguém começa com elemento | A bolsa inicial do Feiticeiro e do Assassino é de 8 dados comuns. |
+| A recompensa raramente oferece | Das 3 ofertas, uma é "dado" em 3 de 4 lutas, e esse dado tem elemento só metade das vezes. |
+| A loja cobra caro | Dado com elemento custa 14 moedas (6 + 8), contra 10 de uma magia. Uma vitória paga 4 a 9. |
+| O Poço é uma parada entre quatro | Aparece a cada 3 lutas, disputando com Loja, Cura e Escola. |
+| Os inimigos quase não têm | Recebem 0,4 melhoria por andar, e só 1 em 5 melhorias é elemento. No andar 5 (porta normal), um inimigo recebe 2 melhorias: em média 0,4 elemento. Só o Piromante sempre tem (2 Sódio). |
+| A tela não explica | O dado mostra só a cor e o símbolo ("Na"). A descrição está num tooltip da lista da bolsa, e **tooltip não abre no toque** (Android). Quando o Sódio queima, a queima aparece, mas não diz que veio do Sódio. |
+
+### 5.3 Proposta
+
+1. **Todo personagem começa com elemento.** Minimalista (3 Hidrogênio), Metalurgista (3 Chumbo), Copista (1 Mercúrio), Perfeccionista (1 Ósmio), Vampiro (1 Sódio) e Bárbaro (2 Urânio), já nas fichas. Para os que continuam: **Feiticeiro, 1 Sódio** (combina com a Bola de Fogo); **Assassino, 1 Mercúrio** (a mão de 6 aproveita o maior valor).
+2. **Dado oferecido sempre tem elemento.** Na recompensa e na loja, o "dado comum" sai. Preço na loja: 10 (igual a uma magia).
+3. **Todo inimigo tem pelo menos 1 elemento**, pelo arquétipo (os mesmos da lista acima), a partir do andar 1. Assim o jogador vê o efeito agindo contra ele.
+4. **Tocar e segurar um dado** (na mão, na bolsa ou na mão do inimigo) mostra o nome e o efeito do elemento. No lugar do tooltip.
+5. **O efeito se anuncia** quando acontece: "Sódio: queima 2", "Urânio: veneno 2", "Mercúrio: copiou 6", "Hidrogênio ×3".
+
+Elementos novos (Hélio, Vidro, Ferro, Ouro… da `SPEC_v3.md` §4.1) ficam para depois: primeiro os 6 atuais precisam aparecer e ser entendidos.
+
+---
+
+## 6. Combos para o simulador medir primeiro
 
 | Combo | Por quê |
 |---|---|
@@ -186,14 +257,16 @@ Hoje os inimigos só compram do próprio grupo (Feiticeiro ou Assassino) e do "q
 | Perfeccionista com Obra-Prima evoluída | Três 12 com nível 3 = 144. Medir em que andar isso aparece. |
 | Vampiro em 10 andares | Medir quanta vida máxima ele junta (teto de +50) e se a trava de 60 turnos aparece contra o Vampiro inimigo. |
 | Vampiro contra o Piromante | Queima em dobro: medir se o matchup é perdido de saída. |
+| Bárbaro com Exibição de Velocidade | 3 golpes, cada um com a Fúria: com 60 de vida perdida, são +18. |
+| Bárbaro e Cerrar os Dentes | Medir se o jogador cura ou prefere ficar com Fúria; se ninguém cura, a magia está errada. |
+| Elementos para todos | Medir o efeito de ter elemento desde o andar 1, dos dois lados. |
 
 ---
 
-## 6. Em aberto
+## 7. Em aberto
 
 | Tema | Pergunta |
 |---|---|
-| Vida dos personagens | 60 a 100: o simulador deve dizer se a ordem (Vampiro e Minimalista mais frágeis, Metalurgista mais resistente) faz sentido. |
-| Feiticeiro e Assassino | Continuam como os "genéricos" ou são substituídos pelos novos? O Assassino ainda não é jogável. |
+| Vida dos personagens | 60 a 110: o simulador deve dizer se a ordem (Vampiro e Minimalista mais frágeis, Metalurgista e Bárbaro mais resistentes) faz sentido. |
 | Escolha de personagem | Todos liberados desde o começo (a SPEC não tem meta-progressão no protótipo). |
-| Nomes | Minimalista, Metalurgista, Copista e Perfeccionista servem para qualquer gênero (TOM §5). "Vampiro" não: manter assim? |
+| Nomes | Minimalista, Metalurgista, Copista e Perfeccionista servem para qualquer gênero (TOM §5). "Vampiro" e "Bárbaro" não: manter assim? |
