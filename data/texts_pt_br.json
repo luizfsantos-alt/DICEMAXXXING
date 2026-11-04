@@ -310,7 +310,28 @@
   "enemy": "Inimigo",
   "spell_used": "Essa magia já foi usada nesta luta.",
   "not_accepted": "{name} pede: {req}.",
-  "consult_stickers": "{n} adesivo(s) ×2"
+  "consult_stickers": "{n} adesivo(s) ×2",
+  "history": "Histórico",
+  "enemy_spells": "MAGIAS DO INIMIGO",
+  "your_spells": "SUAS MAGIAS",
+  "hint_place": "Encaixe os dados nos buracos das magias",
+  "tap_to_skip": "Toque para acelerar",
+  "hud_duel": "Andar {n}/{max} · {coins} moedas · Turno {t}",
+  "enemy_sub": "{arch} · Bolsa {n} · toque para ver tudo",
+  "bag_line": "Bolsa {n} · {d} no descarte",
+  "no_accept": "não aceita {v}",
+  "die_selected": "Dado {v} na mão: toque numa magia acesa",
+  "this_turn": "Este turno: {list}",
+  "incomplete": "Complete os buracos para lançar a magia",
+  "back_to_bag": "Dados sem magia voltam para a bolsa",
+  "enemy_summary": "Turno do inimigo: {list}",
+  "pv_dmg": "→ {n} de dano",
+  "pv_block": "→ {n} de bloqueio",
+  "pv_dodge": "→ esquiva",
+  "pv_mirror": "→ reflete",
+  "pv_heal": "→ cura {n}",
+  "pv_maxhp": "→ +{n} vida máx.",
+  "pv_sacrifice": "→ +{n} de dano na luta"
  },
  "ev": {
   "hand": "{who} rolou: {v}",
@@ -332,5 +353,18 @@
   "sacrifice": "{who} sacrifica um dado (+{n} de dano)",
   "lead_hand": "O Porteiro enfia um Chumbo na sua mão.",
   "lead_bag": "O Lixeiro joga um Chumbo na sua bolsa!"
+ },
+ "spell_fx": {
+  "faisca": "Dano = valor",
+  "escudo": "Bloqueio = valor ×3",
+  "bola": "Soma ×3 e queima 3",
+  "meteoro": "40 de dano",
+  "espelho": "Reflete o próximo golpe recebido",
+  "sacrificio": "Destrói o dado; +5 de dano nas magias desta luta",
+  "remendo": "Cura = valor",
+  "transfusao": "+valor na vida máxima, para sempre",
+  "estocada": "Dano = valor + 1",
+  "esquiva": "Anula o próximo golpe do inimigo",
+  "corte": "Soma; se os 2 forem ímpares, golpeia de novo"
  }
 }

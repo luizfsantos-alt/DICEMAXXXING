@@ -230,3 +230,14 @@ Jogar a fatia vertical e decidir o que ajustar antes de investir em conteúdo.
 - **Vida:** Feiticeiro 90; inimigo 36 + 6 por andar (× porta); Mestre ×1,6.
 
 **Simulador** (`sim/simulate.gd`, bot com a IA cautelosa, 400 jornadas): lutas com cerca de 4 turnos de cada lado. Chegam ao fim do andar 10 cerca de 11% pela porta fácil, 9% pela normal e 2% pela difícil. Um humano escolhendo portas, recompensas e paradas deve ir melhor que o bot.
+
+---
+
+## 13. Tela de luta (paisagem)
+
+- **Trilho à esquerda** com os dois personagens: inimigo em cima (tocar abre a ficha completa), você embaixo. Cada um tem espaço para o personagem (placeholder até haver arte), nome, bolsa, vida e efeitos.
+- **Magias do inimigo** no alto, **bandeja da mão** no meio com "Terminar turno", **suas magias** embaixo, perto do polegar.
+- Na luta, toda magia é um **cartão do mesmo tamanho**: nome, efeito curto, "1× por luta"/"usada" e **um buraco por dado pedido**. O formato só importa no grimório.
+- **Buracos:** a exigência fica escrita no fundo do buraco vazio ("≤ 3", "1"); par = dois buracos ligados por "=". Com um dado selecionado, os buracos que o aceitam acendem e as magias que não aceitam apagam ("não aceita 6"). A mão também é uma bandeja de buracos: o dado que sai deixa o buraco com o nome da magia.
+- **Prévia** no cartão ("→ 5 de dano") e resumo do turno embaixo da mão.
+- **Sem registro fixo:** o resultado aparece no lugar (números sobre a vida, cartão do inimigo aceso com os dados que ele usou) e um **resumo do turno do inimigo** fica até você tocar num dado. O histórico completo abre pelo botão **Histórico**.

@@ -47,12 +47,12 @@ func test_duelo_pela_interface():
 	var faisca := run.duel.player.inventory.ids().find("faisca")
 	d._on_die(d.tray_views[0])
 	assert_eq(d.selected, 0)
-	d._on_cell(Vector2i.ZERO, faisca)
+	d._on_card(faisca)
 	assert_eq(d.choice.dice_in(faisca), [0], "dado posto na Faísca")
 	d._on_die(d.tray_views[0])
 	assert_eq(d.choice.used_dice(), [], "tocar no dado posto devolve")
 	d._on_die(d.tray_views[0])
-	d._on_cell(Vector2i.ZERO, faisca)
+	d._on_card(faisca)
 	var turn := run.duel.turn
 	await d._submit()
 	await wait_process_frames(2)
@@ -60,7 +60,7 @@ func test_duelo_pela_interface():
 	if run.duel.state == "choosing":
 		assert_eq(d.phase, "player")
 		assert_eq(d.choice.used_dice(), [], "novo turno começa com magias vazias")
-	assert_gt(d.feed.get_parsed_text().length(), 0)
+	assert_gt(d.history.size(), 0, "histórico registrado")
 
 
 func test_exigencia_recusa_dado_errado():
@@ -86,7 +86,7 @@ func test_luta_inteira_e_fim():
 	await wait_process_frames(2)
 	var faisca := run.duel.player.inventory.ids().find("faisca")
 	d._on_die(d.tray_views[0])
-	d._on_cell(Vector2i.ZERO, faisca)
+	d._on_card(faisca)
 	await d._submit()
 	assert_eq(d.phase, "over")
 	d._finish()
@@ -160,3 +160,28 @@ func test_fim_de_jornada():
 	add_child_autofree(e)
 	await wait_process_frames(2)
 	assert_true(e.get_child_count() > 0)
+
+
+func test_cartoes_buracos_previa_e_historico():
+	var run := _run_at_duel(12)
+	var p := run.duel.player
+	var faisca := p.inventory.ids().find("faisca")
+	var escudo := p.inventory.ids().find("escudo")
+	p.hand[0].value = 6
+	var d := DuelScreen.new().setup(run)
+	d.fast = true
+	add_child_autofree(d)
+	await wait_process_frames(2)
+	assert_eq(d.cards.size(), p.inventory.items.size(), "um cartão por magia")
+	d._on_die(d.tray_views[0])
+	var fc: SpellCard = d._card_of(d.cards, faisca)
+	var ec: SpellCard = d._card_of(d.cards, escudo)
+	assert_true(fc.holes[0].lit, "Faísca aceita o 6: buraco aceso")
+	assert_false(ec.holes[0].lit, "Escudo Arcano não aceita 6")
+	d._on_card(faisca)
+	assert_true(fc.holes[0].has_die, "dado encaixado no buraco")
+	assert_false(d.tray_views[0].has_die, "buraco da mão fica vazio")
+	assert_eq(fc.preview.text, Texts.t("ui.pv_dmg", {"n": 6}))
+	var o := d.open_history()
+	await wait_process_frames(1)
+	assert_true(o.is_inside_tree(), "histórico abre por botão")
