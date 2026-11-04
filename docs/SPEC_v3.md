@@ -18,7 +18,7 @@
 | Inimigos sem itens | Inimigos montados **com as mesmas regras do jogador** |
 | Dano de 10 a 20 do começo ao fim | **Números explodem para os dois lados** |
 
-**Mantém:** só dados d6; **perdeu, morreu** (a jornada zera); tom brainrot BR nos nomes; offline, Android, paisagem.
+**Mantém:** só dados d6; **perdeu, morreu** (a jornada zera); offline, Android, paisagem. **Tom:** antes brainrot BR, agora **duelo de egos entre magos** (`docs/TOM.md`).
 
 ---
 

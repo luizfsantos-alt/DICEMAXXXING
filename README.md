@@ -7,7 +7,7 @@ Tela em paisagem.
 - Histórico: [`docs/SPEC.md`](docs/SPEC.md) (v2, coliseu com equipamentos; substituída).
 - Motor de regras (sem cenas, testável): `engine/`.
 - Interface (placeholders, paisagem): `ui/`. A tela de duelo anima os eventos do motor.
-- Textos PT-BR: `data/texts_pt_br.json`.
+- Textos PT-BR: `data/texts_pt_br.json`. Tom (duelo de egos entre magos): [`docs/TOM.md`](docs/TOM.md).
 - Testes (GUT): `tests/`.
 - Simulador de balanceamento: `sim/simulate.gd`.
 
