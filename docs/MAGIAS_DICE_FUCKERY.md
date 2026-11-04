@@ -4,6 +4,27 @@
 
 ---
 
+## Feedback (rodada 1)
+
+Respostas completas em `docs/MAGIAS_DICE_FUCKERY_opinioes.xlsx`.
+
+| Veredito | Magias |
+|---|---|
+| **Manter** | Bis!, Roubar a Cena, Matemática Superior, Interrupção Rude, Pose Congelada, Improviso Brilhante |
+| **Ajustar** | **Plágio**: rouba 1 adesivo de um dado da bolsa do inimigo e cola na face usada; o dano usa o valor novo; se o inimigo não tiver adesivo, dano = dado. **Imitação Barata**: recebe 1 dado no slot e devolve 2 dados iguais a ele para a mão (deixa de ser Truque). **Expectativa Tóxica**: o veneno que o inimigo sofre não compensa o dano que você toma no turno dele. **Meia Verdade**: precisa pedir um dado específico, para haver counterplay. **Imune a Críticas**: em vez de 3 dados imunes, você fica imune a 1 efeito aplicado. |
+| **Cortar** | Lance de Gênio, Refutação, Ego Inflado, Crítica Pesada (nota: "soma ×3, 3 dados inimigos"), Taxa de Humildade, Diploma Cassado, Originalidade Obrigatória, Mediocridade, Dublê, **regra Truque** |
+| **Regras mantidas** | Peças com buraco, exigências novas, inimigos usam as magias, tom de duelo de egos. **As falas não aparecem na luta.** |
+
+**Diretrizes que saíram do feedback** (valem para as próximas propostas):
+1. **Tudo passa por dado posto em slot.** Nada de efeito que mexe em outro dado da mão sem passar por um buraco. Uma magia pode **devolver dados para a mão** (como a nova Imitação Barata).
+2. **O que você ganha é calculado na hora de lançar.** Nada de bloqueio ou dano que só se descobre no turno do inimigo (por isso a Taxa de Humildade saiu). Mexer na próxima mão dele é aceitável, se o efeito for simples (Interrupção Rude, Roubar a Cena).
+3. **Exigência específica cria counterplay.** Um efeito forte precisa pedir um dado específico.
+4. **Sorte pura não diverte** (Lance de Gênio). Rolar de novo funciona quando o jogador controla a chance (o Bis! pede a face máxima).
+5. **Efeito pouco intuitivo não paga formato grande** (Mediocridade).
+6. **Não pode atrapalhar mais quem lança do que o alvo** (Originalidade Obrigatória, Ego Inflado).
+
+---
+
 ## 0. Regras de apoio
 
 ### 0.1 Durações (sempre escritas no cartão)
@@ -16,7 +37,7 @@
 
 Nada aqui é permanente. A bolsa salva (`SaveGame`) nunca guarda efeito temporário.
 
-### 0.2 Truque ⚡ (categoria nova, 1 magia nesta lista)
+### 0.2 Truque ⚡ (cortado no feedback: fica só como registro)
 
 Um **Truque** resolve **na hora da alocação**, não na resolução: o dado que paga o truque é consumido e o efeito cai num **outro dado que ficou na mão**, que pode alimentar outra magia no mesmo turno. Tudo continua reversível até "Terminar turno": tirar o dado do truque desfaz o efeito e solta o que dependia dele. A regra "cada dado alimenta uma magia" continua valendo, porque o dado que paga o truque não alimenta mais nada.
 

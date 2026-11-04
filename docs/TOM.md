@@ -23,13 +23,12 @@ O humor vem de **gente poderosa se levando a sério demais**: títulos inventado
 |---|---|
 | Nome de inimigo (título + nome + epíteto) | "Gênio Incompreendido Hermenegildo da Plateia Paga" |
 | Nome de magia nova | Plágio, Ego Inflado, Taxa de Humildade, Diploma Cassado |
-| Fala ao lançar (proposta, `docs/MAGIAS_DICE_FUCKERY.md` §2.1) | Plágio: "Inspiração. A palavra é inspiração." |
 | Mestres de Andar (futuro) | ex.: o Reitor, a Ex-Orientadora, o Autor do Livro-Texto |
 
 ## Já feito
 
 - `data/texts_pt_br.json`, `names`: títulos, nomes e epítetos trocados. Os nomes próprios são antigos e pomposos (Aldebrando, Hildegarda, Escolástica), metade masculinos e metade femininos.
-- As 20 magias propostas foram renomeadas e ganharam falas.
+- As 20 magias propostas foram renomeadas. As falas foram escritas, mas **não aparecem na luta** (decisão do feedback); o tom fica nos nomes.
 
 ## Ainda não mexido (manter ou revisar depois)
 
