@@ -141,6 +141,118 @@
   "corte": [
    "Corte Duplo",
    "Dois dados. Dano igual à soma; se ambos forem ímpares, golpeia de novo."
+  ],
+  "sombras": [
+   "Golpe nas Sombras",
+   "Um 6. Dano igual ao valor; ignora todas as defesas (bloqueio, Esquiva, Espelho e Revide). Uma vez por luta."
+  ],
+  "bis": [
+   "Bis!",
+   "Um dado na face mais alta dele. Dano igual ao valor; rola o dado de novo e soma; se sair a face mais alta outra vez, repete (até 5 vezes)."
+  ],
+  "plagio": [
+   "Plágio",
+   "Dado de valor 2 ou menos. Rouba 1 adesivo ×2 do dado mais adesivado do inimigo e cola na face usada, até o fim da luta. Dano igual ao valor novo. Uma vez por luta."
+  ],
+  "roubar_cena": [
+   "Roubar a Cena",
+   "Um 2. O maior dado da próxima mão do inimigo sai da mão dele e entra na sua próxima mão com o mesmo valor. Uma vez por luta."
+  ],
+  "imitacao": [
+   "Imitação Barata",
+   "Um dado qualquer. Devolve à mão 2 dados iguais a ele, para outras magias neste turno."
+  ],
+  "expectativa": [
+   "Expectativa Tóxica",
+   "Dado de valor 5 ou mais. Dano igual ao valor ×2. Na próxima mão do inimigo, cada dado que ele não usar causa 2 de dano nele. Uma vez por luta."
+  ],
+  "matematica": [
+   "Matemática Superior",
+   "Três dados de valor 4 ou menos. Dano igual ao produto deles. Uma vez por luta."
+  ],
+  "meia_verdade": [
+   "Meia Verdade",
+   "Um 6. Na próxima mão do inimigo, todos os dados de valor par viram 1. Uma vez por luta."
+  ],
+  "interrupcao": [
+   "Interrupção Rude",
+   "Dois dados de valor 3 ou menos. O inimigo tira 2 dados a menos na próxima mão (mínimo 2). Uma vez por luta."
+  ],
+  "pose": [
+   "Pose Congelada",
+   "Um dado qualquer. Bloqueio igual ao valor; o dado volta na sua próxima mão com o mesmo valor, sem rolar."
+  ],
+  "improviso": [
+   "Improviso Brilhante",
+   "Um 1. No fim do turno, cada dado que sobrou na mão vira bloqueio igual ao valor. Urânio que sobrou não envenena."
+  ],
+  "imune": [
+   "Imune a Críticas",
+   "Dado par. Bloqueio igual ao valor ×2; anula o próximo efeito negativo do inimigo. Uma vez por luta."
+  ],
+  "forca": [
+   "Força Desnecessária",
+   "Dado de valor 4 ou mais. Dano igual ao valor; o dado se parte em 2 dados com metade do valor, que voltam à mão."
+  ],
+  "fisica": [
+   "Física Aplicada",
+   "Dois dados, um deles de valor 3 ou menos. Dano igual ao maior × o menor."
+  ],
+  "arrancar": [
+   "Arrancar das Mãos",
+   "Dado de valor 2 ou menos. Dano igual ao valor; o dado mais forte da bolsa do inimigo fica fora até o fim da luta. Uma vez por luta."
+  ],
+  "velocidade": [
+   "Exibição de Velocidade",
+   "Três dados de valor 3 ou menos. Um golpe por dado, cada um igual ao valor ×2; se os 3 forem iguais, 6 golpes."
+  ],
+  "peso": [
+   "Levantar Peso",
+   "Um 1. Dano igual a 4 × quantos dados de valor 1 há na sua mão."
+  ],
+  "impulso": [
+   "Impulso Calculado",
+   "Um dado qualquer. Dano igual ao valor; o dado volta na sua próxima mão com +2 em todas as faces."
+  ],
+  "anatomia": [
+   "Lição de Anatomia",
+   "Dois dados iguais. Dano igual à soma ×2; na próxima mão do inimigo, todo dado que cair na face mais alta vale 1. Uma vez por luta."
+  ],
+  "foto": [
+   "Golpe para a Foto",
+   "Quatro dados de valor 5 ou mais. Dano igual ao maior × 4. Uma vez por luta."
+  ],
+  "revide": [
+   "Revide Elegante",
+   "Dado de valor 3 ou menos. Bloqueio igual ao valor ×2; cada golpe que acertar você enquanto houver bloqueio devolve dano igual ao valor."
+  ],
+  "chave": [
+   "Chave de Braço Didática",
+   "Um 3. Na próxima mão do inimigo, todos os dados valem metade (mínimo 1). Uma vez por luta."
+  ],
+  "rasteira": [
+   "Rasteira Humilhante",
+   "Dois dados de valor 2 ou menos. Bloqueio igual à soma ×2; o inimigo tira 1 dado a menos na próxima mão."
+  ],
+  "suor": [
+   "Suor de Campeão",
+   "Dado ímpar. Remove veneno, queima e as mexidas pendentes do inimigo em você. Bloqueio igual ao valor. Duas vezes por luta."
+  ],
+  "armadura": [
+   "Armadura de Músculo",
+   "Dois dados de valor 3 ou menos. Bloqueio igual ao produto ×2."
+  ],
+  "recuo": [
+   "Recuo Estratégico",
+   "Dado de valor 2 ou menos. Anula o próximo golpe; o dado volta na sua próxima mão valendo 6. Uma vez por luta."
+  ],
+  "presenca": [
+   "Presença Imponente",
+   "Um 6. Bloqueio igual a 3 × quantos dados você tem na mão."
+  ],
+  "concentrar": [
+   "Concentrar Força",
+   "Dois dados iguais. Bloqueio igual à soma; os dois se fundem num dado que entra na sua próxima mão valendo a soma."
   ]
  },
  "elements": {
@@ -337,7 +449,35 @@
   "pick_piece": "Toque numa magia para ver o que ela faz",
   "piece_meta": "Formato: {n} casa(s) · acontece em {pos}º na luta",
   "organize_lifted": "Toque numa casa para soltar. \"Girar\" muda a posição da peça.",
-  "enemy_rolling": "O inimigo rola e encaixa os dados"
+  "enemy_rolling": "O inimigo rola e encaixa os dados",
+  "twice": "2× por luta",
+  "riposte": "Revide {n}",
+  "immune": "Imune",
+  "marked": "Dado guardado",
+  "next_hand": "Próxima mão: {mod}",
+  "mod_minus1": "−1 dado",
+  "mod_minus2": "−2 dados",
+  "mod_minus3": "−3 dados",
+  "mod_minus4": "−4 dados",
+  "mod_halve": "metade do valor",
+  "mod_even_to_one": "pares viram 1",
+  "mod_top_to_one": "face máxima vira 1",
+  "mod_steal_top": "perde o maior dado",
+  "mod_idle_dmg": "dados parados dão dano",
+  "pv_pierce": "ignora defesas",
+  "pv_multi": "→ {list} de dano",
+  "pv_encore": "→ {n} de dano + bis",
+  "pv_steal": "→ {n} de dano (×2 se roubar)",
+  "pv_bench": "tira o dado mais forte dele",
+  "pv_spawn": "+2 dados de {v}",
+  "pv_riposte": "revide {n}",
+  "pv_immune": "anula o próximo efeito",
+  "pv_cleanse": "→ limpa efeitos",
+  "pv_recycle": "→ sobras viram bloqueio",
+  "pv_mark": "volta na próxima mão",
+  "fx_idle_dmg": "parado −{n}",
+  "fx_riposte": "revide!",
+  "fx_immune": "imune!"
  },
  "ev": {
   "hand": "{who} rolou: {v}",
@@ -358,7 +498,23 @@
   "mirrored": "O espelho de {who} devolve o golpe!",
   "sacrifice": "{who} sacrifica um dado (+{n} de dano)",
   "lead_hand": "O Porteiro enfia um Chumbo na sua mão.",
-  "lead_bag": "O Lixeiro joga um Chumbo na sua bolsa!"
+  "lead_bag": "O Lixeiro joga um Chumbo na sua bolsa!",
+  "idle_dmg": "Dados parados: {who} perde {n}",
+  "riposte": "{who} revida ({n})",
+  "riposte_up": "{who} se prepara para revidar ({n})",
+  "immune_up": "{who} fica imune a críticas",
+  "immune_block": "{who} ignora o efeito do inimigo",
+  "cleanse": "{who} remove os efeitos negativos",
+  "recycle_up": "{who} vai aproveitar as sobras",
+  "encore": "Bis! {who} rola {v}",
+  "steal_sticker": "{who} rouba um adesivo (o dado vale {v})",
+  "bench": "{who} perde o dado mais forte nesta luta",
+  "mark": "{who} guarda um dado para a próxima mão",
+  "stolen": "{who} perde o dado {v}",
+  "hand_mod_up": "Próxima mão de {who}: {mod}",
+  "hand_mod": "{who}: {mod}",
+  "recycled": "{who} transforma uma sobra em {n} de bloqueio",
+  "pierce": "(ignora defesas)"
  },
  "spell_fx": {
   "faisca": "Dano = valor",
@@ -371,6 +527,34 @@
   "transfusao": "+valor na vida máxima, para sempre",
   "estocada": "Dano = valor + 1",
   "esquiva": "Anula o próximo golpe do inimigo",
-  "corte": "Soma; se os 2 forem ímpares, golpeia de novo"
+  "corte": "Soma; se os 2 forem ímpares, golpeia de novo",
+  "sombras": "Dano = valor; ignora defesas",
+  "bis": "Rola de novo e soma; repete na face máxima",
+  "plagio": "Rouba 1 adesivo ×2; dano = valor novo",
+  "roubar_cena": "Rouba o maior dado da próxima mão dele",
+  "imitacao": "Devolve 2 cópias do dado",
+  "expectativa": "Valor ×2; dados parados dele dão 2 de dano",
+  "matematica": "Dano = produto",
+  "meia_verdade": "Pares dele viram 1",
+  "interrupcao": "Ele tira 2 dados a menos",
+  "pose": "Bloqueio = valor; volta igual",
+  "improviso": "Sobras viram bloqueio",
+  "imune": "Bloqueio ×2; anula o próximo efeito negativo",
+  "forca": "Dano = valor; parte em 2 metades",
+  "fisica": "Dano = maior × menor",
+  "arrancar": "Dano = valor; tira o dado mais forte dele",
+  "velocidade": "Um golpe por dado, valor ×2",
+  "peso": "Dano = 4 × cada 1 na mão",
+  "impulso": "Dano = valor; volta com +2",
+  "anatomia": "Soma ×2; face máxima dele vira 1",
+  "foto": "Dano = maior × 4",
+  "revide": "Bloqueio ×2; revida o valor",
+  "chave": "Dados dele valem metade",
+  "rasteira": "Bloqueio ×2; ele tira 1 dado a menos",
+  "suor": "Remove efeitos negativos; bloqueio = valor",
+  "armadura": "Bloqueio = produto ×2",
+  "recuo": "Anula o próximo golpe; volta valendo 6",
+  "presenca": "Bloqueio = 3 × dados na mão",
+  "concentrar": "Bloqueio = soma; funde num dado"
  }
 }

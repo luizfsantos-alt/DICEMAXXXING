@@ -94,7 +94,8 @@ static func spell_fx(spell: String) -> String:
 
 func used() -> bool:
 	var lst: Array = shown_used if shown_used != null else fighter.once_used
-	return Spells.is_once(id) and item in lst
+	var lim := Spells.max_uses(id)
+	return lim > 0 and lst.count(item) >= lim
 
 
 func _style(bg: Color, border: Color, width: int) -> StyleBoxFlat:
@@ -104,20 +105,32 @@ func _style(bg: Color, border: Color, width: int) -> StyleBoxFlat:
 	return sb
 
 
-func _req_text(placed: Array) -> String:
+## Texto no fundo do buraco k.
+func _req_text(placed: Array, k: int) -> String:
 	var d := Spells.get_def(id)
 	match str(d.req):
-		"max":
+		"max", "max_n":
 			return "≤ %d" % int(d.v)
+		"min", "min_n":
+			return "≥ %d" % int(d.v)
 		"exact":
 			return str(int(d.v))
+		"odd":
+			return "ímpar"
+		"even":
+			return "par"
+		"top":
+			return "MÁX"
+		"low_one":
+			return "≤ %d" % int(d.v) if k == holes.size() - 1 else ""
 		"pair":
 			return str(placed[0]) if not placed.is_empty() else ""
 	return ""
 
 
 ## values: dados postos (valores); sel: valor do dado selecionado (-1 = nenhum).
-func refresh(values: Array, elements: Array, sel: int) -> void:
+## tops: face mais alta, por dado posto; sel_top: o dado selecionado está na face mais alta.
+func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top := false) -> void:
 	var is_used := used()
 	var lvl := int(fighter.inventory.items[item].level)
 	var tags := []
@@ -126,21 +139,21 @@ func refresh(values: Array, elements: Array, sel: int) -> void:
 	if is_used:
 		tags.append(Texts.t("ui.used").to_upper())
 	elif Spells.is_once(id):
-		tags.append(Texts.t("ui.once").to_upper())
+		tags.append(Texts.t(Spells.use_key(id)).to_upper())
 	tag_label.text = "  ".join(tags)
 	tag_label.add_theme_color_override("font_color", Kit.MUTED if is_used else Kit.ACCENT)
-	var accepts := sel >= 0 and not is_used and Spells.accepts_partial(id, values, sel)
+	var accepts := sel >= 0 and not is_used and Spells.accepts_partial(id, values, sel, sel_top)
 	for k in holes.size():
 		var h: Hole = holes[k]
 		if k < values.size():
 			h.set_die(int(values[k]), elements[k] if k < elements.size() else "")
 		else:
 			h.clear_die()
-		h.req = _req_text(values)
+		h.req = _req_text(values, k)
 		h.lit = accepts and k == values.size()
 		h.queue_redraw()
-	var col: Color = FX_COLORS.get(str(Spells.get_def(id).fx), Kit.TEXT)
-	var ready := Spells.complete(id, values)
+	var col: Color = FX_COLORS.get(Spells.color_family(id), Kit.TEXT)
+	var ready := Spells.complete(id, values, tops)
 	modulate.a = 1.0
 	preview.text = ""
 	if is_used:
@@ -182,28 +195,84 @@ static func preview_text(f: Fighter, i: int, values: Array) -> String:
 	var spell := str(it.id)
 	var d := Spells.get_def(spell)
 	var lvl := int(it.level)
+	var mult := int(d.get("mult", 1))
+	var bonus := f.sacrifice_bonus
 	var total := 0
+	var prod := 1
 	for v in values:
 		total += int(v)
+		prod *= int(v)
+	var hi := 0
+	var lo := 999
+	for v in values:
+		hi = maxi(hi, int(v))
+		lo = mini(lo, int(v))
+	var s := ""
 	match str(d.fx):
 		"dmg":
-			var n := Config.scale((total + int(d.get("plus", 0))) * int(d.get("mult", 1)), lvl) + f.sacrifice_bonus
-			var s := Texts.t("ui.pv_dmg", {"n": n})
+			s = Texts.t("ui.pv_dmg", {"n": Config.scale((total + int(d.get("plus", 0))) * mult, lvl) + bonus})
 			if d.get("odd_twice", false) and values.all(func(x): return int(x) % 2 == 1):
 				s += " ×2"
 			if d.has("burn"):
 				s += " · " + Texts.t("ui.burn", {"n": d.burn}).to_lower()
-			return s
+			if d.get("pierce", false):
+				s += " · " + Texts.t("ui.pv_pierce")
+		"product":
+			s = Texts.t("ui.pv_dmg", {"n": Config.scale(prod * mult, lvl) + bonus})
+		"lever":
+			s = Texts.t("ui.pv_dmg", {"n": Config.scale(hi * lo, lvl) + bonus})
+		"top_x":
+			s = Texts.t("ui.pv_dmg", {"n": Config.scale(hi * mult, lvl) + bonus})
+		"multi":
+			var blows := []
+			for v in values:
+				blows.append(str(Config.scale(int(v) * mult, lvl) + bonus))
+			if values.size() > 1 and values.all(func(x): return int(x) == int(values[0])):
+				blows.append_array(blows.duplicate())
+			s = Texts.t("ui.pv_multi", {"list": " + ".join(PackedStringArray(blows))})
+		"ones":
+			var ones := 0
+			for e in f.hand:
+				if int(e.bag) != -2 and int(e.value) == 1:
+					ones += 1
+			s = Texts.t("ui.pv_dmg", {"n": Config.scale(int(d.get("per", 1)) * ones, lvl) + bonus})
+		"encore":
+			s = Texts.t("ui.pv_encore", {"n": Config.scale(total, lvl) + bonus})
+		"steal_sticker":
+			s = Texts.t("ui.pv_steal", {"n": Config.scale(total, lvl) + bonus})
+		"bench":
+			s = Texts.t("ui.pv_dmg", {"n": Config.scale(total, lvl) + bonus}) + " · " + Texts.t("ui.pv_bench")
+		"spawn_half":
+			s = Texts.t("ui.pv_dmg", {"n": Config.scale(total, lvl) + bonus}) + " · " + Texts.t("ui.pv_spawn", {"v": Config.ceil_div(total, 2)})
+		"spawn_copy":
+			s = "→ " + Texts.t("ui.pv_spawn", {"v": total})
 		"block":
-			return Texts.t("ui.pv_block", {"n": Config.scale(total * int(d.get("mult", 1)), lvl)})
+			s = Texts.t("ui.pv_block", {"n": Config.scale(total * mult, lvl)})
+		"block_product":
+			s = Texts.t("ui.pv_block", {"n": Config.scale(prod * mult, lvl)})
+		"block_hand":
+			s = Texts.t("ui.pv_block", {"n": Config.scale(int(d.get("per", 1)) * Resolver._hand_count(f), lvl)})
+		"riposte":
+			s = Texts.t("ui.pv_block", {"n": Config.scale(total * mult, lvl)}) + " · " + Texts.t("ui.pv_riposte", {"n": Config.scale(total, lvl)})
+		"immune":
+			s = Texts.t("ui.pv_block", {"n": Config.scale(total * mult, lvl)}) + " · " + Texts.t("ui.pv_immune")
+		"cleanse":
+			s = Texts.t("ui.pv_cleanse") + " · " + Texts.t("ui.pv_block", {"n": Config.scale(total, lvl)}).trim_prefix("→ ")
+		"recycle":
+			s = Texts.t("ui.pv_recycle")
 		"dodge":
-			return Texts.t("ui.pv_dodge")
+			s = Texts.t("ui.pv_dodge")
 		"mirror":
-			return Texts.t("ui.pv_mirror")
+			s = Texts.t("ui.pv_mirror")
 		"heal":
-			return Texts.t("ui.pv_heal", {"n": Config.scale(total, lvl)})
+			s = Texts.t("ui.pv_heal", {"n": Config.scale(total, lvl)})
 		"maxhp":
-			return Texts.t("ui.pv_maxhp", {"n": Config.scale(int(values[0]), lvl)})
+			s = Texts.t("ui.pv_maxhp", {"n": Config.scale(int(values[0]), lvl)})
 		"sacrifice":
-			return Texts.t("ui.pv_sacrifice", {"n": Config.scale(Config.SACRIFICE_BONUS, lvl)})
-	return ""
+			s = Texts.t("ui.pv_sacrifice", {"n": Config.scale(Config.SACRIFICE_BONUS, lvl)})
+	if d.has("hand_mod"):
+		var m := Texts.t("ui.mod_" + str(d.hand_mod))
+		s = (s + " · " + m) if s != "" else "→ " + m
+	if d.has("mark"):
+		s += " · " + Texts.t("ui.pv_mark")
+	return s

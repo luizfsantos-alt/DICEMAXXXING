@@ -56,7 +56,7 @@ static func base(archetype: String) -> Fighter:
 static func upgrade(f: Fighter, rng: RandomNumberGenerator) -> void:
 	match rng.randi_range(0, 4):
 		0:
-			var pool := Spells.DATA.keys().filter(func(id): return f.inventory.fits(id))
+			var pool := Spells.DATA.keys().filter(func(id): return Spells.in_pool(id, f.archetype) and f.inventory.fits(id))
 			if not pool.is_empty():
 				f.inventory.add(pool[rng.randi_range(0, pool.size() - 1)])
 				return

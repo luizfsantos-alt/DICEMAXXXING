@@ -249,6 +249,14 @@ func _status(f: Fighter) -> String:
 		p.append(Texts.t("ui.mirror"))
 	if f.dodge:
 		p.append(Texts.t("ui.dodge"))
+	if f.riposte > 0:
+		p.append(Texts.t("ui.riposte", {"n": f.riposte}))
+	if f.immune > 0:
+		p.append(Texts.t("ui.immune"))
+	if not f.marked.is_empty():
+		p.append(Texts.t("ui.marked"))
+	for m in f.hand_mods:
+		p.append(Texts.t("ui.next_hand", {"mod": Texts.t("ui.mod_" + str(m))}))
 	return " · ".join(p)
 
 
@@ -361,6 +369,11 @@ func _item_of(h: int) -> int:
 
 func _refresh_tray() -> void:
 	var p := duel.player
+	# Dados devolvidos entram e saem da mão durante a alocação.
+	if phase == "player" and p.hand.size() != tray_views.size():
+		if selected >= p.hand.size():
+			selected = -1
+		_build_tray()
 	var used := choice.used_dice()
 	for v in tray_views:
 		var hv: Hole = v
@@ -373,13 +386,14 @@ func _refresh_tray() -> void:
 		hv.raised = hv.index == selected
 		hv.queue_redraw()
 	var sel := int(p.hand[selected].value) if selected >= 0 else -1
+	var sel_top := bool(p.hand[selected].get("top", false)) if selected >= 0 else false
 	for c in cards:
 		var vals := choice.values_in(p, c.item)
 		var els := []
 		for h in choice.dice_in(c.item):
 			var d := p.die_of(p.hand[h])
 			els.append(d.element if d else "")
-		c.refresh(vals, els, sel if not (selected in used) else -1)
+		c.refresh(vals, els, sel if not (selected in used) else -1, choice.tops_in(p, c.item), sel_top)
 	if phase != "player":
 		return
 	if selected >= 0:
@@ -402,7 +416,7 @@ func _on_die(v: Hole) -> void:
 		return
 	summary = []
 	if v.index in choice.used_dice():
-		choice.remove_die(v.index)
+		choice.remove_die(v.index, duel.player)
 		selected = -1
 	else:
 		selected = -1 if selected == v.index else v.index
@@ -417,7 +431,7 @@ func _on_card(item: int) -> void:
 		place(selected, item)
 		return
 	for h in choice.dice_in(item).duplicate():
-		choice.remove_die(h)
+		choice.remove_die(h, duel.player)
 	_refresh_tray()
 
 
@@ -604,10 +618,18 @@ func _apply_event(ev: Dictionary) -> void:
 			var hit_txt := "−%d" % int(ev.dmg) if int(ev.dmg) > 0 else Texts.t("ui.fx_absorb", {"n": ev.absorbed})
 			_float(s, hit_txt, Kit.DANGER)
 			_note(s, hit_txt)
-		"poison", "burn":
+		"poison", "burn", "idle_dmg":
 			v.hp -= int(ev.n)
 			_float(s, "−%d" % int(ev.n), Color(0.6, 0.9, 0.3) if ev.t == "poison" else Color(1.0, 0.6, 0.2))
 			_note(s, Texts.t("ui.fx_" + str(ev.t), {"n": ev.n}))
+		"riposte":
+			_float(s, Texts.t("ui.fx_riposte"), Kit.SHIELD)
+			_note(s, Texts.t("ui.fx_riposte"))
+		"immune_block":
+			_float(s, Texts.t("ui.fx_immune"), Kit.SHIELD)
+			_note(s, Texts.t("ui.fx_immune"))
+		"encore":
+			_float(s, "+%d" % int(ev.v), Kit.ACCENT)
 		"block":
 			v.block = int(ev.total)
 			_float(s, Texts.t("ui.fx_block", {"n": ev.n}), Kit.SHIELD)
@@ -692,8 +714,12 @@ func _describe(ev: Dictionary) -> String:
 				t += " " + Texts.t("ev.absorbed", {"n": ev.absorbed})
 			if ev.get("reflected", false):
 				t += " " + Texts.t("ev.reflected")
+			if ev.get("pierce", false):
+				t += " " + Texts.t("ev.pierce")
 			return t
 		"block":
+			if ev.get("recycled", false):
+				return Texts.t("ev.recycled", {"who": w, "n": ev.n})
 			return Texts.t("ev.block", {"who": w, "n": ev.n})
 		"heal":
 			return Texts.t("ev.heal", {"who": w, "n": ev.n})
@@ -717,6 +743,34 @@ func _describe(ev: Dictionary) -> String:
 			return Texts.t("ev.mirrored", {"who": w})
 		"sacrifice":
 			return Texts.t("ev.sacrifice", {"who": w, "n": ev.bonus})
+		"idle_dmg":
+			return Texts.t("ev.idle_dmg", {"who": w, "n": ev.n})
+		"riposte":
+			return Texts.t("ev.riposte", {"who": w, "n": ev.n})
+		"riposte_up":
+			return Texts.t("ev.riposte_up", {"who": w, "n": ev.n})
+		"immune_up":
+			return Texts.t("ev.immune_up", {"who": w})
+		"immune_block":
+			return Texts.t("ev.immune_block", {"who": w})
+		"cleanse":
+			return Texts.t("ev.cleanse", {"who": w})
+		"recycle_up":
+			return Texts.t("ev.recycle_up", {"who": w})
+		"encore":
+			return Texts.t("ev.encore", {"who": w, "v": ev.v})
+		"steal_sticker":
+			return Texts.t("ev.steal_sticker", {"who": w, "v": ev.v})
+		"bench":
+			return Texts.t("ev.bench", {"who": w})
+		"mark":
+			return Texts.t("ev.mark", {"who": w})
+		"stolen":
+			return Texts.t("ev.stolen", {"who": w, "v": ev.v})
+		"hand_mod_up":
+			return Texts.t("ev.hand_mod_up", {"who": w, "mod": Texts.t("ui.mod_" + str(ev.mod))})
+		"hand_mod":
+			return Texts.t("ev.hand_mod", {"who": w, "mod": Texts.t("ui.mod_" + str(ev.mod))})
 		"lead_hand":
 			return Texts.t("ev.lead_hand")
 		"lead_bag":

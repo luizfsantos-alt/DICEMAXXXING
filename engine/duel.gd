@@ -42,7 +42,7 @@ func submit(choice: TurnChoice) -> Dictionary:
 		return {"error": err}
 	var ev := []
 	var hp_e := enemy.hp
-	var used := Resolver.cast_all(player, enemy, choice, ev)
+	var used := Resolver.cast_all(player, enemy, choice, ev, rng)
 	dealt += maxi(0, hp_e - enemy.hp)
 	Resolver.end_turn(player, used, ev)
 	var rep := {"events": ev, "enemy_choice": {}, "enemy_hand": []}
@@ -59,7 +59,7 @@ func submit(choice: TurnChoice) -> Dictionary:
 		rep.enemy_hand = enemy.hand_values()
 		var ec := EnemyAI.choose(enemy, player, rng)
 		rep.enemy_choice = ec.to_dict()
-		var eu := Resolver.cast_all(enemy, player, ec, ev)
+		var eu := Resolver.cast_all(enemy, player, ec, ev, rng)
 		Resolver.end_turn(enemy, eu, ev)
 	taken += maxi(0, hp_p - player.hp)
 	if _check(ev) or _limit(ev):
@@ -78,7 +78,14 @@ func _check(ev: Array) -> bool:
 	else:
 		return false
 	ev.append({"t": "end", "side": "player", "won": state == "won"})
+	_cleanup()
 	return true
+
+
+## O que vale só nesta luta (adesivos roubados) volta ao normal.
+func _cleanup() -> void:
+	player.end_fight_cleanup()
+	enemy.end_fight_cleanup()
 
 
 func _limit(ev: Array) -> bool:
@@ -86,6 +93,7 @@ func _limit(ev: Array) -> bool:
 		return false
 	state = "lost"
 	ev.append({"t": "turn_limit", "side": "player"})
+	_cleanup()
 	return true
 
 

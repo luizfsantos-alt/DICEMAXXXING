@@ -30,6 +30,22 @@ func sticker_count() -> int:
 	return n
 
 
+## O maior valor entre as faces (para a exigência "face mais alta").
+func max_value() -> int:
+	var m := 0
+	for f in 6:
+		m = maxi(m, value(f))
+	return m
+
+
+## Soma de todas as faces (o dado "mais forte" da bolsa).
+func face_sum() -> int:
+	var t := 0
+	for f in 6:
+		t += value(f)
+	return t
+
+
 ## Retorna false se a face estiver travada (Chumbo).
 func add_sticker(face: int) -> bool:
 	if locked[face]:
