@@ -122,6 +122,16 @@ func test_arranjo_inicial_e_valido_e_todas_as_magias_cabem():
 		assert_true(s.inventory.fits(id), "%s cabe no início" % id)
 
 
+func test_kit_inicial_sem_defesa():
+	assert_eq(EnemyFactory.base("sorcerer").inventory.ids(), ["faisca", "bola"])
+	assert_eq(EnemyFactory.base("assassin").inventory.ids(), ["estocada", "corte"])
+	var run := RunState.new_run(3)
+	run.choose(0) ## Erudito
+	assert_eq(run.hero.inventory.items.size(), 3, "Feiticeiro: 2 + a escolha do Erudito")
+	assert_false("escudo" in run.hero.inventory.ids())
+	assert_true("escudo" in Shop.spell_pool(run.hero), "Escudo segue nas ofertas")
+
+
 func test_adicionar_reorganiza_quando_preciso():
 	var inv := Inventory.make(4, 3)
 	inv.items = [

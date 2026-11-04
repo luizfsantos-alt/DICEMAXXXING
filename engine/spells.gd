@@ -91,14 +91,16 @@ const HAND_MODS := ["steal_top", "idle_dmg", "even_to_one", "minus2", "minus1", 
 const IDLE_DMG := 2 ## Expectativa Tóxica: dano por dado parado.
 const ENCORE_MAX := 5 ## Bis!: no máximo 5 rolagens extras.
 
+## Kit inicial sem defesa: Escudo Arcano e Esquiva vêm da loja, da escola e das
+## recompensas, como qualquer magia. O Feiticeiro ainda escolhe 1 (Erudito).
 const STARTING := {
-	"sorcerer": ["faisca", "escudo", "bola"],
-	"assassin": ["estocada", "esquiva", "corte"],
+	"sorcerer": ["faisca", "bola"],
+	"assassin": ["estocada", "corte"],
 }
 ## Arranjo inicial: [x, y, rot] de cada magia inicial. O do Feiticeiro deixa um L livre.
 const STARTING_LAYOUT := {
-	"sorcerer": [[3, 0, 0], [2, 0, 0], [0, 0, 0]],
-	"assassin": [[0, 0, 0], [1, 0, 0], [2, 0, 0]],
+	"sorcerer": [[3, 0, 0], [0, 0, 0]],
+	"assassin": [[0, 0, 0], [1, 0, 0]],
 }
 const ERUDITE_CHOICES := ["espelho", "remendo", "sacrificio", "transfusao", "meteoro"]
 
