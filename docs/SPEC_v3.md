@@ -230,9 +230,9 @@ Jogar a fatia vertical e decidir o que ajustar antes de investir em conteúdo.
 - **Arranjo inicial** do Feiticeiro deixa um espaço em L, para o Meteoro caber.
 - **Recompensa do Mestre** (+casas ou +1 na mão) não existe na fatia, porque o Mestre é a última luta.
 - O inimigo recebe **0,4 melhoria por andar** × o multiplicador da porta (fácil 0,8; normal 1,0; difícil 1,3; insana 1,7).
-- **Vida:** Feiticeiro 90; inimigo 36 + 6 por andar (× porta); Mestre ×1,6.
+- **Vida:** Feiticeiro 90; inimigo 31 + 5 por andar (× porta); Mestre ×1,6.
 
-**Simulador** (`sim/simulate.gd`, bot com a IA cautelosa, 400 jornadas): lutas com cerca de 2 a 3 turnos de cada lado (5 a 6 somados). Chegam ao fim do andar 10 cerca de 3% pela porta fácil, 2% pela normal e 0% pela difícil (kit inicial sem defesa; antes, com Escudo e Esquiva no kit: 10 a 13 turnos somados e lutas contra Feiticeiro cauteloso batendo a trava de 60). Um humano escolhendo portas, recompensas e paradas deve ir melhor que o bot.
+**Simulador** (`sim/simulate.gd`, bot com a IA cautelosa, 400 jornadas): lutas com cerca de 2 a 3 turnos de cada lado (4 a 5 somados). Chegam ao fim do andar 10 cerca de 10% pela porta fácil, 5% pela normal e 1% pela difícil. Histórico: com Escudo e Esquiva no kit, eram 10 a 13 turnos somados e lutas contra Feiticeiro cauteloso batendo a trava de 60; sem defesa no kit e com a vida antiga dos inimigos (36 + 6), só 4%, 2% e 0% chegavam ao fim. Um humano escolhendo portas, recompensas e paradas deve ir melhor que o bot.
 
 ---
 
