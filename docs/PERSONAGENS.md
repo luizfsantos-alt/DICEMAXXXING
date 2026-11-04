@@ -1,6 +1,6 @@
 # Personagens novos (proposta)
 
-> **Status: proposta, rodada 3.** São 6 arquétipos novos (os 5 da proposta mais o Bárbaro), além do Feiticeiro e do Assassino, que continuam, jogáveis e usados pelos inimigos, no padrão de `docs/SPEC_v3.md` §3: **formato do inventário**, **uma passiva**, vida, mão, bolsa inicial e magias iniciais. Seguem o tom de `docs/TOM.md` e os princípios de `docs/CATALOGO_MAGIAS.md` §1. Números *(iniciais)*, a passar pelo simulador.
+> **Status: proposta, rodada 4.** São 6 arquétipos novos (os 5 da proposta mais o Bárbaro), além do Feiticeiro e do Assassino, que continuam, jogáveis e usados pelos inimigos, no padrão de `docs/SPEC_v3.md` §3: **formato do inventário**, **uma passiva**, vida, mão, bolsa inicial e magias iniciais. Seguem o tom de `docs/TOM.md` e os princípios de `docs/CATALOGO_MAGIAS.md` §1. Números *(iniciais)*, a passar pelo simulador.
 
 ---
 
@@ -22,6 +22,14 @@
 | Personagem novo | **Bárbaro**: cura a si mesmo e causa mais dano com pouca vida (seção 2.6). |
 
 ## Feedback (rodada 3)
+
+| Tema | Decisão |
+|---|---|
+| Fúria | Só liga com **metade da vida ou menos** (50% de vida perdida). |
+| Urânio do Bárbaro | Trocado por uma substância nova que **machuca quem usa**: **Ácido** (seção 3.2). O Urânio continua no jogo. |
+| Ósmio | Pergunta: o que faz? Resposta na seção 5.1. |
+
+## Feedback (rodada 4)
 
 *(Em branco.)*
 
@@ -71,7 +79,7 @@ Para comparar: o **Feiticeiro** tem 90 de vida, mão de 5 e causa uns **6 a 8 de
 | **Copista** | Grade **4×2** (8 casas) | **Inspiração**: no início de cada luta, uma magia aleatória do inimigo que caiba nas suas casas livres é copiada nelas, no mesmo nível, até o fim da luta. | 80 | 5 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
 | **Perfeccionista** | **Moldura 4×3** sem as 2 casas do meio (10 casas) | **Ainda Não Está Bom**: no fim do turno, até 2 dados que sobraram na mão ficam marcados. Você pode ter 2 marcas. | 80 | 5 | 7 comuns + 1 Ósmio | **Dardo Arcano** (nova), **Obra-Prima** (nova) |
 | **Vampiro** | **Caixão 2×4** (2 de largura, 4 de altura) | **Sede**: a cura que passaria da vida máxima vira vida máxima, para sempre (até 5 por luta). Queima causa o dobro de dano em você. | **60** | 5 | 7 comuns + 1 Sódio | **Mordida** (nova), **Banquete** (nova) |
-| **Bárbaro** | Grade **3×3** (9 casas) | **Fúria**: toda magia de dano causa +1 por golpe para cada 10 de vida que você perdeu. | **110** | 5 | 6 comuns + 2 Urânio | **Machadada** (nova), **Cerrar os Dentes** (nova) |
+| **Bárbaro** | Grade **3×3** (9 casas) | **Fúria**: com metade da vida ou menos, toda magia de dano causa +1 por golpe para cada 10 de vida que você perdeu. | **110** | 5 | 6 comuns + 2 **Ácido** (novo) | **Machadada** (nova), **Cerrar os Dentes** (nova) |
 
 ### 1.1 Formatos
 
@@ -138,12 +146,12 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro   Bárbaro
 
 ### 2.6 Bárbaro: "Li um livro uma vez. Depois bati em quem escreveu."
 
-- **Plano:** muita vida (110) e a **Fúria**: toda magia de dano causa **+1 por golpe para cada 10 de vida perdida** (vida máxima − vida atual, arredondando para baixo). Com 50 de vida, a Machadada ganha +6. A **Machadada** (nova) pede um dado ≥ 4 e causa dano = valor ×2. O **Cerrar os Dentes** (nova) pede um dado ≤ 3 e cura valor ×3 (2× por luta).
+- **Plano:** muita vida (110) e a **Fúria**: ela **só liga com metade da vida ou menos**. Ligada, toda magia de dano causa **+1 por golpe para cada 10 de vida perdida** (vida máxima − vida atual, arredondando para baixo). Com 110 de vida máxima, ela acende em 55 com +5 de uma vez e chega a +9 com 20 de vida. A **Machadada** (nova) pede um dado ≥ 4 e causa dano = valor ×2. O **Cerrar os Dentes** (nova) pede um dado ≤ 3 e cura valor ×3 (2× por luta).
 - **A decisão:** curar tira Fúria. Cada Cerrar os Dentes, cada parada de Cura e cada compra de vida máxima é uma escolha entre ficar vivo e bater forte.
-- **Por que se vira:** a Machadada com o melhor dado alto: ~11 no começo, ~15 a 18 com 40 de vida perdida. Os 2 Urânio (faces 3 a 8) quase sempre pagam a Machadada. O Urânio que sobra envenena, mas veneno vira Fúria.
-- **Como cresce:** magias de vários golpes multiplicam a Fúria (Corte Duplo ímpar, Exibição de Velocidade, Bis!). Adesivos nos Urânios para a Machadada.
+- **Por que se vira:** a Machadada com o melhor dado alto: ~11 a 13 por turno com a vida acima da metade, ~18 a 22 com a Fúria ligada. Os 2 Ácidos (faces 4 a 9) quase sempre pagam a Machadada, mas cada um usado tira 3 de vida dele: é o caminho para a Fúria. A primeira metade da vida é o tempo de aquecer; a segunda é a fase perigosa, dos dois lados.
+- **Como cresce:** magias de vários golpes multiplicam a Fúria (Corte Duplo ímpar, Exibição de Velocidade, Bis!). Adesivos nos Ácidos para a Machadada (o dano a si mesmo não cresce).
 - **Inventário:** 3×3, quadrado. Cabe quase tudo, inclusive T e Cruz, mas tem só 9 casas.
-- **Ponto fraco:** o dano depende de já ter apanhado. Um inimigo que bate muito forte de uma vez mata antes de a Fúria render. O Espelho do inimigo devolve a Machadada inteira, com a Fúria. A Chave de Braço (metade) derruba os dados ≥ 4.
+- **Ponto fraco:** o dano depende de já ter apanhado, e o começo da jornada (vida cheia) é a fase mais fraca dele. Um inimigo que bate muito forte de uma vez mata antes de a Fúria render. O Espelho do inimigo devolve a Machadada inteira, com a Fúria. A Chave de Braço (metade) derruba os dados ≥ 4.
 - **Combos do catálogo:** Exibição de Velocidade (3 golpes, +Fúria em cada), Corte Duplo, Remendo (cura de emergência), Sacrifício (+5 por magia, soma com a Fúria).
 
 ---
@@ -165,19 +173,29 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro   Bárbaro
 - **Dardo Arcano** é a 2ª magia básica: tão simples quanto a Faísca, mas com uma escolha (só aceita par, e paga +2 por isso). Com ela, a Faísca fica só no Feiticeiro, no Copista e no Minimalista.
 - Todas entram no catálogo e na loja para todos, como as outras. A cura cresce com o nível, como o dano.
 
-### 3.2 Regras
+### 3.2 Substância nova
+
+| Substância | Símbolo | Efeito | Na loja? |
+|---|---|---|---|
+| **Ácido** | Ac | Corrosivo: +3 em todas as faces (4 a 9). Ao ser usado numa magia, causa 3 de dano em **você**. | sim (Loja, recompensa e Poço) |
+
+- É o oposto do Urânio: o Urânio machuca quando **sobra**; o Ácido, quando é **usado**.
+- O dano a si mesmo não é golpe: bloqueio, Esquiva, Espelho e Revide não param. Imune a Críticas também não, porque não vem do inimigo.
+- Não é limitado à tabela periódica: o nome só precisa ser curto.
+
+### 3.3 Regras
 
 | Regra | Onde | O que muda |
 |---|---|---|
 | **Destruir na recompensa** | Minimalista | A tela de recompensa pós-luta ganha uma 4ª opção: "destruir 1 dado". |
 | **Chumbo à venda** | Metalurgista | A Loja oferece "dado de Chumbo" e o Poço oferece "aplicar Chumbo". Só para ele. |
 | **Cópia nas casas livres** | Copista | A cópia ocupa casas livres do inventário até o fim da luta. Ela não pode ser vendida, evoluída nem movida; o resto do grimório não se mexe para abrir espaço. |
-| **Fúria** | Bárbaro | "+1 por golpe": cada golpe de uma magia de vários golpes ganha o bônus (como o Sacrifício). Conta no momento do golpe. |
+| **Fúria** | Bárbaro | Liga com a vida em metade da máxima ou menos, e desliga se a cura passar disso. "+1 por golpe": cada golpe de uma magia de vários golpes ganha o bônus (como o Sacrifício). Conta no momento do golpe. |
 | **Cura vira vida máxima** | Vampiro | A cura que passaria do máximo aumenta a vida máxima, até 5 por luta. Vale para toda cura dele (Mordida, Banquete, Remendo, a parada de Cura). |
 | **Duas marcas** | Perfeccionista | Exceção à regra "uma marca por vez" do catálogo (§2.3): ele pode ter 2. Uma marca nova substitui a mais antiga. |
 | **Escolher dados no fim do turno** | Perfeccionista | Antes de "Terminar turno", tocar em até 2 dados livres da mão para marcá-los. |
 
-### 3.3 Grupos de magia (o que cada inimigo compra)
+### 3.4 Grupos de magia (o que cada inimigo compra)
 
 Hoje os inimigos só compram do próprio grupo (Feiticeiro ou Assassino) e do "qualquer". Os novos usam uma lista:
 
@@ -214,7 +232,7 @@ Cada dado pode ter **um** elemento, que dá uma regra de uma linha a ele. No jog
 | Elemento | Na prática |
 |---|---|
 | **Hidrogênio** | Vale ×3, mas só com a bolsa de 8 dados ou menos (a bolsa inicial tem 8: comprar um dado já desliga). |
-| **Ósmio** | Sai sempre na primeira mão da luta. |
+| **Ósmio** | Âncora: sai sempre na primeira mão da luta. Também **não pode ser roubado nem arrancado** (Roubar a Cena e Arrancar das Mãos o pulam). O valor rola normalmente: é um dado comum que você sabe que vem. |
 | **Urânio** | Faces de 3 a 8. Se sobrar na mão sem uso, envenena **você** em 2 (o veneno não cai durante a luta). |
 | **Sódio** | Ao ser usado numa magia, queima o inimigo em 2. |
 | **Mercúrio** | Ao rolar, vale o maior valor entre a sua mão e a última mão do inimigo. |
@@ -235,7 +253,7 @@ A sensação procede: **é raro ver um elemento, e quando aparece, a tela não e
 
 ### 5.3 Proposta
 
-1. **Todo personagem começa com elemento.** Minimalista (3 Hidrogênio), Metalurgista (3 Chumbo), Copista (1 Mercúrio), Perfeccionista (1 Ósmio), Vampiro (1 Sódio) e Bárbaro (2 Urânio), já nas fichas. Para os que continuam: **Feiticeiro, 1 Sódio** (combina com a Bola de Fogo); **Assassino, 1 Mercúrio** (a mão de 6 aproveita o maior valor).
+1. **Todo personagem começa com elemento.** Minimalista (3 Hidrogênio), Metalurgista (3 Chumbo), Copista (1 Mercúrio), Perfeccionista (1 Ósmio), Vampiro (1 Sódio) e Bárbaro (2 Ácido), já nas fichas. Para os que continuam: **Feiticeiro, 1 Sódio** (combina com a Bola de Fogo); **Assassino, 1 Mercúrio** (a mão de 6 aproveita o maior valor).
 2. **Dado oferecido sempre tem elemento.** Na recompensa e na loja, o "dado comum" sai. Preço na loja: 10 (igual a uma magia).
 3. **Todo inimigo tem pelo menos 1 elemento**, pelo arquétipo (os mesmos da lista acima), a partir do andar 1. Assim o jogador vê o efeito agindo contra ele.
 4. **Tocar e segurar um dado** (na mão, na bolsa ou na mão do inimigo) mostra o nome e o efeito do elemento. No lugar do tooltip.
@@ -258,6 +276,7 @@ Elementos novos (Hélio, Vidro, Ferro, Ouro… da `SPEC_v3.md` §4.1) ficam para
 | Vampiro em 10 andares | Medir quanta vida máxima ele junta (teto de +50) e se a trava de 60 turnos aparece contra o Vampiro inimigo. |
 | Vampiro contra o Piromante | Queima em dobro: medir se o matchup é perdido de saída. |
 | Bárbaro com Exibição de Velocidade | 3 golpes, cada um com a Fúria: com 60 de vida perdida, são +18. |
+| Bárbaro até ligar a Fúria | Medir em quantos turnos ele chega à metade da vida e se o Ácido acelera demais. |
 | Bárbaro e Cerrar os Dentes | Medir se o jogador cura ou prefere ficar com Fúria; se ninguém cura, a magia está errada. |
 | Elementos para todos | Medir o efeito de ter elemento desde o andar 1, dos dois lados. |
 
