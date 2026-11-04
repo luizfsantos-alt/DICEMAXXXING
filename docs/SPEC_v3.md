@@ -110,7 +110,7 @@ Cada dado pode ter **um** elemento, além de qualquer número de adesivos. O efe
 
 ## 5. Magias
 
-> O catálogo completo, com as magias novas e os princípios de design, está em `docs/CATALOGO_MAGIAS.md`. A tabela abaixo é a base.
+> O catálogo completo (39 magias, todas implementadas), com os princípios de design, está em `docs/CATALOGO_MAGIAS.md`. A tabela abaixo é a base.
 
 Cada magia tem **formato** (no inventário), **exigência** (quais dados aceita), **efeito** e **uso** (sempre ou **1× por luta**).
 

@@ -1,6 +1,6 @@
 # Catálogo de magias
 
-> **Status: fonte da verdade para o conteúdo de magias.** Junta as magias da `docs/SPEC_v3.md` §5 com as aprovadas nas duas rodadas de proposta (`docs/MAGIAS_DICE_FUCKERY.md` e `docs/MAGIAS_FISICAS.md`, que passam a ser histórico), já com os ajustes do feedback. Só as magias base estão implementadas (menos a Golpe nas Sombras); a Bola de Fogo ×2 e o Meteoro soma + 10 já estão no jogo. Números *(iniciais)*, a passar pelo simulador.
+> **Status: fonte da verdade e implementado.** Junta as magias da `docs/SPEC_v3.md` §5 com as aprovadas nas duas rodadas de proposta (`docs/MAGIAS_DICE_FUCKERY.md` e `docs/MAGIAS_FISICAS.md`, que passam a ser histórico), já com os ajustes do feedback. **Todas as 39 magias estão no jogo** (`engine/spells.gd`, ids na seção 9). Números *(iniciais)*, a passar pelo simulador.
 
 **39 magias:** 21 ofensivas e 18 defensivas. Vêm 12 da base, 11 da rodada 1 e 16 da rodada 2. 31 são retas e cabem no cinto do Assassino.
 
@@ -194,3 +194,43 @@ O inimigo compra deste catálogo com as mesmas regras. Ele usa as magias do grup
 | Levantar Peso contra o Porteiro de Chumbo | O Chumbo dele vira dano. |
 | Suor de Campeão contra o Reator | Mesmo 2× por luta, pode aliviar muito o Mestre do andar 30. |
 | Chave de Braço Didática + Meia Verdade | Os dados pares viram 1 e o resto vale metade: uma mão inteira quase inútil. |
+
+---
+
+## 9. Implementação
+
+Todas as magias estão em `engine/spells.gd` (dados), `engine/resolver.gd` (efeitos), `engine/turn_choice.gd` (dados devolvidos) e `engine/fighter.gd` (marca, mexidas, dados fora da luta). Testes em `tests/test_magias.gd`.
+
+| id | Magia | id | Magia |
+|---|---|---|---|
+| `sombras` | Golpe nas Sombras | `forca` | Força Desnecessária |
+| `bis` | Bis! | `fisica` | Física Aplicada |
+| `plagio` | Plágio | `arrancar` | Arrancar das Mãos |
+| `roubar_cena` | Roubar a Cena | `velocidade` | Exibição de Velocidade |
+| `imitacao` | Imitação Barata | `peso` | Levantar Peso |
+| `expectativa` | Expectativa Tóxica | `impulso` | Impulso Calculado |
+| `matematica` | Matemática Superior | `anatomia` | Lição de Anatomia |
+| `meia_verdade` | Meia Verdade | `foto` | Golpe para a Foto |
+| `interrupcao` | Interrupção Rude | `revide` | Revide Elegante |
+| `pose` | Pose Congelada | `chave` | Chave de Braço Didática |
+| `improviso` | Improviso Brilhante | `rasteira` | Rasteira Humilhante |
+| `imune` | Imune a Críticas | `suor` | Suor de Campeão |
+| | | `armadura` | Armadura de Músculo |
+| | | `recuo` | Recuo Estratégico |
+| | | `presenca` | Presença Imponente |
+| | | `concentrar` | Concentrar Força |
+
+### 9.1 Decisões tomadas na implementação (revisar depois de jogar)
+
+- **Bis!** sempre rola o dado de novo uma vez e soma; se sair a face máxima, rola e soma de novo (até 5 vezes).
+- **Força Desnecessária**: as duas metades são dados comuns (sem o elemento do original). **Imitação Barata** copia o elemento.
+- **Dados devolvidos e marcados** valem como dados da mão para Presença Imponente e Levantar Peso. Um dado marcado nunca está na face máxima.
+- **Mexidas na próxima mão do inimigo**, sempre nesta ordem: dados a menos (somam: Interrupção Rude + Rasteira = −3), face máxima vira 1, pares viram 1, metade, roubar o maior.
+- **Roubar a Cena** não rouba Ósmio. O dado roubado volta para o descarte do inimigo.
+- **Arrancar das Mãos** escolhe entre os dados que estão na bolsa ou no descarte do inimigo (a mão dele está vazia no seu turno).
+- **Plágio** não rouba de Ósmio e não cola em face de Chumbo nem em dado marcado.
+- **Efeitos negativos** que Imune a Críticas anula: queima (Bola de Fogo, Sódio), mexidas na próxima mão, Arrancar das Mãos, Plágio, o Chumbo do Porteiro e o do Lixeiro. **Suor de Campeão** remove veneno, queima e as mexidas pendentes; não devolve dados arrancados nem adesivos roubados.
+- **Improviso Brilhante**: o bloqueio das sobras não cresce com o nível da magia.
+- **Revide Elegante**: vale enquanto houver bloqueio no começo do golpe; o revide não é refletido nem revidado.
+- **Hélio** ainda não existe no jogo; quando entrar, os efeitos acima devem pular dados de Hélio.
+- **Loja e Escola** oferecem todas as magias ao jogador. **Inimigos** só compram do próprio grupo (Feiticeiro ou Assassino) e as de "qualquer".
