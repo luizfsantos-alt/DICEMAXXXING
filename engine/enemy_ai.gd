@@ -2,10 +2,16 @@ class_name EnemyAI
 extends RefCounted
 ## Escolha de magias (gulosa) para inimigos e para o bot do simulador.
 ## Percorre as magias numa ordem de prioridade e dá a cada uma os melhores dados livres.
+## As magias que devolvem dados vêm primeiro, para os dados devolvidos servirem às outras.
 
 const PERSONALITIES := ["bruto", "cauteloso", "caotico"]
-const OFFENSE := ["meteoro", "bola", "corte", "sacrificio", "faisca", "estocada"]
-const DEFENSE := ["esquiva", "espelho", "escudo", "remendo", "transfusao"]
+const SPAWN := ["forca", "imitacao"]
+const OFFENSE := ["foto", "matematica", "sombras", "meteoro", "bola", "expectativa", "anatomia",
+	"fisica", "velocidade", "bis", "peso", "plagio", "arrancar", "impulso", "corte", "sacrificio",
+	"estocada", "faisca"]
+const DEBUFF := ["interrupcao", "chave", "meia_verdade", "roubar_cena"]
+const DEFENSE := ["esquiva", "recuo", "espelho", "imune", "revide", "armadura", "escudo", "presenca",
+	"rasteira", "concentrar", "pose", "suor", "remendo", "transfusao", "improviso"]
 
 
 static func choose(f: Fighter, foe: Fighter, rng: RandomNumberGenerator) -> TurnChoice:
@@ -15,6 +21,8 @@ static func choose(f: Fighter, foe: Fighter, rng: RandomNumberGenerator) -> Turn
 		prio[i] = _priority(f, foe, f.inventory.items[i].id)
 	if f.personality == "caotico":
 		Fighter._shuffle(items, rng)
+		# Mesmo no caos, quem devolve dados vai antes.
+		items.sort_custom(func(a, b): return int(f.inventory.items[a].id in SPAWN) > int(f.inventory.items[b].id in SPAWN))
 	else:
 		items.sort_custom(func(a, b): return prio[a] > prio[b] or (prio[a] == prio[b] and a < b))
 	var c := TurnChoice.new()
@@ -22,24 +30,43 @@ static func choose(f: Fighter, foe: Fighter, rng: RandomNumberGenerator) -> Turn
 		if prio[item] <= 0 or not TurnChoice.can_cast(f, item):
 			continue
 		var pick := best_dice(f, f.inventory.items[item].id, c.used_dice())
-		if not pick.is_empty():
-			c.casts[item] = pick
+		if pick.is_empty():
+			continue
+		var ok := true
+		for h in pick:
+			if not c.place(f, item, h):
+				ok = false
+				break
+		if not ok:
+			for h in c.dice_in(item).duplicate():
+				c.remove_die(h, f)
 	return c
 
 
 static func _priority(f: Fighter, foe: Fighter, id: String) -> int:
 	var low := f.hp * 2 < f.max_hp
 	var base := 0
-	if id in OFFENSE:
-		base = 100 - OFFENSE.find(id) * 10
+	if id in SPAWN:
+		base = 200 - SPAWN.find(id) * 5
+	elif id in OFFENSE:
+		base = 100 - OFFENSE.find(id) * 2
+	elif id in DEBUFF:
+		base = 70 - DEBUFF.find(id) * 2
 	elif id in DEFENSE:
-		base = 50 - DEFENSE.find(id) * 5
+		base = 50 - DEFENSE.find(id) * 2
 	match id:
 		"remendo":
 			if f.hp >= f.max_hp:
 				return 0
 			base += 60 if low else 0
-		"escudo", "esquiva", "espelho":
+		"suor":
+			if f.poison + f.burn <= 0 and f.hand_mods.is_empty():
+				return 0
+			base += 60
+		"imune":
+			if f.immune > 0:
+				return 0
+		"escudo", "esquiva", "espelho", "recuo", "revide", "armadura", "presenca", "rasteira", "concentrar", "pose":
 			if f.personality == "bruto":
 				return 0
 			if low or f.personality == "cauteloso":
@@ -54,22 +81,18 @@ static func _priority(f: Fighter, foe: Fighter, id: String) -> int:
 static func best_dice(f: Fighter, id: String, taken: Array) -> Array:
 	var free := []
 	for h in f.hand.size():
-		if not (h in taken):
+		if not (h in taken) and int(f.hand[h].bag) != -2:
 			free.append(h)
-	# Do maior para o menor; Urânio primeiro em empate (parado envenena).
+	# Do maior para o menor.
 	free.sort_custom(func(a, b):
 		var va := int(f.hand[a].value)
 		var vb := int(f.hand[b].value)
 		return va > vb or (va == vb and a < b))
 	var d := Spells.get_def(id)
+	var n := Spells.dice_needed(id)
 	match str(d.req):
 		"any":
-			var n := int(d.get("n", 1))
 			return free.slice(0, n) if free.size() >= n else []
-		"max", "exact":
-			for h in free:
-				if Spells.accepts_partial(id, [], int(f.hand[h].value)):
-					return [h]
 		"pair":
 			for i in free.size():
 				for j in range(i + 1, free.size()):
@@ -82,6 +105,31 @@ static func best_dice(f: Fighter, id: String, taken: Array) -> Array:
 				var b := _find(f, free, v - 2)
 				if a >= 0 and b >= 0:
 					return [free[i], a, b]
+		"low_one":
+			var lo := -1
+			for h in free:
+				if int(f.hand[h].value) <= int(d.v):
+					lo = h
+					break
+			if lo < 0:
+				return []
+			var out := []
+			for h in free:
+				if h != lo and out.size() < n - 1:
+					out.append(h)
+			if out.size() < n - 1:
+				return []
+			out.append(lo)
+			return out
+		_:
+			# Exigência por dado (max, min, exact, odd, even, top, max_n, min_n).
+			var out := []
+			for h in free:
+				var e: Dictionary = f.hand[h]
+				if Spells.accepts_partial(id, [], int(e.value), bool(e.get("top", false))):
+					out.append(h)
+					if out.size() == n:
+						return out
 	return []
 
 

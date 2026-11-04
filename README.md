@@ -4,10 +4,11 @@ Jogo de dados para Android: suba uma torre com uma bolsa de dados e um grimório
 Tela em paisagem.
 
 - Regras: [`docs/SPEC_v3.md`](docs/SPEC_v3.md) (v3, fonte da verdade). A fatia vertical (seção 12) está implementada.
+- Magias: [`docs/CATALOGO_MAGIAS.md`](docs/CATALOGO_MAGIAS.md) (catálogo único e princípios de design). Propostas anteriores, com o feedback, em `docs/MAGIAS_DICE_FUCKERY.md` e `docs/MAGIAS_FISICAS.md`.
 - Histórico: [`docs/SPEC.md`](docs/SPEC.md) (v2, coliseu com equipamentos; substituída).
 - Motor de regras (sem cenas, testável): `engine/`.
 - Interface (placeholders, paisagem): `ui/`. A tela de duelo anima os eventos do motor.
-- Textos PT-BR: `data/texts_pt_br.json`.
+- Textos PT-BR: `data/texts_pt_br.json`. Tom (duelo de egos entre magos): [`docs/TOM.md`](docs/TOM.md).
 - Testes (GUT): `tests/`.
 - Simulador de balanceamento: `sim/simulate.gd`.
 

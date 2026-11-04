@@ -18,7 +18,7 @@
 | Inimigos sem itens | Inimigos montados **com as mesmas regras do jogador** |
 | Dano de 10 a 20 do começo ao fim | **Números explodem para os dois lados** |
 
-**Mantém:** só dados d6; **perdeu, morreu** (a jornada zera); tom brainrot BR nos nomes; offline, Android, paisagem.
+**Mantém:** só dados d6; **perdeu, morreu** (a jornada zera); offline, Android, paisagem. **Tom:** antes brainrot BR, agora **duelo de egos entre magos** (`docs/TOM.md`).
 
 ---
 
@@ -110,6 +110,8 @@ Cada dado pode ter **um** elemento, além de qualquer número de adesivos. O efe
 
 ## 5. Magias
 
+> O catálogo completo (39 magias, todas implementadas), com os princípios de design, está em `docs/CATALOGO_MAGIAS.md`. A tabela abaixo é a base.
+
 Cada magia tem **formato** (no inventário), **exigência** (quais dados aceita), **efeito** e **uso** (sempre ou **1× por luta**).
 
 | Magia | Formato | Pede | Efeito | Uso |
@@ -119,10 +121,10 @@ Cada magia tem **formato** (no inventário), **exigência** (quais dados aceita)
 | Escudo Arcano | 1×2 | dado ≤ 3 | bloqueio = valor ×3 | sempre |
 | Esquiva | 1×1 | dado ≤ 2 | anula o **próximo golpe** do inimigo | 1× por luta |
 | Corte Duplo | 2×1 | dois dados | soma; se ambos ímpares, golpeia de novo | sempre |
-| Bola de Fogo | 2×2 | dois iguais | soma ×3 e queima | 1× por luta |
-| Meteoro | L (4 casas) | sequência de 3 | 40 de dano | 1× por luta |
+| Bola de Fogo | 2×2 | dois iguais | soma ×2 e queima | 1× por luta |
+| Meteoro | L (4 casas) | sequência de 3 | dano = soma + 10 | 1× por luta |
 | Espelho | 1×1 | um 1 | reflete o próximo golpe recebido | sempre |
-| Golpe nas Sombras | 3×1 | um 6 | dano ignora bloqueio | 1× por luta |
+| Golpe nas Sombras | 3×1 | um 6 | dano ignora todas as defesas | 1× por luta |
 | Sacrifício | 1×1 | um 1 | destrói o dado usado; +5 de dano em todas as magias nesta luta | sempre |
 | Remendo | 1×1 | qualquer dado | cura = valor | 1× por luta |
 | Transfusão | 2×1 | dois iguais | +valor de um deles na vida máxima, permanente | 1× por luta |

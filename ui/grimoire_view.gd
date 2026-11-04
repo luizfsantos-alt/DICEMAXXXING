@@ -6,7 +6,7 @@ extends Control
 signal cell_tapped(cell: Vector2i, item: int)
 
 const FX_COLORS := {
-	"dmg": Color(0.75, 0.25, 0.25), "meteor": Color(0.85, 0.35, 0.15),
+	"dmg": Color(0.75, 0.25, 0.25),
 	"block": Color(0.25, 0.45, 0.8), "dodge": Color(0.3, 0.6, 0.7), "mirror": Color(0.55, 0.6, 0.75),
 	"heal": Color(0.3, 0.65, 0.35), "maxhp": Color(0.35, 0.7, 0.5), "sacrifice": Color(0.55, 0.3, 0.65),
 }
@@ -40,10 +40,24 @@ static func req_label(id: String) -> String:
 			return "%d dado%s" % [int(d.get("n", 1)), "s" if int(d.get("n", 1)) > 1 else ""]
 		"max":
 			return "≤ %d" % int(d.v)
+		"min":
+			return "≥ %d" % int(d.v)
 		"exact":
 			return "= %d" % int(d.v)
-		"pair":
+		"odd":
+			return "ímpar"
+		"even":
 			return "par"
+		"top":
+			return "face máx."
+		"max_n":
+			return "%d dados ≤ %d" % [int(d.n), int(d.v)]
+		"min_n":
+			return "%d dados ≥ %d" % [int(d.n), int(d.v)]
+		"low_one":
+			return "%d dados, um ≤ %d" % [int(d.n), int(d.v)]
+		"pair":
+			return "dois iguais"
 		"seq3":
 			return "sequência"
 	return ""
@@ -117,11 +131,11 @@ func _outline(cells: Array, col: Color) -> void:
 
 func _draw_piece(i: int, it: Dictionary, font: Font) -> void:
 	var id: String = it.id
-	var def := Spells.get_def(id)
-	var col: Color = FX_COLORS.get(str(def.fx), Kit.PANEL_HI)
-	var used := fighter != null and Spells.is_once(id) and i in fighter.once_used
+	var col: Color = FX_COLORS.get(Spells.color_family(id), Kit.PANEL_HI)
+	var used := fighter != null and not TurnChoice.can_cast(fighter, i)
 	var placed: Array = choice.values_in(fighter, i) if (choice and fighter) else []
-	var ready := placed.size() > 0 and Spells.complete(id, placed)
+	var tops: Array = choice.tops_in(fighter, i) if (choice and fighter) else []
+	var ready := placed.size() > 0 and Spells.complete(id, placed, tops)
 	if used:
 		col = col.darkened(0.6)
 	if flash.has(i):
@@ -185,7 +199,7 @@ func _draw_piece(i: int, it: Dictionary, font: Font) -> void:
 	if used:
 		draw_string(font, tl + Vector2(0, fs * 3.2), Texts.t("ui.used"), HORIZONTAL_ALIGNMENT_LEFT, w, int(fs * 0.85), Kit.MUTED)
 	elif Spells.is_once(id):
-		draw_string(font, tl + Vector2(0, fs * 3.2), Texts.t("ui.once"), HORIZONTAL_ALIGNMENT_LEFT, w, int(fs * 0.75), Kit.TEXT.darkened(0.3))
+		draw_string(font, tl + Vector2(0, fs * 3.2), Texts.t(Spells.use_key(id)), HORIZONTAL_ALIGNMENT_LEFT, w, int(fs * 0.75), Kit.TEXT.darkened(0.3))
 	# Dados postos: quadradinhos no rodapé da peça.
 	var sq := cell * 0.3
 	for k in placed.size():
