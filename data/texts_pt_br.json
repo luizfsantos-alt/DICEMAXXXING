@@ -300,7 +300,7 @@
   "consult_bag": "Bolsa: {list}",
   "consult_spells": "Magias",
   "max_level": "Nível máximo",
-  "organize_hint": "Toque numa magia para levantá-la; toque numa casa para soltar. A ordem de cima para baixo, da esquerda para a direita, é a ordem em que as magias acontecem.",
+  "organize_hint": "Toque numa magia para levantá-la e numa casa para soltar. O número em cada peça é a ordem em que ela acontece na luta.",
   "shape": "Formato: {n} casa(s)",
   "fits_no": "Não cabe",
   "sell_title": "Vender magias:",
@@ -331,7 +331,13 @@
   "pv_mirror": "→ reflete",
   "pv_heal": "→ cura {n}",
   "pv_maxhp": "→ +{n} vida máx.",
-  "pv_sacrifice": "→ +{n} de dano na luta"
+  "pv_sacrifice": "→ +{n} de dano na luta",
+  "new_tag": "NOVA",
+  "new_spell_title": "Nova magia: {name}. Organize o grimório",
+  "pick_piece": "Toque numa magia para ver o que ela faz",
+  "piece_meta": "Formato: {n} casa(s) · acontece em {pos}º na luta",
+  "organize_lifted": "Toque numa casa para soltar. \"Girar\" muda a posição da peça.",
+  "enemy_rolling": "O inimigo rola e encaixa os dados"
  },
  "ev": {
   "hand": "{who} rolou: {v}",

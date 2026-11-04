@@ -185,3 +185,38 @@ func test_cartoes_buracos_previa_e_historico():
 	var o := d.open_history()
 	await wait_process_frames(1)
 	assert_true(o.is_inside_tree(), "histórico abre por botão")
+
+
+func test_ganhar_magia_abre_o_grimorio():
+	var run := RunState.new_run(5)
+	var t := TowerScreen.new().setup(run)
+	add_child_autofree(t)
+	await wait_process_frames(2)
+	assert_eq(run.phase, "start_pick")
+	var n := run.hero.inventory.items.size()
+	t._apply(0, {})
+	await wait_process_frames(1)
+	assert_eq(run.hero.inventory.items.size(), n + 1)
+	assert_true(is_instance_valid(t.organizer) and t.organizer.is_inside_tree(), "grimório abre com a magia nova")
+	var g: GrimoireView = _find(t.organizer, GrimoireView)
+	assert_eq(g.new_item, n, "a nova magia vem marcada")
+	assert_eq(run.phase, "doors", "a escolha já valeu")
+	t.organizer.close()
+
+
+func test_inimigo_encaixa_dados_nas_magias_dele():
+	var run := _run_at_duel(321)
+	var d := DuelScreen.new().setup(run)
+	d.fast = true
+	add_child_autofree(d)
+	await wait_process_frames(2)
+	await d._submit()
+	if run.duel.state != "choosing":
+		return
+	var filled := 0
+	for c in d.enemy_cards:
+		for h in c.holes:
+			if h.has_die:
+				filled += 1
+	assert_gt(filled, 0, "dados do inimigo ficam nos buracos das magias dele")
+	assert_true(d.tray_views[0].interactive, "a bandeja volta a ser a sua mão")

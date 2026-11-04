@@ -254,6 +254,8 @@ func _status(f: Fighter) -> String:
 
 func _start_player_phase() -> void:
 	phase = "player"
+	for c in cards + enemy_cards:
+		c.shown_used = null
 	choice = TurnChoice.new()
 	selected = -1
 	banner.text = Texts.t("ui.your_turn")
@@ -261,6 +263,7 @@ func _start_player_phase() -> void:
 	catcher.visible = false
 	end_btn.disabled = false
 	_build_tray()
+	_build_enemy_tray(duel.enemy.last_hand)
 	_sync_shown()
 	_refresh_tray()
 	if not summary.is_empty():
@@ -275,11 +278,66 @@ func _build_tray() -> void:
 	for h in p.hand.size():
 		var e: Dictionary = p.hand[h]
 		var d := p.die_of(e)
-		var v := Hole.new().setup(DIE, h)
+		var v := Hole.new().setup(_die_px(p.hand.size()), h)
 		v.set_die(int(e.value), d.element if d else "")
 		v.tapped.connect(_on_die)
 		tray.add_child(v)
 		tray_views.append(v)
+
+
+## Buraco da bandeja: menor quando a mão tem mais de 5 dados (cabe na largura).
+func _die_px(n: int) -> int:
+	return DIE if n <= 5 else maxi(60, int((540.0 - (n - 1) * 8) / n))
+
+
+## Bandeja do centro com uma mão qualquer (a sua é tocável; a do inimigo, não).
+func _fill_tray(values: Array, elements: Array, interactive: bool) -> void:
+	Kit.clear(tray)
+	tray_views = []
+	for h in values.size():
+		var v := Hole.new().set_interactive(interactive).setup(_die_px(values.size()), h)
+		v.set_die(int(values[h]), elements[h] if h < elements.size() else "")
+		if interactive:
+			v.tapped.connect(_on_die)
+		tray.add_child(v)
+		tray_views.append(v)
+
+
+## Rolagem: as faces trocam rápido antes de parar no valor sorteado.
+func _roll_tray() -> void:
+	if fast or skip:
+		return
+	var final := []
+	for v in tray_views:
+		final.append(v.value)
+	for step in 6:
+		for v in tray_views:
+			v.value = randi_range(1, 6)
+			v.queue_redraw()
+		await _wait(0.06)
+		if skip:
+			break
+	for k in tray_views.size():
+		tray_views[k].value = final[k]
+		tray_views[k].queue_redraw()
+
+
+## Um dado voa de um buraco para outro (camada de efeitos).
+func _fly(from: Hole, to: Hole) -> void:
+	if fast or skip or not is_inside_tree():
+		return
+	var g := Hole.new().set_interactive(false).setup(int(from.size.x))
+	g.set_die(from.value, from.element)
+	g.position = from.global_position
+	fx_layer.add_child(g)
+	from.has_die = false
+	from.queue_redraw()
+	var sc := to.size.x / maxf(1.0, from.size.x)
+	var tw := g.create_tween()
+	tw.tween_property(g, "position", to.global_position, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	tw.parallel().tween_property(g, "scale", Vector2(sc, sc), 0.3)
+	await _wait(0.32)
+	g.queue_free()
 
 
 func _build_enemy_tray(values: Array, elements: Array = []) -> void:
@@ -437,6 +495,11 @@ func _submit() -> void:
 	catcher.visible = true
 	skip = false
 	selected = -1
+	# As magias "1× por luta" só aparecem como usadas quando a animação chega nelas.
+	for c in cards:
+		c.shown_used = duel.player.once_used.duplicate()
+	for c in enemy_cards:
+		c.shown_used = duel.enemy.once_used.duplicate()
 	var rep := duel.submit(choice)
 	if rep.has("error"):
 		info.text = str(rep.error)
@@ -463,7 +526,7 @@ func _wait(t: float) -> void:
 
 func _animate(events: Array) -> void:
 	for ev in events:
-		_apply_event(ev)
+		await _apply_event(ev)
 		_feed_events([ev])
 		await _wait(_delay(ev))
 	_sync_shown()
@@ -474,7 +537,7 @@ func _delay(ev: Dictionary) -> float:
 		"turn":
 			return 0.6
 		"hand":
-			return 0.5 if ev.side == "enemy" else 0.2
+			return 0.4 if ev.side == "enemy" else 0.15
 		"cast":
 			return 0.45
 		"hit", "poison", "burn":
@@ -495,12 +558,20 @@ func _apply_event(ev: Dictionary) -> void:
 				hint.text = Texts.t("ui.tap_to_skip")
 				for c in enemy_cards:
 					c.refresh([], [], -1)
+				for c in cards:
+					c.refresh([], [], -1)
 			else:
 				shown.player.block = 0
 		"hand":
+			# Os dois lados rolam a mão na bandeja do centro.
 			if s == "enemy":
-				_build_enemy_tray(ev["values"], ev.get("elements", []))
+				hint.text = Texts.t("ui.enemy_rolling")
+			_fill_tray(ev["values"], ev.get("elements", []), s == "player")
+			await _roll_tray()
 		"cast":
+			var cc := _card_of(cards if s == "player" else enemy_cards, int(ev.item))
+			if cc and cc.shown_used != null:
+				cc.shown_used.append(int(ev.item))
 			var vals := " + ".join(PackedStringArray(ev["values"].map(func(x): return str(x))))
 			if s == "player":
 				var pc := _card_of(cards, int(ev.item))
@@ -513,6 +584,16 @@ func _apply_event(ev: Dictionary) -> void:
 			else:
 				var ec := _card_of(enemy_cards, int(ev.item))
 				if ec:
+					# Os dados do inimigo voam da bandeja até os buracos da magia dele.
+					var dice: Array = ev.dice
+					for k in dice.size():
+						var h := int(dice[k])
+						if h < tray_views.size() and k < ec.holes.size():
+							await _fly(tray_views[h], ec.holes[k])
+							tray_views[h].has_die = false
+							tray_views[h].caption = Texts.spell_name(ev.spell)
+							tray_views[h].queue_redraw()
+							ec.refresh(ev["values"].slice(0, k + 1), [], -1)
 					ec.refresh(ev["values"], [], -1)
 					if not fast:
 						ec.flash()

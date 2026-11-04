@@ -12,6 +12,7 @@ var cards: HBoxContainer
 var info: Label
 var bottom: HBoxContainer
 var sell_row: HBoxContainer
+var organizer: Overlay ## Aberto após ganhar uma magia (testes).
 
 
 func setup(r: RunState) -> TowerScreen:
@@ -156,13 +157,22 @@ func _pick(i: int) -> void:
 
 func _apply(i: int, target: Dictionary) -> void:
 	var phase := run.phase
+	var o: Dictionary = run.options[i]
+	var had := run.hero.inventory.items.size()
 	var err := run.choose(i, target)
 	info.text = Texts.t(err) if err != "" else ""
 	_save()
-	if run.phase != phase:
-		finished.emit()
-	else:
-		refresh()
+	var after := func():
+		_save()
+		if run.phase != phase:
+			finished.emit()
+		else:
+			refresh()
+	# Ganhou uma magia: sempre dá a chance de organizar o grimório, com ela marcada.
+	if err == "" and o.kind == "spell" and run.hero.inventory.items.size() > had:
+		organizer = Organizer.open(self, run.hero.inventory, after, run.hero.inventory.items.size() - 1)
+		return
+	after.call()
 
 
 func _sell(k: int) -> void:

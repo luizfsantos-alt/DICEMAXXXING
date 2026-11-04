@@ -19,6 +19,8 @@ var selected_item := -1 ## Edição: peça levantada.
 var ghost := {} ## Edição: {id, rot, x, y, ok} prévia de onde a peça vai.
 var compact := false ## Miniatura (sem textos longos).
 var flash := {} ## item -> tempo restante do brilho.
+var show_order := false ## Organizar: número da ordem de resolução em cada peça.
+var new_item := -1 ## Organizar: peça recém-adquirida (marca "NOVA").
 
 
 func setup(i: Inventory, cell_px := 96, f: Fighter = null) -> GrimoireView:
@@ -96,6 +98,23 @@ func _draw() -> void:
 			draw_rect(r, col, false, 3.0)
 
 
+## Contorno só nas bordas externas da peça (formatos em L não ganham caixa extra).
+func _outline(cells: Array, col: Color) -> void:
+	for c in cells:
+		var cc: Vector2i = c
+		var o := Vector2(cc) * cell
+		var a := 3.0
+		var b := cell - 3.0
+		if not (cc + Vector2i(0, -1)) in cells:
+			draw_line(o + Vector2(a, a), o + Vector2(b, a), col, 4.0)
+		if not (cc + Vector2i(0, 1)) in cells:
+			draw_line(o + Vector2(a, b), o + Vector2(b, b), col, 4.0)
+		if not (cc + Vector2i(-1, 0)) in cells:
+			draw_line(o + Vector2(a, a), o + Vector2(a, b), col, 4.0)
+		if not (cc + Vector2i(1, 0)) in cells:
+			draw_line(o + Vector2(b, a), o + Vector2(b, b), col, 4.0)
+
+
 func _draw_piece(i: int, it: Dictionary, font: Font) -> void:
 	var id: String = it.id
 	var def := Spells.get_def(id)
@@ -128,8 +147,16 @@ func _draw_piece(i: int, it: Dictionary, font: Font) -> void:
 	var box := Rect2(Vector2(lo) * cell, Vector2(hi - lo + Vector2i.ONE) * cell)
 	if ready:
 		draw_rect(box.grow(-3), Kit.ACCENT, false, 4.0)
-	if i == selected_item:
-		draw_rect(box.grow(-3), Kit.TEXT, false, 4.0)
+	if i == selected_item or i == new_item:
+		_outline(cells, Kit.TEXT if i == selected_item else Kit.ACCENT)
+	if show_order:
+		var pos := inv.order().find(i) + 1
+		var rad := cell * 0.16
+		var c := box.position + box.size - Vector2(rad + 8, rad + 8)
+		draw_circle(c, rad, Color(0, 0, 0, 0.45))
+		draw_string(font, c + Vector2(-rad, rad * 0.4), str(pos), HORIZONTAL_ALIGNMENT_CENTER, rad * 2, int(rad * 1.1), Kit.TEXT)
+		if i == new_item:
+			draw_string(font, box.position + Vector2(8, box.size.y - 10), Texts.t("ui.new_tag"), HORIZONTAL_ALIGNMENT_LEFT, -1, int(cell * 0.14), Kit.ACCENT)
 	var anchor: Vector2i = cells[0]
 	for c in cells:
 		var cc: Vector2i = c

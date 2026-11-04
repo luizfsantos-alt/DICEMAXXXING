@@ -23,6 +23,7 @@ var name_label: Label
 var tag_label: Label
 var fx_label: Label
 var preview: Label
+var shown_used = null ## Durante a animação: lista de usadas exibida (null = estado real).
 
 
 func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
@@ -92,7 +93,8 @@ static func spell_fx(spell: String) -> String:
 
 
 func used() -> bool:
-	return Spells.is_once(id) and item in fighter.once_used
+	var lst: Array = shown_used if shown_used != null else fighter.once_used
+	return Spells.is_once(id) and item in lst
 
 
 func _style(bg: Color, border: Color, width: int) -> StyleBoxFlat:

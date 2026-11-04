@@ -241,3 +241,11 @@ Jogar a fatia vertical e decidir o que ajustar antes de investir em conteúdo.
 - **Buracos:** a exigência fica escrita no fundo do buraco vazio ("≤ 3", "1"); par = dois buracos ligados por "=". Com um dado selecionado, os buracos que o aceitam acendem e as magias que não aceitam apagam ("não aceita 6"). A mão também é uma bandeja de buracos: o dado que sai deixa o buraco com o nome da magia.
 - **Prévia** no cartão ("→ 5 de dano") e resumo do turno embaixo da mão.
 - **Sem registro fixo:** o resultado aparece no lugar (números sobre a vida, cartão do inimigo aceso com os dados que ele usou) e um **resumo do turno do inimigo** fica até você tocar num dado. O histórico completo abre pelo botão **Histórico**.
+- **Os dois lados rolam no centro.** Na vez do inimigo, a mão dele rola na mesma bandeja e cada dado voa até o buraco da magia dele, na ordem do inventário. Os dados ficam nos cartões do inimigo até o próximo turno dele.
+
+### 13.1 Grimório (organizar as magias)
+
+- É o **único lugar onde o formato importa**. Grade grande à esquerda; à direita, o cartão da peça tocada (nome, descrição, casas e a ordem em que acontece na luta).
+- Cada peça mostra um **número**: a ordem de resolução (de cima para baixo, da esquerda para a direita).
+- Toque numa peça para levantá-la, "Girar" para girar, toque numa casa para soltar.
+- **Sempre que o jogador ganha uma magia** (Loja, Escola, recompensa, Erudito), o grimório abre sozinho com a peça nova marcada **NOVA**, já encaixada onde couber, para ele reorganizar antes de seguir.
