@@ -545,3 +545,19 @@ func test_moldura_e_fonte_dos_numeros_existem():
 
 func test_fundo_da_batalha_existe():
 	assert_true(ResourceLoader.exists(DuelScreen.BACKGROUND), "fundo da taverna")
+
+
+func test_numeros_nao_saem_da_tela():
+	var run := _run_at_duel(321)
+	var d := DuelScreen.new().setup(run)
+	add_child_autofree(d)
+	await wait_process_frames(2)
+	d._float("player", "Peso Morto: +3 dado(s) e mais um texto bem comprido", Kit.TEXT)
+	var l: Label = null
+	for c in d.fx_layer.get_children():
+		if c is Label:
+			l = c
+	assert_not_null(l, "texto criado")
+	var grow := l.size.x * 0.05 ## O pulo de entrada passa um pouco do tamanho final.
+	assert_true(l.position.x - grow >= 0.0, "não vaza pela esquerda")
+	assert_true(l.position.x + l.size.x + grow <= d.fx_layer.size.x, "não vaza pela direita")

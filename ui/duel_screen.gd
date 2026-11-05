@@ -37,7 +37,10 @@ const FX_COLORS := {
 }
 const BOLT_TIME := 0.34
 const BACKGROUND := "res://assets/backgrounds/tavern.jpg"
-const BACKGROUND_SHADE := 0.3 ## Escurece o fundo.
+const BACKGROUND_SHADE := 0.68 ## Escurece bastante o fundo.
+const FX_SIZE := 30 ## Números sobre as fotos.
+const FX_OUTLINE := 12
+const FX_EDGE := 6.0 ## Folga mínima dos números até a borda da tela.
 const PANEL_BG := Color(0.098, 0.086, 0.125, 0.82) ## Painéis translúcidos sobre o fundo.
 ## Fonte grossa dos números sobre as fotos (Bungee, SIL OFL: assets/fonts/Bungee-OFL.txt).
 ## O texto pode passar da foto; só a arte do personagem fica presa na moldura.
@@ -1133,16 +1136,30 @@ func _float(s: String, text: String, col: Color) -> void:
 	for c in fx_layer.get_children():
 		if c is Label and c.get_meta("fx_side", "") == s and not c.is_queued_for_deletion():
 			stack += 1
-	var l := Kit.label(text, 30, col)
+	# O texto pode passar da foto, mas nunca da tela: textos longos diminuem até caber
+	# e a caixa é empurrada para dentro da borda.
+	# O "pulo" de entrada passa um pouco do tamanho final (TRANS_BACK): reserva 10%.
+	var room := (fx_layer.size.x - FX_EDGE * 2.0) / 1.1
+	var fs := FX_SIZE
+	var font: Font = fx_font if fx_font else get_theme_default_font()
+	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x + FX_OUTLINE
+	if w > room and room > 0.0:
+		fs = maxi(12, int(fs * room / w))
+		w = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x + FX_OUTLINE
+	var l := Kit.label(text, fs, col)
 	l.set_meta("fx_side", s)
 	if fx_font:
 		l.add_theme_font_override("font", fx_font)
-	l.add_theme_constant_override("outline_size", 12)
+	l.add_theme_constant_override("outline_size", FX_OUTLINE)
 	l.add_theme_color_override("font_outline_color", Color.BLACK)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	l.size = Vector2(260, 44)
-	l.position = at - Vector2(130, 22 - 34 * (stack % 3))
+	l.size = Vector2(maxf(260.0, w + 8.0), 44)
+	var x := at.x - l.size.x * 0.5
+	if room > 0.0:
+		var pad := FX_EDGE + l.size.x * 0.05
+		x = clampf(x, pad, maxf(pad, fx_layer.size.x - pad - l.size.x))
+	l.position = Vector2(x, at.y - 22 + 34 * (stack % 3))
 	l.pivot_offset = l.size / 2.0
 	l.scale = Vector2(0.5, 0.5)
 	fx_layer.add_child(l)
