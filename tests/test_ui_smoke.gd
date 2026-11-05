@@ -541,3 +541,7 @@ func test_moldura_e_fonte_dos_numeros_existem():
 	for p in Portrait.FRAMES.values():
 		assert_true(ResourceLoader.exists(Portrait.ART_DIR + p), "moldura: " + p)
 	assert_true(ResourceLoader.exists("res://assets/fonts/Bungee-Regular.ttf"), "fonte dos números")
+
+
+func test_fundo_da_batalha_existe():
+	assert_true(ResourceLoader.exists(DuelScreen.BACKGROUND), "fundo da taverna")

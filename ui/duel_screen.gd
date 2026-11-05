@@ -36,6 +36,9 @@ const FX_COLORS := {
 	"heal": Color(0.35, 0.95, 0.45), "dmg": Color(1.0, 0.25, 0.22), "fx": Color(0.35, 0.65, 1.0),
 }
 const BOLT_TIME := 0.34
+const BACKGROUND := "res://assets/backgrounds/tavern.jpg"
+const BACKGROUND_SHADE := 0.3 ## Escurece o fundo.
+const PANEL_BG := Color(0.098, 0.086, 0.125, 0.82) ## Painéis translúcidos sobre o fundo.
 ## Fonte grossa dos números sobre as fotos (Bungee, SIL OFL: assets/fonts/Bungee-OFL.txt).
 ## O texto pode passar da foto; só a arte do personagem fica presa na moldura.
 var fx_font: Font = load("res://assets/fonts/Bungee-Regular.ttf") if ResourceLoader.exists("res://assets/fonts/Bungee-Regular.ttf") else null
@@ -106,6 +109,7 @@ func setup(r: RunState) -> DuelScreen:
 
 # ================================================================== Layout
 func _build() -> void:
+	_build_background()
 	var root := Kit.hbox(GAP)
 	var m := MarginContainer.new()
 	for k in ["left", "right", "top", "bottom"]:
@@ -133,6 +137,24 @@ func _build() -> void:
 		if ev is InputEventMouseButton and ev.pressed:
 			skip = true)
 	add_child(catcher)
+
+
+## Fundo: a taverna cobrindo a tela inteira, escurecida para os painéis e textos lerem bem.
+func _build_background() -> void:
+	if not ResourceLoader.exists(BACKGROUND):
+		return
+	var bg := TextureRect.new()
+	bg.texture = load(BACKGROUND)
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(bg)
+	var shade := ColorRect.new()
+	shade.color = Color(0, 0, 0, BACKGROUND_SHADE)
+	shade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(shade)
 
 
 ## Coluna 1: foto do inimigo + status, as duas barras, sua foto + status, moedas.
@@ -163,7 +185,7 @@ func _build_fighters() -> VBoxContainer:
 
 	# Moedas: faixa fina no rodapé.
 	var strip := PanelContainer.new()
-	strip.add_theme_stylebox_override("panel", Kit.box(Color(0.098, 0.086, 0.125), 8, 4))
+	strip.add_theme_stylebox_override("panel", Kit.box(PANEL_BG, 8, 4))
 	var sh := Kit.hbox(8)
 	strip.add_child(sh)
 	var coin := Control.new()
@@ -228,7 +250,7 @@ func _build_stage() -> VBoxContainer:
 	col.add_child(stage_title)
 	var stage := PanelContainer.new()
 	stage.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	stage.add_theme_stylebox_override("panel", Kit.box(Color(0.098, 0.086, 0.125), 18, 10))
+	stage.add_theme_stylebox_override("panel", Kit.box(PANEL_BG, 18, 10))
 	col.add_child(stage)
 	stage_panel = stage
 
@@ -290,7 +312,7 @@ func _build_stage() -> VBoxContainer:
 func _build_dice() -> PanelContainer:
 	var pc := PanelContainer.new()
 	pc.custom_minimum_size = Vector2(DICE_W, 0)
-	pc.add_theme_stylebox_override("panel", Kit.box(Color(0.098, 0.086, 0.125), 14, 6))
+	pc.add_theme_stylebox_override("panel", Kit.box(PANEL_BG, 14, 6))
 	var v := Kit.vbox(6)
 	pc.add_child(v)
 	dice_title = Kit.label("", 13, Kit.MUTED, true)
