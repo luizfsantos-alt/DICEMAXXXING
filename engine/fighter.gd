@@ -191,7 +191,8 @@ func bench(i: int) -> void:
 		benched.append(i)
 
 
-## Rola a mão. foe_last: últimos valores do adversário (Mercúrio). Metalurgista
+## Rola a mão. foe_last: últimos valores do adversário (Mercúrio). O Carbono soma a
+## cadeia antes do Mercúrio copiar o maior valor. Metalurgista
 ## (Peso Morto): cada Chumbo que sai com 1 puxa mais um dado. Retorna quantos puxou.
 func roll_hand(rng: RandomNumberGenerator, foe_last: Array) -> int:
 	for e in hand:
@@ -210,6 +211,11 @@ func roll_hand(rng: RandomNumberGenerator, foe_last: Array) -> int:
 			_roll_entry(x, rng)
 			hand.append(x)
 			pulled += 1
+	var chain := Elements.chain_bonus(self)
+	if chain > 0:
+		for e in hand:
+			if die_of(e).element == "C" and not e.get("fixed", false):
+				e.value = int(e.value) + chain
 	var top := 0
 	for e in hand:
 		if die_of(e).element != "Hg":

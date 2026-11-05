@@ -307,6 +307,10 @@
   "Am": [
    "Amianto",
    "Fibroso: +3 em todas as faces (4 a 9). Ao ser usado, causa 3 de dano em você."
+  ],
+  "C": [
+   "Carbono",
+   "Cadeia: +2 para cada outro Carbono na mão."
   ]
  },
  "masters": {
@@ -577,6 +581,7 @@
   "fx_asbestos": "Amianto −{n}",
   "fx_el_H": "Hidrogênio ×3 = {v}",
   "fx_el_Hg": "Mercúrio copiou {v}",
+  "fx_el_C": "Carbono em cadeia = {v}",
   "fx_el_Na": "Sódio: queima {n}",
   "fx_el_U": "Urânio: veneno {n}",
   "fx_dead_weight": "Peso Morto: +{n} dado(s)",
@@ -628,6 +633,7 @@
   "asbestos": "Amianto: {who} perde {n}",
   "el_H": "Hidrogênio: {who} rola ×3 ({v})",
   "el_Hg": "Mercúrio: {who} copia o valor {v}",
+  "el_C": "Carbono: {who} encadeia e rola {v}",
   "dead_weight": "Peso Morto: {who} puxa mais {n} dado(s)",
   "copy": "Inspiração: {who} copia {name} nesta luta",
   "copy_none": "Inspiração: nada do outro cabe nas casas livres de {who}",

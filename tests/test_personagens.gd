@@ -267,6 +267,17 @@ func test_aviso_de_elemento():
 	assert_true(ev.any(func(e): return e.t == "element" and e.el == "H"))
 
 
+func test_aviso_do_carbono_em_cadeia():
+	var f := H.fighter("A", [])
+	f.bag[0] = Die.with_element("C")
+	f.bag[1] = Die.with_element("C")
+	f.hand_size = 8
+	f.reset_fight_state()
+	var ev := []
+	Resolver.draw_and_roll(f, H.fighter("B", []), H.rng(), ev)
+	assert_true(ev.any(func(e): return e.t == "element" and e.el == "C"))
+
+
 # ------------------------------------------------------------------ Raridade
 func test_todas_as_magias_tem_raridade():
 	for id in Spells.DATA:

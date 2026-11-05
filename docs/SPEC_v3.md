@@ -98,7 +98,7 @@ Cada dado pode ter **um** elemento, além de qualquer número de adesivos. O efe
 |---|---|
 | **Hidrogênio** | Solitário: vale ×3 se a bolsa tiver 8 dados ou menos. |
 | **Nitrogênio** | Multidão: +1 em cada face para cada 4 dados na bolsa. |
-| **Carbono** | Cadeia: +1 para cada outro Carbono na bolsa. |
+| **Carbono** | Cadeia: +2 para cada outro Carbono **na mão** (2 na mão: +2 em cada; 3: +4; 5: +8). Comum. |
 | **Ósmio** | Âncora: sai **em toda mão** (ocupa uma vaga); não pode ser roubado nem arrancado. |
 | **Amianto** | Fibroso: +3 em todas as faces (4 a 9); ao ser usado, causa 3 de dano em quem usa (não é golpe). |
 | **Oganessônio** | Faces enormes; desintegra (sai da bolsa) após 1 uso. |

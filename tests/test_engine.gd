@@ -34,6 +34,38 @@ func test_hidrogenio_triplica_com_bolsa_pequena():
 	assert_eq(f.hand[0].value, int(f.hand[0].face) + 1, "9 dados: sem bônus")
 
 
+func test_carbono_soma_a_cadeia_da_mao():
+	var f := H.fighter("a", ["faisca"])
+	for i in 3:
+		f.bag[i] = Die.with_element("C")
+	f.reset_fight_state()
+	f.draw_pile = [0, 1, 2, 3]
+	f.hand_size = 4
+	f.draw_hand(H.rng())
+	f.roll_hand(H.rng(), [])
+	for e in f.hand:
+		var bonus := 2 * Elements.CHAIN_STEP if f.die_of(e).element == "C" else 0
+		assert_eq(int(e.value), int(e.face) + 1 + bonus, "3 Carbonos: +2 por outro em cada")
+
+
+func test_carbono_sozinho_nao_ganha_nada():
+	var f := H.fighter("a", ["faisca"])
+	f.bag[0] = Die.with_element("C")
+	f.reset_fight_state()
+	f.draw_pile = [0, 1]
+	f.hand_size = 2
+	f.draw_hand(H.rng())
+	f.roll_hand(H.rng(), [])
+	for e in f.hand:
+		assert_eq(int(e.value), int(e.face) + 1)
+
+
+func test_carbono_na_loja_e_com_texto():
+	assert_true("C" in Elements.SHOP)
+	assert_eq(Elements.rarity("C"), "common")
+	assert_eq(Texts.element_name("C"), "Carbono")
+
+
 func test_osmio_sai_na_primeira_mao():
 	var f := H.fighter("a", ["faisca"])
 	f.bag[7] = Die.with_element("Os")

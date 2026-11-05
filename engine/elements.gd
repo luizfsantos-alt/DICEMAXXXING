@@ -3,11 +3,11 @@ extends RefCounted
 ## Elementos e substâncias (docs/SPEC_v3.md §4.1, docs/PERSONAGENS.md §3.2 e §5).
 ## Química é tempero: cada um tem um efeito de uma linha.
 
-const ALL := ["H", "Os", "U", "Na", "Hg", "Pb", "Am"]
-const SHOP := ["H", "Os", "U", "Na", "Hg", "Am"] ## Chumbo só vem dos inimigos (e do Metalurgista).
+const ALL := ["H", "Os", "U", "Na", "Hg", "Pb", "Am", "C"]
+const SHOP := ["H", "Os", "U", "Na", "Hg", "Am", "C"] ## Chumbo só vem dos inimigos (e do Metalurgista).
 ## Raridade (docs/RARIDADE.md §4). O Chumbo fica fora: para o Metalurgista, conta como Comum.
 const RARITY := {
-	"common": ["Na", "Am"],
+	"common": ["Na", "Am", "C"],
 	"uncommon": ["U", "Hg"],
 	"rare": ["H", "Os"],
 }
@@ -20,6 +20,7 @@ const COLORS := {
 	"Hg": Color(0.82, 0.84, 0.9),
 	"Pb": Color(0.42, 0.42, 0.48),
 	"Am": Color(0.85, 0.82, 0.62),
+	"C": Color(0.24, 0.23, 0.22), ## Grafite.
 }
 const SOLITARY_BAG := 8 ## Hidrogênio: ×3 com bolsa deste tamanho ou menor.
 const SOLITARY_MULT := 3
@@ -27,6 +28,7 @@ const SOLITARY_MULT := 3
 static var solitary_bag := SOLITARY_BAG
 static var solitary_mult := SOLITARY_MULT
 const ASBESTOS_PLUS := 3 ## Amianto: +3 em todas as faces.
+const CHAIN_STEP := 2 ## Carbono: + isto para cada outro Carbono na mão.
 
 
 static func apply(d: Die, el: String) -> void:
@@ -60,3 +62,13 @@ static func rarity(el: String) -> String:
 ## Hidrogênio ligado: vale ×solitary_mult com a bolsa de solitary_bag dados ou menos.
 static func solitary(f: Fighter, d: Die) -> bool:
 	return d != null and d.element == "H" and f.bag.size() <= solitary_bag
+
+
+## Carbono (Cadeia): bônus de cada Carbono da mão, + CHAIN_STEP por outro Carbono nela.
+static func chain_bonus(f: Fighter) -> int:
+	var n := 0
+	for e in f.hand:
+		var d := f.die_of(e)
+		if d != null and d.element == "C":
+			n += 1
+	return maxi(0, n - 1) * CHAIN_STEP

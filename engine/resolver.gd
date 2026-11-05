@@ -79,14 +79,17 @@ static func hand_dice(f: Fighter) -> Dictionary:
 	return out
 
 
-## Elementos que mudaram o valor ao rolar (Hidrogênio ×3, Mercúrio copiou).
+## Elementos que mudaram o valor ao rolar (Hidrogênio ×3, Carbono em cadeia, Mercúrio copiou).
 static func _announce_elements(f: Fighter, ev: Array) -> void:
+	var chain := Elements.chain_bonus(f)
 	for e in f.hand:
 		var d := f.die_of(e)
 		if d == null or e.get("fixed", false):
 			continue
 		if Elements.solitary(f, d):
 			ev.append({"t": "element", "side": side(f), "el": "H", "v": int(e.value)})
+		elif d.element == "C" and chain > 0:
+			ev.append({"t": "element", "side": side(f), "el": "C", "v": int(e.value)})
 		elif d.element == "Hg" and int(e.value) > d.value(int(e.face)):
 			ev.append({"t": "element", "side": side(f), "el": "Hg", "v": int(e.value)})
 
