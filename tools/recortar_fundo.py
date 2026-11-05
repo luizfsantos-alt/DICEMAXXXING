@@ -72,6 +72,47 @@ def checker_colors(border):
     return [tuple(v + 4 for v in c) for c in top]
 
 
+def despill(px, w, h, gone, key, reach=4):
+    """Tira o tom da chave que vazou nos pixels perto do recorte (franja roxa do magenta).
+
+    Só mexe até `reach` pixels do recorte, e só nos canais que a chave tem: no magenta,
+    o que vermelho e azul passam do verde volta para o nível do verde.
+    """
+    dist = [0] * (w * h)
+    q = deque()
+    for i in range(w * h):
+        if gone[i]:
+            q.append(i)
+    while q:
+        i = q.popleft()
+        d = dist[i]
+        if d >= reach:
+            continue
+        x, y = i % w, i // w
+        for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+            if 0 <= nx < w and 0 <= ny < h:
+                j = ny * w + nx
+                if not gone[j] and dist[j] == 0:
+                    dist[j] = d + 1
+                    q.append(j)
+    on = [c > 127 for c in key]
+    for i in range(w * h):
+        if gone[i] or dist[i] == 0:
+            continue
+        x, y = i % w, i // w
+        p = list(px[x, y])
+        hi = [p[c] for c in range(3) if on[c]]
+        lo = [p[c] for c in range(3) if not on[c]]
+        if not hi or not lo:
+            continue
+        spill = min(hi) - max(lo)
+        if spill > 0:
+            for c in range(3):
+                if on[c]:
+                    p[c] -= spill
+            px[x, y] = tuple(p)
+
+
 def recortar(img, key="auto", tol=None, trim=True, size=None):
     img = img.convert("RGBA")
     w, h = img.size
@@ -132,6 +173,7 @@ def recortar(img, key="auto", tol=None, trim=True, size=None):
                         break
         for i in fringe:
             gone[i] = 1
+        despill(px, w, h, gone, colors[0])
     for y in range(h):
         for x in range(w):
             if gone[y * w + x]:

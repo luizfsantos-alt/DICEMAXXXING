@@ -18,7 +18,7 @@ const VARIATIONS := 3
 const BG := Color(0.0, 0.0, 0.0) ## Igual ao fundo da arte, para emendar.
 const FRAMES := {true: "frame_player.png", false: "frame_enemy.png"}
 ## Bordas da moldura que não esticam (esq., cima, dir., baixo), em pixels da textura.
-const FRAME_MARGINS := [10, 6, 10, 32]
+const FRAME_MARGINS := [22, 22, 22, 24]
 const INSET := 3.0 ## A arte começa no meio da borda da moldura (nada passa para fora).
 const CHAMFER := 6.0 ## Cantos chanfrados da moldura.
 const FACE_X := 0.45 ## Ponto da arte (fração da largura) que fica no centro da foto.
