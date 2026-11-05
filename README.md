@@ -49,3 +49,23 @@ Cada push roda o workflow `CI` no GitHub Actions: testes, simulação e um APK d
 pré-lançamento por branch, mais fácil de baixar pelo celular:
 `https://github.com/luizfsantos-alt/DICEMAXXXING/releases/download/apk-<branch com / trocado por ->/dicemaxxing.apk`.
 Instale o `.apk` no celular (é preciso permitir "instalar apps desconhecidos").
+
+### Releases e atualização sem perder o save
+
+- Todo APK (branch e tag) é assinado com a mesma chave, vinda dos secrets
+  `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD` e `ANDROID_KEY_ALIAS`. Assinatura
+  igual + `version/code` maior (o número do run do CI) = o Android instala por cima e o save fica.
+  Sem os secrets, branches saem com chave descartável e tags falham.
+- Push de uma tag `v1.2.3` gera um APK de release e o release `v1.2.3` no GitHub. A versão
+  (`version/name` e `application/config/version`) vem da tag. Tag com sufixo (`v1.2.3-beta`)
+  sai como pré-lançamento.
+- Ao abrir, o jogo exportado consulta `/releases/latest` e, se houver versão mais nova, mostra
+  "Nova versão disponível" no menu com um botão para baixar o APK. Sem internet, nada aparece.
+
+Gerar a chave (uma vez; guarde o arquivo e a senha fora do repositório):
+
+```sh
+keytool -genkeypair -v -keystore dicemaxxing.keystore -alias dicemaxxing \
+  -keyalg RSA -keysize 4096 -validity 36500 -storetype PKCS12
+base64 -w0 dicemaxxing.keystore > keystore.b64   # macOS: base64 -i dicemaxxing.keystore
+```

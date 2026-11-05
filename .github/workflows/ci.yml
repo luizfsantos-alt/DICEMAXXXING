@@ -46,10 +46,10 @@ jobs:
           path: simulation.txt
 
   android:
-    name: APK de debug
+    name: APK
     needs: test
     permissions:
-      contents: write ## Publicar o pré-lançamento com o APK.
+      contents: write ## Publicar o pré-lançamento da branch e o release da tag.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -76,23 +76,76 @@ jobs:
           mkdir -p "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
           mv templates/* "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable/"
 
-      - name: Keystore de debug
+      # version/code = número do run (sobe a cada build; o Android não instala código menor).
+      # Tag v1.2.3: version/name e application/config/version viram 1.2.3 e o APK sai em release.
+      # Branch: mantém a versão do project.godot e sai em debug.
+      - name: Versão
         run: |
-          keytool -genkeypair -v -keystore "$RUNNER_TEMP/debug.keystore" -storepass android \
-            -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 \
-            -dname "CN=Android Debug,O=Android,C=US"
+          CODE="$GITHUB_RUN_NUMBER"
+          if [ "$GITHUB_REF_TYPE" = tag ] && [[ "$GITHUB_REF_NAME" == v* ]]; then
+            NAME="${GITHUB_REF_NAME#v}"
+            if ! [[ "$NAME" =~ ^[0-9]+(\.[0-9]+)*(-[0-9A-Za-z.]+)?$ ]]; then
+              echo "Tag fora do formato v1.2.3: $GITHUB_REF_NAME"; exit 1
+            fi
+            MODE=release
+            sed -i "s/^config\/version=.*/config\/version=\"$NAME\"/" project.godot
+          else
+            NAME=$(sed -n 's/^config\/version="\(.*\)"/\1/p' project.godot)
+            MODE=debug
+          fi
+          sed -i "s/^version\/code=.*/version\/code=$CODE/; s/^version\/name=.*/version\/name=\"$NAME\"/" export_presets.cfg
+          grep -E "^config/version" project.godot
+          grep -E "^version/(code|name)" export_presets.cfg
+          echo "APK_MODE=$MODE" >> "$GITHUB_ENV"
+          echo "APK_VERSION=$NAME" >> "$GITHUB_ENV"
+
+      # Chave fixa dos secrets: todo APK sai com a mesma assinatura e instala por cima do
+      # anterior (o save fica). Sem os secrets (ex.: PR de fork), branches usam uma chave
+      # descartável e a tag falha.
+      - name: Keystore
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KS_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          KS="$RUNNER_TEMP/app.keystore"
+          if [ -n "$KS_B64" ] && [ -n "$KS_PASS" ] && [ -n "$KS_ALIAS" ]; then
+            echo "$KS_B64" | base64 -d > "$KS"
+            keytool -list -keystore "$KS" -storepass "$KS_PASS" -alias "$KS_ALIAS" > /dev/null
+          elif [ "$APK_MODE" = release ]; then
+            echo "::error::Faltam os secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD e ANDROID_KEY_ALIAS."
+            exit 1
+          else
+            echo "::warning::Sem os secrets da keystore: APK com chave descartável (não instala por cima)."
+            KS_PASS=android
+            KS_ALIAS=androiddebugkey
+            keytool -genkeypair -keystore "$KS" -storepass "$KS_PASS" -alias "$KS_ALIAS" \
+              -keypass "$KS_PASS" -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+          echo "::add-mask::$KS_PASS"
+          {
+            echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$KS"
+            echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=$KS_ALIAS"
+            echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=$KS_PASS"
+            echo "GODOT_ANDROID_KEYSTORE_RELEASE_PATH=$KS"
+            echo "GODOT_ANDROID_KEYSTORE_RELEASE_USER=$KS_ALIAS"
+            echo "GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=$KS_PASS"
+          } >> "$GITHUB_ENV"
 
       - name: Exportar APK
-        env:
-          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: ${{ runner.temp }}/debug.keystore
-          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
-          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
           godot --headless --import
           mkdir -p build
-          godot --headless --export-debug "Android" build/dicemaxxing.apk
+          godot --headless --export-$APK_MODE "Android" build/dicemaxxing.apk
           ls -la build
           unzip -l build/dicemaxxing.apk | grep -E "texts_pt_br|\.pck" || (echo "Textos não exportados"; exit 1)
+          APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | tail -1)
+          "$APKSIGNER" verify --print-certs build/dicemaxxing.apk | grep -E "SHA-256|DN"
+
+      - name: Apagar a keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/app.keystore"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -104,7 +157,7 @@ jobs:
       # vai solto num pré-lançamento por branch (substituído a cada push), com link fixo:
       # releases/download/apk-<branch>/dicemaxxing.apk
       - name: Publicar APK solto (pré-lançamento da branch)
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && github.ref_type == 'branch'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -114,3 +167,20 @@ jobs:
             --title "APK de debug · $GITHUB_REF_NAME" \
             --notes "APK de debug do commit $GITHUB_SHA (branch $GITHUB_REF_NAME), gerado pelo CI."
           echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/dicemaxxing.apk"
+
+      # Tag v*: release de verdade (não é pré-lançamento), que o jogo acha em /releases/latest
+      # e oferece no aviso de "Nova versão disponível".
+      - name: Publicar release da tag
+        if: github.event_name == 'push' && github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" build/dicemaxxing.apk --clobber ## Re-run do mesmo job.
+          else
+            PRE=""
+            [[ "$APK_VERSION" == *-* ]] && PRE="--prerelease" ## v1.0.0-beta não vira o "latest".
+            gh release create "$GITHUB_REF_NAME" build/dicemaxxing.apk --verify-tag $PRE \
+              --title "DICEMAXXING $APK_VERSION" --generate-notes
+          fi
+          echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME/dicemaxxing.apk"
