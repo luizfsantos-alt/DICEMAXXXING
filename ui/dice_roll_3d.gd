@@ -1,0 +1,187 @@
+class_name DiceRoll3D
+extends SubViewportContainer
+## Rolagem 3D por cima do palco: os dados entram pela direita (do lado da coluna de
+## dados), quicam, batem uns nos outros e param no valor sorteado (DicePhysics).
+## Fundo transparente; não pega toques (o "tocar acelera" da tela de duelo continua).
+##
+## dice: Array de {value, element, faces (6 valores), face (índice que saiu), fixed}.
+
+signal done
+
+const VIEW := 8.5 ## Altura visível do chão, em arestas de dado.
+const TILT := 22.0 ## Inclinação da câmera (graus a partir da vertical).
+const HOLD := 0.45 ## Tempo parado mostrando o resultado.
+
+const FPS := 60.0 ## Quadros gravados por segundo (DicePhysics grava a cada 2 passos).
+
+var skip := false ## Pular para o fim.
+var skip_check: Callable ## Consultado a cada quadro: true pula para o fim (toque na tela).
+var _frames: Array = []
+var _t := 0.0
+var _hold := 0.0
+var vp: SubViewport
+var world: Node3D
+var _dice: Array = [] ## MeshInstance3D
+var _shadows: Array = [] ## MeshInstance3D
+
+
+func setup(px: Vector2) -> DiceRoll3D:
+	set_process(false)
+	stretch = true
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	size = px
+	vp = SubViewport.new()
+	vp.transparent_bg = true
+	vp.own_world_3d = true
+	vp.msaa_3d = Viewport.MSAA_4X
+	vp.size = Vector2i(px)
+	add_child(vp)
+	world = Node3D.new()
+	vp.add_child(world)
+	var cam := Camera3D.new()
+	cam.projection = Camera3D.PROJECTION_ORTHOGONAL
+	cam.size = VIEW
+	var t := deg_to_rad(TILT)
+	var env := Environment.new()
+	env.background_mode = Environment.BG_CLEAR_COLOR
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color(0.85, 0.82, 0.95)
+	env.ambient_light_energy = 0.55
+	cam.environment = env
+	world.add_child(cam)
+	cam.look_at_from_position(Vector3(0, 30 * cos(t), 30 * sin(t)), Vector3.ZERO, Vector3.FORWARD)
+	var sun := DirectionalLight3D.new()
+	sun.light_energy = 1.25
+	world.add_child(sun)
+	# Luz de cima, vinda do alto à esquerda (a mesma das faces 2D).
+	sun.look_at_from_position(Vector3(-4, 10, -3), Vector3.ZERO, Vector3.UP)
+	var fill := DirectionalLight3D.new()
+	fill.light_energy = 0.25
+	world.add_child(fill)
+	fill.look_at_from_position(Vector3(5, 4, 6), Vector3.ZERO, Vector3.UP)
+	return self
+
+
+## Meia largura e meia profundidade da caixa invisível (as bordas da área).
+func arena() -> Vector2:
+	var aspect := size.x / maxf(1.0, size.y)
+	var depth := VIEW / cos(deg_to_rad(TILT))
+	return Vector2(VIEW * aspect * 0.5 - 0.65, depth * 0.5 - 1.0)
+
+
+## Simula e toca a rolagem. Retorna quando os dados param (e somem).
+func roll(dice: Array, rng: RandomNumberGenerator = null) -> void:
+	if rng == null:
+		rng = RandomNumberGenerator.new()
+		rng.randomize()
+	var sim := plan(dice, arena(), rng)
+	_build_nodes(dice, sim)
+	await _play(sim)
+
+
+## Física e rótulos (sem nós; testável). Devolve o DicePhysics já rodado.
+static func plan(dice: Array, half: Vector2, rng: RandomNumberGenerator) -> DicePhysics:
+	var sim := DicePhysics.new()
+	sim.half = half
+	var n := dice.size()
+	var still := 0
+	for i in n:
+		var d: Dictionary = dice[i]
+		var lane := lerpf(-half.y + 0.7, half.y - 0.7, (i + 0.5) / maxf(1.0, n))
+		if bool(d.get("fixed", false)):
+			# Dado marcado: já está parado, no canto esquerdo.
+			sim.add_still(Vector3(-half.x + 0.7 + (still / 4) * 1.3, DicePhysics.H, -half.y + 0.7 + (still % 4) * 1.3))
+			still += 1
+			continue
+		var p := Vector3(half.x - 0.7 - (i % 2) * 1.3, 1.6 + rng.randf() * 1.2, lane)
+		var v := Vector3(-rng.randf_range(9.0, 13.0), rng.randf_range(1.0, 4.0), rng.randf_range(-2.5, 2.5))
+		var axis := Vector3(rng.randf_range(-1, 1), rng.randf_range(-1, 1), rng.randf_range(-1, 1))
+		if axis.length() < 0.1:
+			axis = Vector3.FORWARD
+		var q := Quaternion(axis.normalized(), rng.randf_range(0, TAU))
+		var w := Vector3(rng.randf_range(-1, 1), rng.randf_range(-0.4, 0.4), rng.randf_range(-1, 1)).normalized() * rng.randf_range(14.0, 24.0)
+		sim.add_thrown(p, v, q, w)
+	sim.run()
+	return sim
+
+
+## Valores de cada face local do dado i, com o sorteado na face que ficou para cima.
+static func face_labels(sim: DicePhysics, i: int, d: Dictionary) -> Array:
+	return Dice3D.labels(sim.up_face(i), int(d.value), d.get("faces", []), int(d.get("face", 0)))
+
+
+func _build_nodes(dice: Array, sim: DicePhysics) -> void:
+	for c in _dice + _shadows:
+		c.queue_free()
+	_dice = []
+	_shadows = []
+	var shadow_mesh := QuadMesh.new()
+	shadow_mesh.size = Vector2(1.5, 1.5)
+	shadow_mesh.orientation = PlaneMesh.FACE_Y
+	var sm := StandardMaterial3D.new()
+	sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	var g := GradientTexture2D.new()
+	g.fill = GradientTexture2D.FILL_RADIAL
+	g.fill_from = Vector2(0.5, 0.5)
+	g.fill_to = Vector2(1.0, 0.5)
+	var grad := Gradient.new()
+	grad.set_color(0, Color(0, 0, 0, 0.5))
+	grad.set_color(1, Color(0, 0, 0, 0))
+	g.gradient = grad
+	sm.albedo_texture = g
+	shadow_mesh.material = sm
+	for i in dice.size():
+		var d: Dictionary = dice[i]
+		var el := str(d.get("element", ""))
+		var mi := MeshInstance3D.new()
+		mi.mesh = Dice3D.mesh()
+		var labels := face_labels(sim, i, d)
+		for k in 6:
+			mi.set_surface_override_material(k, Dice3D.material(int(labels[k]), el))
+		world.add_child(mi)
+		_dice.append(mi)
+		var sh := MeshInstance3D.new()
+		sh.mesh = shadow_mesh
+		world.add_child(sh)
+		_shadows.append(sh)
+
+
+func _show_frame(fr: Array) -> void:
+	for i in _dice.size():
+		var p: Vector3 = fr[i][0]
+		var q: Quaternion = fr[i][1]
+		_dice[i].transform = Transform3D(Basis(q), p)
+		var hgt := maxf(0.0, p.y - DicePhysics.H)
+		_shadows[i].position = Vector3(p.x + hgt * 0.25, 0.01, p.z + hgt * 0.2)
+		var s := 1.0 + hgt * 0.25
+		_shadows[i].scale = Vector3(s, 1, s)
+
+
+func _play(sim: DicePhysics) -> void:
+	_frames = sim.frames
+	_t = 0.0
+	_hold = HOLD
+	_show_frame(_frames[0])
+	set_process(true)
+	await done
+
+
+## Toca a gravação quadro a quadro e segura o resultado; depois emite done.
+func _process(delta: float) -> void:
+	if _frames.is_empty():
+		set_process(false)
+		return
+	if skip_check.is_valid() and skip_check.call():
+		skip = true
+	var last := _frames.size() - 1
+	var k := last if skip else mini(int(_t * FPS), last)
+	_show_frame(_frames[k])
+	_t += delta
+	if k < last:
+		return
+	_hold -= delta
+	if _hold <= 0.0 or skip:
+		_frames = []
+		set_process(false)
+		done.emit()

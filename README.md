@@ -11,6 +11,11 @@ Tela em paisagem.
 - Histórico: [`docs/SPEC.md`](docs/SPEC.md) (v2, coliseu com equipamentos; substituída).
 - Motor de regras (sem cenas, testável): `engine/`.
 - Interface (placeholders, paisagem): `ui/`. A tela de duelo anima os eventos do motor.
+- Dados: as mãos rolam em 3D por cima do palco (`ui/dice_roll_3d.gd`, física própria em
+  `ui/dice_physics.gd`, malha e texturas geradas em código em `ui/dice_3d.gd`). Faces de 1 a 6
+  com pontinhos, valores maiores com algarismos, tudo em baixo relevo; o 2D segue a mesma regra
+  (`ui/die_face.gd`). Tocar na tela pula a rolagem.
+- Logo provisório: `assets/logo.png` (também é o ícone do app, `assets/icon.png`).
 - Textos PT-BR: `data/texts_pt_br.json`. Tom (duelo de egos entre magos): [`docs/TOM.md`](docs/TOM.md).
 - Testes (GUT): `tests/`.
 - Simulador de balanceamento: `sim/simulate.gd`.
@@ -22,6 +27,7 @@ godot --headless --import
 godot --headless -s addons/gut/gut_cmdln.gd -gexit                 # testes
 godot --headless -s res://sim/check.gd                              # scripts sem erro
 godot --headless -s res://sim/simulate.gd -- --runs=1000 --door=normal --char=all --spells   # simulação
+xvfb-run godot -s res://sim/shot_duel.gd -- --out=/tmp   # capturas: menu e rolagem 3D (precisa de vídeo)
 ```
 
 ## APK

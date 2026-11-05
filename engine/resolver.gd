@@ -58,10 +58,25 @@ static func draw_and_roll(f: Fighter, foe: Fighter, rng: RandomNumberGenerator, 
 		ev.append({"t": "dead_weight", "side": side(f), "n": pulled})
 	_announce_elements(f, ev)
 	apply_hand_mods(f, foe, ev)
-	var els := []
+	var info := hand_dice(f)
+	ev.append({"t": "hand", "side": side(f), "values": f.hand_values(), "elements": info.elements,
+		"faces": info.faces, "face": info.face, "fixed": info.fixed})
+
+
+## Dados da mão para a interface (rolagem 3D): elemento, as seis faces de cada dado, a
+## face que saiu e se estava marcado (não rolou).
+static func hand_dice(f: Fighter) -> Dictionary:
+	var out := {"elements": [], "faces": [], "face": [], "fixed": []}
 	for e in f.hand:
-		els.append(f.die_of(e).element)
-	ev.append({"t": "hand", "side": side(f), "values": f.hand_values(), "elements": els})
+		var d := f.die_of(e)
+		out.elements.append(d.element)
+		var fs := []
+		for k in 6:
+			fs.append(d.value(k))
+		out.faces.append(fs)
+		out.face.append(int(e.face))
+		out.fixed.append(bool(e.get("fixed", false)))
+	return out
 
 
 ## Elementos que mudaram o valor ao rolar (Hidrogênio ×3, Mercúrio copiou).
