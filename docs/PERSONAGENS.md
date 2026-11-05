@@ -92,7 +92,7 @@ Para comparar: o **Feiticeiro** tem 90 de vida, mão de 5 e causa uns **6 a 8 de
 | **Metalurgista** | Esteira **5×2** (10 casas) | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado da bolsa para a mão. A Loja e o Poço vendem Chumbo para você. | 100 | 5 | 8 dados: 5 comuns + 3 Chumbo | Levantar Peso (nível 2), Estocada |
 | **Copista** | Grade **4×2** (8 casas) | **Inspiração**: no início de cada luta, uma magia aleatória do inimigo que caiba nas suas casas livres é copiada nelas, no mesmo nível, até o fim da luta. | 80 | 5 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
 | **Perfeccionista** | **Moldura 4×3** sem as 2 casas do meio (10 casas) | **Ainda Não Está Bom**: no fim do turno, até 2 dados que sobraram na mão ficam marcados. Você pode ter 2 marcas. | 80 | 5 | 7 comuns + 1 Ósmio | **Dardo Arcano** (nova), **Obra-Prima** (nova) |
-| **Vampiro** | **Caixão 2×4** (2 de largura, 4 de altura) | **Sede**: a cura que passaria da vida máxima vira vida máxima, para sempre (até 5 por luta). Queima causa o dobro de dano em você. | **60** | 5 | 7 comuns + 1 Sódio | **Mordida** (nova), **Banquete** (nova) |
+| **Vampiro** | **Caixão 2×4** (2 de largura, 4 de altura) | **Sede**: toda cura que você recebe também dá +1 de vida máxima, para sempre (até 3 por luta). Queima causa o dobro de dano em você. | **65** | 5 | 7 comuns + 1 Sódio | **Mordida** (nova), **Banquete** (nova) |
 | **Bárbaro** | Grade **3×3** (9 casas) | **Fúria**: com metade da vida ou menos, toda magia de dano causa +1 por golpe para cada 10 de vida que você perdeu. | **110** | 5 | 6 comuns + 2 **Amianto** (novo) | **Machadada** (nova), **Cerrar os Dentes** (nova) |
 
 ### 1.1 Formatos
@@ -150,9 +150,9 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro   Bárbaro
 
 ### 2.5 Vampiro: "Não bebo sangue. Recebo homenagens."
 
-- **Plano:** começa com pouca vida (60) e se mantém de pé batendo. A **Mordida** (nova) causa dano = valor e cura metade. O **Banquete** (novo) pede 3 dados, causa dano = soma e cura o menor dado. A passiva transforma a cura que sobra em **vida máxima**: quanto mais cheio ele entra na luta, mais cresce.
+- **Plano:** começa com pouca vida (65) e se mantém de pé batendo. A **Mordida** (nova) causa dano = valor e cura metade. O **Banquete** (novo) pede 3 dados, causa dano = soma e cura o menor dado. A passiva dá **+1 de vida máxima a cada cura**: quanto mais ele se cura, mais cresce.
 - **Por que se vira:** Mordida com o melhor dado (~5) + Banquete com os 3 seguintes (~11): **~16 de dano e ~5 de cura por turno**. O inimigo do andar 1 cai em 2 turnos, e o Vampiro sai quase com a vida com que entrou.
-- **Como cresce:** a vida máxima sobe até 5 por luta (até +50 numa fatia de 10 andares), sem comprar vida na Loja. O Remendo e a Transfusão rendem mais nele: o Remendo com vida cheia vira vida máxima.
+- **Como cresce:** a vida máxima sobe até 3 por luta (até +30 numa fatia de 10 andares), sem comprar vida na Loja. Toda cura conta, então Mordida e Banquete no mesmo turno já valem 2; o Remendo e a parada de Cura também contam.
 - **Inventário:** o Caixão é estreito e alto. Cabem 1×1, 1×2, 2×1, 2×2, Retas 3 e 4 em pé e L de 3 e de 4; não cabem T, Cruz nem a Diagonal de 3.
 - **Elemento:** o Sódio inicial queima o inimigo quando usado. Ele odeia fogo, mas adora pôr fogo nos outros.
 - **Ponto fraco:** a vida baixa, e a **queima em dobro**: o Piromante, a Bola de Fogo e o Sódio são o pesadelo dele. A Interrupção Rude e a Rasteira cortam o Banquete. A cura só vem com dano, então quando a mão é ruim, ele não se recupera.
@@ -205,7 +205,7 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro   Bárbaro
 | **Chumbo à venda** | Metalurgista | A Loja oferece "dado de Chumbo" e o Poço oferece "aplicar Chumbo". Só para ele. |
 | **Cópia nas casas livres** | Copista | A cópia ocupa casas livres do inventário até o fim da luta. Ela não pode ser vendida, evoluída nem movida; o resto do grimório não se mexe para abrir espaço. |
 | **Fúria** | Bárbaro | Liga com a vida em metade da máxima ou menos, e desliga se a cura passar disso. "+1 por golpe": cada golpe de uma magia de vários golpes ganha o bônus (como o Sacrifício). Conta no momento do golpe. |
-| **Cura vira vida máxima** | Vampiro | A cura que passaria do máximo aumenta a vida máxima, até 5 por luta. Vale para toda cura dele (Mordida, Banquete, Remendo, a parada de Cura). |
+| **Cura vira vida máxima** | Vampiro | Cada cura que ele recebe (maior que zero) dá +1 de vida máxima e +1 de vida, até 3 por luta. Vale para toda cura dele (Mordida, Banquete, Remendo, a parada de Cura). |
 | **Duas marcas** | Perfeccionista | Exceção à regra "uma marca por vez" do catálogo (§2.3): ele pode ter 2. Uma marca nova substitui a mais antiga. |
 | **Escolher dados no fim do turno** | Perfeccionista | Antes de "Terminar turno", tocar em até 2 dados livres da mão para marcá-los. |
 
@@ -316,7 +316,7 @@ Código: `engine/characters.gd` (kits e passivas), `engine/resolver.gd` (Fúria,
 - **Jogáveis:** Minimalista, Vampiro e Bárbaro, os 3 com passiva automática (nenhuma interação nova na tela). Para liberar outro, basta incluir o id em `Characters.PLAYABLE`; o Perfeccionista ainda precisa da tela para escolher os dados guardados.
 - **Inimigos:** o arquétipo é sorteado entre os 8, com a mesma chance. Variantes (20%): Lixeiro (Assassino), Piromante (Feiticeiro), Fundidor (Metalurgista) e Monge do Silêncio (Minimalista, a partir do andar 5).
 - **Fúria:** calculada em cada golpe, com a vida daquele momento.
-- **Sede:** o limite de 5 volta a zero em cada luta e na parada de Cura.
+- **Sede:** o limite de 3 volta a zero em cada luta e na parada de Cura.
 - **Peso Morto:** os dados puxados também podem puxar (um Chumbo puxado que sai com 1 puxa outro).
 - **Copista:** os dois lados copiam no começo da luta (o jogador primeiro). Só copia peças originais, nunca a cópia do outro. A cópia aparece no cartão com a etiqueta CÓPIA.
 - **Perfeccionista:** os dados guardados e a marca das magias somam no máximo 2. A IA guarda os dois valores mais repetidos.
@@ -339,3 +339,17 @@ Código: `engine/characters.gd` (kits e passivas), `engine/resolver.gd` (Fúria,
 | Assassino | 0% | 0% | 0% |
 
 O bot não sabe usar bem o espaço livre do Copista nem o trio do Perfeccionista, então esses números subestimam os dois. O Vampiro é o mais fraco dos jogáveis; o Bárbaro, o mais forte.
+
+#### Rebalanceamento do Vampiro
+
+O Vampiro estava bem abaixo dos outros jogáveis (6% na porta normal): a Sede antiga só convertia a cura que passava do máximo, e ele quase nunca se curava com a vida cheia. Tentativas no CI (500 jornadas, porta normal, `--seed=1`, % que vence o andar 10):
+
+| Versão | Vampiro |
+|---|---|
+| Original (Sede: cura que sobra, até 5; Mordida cura metade; 60 de vida) | 6% |
+| Sede +1 por cura até 8; Mordida cura o dano inteiro; 70 de vida | 37% |
+| Sede +1 por cura até 8; Mordida cura metade; 70 de vida | 25% |
+| Sede +1 por cura até 4; Mordida cura metade; 65 de vida | 17% |
+| **Sede +1 por cura até 3; Mordida cura metade; 65 de vida (atual)** | **13%** |
+
+Na mesma rodada: Bárbaro 16%, Feiticeiro 14%, Minimalista 5%.

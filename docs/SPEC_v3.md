@@ -68,7 +68,7 @@ Escolhidos no início. O **formato do inventário** é a identidade; cada person
 | **Metalurgista** | Esteira **5×2** | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado. Loja e Poço vendem Chumbo. | 100 | 5 | 5 comuns + 3 Chumbo | Levantar Peso (nv 2), Estocada |
 | **Copista** | Grade **4×2** | **Inspiração**: no início da luta, copia uma magia aleatória do inimigo que caiba nas casas livres. | 80 | 5 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
 | **Perfeccionista** | **Moldura 4×3** sem o meio | **Ainda Não Está Bom**: guarda até 2 sobras no fim do turno; pode ter 2 marcas. | 80 | 5 | 7 comuns + 1 Ósmio | Dardo Arcano, Obra-Prima |
-| **Vampiro** | **Caixão 2×4** | **Sede**: a cura que passaria do máximo vira vida máxima (até 5 por luta). Queima em dobro. | 60 | 5 | 7 comuns + 1 Sódio | Mordida, Banquete |
+| **Vampiro** | **Caixão 2×4** | **Sede**: toda cura dá +1 de vida máxima (até 3 por luta). Queima em dobro. | 65 | 5 | 7 comuns + 1 Sódio | Mordida, Banquete |
 | **Bárbaro** | Grade **3×3** | **Fúria**: com metade da vida ou menos, +1 por golpe a cada 10 de vida perdida. | 110 | 5 | 6 comuns + 2 Amianto | Machadada, Cerrar os Dentes |
 
 - **Feiticeiro**: magias grandes e exigentes (pares, sequências), efeitos fortes, várias de uso único por luta.
