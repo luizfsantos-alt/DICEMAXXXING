@@ -76,6 +76,12 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .tag.code { color: var(--bg); background: #c79bf2; }
 .tag.redo { color: #fff; background: #8a4a12; }
 .tag.hand { color: var(--bg); background: var(--muted); }
+.tag.key-m { color: #fff; background: #a3169f; }
+.tag.key-g { color: #06200a; background: #3ccf4e; }
+.tag.key-b { color: #fff; background: #2a3fd1; }
+.steps { display: flex; flex-direction: column; gap: 10px; margin: 0; padding-left: 22px; max-width: 72ch; }
+.steps li { padding-left: 4px; }
+.cmd { background: var(--prompt-bg); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; font-family: var(--mono); font-size: 13px; line-height: 1.7; color: #d9d4e6; overflow-x: auto; white-space: pre; }
 .note { color: var(--muted); font-size: 14.5px; }
 .prompt { position: relative; background: var(--prompt-bg); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px 12px 14px; font-family: var(--mono); font-size: 13px; line-height: 1.6; color: #d9d4e6; white-space: pre-wrap; overflow-wrap: anywhere; }
 .prompt .spec { color: var(--fg); }
@@ -91,7 +97,7 @@ footer { color: var(--muted); font-size: 14px; border-top: 1px solid var(--line)
 <div class="wrap">
   <header>
     <h1>Pauta de Arte</h1>
-    <p class="lede">Tudo o que o DICEMAXXING ainda desenha em código ou usa provisório, mais o que já existe e vale refazer. Cada item traz o arquivo esperado, o tamanho e um prompt em inglês pronto para colar no gerador. O trecho cinza do prompt é o estilo da casa: é igual em todo item do mesmo tipo, e é isso que mantém o conjunto coeso.</p>
+    <p class="lede">Tudo o que o DICEMAXXING ainda desenha em código ou usa provisório, mais o que já existe e vale refazer. Cada item traz o arquivo esperado, o tamanho, a cor de fundo a recortar e um prompt em inglês pronto para colar no gerador. O trecho cinza do prompt é o estilo da casa: é igual em todo item do mesmo tipo, e é isso que mantém o conjunto coeso.</p>
     <div class="progress"><div class="bar"><i id="bar"></i></div><span id="count">0 de 0 feitos</span></div>
   </header>
 
@@ -115,28 +121,57 @@ footer { color: var(--muted); font-size: 14px; border-top: 1px solid var(--line)
       <div class="rule"><b>Tom</b><p>Duelo de egos entre magos (<code>docs/TOM.md</code>): expressão convencida, vaidosa, nunca heroica nem assustadora demais.</p></div>
       <div class="rule"><b>Cor por arquétipo</b><p>Cada personagem tem uma cor em <code>Portrait.COLORS</code>. O prompt pede essa cor nos detalhes da roupa, para o jogador reconhecer o arquétipo de longe.</p></div>
       <div class="rule"><b>Gênero</b><p>As 9 fotos atuais são de homens; os nomes dos inimigos são metade femininos. Nas 3 variações de cada arquétipo, pelo menos uma é mulher e uma é mais velha.</p></div>
-      <div class="rule"><b>Ícones</b><p>Grade de 64×64, um símbolo só, sem letras. Gere maior se precisar e reduza com vizinho mais próximo (nearest) para não borrar o pixel.</p></div>
+      <div class="rule"><b>Ícones</b><p>Grade de 64×64, um símbolo só, sem letras. O gerador entrega grande; o script reduz com vizinho mais próximo, sem borrar o pixel.</p></div>
+      <div class="rule"><b>Fundo</b><p>Nunca pedir "transparente": o Gemini pinta um quadriculado falso. Quem precisa de recorte pede fundo chapado numa cor-chave que não existe no desenho; fotos e fundos de tela continuam opacos.</p></div>
       <div class="rule"><b>Texto</b><p>Nenhum prompt pede letras: geradores erram texto. Nomes, números e o "×2" continuam vindo do código, na fonte Bungee.</p></div>
     </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Como tirar o fundo</h2>
+      <p>Geradores de imagem não salvam transparência. O fundo vira uma cor chapada no prompt e sai depois, com <code style="font-family:var(--mono)">tools/recortar_fundo.py</code> (só precisa de Python e Pillow).</p>
+    </div>
+    <ol class="steps">
+      <li>Copie o prompt. Ele já diz a cor-chave: <b>magenta</b> por padrão, <b>verde</b> nos itens roxos ou rosados (logo, espelho, Porta Insana…) e <b>azul</b> nos coloridos com roxo e verde juntos (frasco de elemento, Poço).</li>
+      <li>Se o fundo vier com degradê, sombra no chão ou quadriculado, peça de novo: "the background must be one flat solid #FF00FF color, nothing else". Funciona melhor como segunda mensagem do que reescrevendo o prompt.</li>
+      <li>Recorte e reduza para o tamanho do item. O script descobre a cor-chave pelas bordas, apaga também a franja misturada, deixa o alfa só 0 ou 255 (pixel art) e corta a sobra.</li>
+      <li>Já tem imagem com o quadriculado falso? O mesmo script recupera: ele apaga só o quadriculado que encosta na borda, então os cinzas dentro do desenho ficam.</li>
+    </ol>
+<div class="cmd">pip install pillow
+python3 tools/recortar_fundo.py gerada.png assets/icons/status/block.png --size 64x64
+python3 tools/recortar_fundo.py baixadas/*.png --dir recortadas/ --size 64x64
+python3 tools/recortar_fundo.py com_quadriculado.png limpa.png --key checker
+python3 tools/recortar_fundo.py gerada.png saida.png --tol 120   # sobrou borda colorida</div>
   </section>
 
   <div class="toolbar" id="toolbar" role="toolbar" aria-label="Filtrar grupos"></div>
   <div id="groups" style="display:flex;flex-direction:column;gap:40px"></div>
 
   <footer>
-    Legenda: <span class="tag pri-A">A</span> aparece em toda luta · <span class="tag pri-B">B</span> aparece toda jornada · <span class="tag pri-C">C</span> polimento · <span class="tag code">precisa de código</span> o jogo ainda não carrega esse arquivo · <span class="tag hand">melhor à mão</span> geradores costumam errar; vale desenhar num editor de pixel art. As marcações de feito ficam só neste navegador.
+    Legenda: <span class="tag pri-A">A</span> aparece em toda luta · <span class="tag pri-B">B</span> aparece toda jornada · <span class="tag pri-C">C</span> polimento · <span class="tag code">precisa de código</span> o jogo ainda não carrega esse arquivo · <span class="tag hand">melhor à mão</span> geradores costumam errar; vale desenhar num editor de pixel art · <span class="tag key-m">fundo magenta → recortar</span> passar por tools/recortar_fundo.py. As marcações de feito ficam só neste navegador.
   </footer>
 </div>
 
 <script>
 const BASE = {
   portrait: "16-bit style detailed pixel art character portrait for a dark fantasy roguelike dice game. Chest-up bust, three-quarter view turned slightly toward the viewer's left, face at about 45% of the image width, head in the upper third, shoulders reaching the bottom edge, one signature prop held up near the right side. Crisp hand-placed pixels, dark outlines, rich saturated colors, warm candlelight key light from the upper left and a cool rim light. Smug, self-satisfied expression of a vain wizard duelist. Solid pure black background (#000000) with nothing else in it. Landscape 7:5 image, about 560x400 pixels. No text, no letters, no frame, no border, no watermark, not photorealistic, no 3D render, no blur.",
-  icon: "Single game UI icon in detailed 16-bit pixel art on a 64x64 pixel grid. One bold centered symbol filling about 80% of the canvas, 1-pixel dark outline, 3 to 4 shades plus one highlight, light from the upper left, still readable when shrunk to 32 pixels. Keep the bottom-right corner fairly empty. Transparent background (or flat pure black if transparency is not supported). No text, no letters, no numbers, no frame, no border.",
-  scene: "Small game illustration in detailed 16-bit pixel art, 128x128 pixels, front view, a single subject centered, dark outlines, warm candlelight from the upper left like a medieval tavern interior, rich saturated colors. Solid pure black background. No text, no letters, no frame, no border, no watermark.",
+  icon: "Single game UI icon in detailed 16-bit pixel art on a 64x64 pixel grid. One bold centered symbol filling about 80% of the canvas, 1-pixel dark outline, 3 to 4 shades plus one highlight, light from the upper left, still readable when shrunk to 32 pixels. Keep the bottom-right corner fairly empty. {KEY} No text, no letters, no numbers, no frame, no border.",
+  scene: "Small game illustration in detailed 16-bit pixel art, 128x128 pixels, front view, a single subject centered, dark outlines, warm candlelight from the upper left like a medieval tavern interior, rich saturated colors. {KEY} No text, no letters, no frame, no border, no watermark.",
   bg: "Detailed 16-bit pixel art game background, top-down three-quarter view in the same style as a cozy medieval tavern map, warm candlelight pools, dark wood and stone, rich but dim colors. Landscape 16:9, 1376x768 pixels. Keep the central area calmer and darker because UI panels will sit on top of it. No characters in the foreground, no text, no letters, no UI, no frame, no watermark.",
-  ui: "Pixel art game UI element in detailed 16-bit style, dark iron and aged wood, crisp 1-pixel outlines, flat front view, designed as a 9-slice: corners ornamented, straight edges plain and repeatable, hollow transparent center. No text, no letters, no watermark.",
-  emblem: "Game logo emblem in detailed 16-bit pixel art, 512x512, centered, crisp dark outline, warm light from the upper left, transparent background. No text, no letters, no watermark."
+  ui: "Pixel art game UI element in detailed 16-bit style, dark iron and aged wood, crisp 1-pixel outlines, flat front view, designed as a 9-slice: corners ornamented, straight edges plain and repeatable, the hollow center filled with the same flat background color. {KEY} No text, no letters, no watermark.",
+  emblem: "Game logo emblem in detailed 16-bit pixel art, 512x512, centered, crisp dark outline, warm light from the upper left. {KEY} No text, no letters, no watermark."
 };
+
+const KEYTXT = {
+  m: "Background: one flat, perfectly uniform solid pure magenta (#FF00FF) filling the whole canvas edge to edge, with no gradient, no shadow, no floor, no vignette, no texture and no checkerboard pattern. Do not use magenta or pink anywhere in the subject.",
+  g: "Background: one flat, perfectly uniform solid pure green (#00FF00) filling the whole canvas edge to edge, with no gradient, no shadow, no floor, no vignette, no texture and no checkerboard pattern. Do not use bright green anywhere in the subject.",
+  b: "Background: one flat, perfectly uniform solid pure blue (#0000FF) filling the whole canvas edge to edge, with no gradient, no shadow, no floor, no vignette, no texture and no checkerboard pattern. Do not use bright blue anywhere in the subject.",
+  none: ""
+};
+const KEYTAG = { m: "fundo magenta → recortar", g: "fundo verde → recortar", b: "fundo azul → recortar", none: "fundo opaco", black: "fundo preto, sem recorte" };
+function keyOf(it) { if (!it.base) return null; if (it.key) return it.key; return it.base === "portrait" ? "black" : it.base === "bg" ? "none" : "m"; }
+function baseText(it) { const k = keyOf(it); return BASE[it.base].replace("{KEY}", KEYTXT[k] || "").replace(/\s+/g, " ").trim(); }
 
 const GROUPS = [
  { id: "refazer", name: "Refazer", desc: "Arte que já existe mas destoa do resto ou é provisória. Comece por aqui: as molduras e o logo aparecem em todas as telas.", items: [
@@ -146,12 +181,12 @@ const GROUPS = [
   { t: "Moldura do inimigo", f: "assets/portraits/frame_enemy.png", s: "104×134", p: "A", tags: ["redo","hand"], base: "ui",
     note: "Mesma peça da moldura do jogador, trocando o filete para vermelho. Gere as duas juntas ou faça uma e troque a cor no editor, para ficarem idênticas.",
     prompt: "Vertical portrait frame, 104x134 pixels, chamfered corners, dark forged iron with small rivets, a thin glowing red (#ed4d4d) inner line along the inside edge, a thicker bottom bar about 32 pixels tall shaped like a small name plate, sides 10 pixels wide, top 6 pixels." },
-  { t: "Logo (emblema)", f: "assets/logo.png", s: "512×512", p: "B", tags: ["redo"], base: "emblem",
+  { t: "Logo (emblema)", f: "assets/logo.png", s: "512×512", p: "B", tags: ["redo"], base: "emblem", key: "g",
     note: "O atual é um dado isométrico branco sem cor e com a face de cima cheia de furos; está marcado como provisório no código. O nome DICEMAXXING fica fora da imagem: monte o letreiro na fonte Bungee ao lado, como o menu já faz.",
     prompt: "An ivory six-sided die tilted in isometric view with gold-trimmed edges and glowing violet pips (one face shows five, another shows six), a small crooked purple wizard hat perched smugly on top, a few gold sparkles around it." },
-  { t: "Ícone do app", f: "assets/icon.png", s: "512×512", p: "B", tags: ["redo"], base: "emblem",
+  { t: "Ícone do app", f: "assets/icon.png", s: "512×512", p: "B", tags: ["redo"], base: "emblem", key: "none",
     note: "Hoje é cópia do logo provisório. Android corta o ícone adaptativo: manter o emblema nos 66% centrais.",
-    prompt: "The same ivory die with gold-trimmed edges, glowing violet pips and a small purple wizard hat, placed on a square deep plum background (#141219) with a soft warm gold glow behind the die, emblem kept inside the central 66% of the canvas. Opaque background, not transparent." },
+    prompt: "The same ivory die with gold-trimmed edges, glowing violet pips and a small purple wizard hat, placed on a square deep plum background (#141219) with a soft warm gold glow behind the die, emblem kept inside the central 66% of the canvas. The plum background fills the whole square edge to edge, with no border around it." },
   { t: "Feiticeiro, variações 2 e 3", f: "assets/portraits/sorcerer_2.png, sorcerer_3.png", s: "~560×400", p: "C", tags: ["redo"], base: "portrait",
     note: "Opcional. As três fotos do Feiticeiro são o mesmo rapaz loiro, enquanto Vampiro e Bárbaro têm pessoas diferentes em cada variação. Manter a sorcerer_1 e trocar as outras duas por uma mulher e uma pessoa mais velha, com o mesmo manto.",
     prompt: "Variation A: a sorcerer woman with sharp cheekbones and a high braided crown of dark red hair, deep purple robe with gold rune embroidery and green gem clasps, holding a staff topped with a swirling green flame near the right side, arched eyebrow of superiority. Variation B: an elderly sorcerer with a long silver beard and bushy eyebrows, the same deep purple and gold rune robe, holding a gnarled staff with a green glowing crystal, condescending half-smile. Purple, gold and emerald palette (#7366d9 accents)." },
@@ -216,37 +251,37 @@ const GROUPS = [
   { t: "Bloqueio", f: "assets/icons/status/block.png", s: "64×64", p: "A", tags: ["code"], base: "icon", prompt: "A sturdy round shield, steel-blue face (#66b3ff) with a lighter silver rim and a small boss in the middle." },
   { t: "Veneno", f: "assets/icons/status/poison.png", s: "64×64", p: "A", tags: ["code"], base: "icon", prompt: "A small round glass vial with a skull-shaped stopper, bubbling toxic green liquid (#8cd94d), one drip running down the glass." },
   { t: "Queima", f: "assets/icons/status/burn.png", s: "64×64", p: "A", tags: ["code"], base: "icon", prompt: "A fierce flame with an orange body (#ff8c33) and a yellow core, two small ember sparks." },
-  { t: "Espelho", f: "assets/icons/status/mirror.png", s: "64×64", p: "A", tags: ["code"], base: "icon", prompt: "An ornate oval hand mirror with a gold handle and a lilac glassy surface (#c2a6ff) with a diagonal sparkle." },
+  { t: "Espelho", f: "assets/icons/status/mirror.png", s: "64×64", p: "A", tags: ["code"], key: "g", base: "icon", prompt: "An ornate oval hand mirror with a gold handle and a lilac glassy surface (#c2a6ff) with a diagonal sparkle." },
   { t: "Esquiva", f: "assets/icons/status/dodge.png", s: "64×64", p: "A", tags: ["code"], base: "icon", prompt: "A swirling hooded cloak leaving three fading cyan afterimages (#80d4db), suggesting a quick sidestep." },
   { t: "Revide", f: "assets/icons/status/riposte.png", s: "64×64", p: "A", tags: ["code"], base: "icon", prompt: "Two crossed thin rapiers with a curved pale-blue arrow (#8cbfff) looping around them, showing a strike sent back." },
   { t: "Imune", f: "assets/icons/status/immune.png", s: "64×64", p: "A", tags: ["code"], base: "icon", prompt: "A radiant white-silver protective bubble dome (#e6e6f2) with a small four-point sparkle on top." },
   { t: "Dado guardado", f: "assets/icons/status/marked.png", s: "64×64", p: "A", tags: ["code"], base: "icon", prompt: "A single ivory six-sided die with a golden bookmark ribbon (#ffc733) pinned across it." },
   { t: "Fúria", f: "assets/icons/status/fury.png", s: "64×64", p: "A", tags: ["code"], base: "icon", prompt: "A clenched fist with angry red steam puffs (#ed4d4d) and a throbbing vein mark." },
   { t: "Sede", f: "assets/icons/status/thirst.png", s: "64×64", p: "A", tags: ["code"], base: "icon", prompt: "A single fat drop of dark blood red (#b32640) with a glossy highlight and two tiny fang shapes inside the shine." },
-  { t: "Próxima mão", f: "assets/icons/status/hand_mod.png", s: "64×64", p: "A", tags: ["code"], base: "icon", prompt: "An open hand seen from the palm with a purple twisting arrow (#bf73d9) curling over it, mischievous." },
+  { t: "Próxima mão", f: "assets/icons/status/hand_mod.png", s: "64×64", p: "A", tags: ["code"], key: "g", base: "icon", prompt: "An open hand seen from the palm with a purple twisting arrow (#bf73d9) curling over it, mischievous." },
  ]},
  { id: "cartoes", name: "Efeitos nos cartões", desc: "Cartões de magia são só texto. Em vez de 46 ilustrações, um ícone pelo tipo de efeito, no canto do cartão. Bloqueio, esquiva, espelho, revide, imune e mexida na mão reaproveitam os ícones de status. Cores de SpellCard.FX_COLORS.", items: [
   { t: "Dano", f: "assets/icons/fx/dmg.png", s: "64×64", p: "B", tags: ["code"], base: "icon", prompt: "A jagged red impact burst (#f0705e) with a short sword blade cutting through it diagonally." },
   { t: "Cura", f: "assets/icons/fx/heal.png", s: "64×64", p: "B", tags: ["code"], base: "icon", prompt: "A small green herb sprig (#70d18c) with three rising sparkles, soft green glow." },
   { t: "Vida máxima", f: "assets/icons/fx/maxhp.png", s: "64×64", p: "B", tags: ["code"], base: "icon", prompt: "A plump red heart with a small green upward arrow and a sparkle (#70d18c) on its upper right." },
   { t: "Dreno (Mordida, Banquete)", f: "assets/icons/fx/drain.png", s: "64×64", p: "B", tags: ["code"], base: "icon", prompt: "Two white vampire fangs with a red drop falling and a thin green sparkle rising, showing damage turning into healing." },
-  { t: "Truque de dados", f: "assets/icons/fx/dice.png", s: "64×64", p: "B", tags: ["code"], base: "icon", note: "Para Bis!, Imitação, Física Aplicada, Força Desnecessária e outras que mexem nos dados.", prompt: "An ivory die tumbling mid-air with two curved purple motion arrows and violet sparkles around it." },
-  { t: "Sacrifício", f: "assets/icons/fx/sacrifice.png", s: "64×64", p: "B", tags: ["code"], base: "icon", prompt: "A lilac candle melting down (#c2a6ff) with a small ghostly wisp rising from the flame." },
+  { t: "Truque de dados", f: "assets/icons/fx/dice.png", s: "64×64", p: "B", tags: ["code"], key: "g", base: "icon", note: "Para Bis!, Imitação, Física Aplicada, Força Desnecessária e outras que mexem nos dados.", prompt: "An ivory die tumbling mid-air with two curved purple motion arrows and violet sparkles around it." },
+  { t: "Sacrifício", f: "assets/icons/fx/sacrifice.png", s: "64×64", p: "B", tags: ["code"], key: "g", base: "icon", prompt: "A lilac candle melting down (#c2a6ff) with a small ghostly wisp rising from the flame." },
   { t: "Limpeza (Suor de Campeão)", f: "assets/icons/fx/cleanse.png", s: "64×64", p: "C", tags: ["code"], base: "icon", prompt: "A big clear water droplet splashing and washing away a small green stain, light blue highlights." },
  ]},
  { id: "torre", name: "Torre", desc: "Cartões de portas, paradas e ofertas (ui/tower_screen.gd) têm só cor e texto. Uma ilustração pequena no topo de cada cartão (o cartão tem 260×300).", items: [
   { t: "Porta Fácil", f: "assets/tower/door_facil.png", s: "128×128", p: "B", tags: ["code"], base: "scene", prompt: "A simple sturdy wooden door in a stone arch, slightly ajar, soft green light spilling out, a small potted plant beside it." },
   { t: "Porta Normal", f: "assets/tower/door_normal.png", s: "128×128", p: "B", tags: ["code"], base: "scene", prompt: "A plain iron-banded oak door in a grey stone arch lit by a slate-blue torch." },
   { t: "Porta Difícil", f: "assets/tower/door_dificil.png", s: "128×128", p: "B", tags: ["code"], base: "scene", prompt: "A heavy reinforced door with iron spikes and deep claw scratches, rust-red light glowing from under it." },
-  { t: "Porta Insana", f: "assets/tower/door_insana.png", s: "128×128", p: "B", tags: ["code"], base: "scene", prompt: "A warped crooked door with far too many locks and chains, magenta eldritch light leaking through the cracks, an eye peeking from the keyhole." },
+  { t: "Porta Insana", f: "assets/tower/door_insana.png", s: "128×128", p: "B", tags: ["code"], key: "g", base: "scene", prompt: "A warped crooked door with far too many locks and chains, magenta eldritch light leaking through the cracks, an eye peeking from the keyhole." },
   { t: "Porta do Mestre", f: "assets/tower/door_mestre.png", s: "128×128", p: "B", tags: ["code"], base: "scene", prompt: "A grand double door of dark lead-grey metal with gold trim and a huge ornate keyhole, a carved die emblem above it, golden light around the edges." },
   { t: "Loja", f: "assets/tower/stop_shop.png", s: "128×128", p: "B", tags: ["code"], base: "scene", prompt: "A small merchant stall with a striped awning, a table with dice, rolled scrolls, little potion bottles and a pile of gold coins." },
   { t: "Cura", f: "assets/tower/stop_heal.png", s: "128×128", p: "B", tags: ["code"], base: "scene", prompt: "A stone bench beside a small fountain with soft green healing glow and a steaming cup of tea on the rim." },
   { t: "Escola de Magia", f: "assets/tower/stop_school.png", s: "128×128", p: "B", tags: ["code"], base: "scene", prompt: "A wooden lectern with an open glowing spellbook, a square scholar's cap with a tassel resting on top." },
-  { t: "Poço de Modificação", f: "assets/tower/stop_well.png", s: "128×128", p: "B", tags: ["code"], base: "scene", prompt: "An old stone well with a wooden crank, colorful alchemical swirls rising from inside, a single die floating above it." },
-  { t: "Oferta: magia", f: "assets/icons/offer/spell.png", s: "64×64", p: "C", tags: ["code"], base: "icon", prompt: "A rolled parchment scroll tied with a ribbon and sealed with a glowing purple wax rune seal." },
+  { t: "Poço de Modificação", f: "assets/tower/stop_well.png", s: "128×128", p: "B", tags: ["code"], key: "b", base: "scene", prompt: "An old stone well with a wooden crank, colorful alchemical swirls rising from inside, a single die floating above it." },
+  { t: "Oferta: magia", f: "assets/icons/offer/spell.png", s: "64×64", p: "C", tags: ["code"], key: "g", base: "icon", prompt: "A rolled parchment scroll tied with a ribbon and sealed with a glowing purple wax rune seal." },
   { t: "Oferta: dado novo", f: "assets/icons/offer/die.png", s: "64×64", p: "C", tags: ["code"], base: "icon", note: "O tipo de elemento já aparece na cor e no texto; o ícone é neutro.", prompt: "A single new ivory six-sided die with dark pips and a bright sparkle on one corner." },
-  { t: "Oferta: elemento", f: "assets/icons/offer/element.png", s: "64×64", p: "C", tags: ["code"], base: "icon", prompt: "A corked round glass flask with swirling multicolored liquid in violet, green and orange layers." },
+  { t: "Oferta: elemento", f: "assets/icons/offer/element.png", s: "64×64", p: "C", tags: ["code"], key: "b", base: "icon", prompt: "A corked round glass flask with swirling multicolored liquid in violet, green and orange layers." },
   { t: "Oferta: adesivo ×2", f: "assets/icons/offer/sticker.png", s: "64×64", p: "C", tags: ["code"], base: "icon", note: "O \"×2\" fica no código. Serve também para marcar faces com adesivo na bolsa.", prompt: "A round shiny gold foil sticker seal with a star-burst edge, slightly peeling at one corner." },
   { t: "Oferta: +5 de vida máxima", f: "assets/icons/offer/maxhp.png", s: "64×64", p: "C", tags: ["code"], base: "icon", note: "Pode reaproveitar o ícone de efeito Vida máxima.", prompt: "A plump red heart with a small gold four-point sparkle." },
   { t: "Oferta: evoluir magia", f: "assets/icons/offer/evolve.png", s: "64×64", p: "C", tags: ["code"], base: "icon", prompt: "A parchment scroll with a bold golden upward arrow rising from it and small sparkles." },
@@ -280,7 +315,7 @@ function save() { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch
 const TAGNAME = { code: "precisa de código", redo: "refazer", hand: "melhor à mão" };
 let filter = "all", hideDone = false;
 
-function fullPrompt(it) { return it.base ? it.prompt + " " + BASE[it.base] : ""; }
+function fullPrompt(it) { return it.base ? it.prompt + " " + baseText(it) : ""; }
 function esc(s) { return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]); }
 
 function render() {
@@ -307,11 +342,12 @@ function render() {
       c.className = "card" + (isDone ? " done" : "");
       c.dataset.pri = it.p;
       const tags = [`<span class="tag pri-${it.p}">${it.p}</span>`, `<span class="tag">${esc(it.f)}</span>`, `<span class="tag">${esc(it.s)}</span>`]
+        .concat(keyOf(it) ? [`<span class="tag key-${keyOf(it)}">${KEYTAG[keyOf(it)]}</span>`] : [])
         .concat((it.tags || []).map(t => `<span class="tag ${t}">${TAGNAME[t]}</span>`)).join("");
       const fp = fullPrompt(it);
       c.innerHTML = `<div class="c-top"><input type="checkbox" id="${id}" ${isDone ? "checked" : ""} aria-label="Marcar ${esc(it.t)} como feito"><div class="c-title"><h3><label for="${id}">${esc(it.t)}</label></h3><div class="tags">${tags}</div></div></div>`
         + (it.note ? `<p class="note">${esc(it.note)}</p>` : "")
-        + (fp ? `<div class="prompt"><span class="spec">${esc(it.prompt)}</span> <span class="base">${esc(BASE[it.base])}</span></div><button class="copy" type="button">Copiar prompt</button>` : "");
+        + (fp ? `<div class="prompt"><span class="spec">${esc(it.prompt)}</span> <span class="base">${esc(baseText(it))}</span></div><button class="copy" type="button">Copiar prompt</button>` : "");
       c.querySelector("input").addEventListener("change", e => { if (e.target.checked) done[key] = 1; else delete done[key]; save(); render(); });
       const btn = c.querySelector(".copy");
       if (btn) btn.addEventListener("click", () => {

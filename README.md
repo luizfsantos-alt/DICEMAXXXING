@@ -28,6 +28,9 @@ Tela em paisagem.
   (e treme no dano) e o número sobe sobre ela (+X verde, −X vermelho). Veneno, queima e efeitos do
   fim do turno aparecem direto no alvo, sem viagem.
 - Logo provisório: `assets/logo.png` (também é o ícone do app, `assets/icon.png`).
+- Arte a fazer, com prompts de gerador: [`docs/PAUTA_ARTE.html`](docs/PAUTA_ARTE.html). Geradores não fazem
+  transparência; os prompts pedem fundo magenta/verde chapado e `tools/recortar_fundo.py` recorta (também limpa o
+  quadriculado falso): `python3 tools/recortar_fundo.py gerada.png saida.png --size 64x64`.
 - Textos PT-BR: `data/texts_pt_br.json`. Tom (duelo de egos entre magos): [`docs/TOM.md`](docs/TOM.md).
 - Testes (GUT): `tests/`.
 - Simulador de balanceamento: `sim/simulate.gd`.
