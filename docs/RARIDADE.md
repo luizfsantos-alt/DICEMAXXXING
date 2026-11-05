@@ -75,7 +75,7 @@ Os **kits iniciais** ignoram a raridade (o Copista começa com a Imitação Bara
 
 | Classe | Dados | Por quê |
 |---|---|---|
-| **Comum** | Sódio, **Amianto** | Efeito simples, sem risco grande. |
+| **Comum** | Sódio, **Amianto**, **Carbono** | Efeito simples, sem risco grande. O Carbono só rende em quantidade, por isso é comum. |
 | **Incomum** | Urânio, Mercúrio | Valor alto com custo, ou valor que depende do inimigo. |
 | **Raro** | Hidrogênio, Ósmio | O Hidrogênio (×3) define a build da bolsa pequena. O Ósmio sai em toda mão: com adesivos, é um valor alto garantido todo turno. |
 | — | Chumbo | Lixo: só o inimigo dá. Para o Metalurgista, conta como Comum. |

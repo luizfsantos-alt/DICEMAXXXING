@@ -92,7 +92,7 @@ static func material(value: int, element: String) -> StandardMaterial3D:
 	m.normal_scale = 1.4
 	m.roughness = 0.42
 	m.metallic_specular = 0.6
-	if element in ["Hg", "Os", "Pb"]:
+	if element in ["Hg", "Os", "Pb", "Fe"]:
 		m.metallic = 0.45
 		m.roughness = 0.3
 	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC

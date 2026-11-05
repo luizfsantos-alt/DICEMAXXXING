@@ -58,18 +58,18 @@
 
 Escolhidos no início. O **formato do inventário** é a identidade; cada personagem tem também **uma passiva simples**. As peças podem girar. Os 6 arquétipos novos estão detalhados em `docs/PERSONAGENS.md`; os kits, em `engine/characters.gd`.
 
-**Jogáveis hoje: Minimalista, Vampiro e Bárbaro** (os 3 menos complexos, `Characters.PLAYABLE`). Os outros 5 aparecem como inimigos e já funcionam no motor.
+**Jogáveis hoje: Assassino, Vampiro e Bárbaro** (`Characters.PLAYABLE`). O Minimalista saiu por ora: com a mão de 4, ficou bem abaixo dos outros. Os outros 5 aparecem como inimigos e já funcionam no motor.
 
 | Personagem | Inventário | Passiva | Vida | Mão | Bolsa inicial | Magias iniciais |
 |---|---|---|---|---|---|---|
-| **Feiticeiro** | Grade **4×3** | **Erudito**: começa com 1 magia extra, à escolha entre 3. | 90 | 5 | 7 comuns + 1 Sódio | Faísca, Bola de Fogo (+1 do Erudito) |
-| **Assassino** | Cinto **6×1** | **Ágil**: mão de **6** dados (em vez de 5). | 40 | 6 | 7 comuns + 1 Mercúrio | Estocada, Corte Duplo |
-| **Minimalista** | Grade **3×2** | **Voto de Pobreza**: destruir no Poço é grátis; a recompensa tem a opção "destruir 1 dado". | 70 | 4 | 2 comuns + 3 Hidrogênio | Faísca, Dardo Arcano |
-| **Metalurgista** | Esteira **5×2** | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado. Loja e Poço vendem Chumbo. | 100 | 5 | 5 comuns + 3 Chumbo | Levantar Peso (nv 2), Estocada |
-| **Copista** | Grade **4×2** | **Inspiração**: no início da luta, copia uma magia aleatória do inimigo que caiba nas casas livres. | 80 | 5 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
-| **Perfeccionista** | **Moldura 4×3** sem o meio | **Ainda Não Está Bom**: guarda até 2 sobras no fim do turno; pode ter 2 marcas. | 80 | 5 | 7 comuns + 1 Ósmio | Dardo Arcano, Obra-Prima |
-| **Vampiro** | **Caixão 2×4** | **Sede**: a cura que passaria do máximo vira vida máxima (até 5 por luta). Queima em dobro. | 60 | 5 | 7 comuns + 1 Sódio | Mordida, Banquete |
-| **Bárbaro** | Grade **3×3** | **Fúria**: com metade da vida ou menos, +1 por golpe a cada 10 de vida perdida. | 110 | 5 | 6 comuns + 2 Amianto | Machadada, Cerrar os Dentes |
+| **Feiticeiro** | Grade **4×3** | **Erudito**: começa com 1 magia extra, à escolha entre 3. | 90 | 4 | 7 comuns + 1 Sódio | Faísca, Bola de Fogo (+1 do Erudito) |
+| **Assassino** | Cinto **6×1** | **Ágil**: cada golpe que ele esquiva dá +1 dado na próxima mão. | 85 | 4 | 7 comuns + 1 Mercúrio | Estocada, Corte Duplo, Esquiva Melhorada (um 2; sem limite por luta) |
+| **Minimalista** | Grade **3×2** | **Voto de Pobreza**: destruir no Poço é grátis; a recompensa tem a opção "destruir 1 dado". | 70 | 3 | 2 comuns + 3 Hidrogênio | Faísca, Dardo Arcano |
+| **Metalurgista** | Esteira **5×2** | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado. Loja e Poço vendem Chumbo. | 100 | 4 | 5 comuns + 3 Chumbo | Levantar Peso (nv 2), Estocada |
+| **Copista** | Grade **4×2** | **Inspiração**: no início da luta, copia uma magia aleatória do inimigo que caiba nas casas livres. | 80 | 4 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
+| **Perfeccionista** | **Moldura 4×3** sem o meio | **Ainda Não Está Bom**: guarda até 2 sobras no fim do turno; pode ter 2 marcas. | 80 | 4 | 7 comuns + 1 Ósmio | Dardo Arcano, Obra-Prima |
+| **Vampiro** | **Caixão 2×4** | **Sede**: toda cura dá +1 de vida máxima (até 3 por luta). Queima em dobro. | 70 | 4 | 7 comuns + 1 Sódio | Mordida, Banquete |
+| **Bárbaro** | Grade **3×3** | **Fúria**: com metade da vida ou menos, +1 por golpe a cada 10 de vida perdida. | 90 | 4 | 6 comuns + 2 Ferro | Machadada, Cerrar os Dentes |
 
 - **Feiticeiro**: magias grandes e exigentes (pares, sequências), efeitos fortes, várias de uso único por luta.
 - **Assassino**: técnicas finas que aceitam quase qualquer dado; força na quantidade e na esquiva.
@@ -84,7 +84,7 @@ Escolhidos no início. O **formato do inventário** é a identidade; cada person
 
 - Começa com **8 d6 comuns** *(inicial)*. Todos os dados são d6, sempre.
 - **Cada luta começa com a bolsa cheia e embaralhada.**
-- No início do seu turno você **tira a mão** (5 dados; 6 para o Assassino) e rola.
+- No início do seu turno você **tira a mão** (4 dados; +1 para o Assassino depois de cada golpe esquivado) e rola.
 - No fim do turno, todos os dados da mão vão para o **descarte**. Quando a bolsa esvazia, o descarte volta para ela.
 - **Adicionar dados tem consequência real:** dilui os bons, mas alimenta dados que gostam de bolsa grande.
 - **Destruir dados é caro:** Poço de Modificação, preço crescente por jornada *(inicial: 10 moedas, +10 por uso)*.
@@ -96,9 +96,9 @@ Cada dado pode ter **um** elemento, além de qualquer número de adesivos. O efe
 
 | Elemento | Efeito |
 |---|---|
-| **Hidrogênio** | Solitário: vale ×3 se a bolsa tiver 8 dados ou menos. |
+| **Hidrogênio** | Solitário: vale ×3 se a bolsa tiver 6 dados ou menos. |
 | **Nitrogênio** | Multidão: +1 em cada face para cada 4 dados na bolsa. |
-| **Carbono** | Cadeia: +1 para cada outro Carbono na bolsa. |
+| **Carbono** | Cadeia: +2 para cada outro Carbono **na mão** (2 na mão: +2 em cada; 3: +4; 5: +8). Comum. |
 | **Ósmio** | Âncora: sai **em toda mão** (ocupa uma vaga); não pode ser roubado nem arrancado. |
 | **Amianto** | Fibroso: +3 em todas as faces (4 a 9); ao ser usado, causa 3 de dano em quem usa (não é golpe). |
 | **Oganessônio** | Faces enormes; desintegra (sai da bolsa) após 1 uso. |
@@ -106,7 +106,7 @@ Cada dado pode ter **um** elemento, além de qualquer número de adesivos. O efe
 | **Chumbo** | **3 faces são 1 fixo** (não podem ser editadas). Normalmente é lixo posto pelo inimigo. |
 | **Sódio** | Ao ser usado, **queima** o inimigo por alguns turnos. |
 | **Mercúrio** | Amálgama: copia o maior valor entre a sua mão e a **última mão do inimigo**. |
-| **Ferro** | Magnético: ao sair, puxa outro Ferro da bolsa para a mão. |
+| **Ferro** | Maciço: todas as faces são 3. Só o Bárbaro começa com ele (não é vendido). |
 | **Ouro** | Ao ser usado com 6, dá moedas. |
 | **Hélio** | Inerte: imune a efeitos do inimigo. |
 | **Vidro** (molécula) | Valor ×2; 1 chance em 6 de quebrar ao ser usado. |

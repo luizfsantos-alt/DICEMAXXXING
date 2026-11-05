@@ -18,7 +18,7 @@ func _run() -> void:
 	bg.size = root.size
 	root.add_child(bg)
 	var vals := [1, 2, 3, 4, 5, 6, 8, 12, 27]
-	var els := ["", "H", "Os", "U", "Na", "Hg", "Pb", "Am", ""]
+	var els := ["", "H", "Os", "U", "Na", "Hg", "Pb", "Am", "Fe"]
 	for k in vals.size():
 		var h := Hole.new().set_interactive(false).setup(92)
 		h.position = Vector2(20 + k * 100, 600)

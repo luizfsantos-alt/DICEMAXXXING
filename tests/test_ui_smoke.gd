@@ -545,3 +545,35 @@ func test_moldura_e_fonte_dos_numeros_existem():
 
 func test_fundo_da_batalha_existe():
 	assert_true(ResourceLoader.exists(DuelScreen.BACKGROUND), "fundo da taverna")
+
+
+func test_numeros_nao_saem_da_tela():
+	var run := _run_at_duel(321)
+	var d := DuelScreen.new().setup(run)
+	add_child_autofree(d)
+	await wait_process_frames(2)
+	d._float("player", "Peso Morto: +3 dado(s) e mais um texto bem comprido", Kit.TEXT)
+	var l: Label = null
+	for c in d.fx_layer.get_children():
+		if c is Label:
+			l = c
+	assert_not_null(l, "texto criado")
+	var grow := l.size.x * 0.05 ## O pulo de entrada passa um pouco do tamanho final.
+	assert_true(l.position.x - grow >= 0.0, "não vaza pela esquerda")
+	assert_true(l.position.x + l.size.x + grow <= d.fx_layer.size.x, "não vaza pela direita")
+
+
+func test_botao_menu_perde_a_partida():
+	var main = load("res://ui/main.tscn").instantiate()
+	add_child_autofree(main)
+	await wait_process_frames(2)
+	assert_false(main.quit_btn.visible, "no menu, sem botão")
+	main._on_new_run("vampire")
+	await wait_process_frames(2)
+	assert_true(main.quit_btn.visible, "na jornada, com botão")
+	main._on_quit_pressed()
+	assert_true(main.current is TowerScreen, "1º toque só pede confirmação")
+	main._on_quit_pressed()
+	await wait_process_frames(2)
+	assert_true(main.current is MenuScreen, "voltou ao menu")
+	assert_false(SaveGame.exists(), "partida apagada")

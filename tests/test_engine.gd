@@ -23,7 +23,9 @@ func test_chumbo_tem_tres_faces_1_travadas():
 
 func test_hidrogenio_triplica_com_bolsa_pequena():
 	var f := H.fighter("a", ["faisca"])
+	f.bag.resize(Elements.SOLITARY_BAG)
 	f.bag[0] = Die.with_element("H")
+	f.reset_fight_state()
 	f.draw_pile = [0]
 	f.hand_size = 1
 	f.draw_hand(H.rng())
@@ -31,7 +33,39 @@ func test_hidrogenio_triplica_com_bolsa_pequena():
 	assert_eq(f.hand[0].value, (int(f.hand[0].face) + 1) * 3)
 	f.bag.append(Die.basic())
 	f.roll_hand(H.rng(), [])
-	assert_eq(f.hand[0].value, int(f.hand[0].face) + 1, "9 dados: sem bônus")
+	assert_eq(f.hand[0].value, int(f.hand[0].face) + 1, "bolsa acima do limite: sem bônus")
+
+
+func test_carbono_soma_a_cadeia_da_mao():
+	var f := H.fighter("a", ["faisca"])
+	for i in 3:
+		f.bag[i] = Die.with_element("C")
+	f.reset_fight_state()
+	f.draw_pile = [0, 1, 2, 3]
+	f.hand_size = 4
+	f.draw_hand(H.rng())
+	f.roll_hand(H.rng(), [])
+	for e in f.hand:
+		var bonus := 2 * Elements.CHAIN_STEP if f.die_of(e).element == "C" else 0
+		assert_eq(int(e.value), int(e.face) + 1 + bonus, "3 Carbonos: +2 por outro em cada")
+
+
+func test_carbono_sozinho_nao_ganha_nada():
+	var f := H.fighter("a", ["faisca"])
+	f.bag[0] = Die.with_element("C")
+	f.reset_fight_state()
+	f.draw_pile = [0, 1]
+	f.hand_size = 2
+	f.draw_hand(H.rng())
+	f.roll_hand(H.rng(), [])
+	for e in f.hand:
+		assert_eq(int(e.value), int(e.face) + 1)
+
+
+func test_carbono_na_loja_e_com_texto():
+	assert_true("C" in Elements.SHOP)
+	assert_eq(Elements.rarity("C"), "common")
+	assert_eq(Texts.element_name("C"), "Carbono")
 
 
 func test_osmio_sai_na_primeira_mao():
@@ -124,7 +158,7 @@ func test_arranjo_inicial_e_valido_e_todas_as_magias_cabem():
 
 func test_kit_inicial_sem_defesa():
 	assert_eq(EnemyFactory.base("sorcerer").inventory.ids(), ["faisca", "bola"])
-	assert_eq(EnemyFactory.base("assassin").inventory.ids(), ["estocada", "corte"])
+	assert_eq(EnemyFactory.base("assassin").inventory.ids(), ["estocada", "corte", "esquiva_mais"])
 	var run := RunState.new_run(3)
 	run.choose(0) ## Erudito
 	assert_eq(run.hero.inventory.items.size(), 3, "Feiticeiro: 2 + a escolha do Erudito")

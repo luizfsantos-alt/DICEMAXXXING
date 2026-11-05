@@ -10,7 +10,7 @@ const OFFENSE := ["foto", "matematica", "obra", "sombras", "meteoro", "bola", "e
 	"fisica", "velocidade", "bis", "banquete", "machadada", "peso", "plagio", "arrancar", "impulso", "corte",
 	"sacrificio", "mordida", "dardo", "estocada", "faisca"]
 const DEBUFF := ["interrupcao", "chave", "meia_verdade", "roubar_cena"]
-const DEFENSE := ["esquiva", "recuo", "espelho", "imune", "revide", "armadura", "escudo", "presenca",
+const DEFENSE := ["esquiva_mais", "esquiva", "recuo", "espelho", "imune", "revide", "armadura", "escudo", "presenca",
 	"rasteira", "concentrar", "pose", "suor", "cerrar", "remendo", "transfusao", "improviso"]
 
 
@@ -89,7 +89,7 @@ static func _priority(f: Fighter, foe: Fighter, id: String) -> int:
 		"imune":
 			if f.immune > 0:
 				return 0
-		"escudo", "esquiva", "espelho", "recuo", "revide", "armadura", "presenca", "rasteira", "concentrar", "pose":
+		"escudo", "esquiva", "esquiva_mais", "espelho", "recuo", "revide", "armadura", "presenca", "rasteira", "concentrar", "pose":
 			if f.personality == "bruto":
 				return 0
 			if low or f.personality == "cauteloso":

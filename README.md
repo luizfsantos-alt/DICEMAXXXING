@@ -5,7 +5,7 @@ Tela em paisagem.
 
 - Regras: [`docs/SPEC_v3.md`](docs/SPEC_v3.md) (v3, fonte da verdade). A fatia vertical (seção 12) está implementada.
 - Magias: [`docs/CATALOGO_MAGIAS.md`](docs/CATALOGO_MAGIAS.md) (catálogo único e princípios de design). Propostas anteriores, com o feedback, em `docs/MAGIAS_DICE_FUCKERY.md` e `docs/MAGIAS_FISICAS.md`.
-- Personagens: [`docs/PERSONAGENS.md`](docs/PERSONAGENS.md). Jogáveis: Minimalista, Vampiro e Bárbaro.
+- Personagens: [`docs/PERSONAGENS.md`](docs/PERSONAGENS.md). Jogáveis: Assassino, Vampiro e Bárbaro.
 - Raridade de magias e dados: [`docs/RARIDADE.md`](docs/RARIDADE.md).
 - Ideias futuras: [`docs/ROADMAP.md`](docs/ROADMAP.md) (ex.: builds vencedoras viram inimigos).
 - Histórico: [`docs/SPEC.md`](docs/SPEC.md) (v2, coliseu com equipamentos; substituída).
@@ -45,5 +45,7 @@ xvfb-run godot -s res://sim/shot_duel.gd -- --out=/tmp   # capturas: menu e rola
 ## APK
 
 Cada push roda o workflow `CI` no GitHub Actions: testes, simulação e um APK de debug
-(artefato `dicemaxxing-apk`). Baixe o artefato, descompacte e instale o `.apk` no celular
-(é preciso permitir "instalar apps desconhecidos").
+(artefato `dicemaxxing-apk`, em .zip). Em pushes, o `.apk` também sai solto num
+pré-lançamento por branch, mais fácil de baixar pelo celular:
+`https://github.com/luizfsantos-alt/DICEMAXXXING/releases/download/apk-<branch com / trocado por ->/dicemaxxing.apk`.
+Instale o `.apk` no celular (é preciso permitir "instalar apps desconhecidos").

@@ -47,9 +47,14 @@ static func draw_and_roll(f: Fighter, foe: Fighter, rng: RandomNumberGenerator, 
 			minus += 2
 		elif m == "minus1":
 			minus += 1
-	f.draw_hand(rng, minus)
+	var bonus := f.dodge_bonus
+	if not Characters.agile_stack:
+		f.dodge_bonus = 0
+	f.draw_hand(rng, minus, bonus)
 	if minus > 0:
 		ev.append({"t": "hand_mod", "side": side(f), "mod": "minus%d" % minus})
+	if bonus > 0:
+		ev.append({"t": "hand_mod", "side": side(f), "mod": "plus%d" % mini(bonus, 3)})
 	if f.is_player and foe.master_id == "porteiro" and negative(f, ev):
 		f.add_temp(Elements.lead())
 		ev.append({"t": "lead_hand", "side": side(f)})
@@ -79,14 +84,17 @@ static func hand_dice(f: Fighter) -> Dictionary:
 	return out
 
 
-## Elementos que mudaram o valor ao rolar (Hidrogênio ×3, Mercúrio copiou).
+## Elementos que mudaram o valor ao rolar (Hidrogênio ×3, Carbono em cadeia, Mercúrio copiou).
 static func _announce_elements(f: Fighter, ev: Array) -> void:
+	var chain := Elements.chain_bonus(f)
 	for e in f.hand:
 		var d := f.die_of(e)
 		if d == null or e.get("fixed", false):
 			continue
-		if d.element == "H" and f.bag.size() <= Elements.SOLITARY_BAG:
+		if Elements.solitary(f, d):
 			ev.append({"t": "element", "side": side(f), "el": "H", "v": int(e.value)})
+		elif d.element == "C" and chain > 0:
+			ev.append({"t": "element", "side": side(f), "el": "C", "v": int(e.value)})
 		elif d.element == "Hg" and int(e.value) > d.value(int(e.face)):
 			ev.append({"t": "element", "side": side(f), "el": "Hg", "v": int(e.value)})
 
@@ -172,7 +180,7 @@ static func dmg_bonus(f: Fighter) -> int:
 	return f.sacrifice_bonus + Characters.fury(f)
 
 
-## Cura com a Sede do Vampiro (o que sobra vira vida máxima).
+## Cura com a Sede do Vampiro (+1 de vida máxima por cura).
 static func _heal(f: Fighter, n: int, ev: Array) -> void:
 	var r := f.heal_full(n)
 	ev.append({"t": "heal", "side": side(f), "n": int(r.hp)})
@@ -447,6 +455,8 @@ static func hit(target: Fighter, attacker: Fighter, n: int, ev: Array, reflected
 		if target.dodge:
 			target.dodge = false
 			ev.append({"t": "dodged", "side": side(target), "n": n})
+			if target.archetype == "assassin":
+				target.dodge_bonus += Characters.AGILE_DICE
 			return
 		if target.mirror and not reflected:
 			target.mirror = false
