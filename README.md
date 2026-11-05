@@ -15,6 +15,12 @@ Tela em paisagem.
   `ui/dice_physics.gd`, malha e texturas geradas em código em `ui/dice_3d.gd`). Faces de 1 a 6
   com pontinhos, valores maiores com algarismos, tudo em baixo relevo; o 2D segue a mesma regra
   (`ui/die_face.gd`). Tocar na tela pula a rolagem.
+- Fotos provisórias dos personagens: `assets/portraits/` (`ally_back.png`, o mago de costas, para o
+  seu lado; `enemy.png` para o inimigo). Sem a arte, `ui/portrait.gd` desenha uma silhueta.
+- Efeitos das magias (`ui/spell_bolt.gd`): cada efeito voa do cartão da magia até a foto do alvo, em
+  verde para cura, vermelho para dano e azul para os outros efeitos; ao chegar, a foto pisca na cor
+  (e treme no dano) e o número sobe sobre ela (+X verde, −X vermelho). Veneno, queima e efeitos do
+  fim do turno aparecem direto no alvo, sem viagem.
 - Logo provisório: `assets/logo.png` (também é o ícone do app, `assets/icon.png`).
 - Textos PT-BR: `data/texts_pt_br.json`. Tom (duelo de egos entre magos): [`docs/TOM.md`](docs/TOM.md).
 - Testes (GUT): `tests/`.
