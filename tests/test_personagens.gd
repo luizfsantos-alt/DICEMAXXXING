@@ -106,34 +106,37 @@ func test_furia_so_com_metade_da_vida():
 	var f := EnemyFactory.base("barbarian")
 	f.hp = 60
 	assert_eq(Characters.fury(f), 0, "acima da metade, sem Fúria")
-	f.hp = 55
-	assert_eq(Characters.fury(f), 5, "acende em 55 de 110 com +5")
+	f.hp = 46
+	assert_eq(Characters.fury(f), 0, "46 de 90: ainda acima da metade")
+	f.hp = 45
+	assert_eq(Characters.fury(f), 4, "acende em 45 de 90 com +4")
 	f.hp = 20
-	assert_eq(Characters.fury(f), 9)
+	assert_eq(Characters.fury(f), 7)
 	var b := H.fighter("B", [], 80)
 	f.reset_fight_state()
 	H.hand(f, [5])
-	assert_eq(_dmg(H.cast(f, b, {"machadada": [0]}), "enemy"), 10 + 9, "Machadada + Fúria")
+	assert_eq(_dmg(H.cast(f, b, {"machadada": [0]}), "enemy"), 10 + 7, "Machadada + Fúria")
 
 
 func test_sede_do_vampiro():
 	var v := EnemyFactory.base("vampire")
 	v.reset_fight_state()
-	assert_eq(v.hp, 65)
+	var base := Characters.max_hp("vampire")
+	assert_eq(v.hp, base)
 	v.hp = 50
 	var r := v.heal_full(4)
 	assert_eq(int(r.hp), 4, "cura normal mesmo machucado")
 	assert_eq(int(r.max), 1, "toda cura dá +1 de vida máxima")
-	assert_eq(v.max_hp, 66)
+	assert_eq(v.max_hp, base + 1)
 	assert_eq(v.hp, 55)
 	v.heal_full(0)
-	assert_eq(v.max_hp, 66, "cura zero não conta")
+	assert_eq(v.max_hp, base + 1, "cura zero não conta")
 	for i in 20:
 		v.heal_full(2)
-	assert_eq(v.max_hp, 65 + Characters.THIRST_CAP, "até o limite por luta")
+	assert_eq(v.max_hp, base + Characters.THIRST_CAP, "até o limite por luta")
 	v.reset_fight_state()
 	v.heal_full(3)
-	assert_eq(v.max_hp, 66 + Characters.THIRST_CAP, "a luta seguinte libera de novo")
+	assert_eq(v.max_hp, base + 1 + Characters.THIRST_CAP, "a luta seguinte libera de novo")
 
 
 func test_vampiro_queima_em_dobro():

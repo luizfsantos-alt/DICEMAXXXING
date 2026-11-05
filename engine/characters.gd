@@ -36,11 +36,11 @@ const DATA := {
 		"spells": [["obra", 0, 0, 0, 1], ["dardo", 3, 0, 0, 1]],
 	},
 	"vampire": {
-		"hp": 65, "grid": Vector2i(2, 4), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Na"],
+		"hp": 70, "grid": Vector2i(2, 4), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Na"],
 		"spells": [["mordida", 0, 0, 0, 1], ["banquete", 1, 0, 1, 1]],
 	},
 	"barbarian": {
-		"hp": 110, "grid": Vector2i(3, 3), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Fe", "Fe"],
+		"hp": 90, "grid": Vector2i(3, 3), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Fe", "Fe"],
 		"spells": [["machadada", 0, 0, 0, 1], ["cerrar", 1, 0, 0, 1]],
 	},
 }

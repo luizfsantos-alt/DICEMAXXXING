@@ -92,8 +92,8 @@ Para comparar: o **Feiticeiro** tem 90 de vida, mão de 4 e causa uns **6 a 8 de
 | **Metalurgista** | Esteira **5×2** (10 casas) | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado da bolsa para a mão. A Loja e o Poço vendem Chumbo para você. | 100 | 4 | 8 dados: 5 comuns + 3 Chumbo | Levantar Peso (nível 2), Estocada |
 | **Copista** | Grade **4×2** (8 casas) | **Inspiração**: no início de cada luta, uma magia aleatória do inimigo que caiba nas suas casas livres é copiada nelas, no mesmo nível, até o fim da luta. | 80 | 4 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
 | **Perfeccionista** | **Moldura 4×3** sem as 2 casas do meio (10 casas) | **Ainda Não Está Bom**: no fim do turno, até 2 dados que sobraram na mão ficam marcados. Você pode ter 2 marcas. | 80 | 4 | 7 comuns + 1 Ósmio | **Dardo Arcano** (nova), **Obra-Prima** (nova) |
-| **Vampiro** | **Caixão 2×4** (2 de largura, 4 de altura) | **Sede**: toda cura que você recebe também dá +1 de vida máxima, para sempre (até 3 por luta). Queima causa o dobro de dano em você. | **65** | 4 | 7 comuns + 1 Sódio | **Mordida** (nova), **Banquete** (nova) |
-| **Bárbaro** | Grade **3×3** (9 casas) | **Fúria**: com metade da vida ou menos, toda magia de dano causa +1 por golpe para cada 10 de vida que você perdeu. | **110** | 4 | 6 comuns + 2 **Ferro** (sempre 3) | **Machadada** (nova), **Cerrar os Dentes** (nova) |
+| **Vampiro** | **Caixão 2×4** (2 de largura, 4 de altura) | **Sede**: toda cura que você recebe também dá +1 de vida máxima, para sempre (até 3 por luta). Queima causa o dobro de dano em você. | **70** | 4 | 7 comuns + 1 Sódio | **Mordida** (nova), **Banquete** (nova) |
+| **Bárbaro** | Grade **3×3** (9 casas) | **Fúria**: com metade da vida ou menos, toda magia de dano causa +1 por golpe para cada 10 de vida que você perdeu. | **90** | 4 | 6 comuns + 2 **Ferro** (sempre 3) | **Machadada** (nova), **Cerrar os Dentes** (nova) |
 
 ### 1.1 Formatos
 
@@ -350,6 +350,33 @@ O Vampiro estava bem abaixo dos outros jogáveis (6% na porta normal): a Sede an
 | Sede +1 por cura até 8; Mordida cura o dano inteiro; 70 de vida | 37% |
 | Sede +1 por cura até 8; Mordida cura metade; 70 de vida | 25% |
 | Sede +1 por cura até 4; Mordida cura metade; 65 de vida | 17% |
-| **Sede +1 por cura até 3; Mordida cura metade; 65 de vida (atual)** | **13%** |
+| Sede +1 por cura até 3; Mordida cura metade; 65 de vida (antes da mão de 4) | 13% |
 
 Na mesma rodada: Bárbaro 16%, Feiticeiro 14%, Minimalista 5%.
+
+### 8.3 Mão de 4, Hidrogênio ≤ 6, Ferro e Assassino jogável
+
+A sensação era de dados demais por turno: com só 2 magias iniciais, 3 dos 5 dados da mão serviam só para escolher. Decisões, medidas no CI (500 jornadas, porta normal, `--seed=1`, % que vence o andar 10; opções `--hand`, `--h-mult`, `--h-bag`, `--enemy-hp`, `--hero-hp` e `--report` em `sim/simulate.gd`):
+
+- **Mão −1 para todos** (jogador e inimigos): 4; Assassino 5; Minimalista 3. Sem compensação, todos caíam (Feiticeiro 14% → 8%, Vampiro 13% → 4%), menos o Bárbaro, que só usa 2 dados.
+- **Hidrogênio ×3 só com bolsa de 6 ou menos** (antes 8). Com 8, todo inimigo que recebia um Hidrogênio já o tinha ligado e vencia ~40% das lutas (os outros, ~15%). ×2 com bolsa de 8 quebrava o Minimalista.
+- **Vida dos inimigos ×0,9** (`Config.ENEMY_HP_MULT`): as lutas ficaram mais longas e desgastavam o herói. ×0,85 e ×0,75 deixavam o jogo fácil demais.
+- **Bárbaro:** 2 **Ferros** (sempre 3) no lugar dos 2 Amiantos e vida 110 → 90. Os Ferros pagam o Cerrar os Dentes e não machucam: com 110 de vida ele foi a 32%.
+- **Vampiro:** vida 65 → 70.
+- **Assassino jogável** com vida 40 → 90 (com 40, 0%). Continua frágil por não ter ganho de vida próprio.
+- **Minimalista fora dos jogáveis** por ora: 1–3% em todas as versões. O Monge (4 Hidrogênios) ainda vence 40–60% das lutas contra o jogador.
+
+| Bárbaro (Ferro) | 90 | 100 | 110 | 120 |
+|---|---|---|---|---|
+| % andar 10 | **13%** | 23% | 32% | 43% |
+
+| Vampiro | 65 | **70** | 75 | 80 | 85 |
+|---|---|---|---|---|---|
+| % andar 10 | 11% | **14%** | 17% | 20% | 23% |
+
+| Assassino (inimigos ×0,9) | 75 | 85 | **90** |
+|---|---|---|---|
+| % andar 10 | 5% | 8% | **9–10%** |
+
+Resultado com os valores escolhidos: Feiticeiro 14%, Assassino 10%, Vampiro 14%, Bárbaro 13%.
+

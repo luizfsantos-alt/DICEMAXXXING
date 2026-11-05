@@ -68,8 +68,8 @@ Escolhidos no início. O **formato do inventário** é a identidade; cada person
 | **Metalurgista** | Esteira **5×2** | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado. Loja e Poço vendem Chumbo. | 100 | 4 | 5 comuns + 3 Chumbo | Levantar Peso (nv 2), Estocada |
 | **Copista** | Grade **4×2** | **Inspiração**: no início da luta, copia uma magia aleatória do inimigo que caiba nas casas livres. | 80 | 4 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
 | **Perfeccionista** | **Moldura 4×3** sem o meio | **Ainda Não Está Bom**: guarda até 2 sobras no fim do turno; pode ter 2 marcas. | 80 | 4 | 7 comuns + 1 Ósmio | Dardo Arcano, Obra-Prima |
-| **Vampiro** | **Caixão 2×4** | **Sede**: toda cura dá +1 de vida máxima (até 3 por luta). Queima em dobro. | 65 | 4 | 7 comuns + 1 Sódio | Mordida, Banquete |
-| **Bárbaro** | Grade **3×3** | **Fúria**: com metade da vida ou menos, +1 por golpe a cada 10 de vida perdida. | 110 | 4 | 6 comuns + 2 Ferro | Machadada, Cerrar os Dentes |
+| **Vampiro** | **Caixão 2×4** | **Sede**: toda cura dá +1 de vida máxima (até 3 por luta). Queima em dobro. | 70 | 4 | 7 comuns + 1 Sódio | Mordida, Banquete |
+| **Bárbaro** | Grade **3×3** | **Fúria**: com metade da vida ou menos, +1 por golpe a cada 10 de vida perdida. | 90 | 4 | 6 comuns + 2 Ferro | Machadada, Cerrar os Dentes |
 
 - **Feiticeiro**: magias grandes e exigentes (pares, sequências), efeitos fortes, várias de uso único por luta.
 - **Assassino**: técnicas finas que aceitam quase qualquer dado; força na quantidade e na esquiva.

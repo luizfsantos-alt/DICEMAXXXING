@@ -40,13 +40,6 @@ jobs:
             godot --headless -s res://sim/simulate.gd -- --runs=500 --seed=1 --door=normal --char=$c | tee -a simulation.txt
           done
 
-      - name: Experimentos (temporário)
-        run: |
-          run() { echo "=== $*"; godot --headless -s res://sim/simulate.gd -- --runs=500 --seed=1 --door=normal "$@" | grep -E "^(Venceu o andar (10|  5)|Turnos|  (monge|C|H ligado) )"; }
-          for hp in 90 100 110 120; do run --char=barbarian --hero-hp=$hp; done
-          for hp in 70 75 80 85; do run --char=vampire --hero-hp=$hp; done
-          run --char=minimalist --report
-
       - uses: actions/upload-artifact@v4
         with:
           name: simulacao
