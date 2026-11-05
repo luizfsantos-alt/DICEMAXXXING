@@ -43,8 +43,7 @@ jobs:
       - name: Experimentos (temporário)
         run: |
           run() { echo "=== $*"; godot --headless -s res://sim/simulate.gd -- --runs=500 --seed=1 --door=normal "$@" | grep -E "^(Venceu o andar (10|  5)|Turnos)"; }
-          for hp in 70 80 90 100 110; do run --char=assassin --hero-hp=$hp; done
-          for hp in 70 80 90 100; do run --char=assassin --hero-hp=$hp --agile-stack; done
+          for hp in 50 55 60 65; do run --char=assassin --hero-hp=$hp; done
 
       - uses: actions/upload-artifact@v4
         with:
