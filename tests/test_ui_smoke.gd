@@ -535,3 +535,9 @@ func test_foto_sorteia_variacao_e_guarda():
 		assert_eq(Portrait.art_path(f), path, "mesma foto na próxima vez")
 		assert_true(ResourceLoader.exists(path), "arte existe: " + path)
 		assert_eq(Fighter.from_dict(f.to_dict()).portrait, f.portrait, "variação salva")
+
+
+func test_moldura_e_fonte_dos_numeros_existem():
+	for p in Portrait.FRAMES.values():
+		assert_true(ResourceLoader.exists(Portrait.ART_DIR + p), "moldura: " + p)
+	assert_true(ResourceLoader.exists("res://assets/fonts/Bungee-Regular.ttf"), "fonte dos números")

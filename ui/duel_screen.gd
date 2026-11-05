@@ -36,6 +36,9 @@ const FX_COLORS := {
 	"heal": Color(0.35, 0.95, 0.45), "dmg": Color(1.0, 0.25, 0.22), "fx": Color(0.35, 0.65, 1.0),
 }
 const BOLT_TIME := 0.34
+## Fonte grossa dos números sobre as fotos (Bungee, SIL OFL: assets/fonts/Bungee-OFL.txt).
+## O texto pode passar da foto; só a arte do personagem fica presa na moldura.
+var fx_font: Font = load("res://assets/fonts/Bungee-Regular.ttf") if ResourceLoader.exists("res://assets/fonts/Bungee-Regular.ttf") else null
 
 var run: RunState
 var duel: Duel
@@ -206,13 +209,13 @@ func _photo_label(photo: Control, text: String, fs: int, col: Color, head: bool)
 	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.set_anchors_preset(Control.PRESET_TOP_WIDE if head else Control.PRESET_BOTTOM_WIDE)
-	l.offset_left = 6
-	l.offset_right = -6
+	l.offset_left = 12
+	l.offset_right = -12
 	if head:
-		l.offset_top = 4
+		l.offset_top = 8
 	else:
 		l.grow_vertical = Control.GROW_DIRECTION_BEGIN
-		l.offset_bottom = -4
+		l.offset_bottom = -10
 	photo.add_child(l)
 	return l
 
@@ -1108,10 +1111,12 @@ func _float(s: String, text: String, col: Color) -> void:
 	for c in fx_layer.get_children():
 		if c is Label and c.get_meta("fx_side", "") == s and not c.is_queued_for_deletion():
 			stack += 1
-	var l := Kit.label(text, 34, col)
+	var l := Kit.label(text, 30, col)
 	l.set_meta("fx_side", s)
-	l.add_theme_constant_override("outline_size", 8)
-	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	if fx_font:
+		l.add_theme_font_override("font", fx_font)
+	l.add_theme_constant_override("outline_size", 12)
+	l.add_theme_color_override("font_outline_color", Color.BLACK)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	l.size = Vector2(260, 44)
@@ -1121,8 +1126,8 @@ func _float(s: String, text: String, col: Color) -> void:
 	fx_layer.add_child(l)
 	var tw := l.create_tween()
 	tw.tween_property(l, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(l, "position:y", l.position.y - 46, 0.85)
-	tw.parallel().tween_property(l, "modulate:a", 0.0, 0.85).set_delay(0.25)
+	tw.tween_property(l, "position:y", l.position.y - 46, 1.1)
+	tw.parallel().tween_property(l, "modulate:a", 0.0, 0.6).set_delay(0.5)
 	tw.tween_callback(l.queue_free)
 
 

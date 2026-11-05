@@ -3,7 +3,8 @@ extends Control
 ## Espaço do personagem. Cada arquétipo com arte tem 3 variações em assets/portraits/
 ## (<arquétipo>_1..3.png); quem ainda não tem arte usa as 3 provisórias (generic_1..3.png).
 ## A variação é sorteada uma vez e guardada no lutador (Fighter.portrait), então não muda
-## no meio da run. Sem a arte, desenha uma silhueta na cor do arquétipo.
+## no meio da run. A arte preenche a foto inteira e só aparece dentro da moldura
+## (vermelha para o inimigo, verde para você). Sem a arte, desenha uma silhueta na cor do arquétipo.
 ## Também faz o retorno visual quando um efeito chega (tremida e brilho colorido).
 
 const COLORS := {
@@ -15,10 +16,17 @@ const ART_DIR := "res://assets/portraits/"
 const WITH_ART := ["sorcerer", "vampire", "barbarian"] ## O resto usa "generic".
 const VARIATIONS := 3
 const BG := Color(0.0, 0.0, 0.0) ## Igual ao fundo da arte, para emendar.
+const FRAMES := {true: "frame_player.png", false: "frame_enemy.png"}
+## Bordas da moldura que não esticam (esq., cima, dir., baixo), em pixels da textura.
+const FRAME_MARGINS := [10, 6, 10, 32]
+const INSET := 3.0 ## A arte começa no meio da borda da moldura (nada passa para fora).
+const CHAMFER := 6.0 ## Cantos chanfrados da moldura.
+const FACE_X := 0.45 ## Ponto da arte (fração da largura) que fica no centro da foto.
 
 var archetype := "sorcerer"
 var back := false ## Jogador de costas.
 var art: Texture2D
+var frame: StyleBoxTexture
 var _shake := 0.0 ## Tremida restante (segundos).
 var _glow := Color(0, 0, 0, 0) ## Brilho do último efeito (some sozinho).
 
@@ -41,6 +49,14 @@ func setup(f: Fighter, h: int, is_back := false) -> Portrait:
 	var path := art_path(f)
 	if ResourceLoader.exists(path):
 		art = load(path)
+	var fpath: String = ART_DIR + FRAMES[is_back]
+	if ResourceLoader.exists(fpath):
+		frame = StyleBoxTexture.new()
+		frame.texture = load(fpath)
+		frame.texture_margin_left = FRAME_MARGINS[0]
+		frame.texture_margin_top = FRAME_MARGINS[1]
+		frame.texture_margin_right = FRAME_MARGINS[2]
+		frame.texture_margin_bottom = FRAME_MARGINS[3]
 	set_process(false)
 	return self
 
@@ -69,29 +85,62 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	var r := Rect2(Vector2.ZERO, size)
-	draw_style_box(Kit.box(BG if art else Color(0.09, 0.08, 0.11), 10, 0), r)
 	var off := Vector2.ZERO
 	if _shake > 0.0:
 		var k := _shake / 0.28
 		off = Vector2(sin(_shake * 90.0) * 7.0 * k, cos(_shake * 70.0) * 3.0 * k)
-	if art:
-		_draw_art(off)
-	else:
+	if not art:
+		draw_style_box(Kit.box(Color(0.09, 0.08, 0.11), 10, 0), r)
 		_draw_silhouette(off)
+		if _glow.a > 0.0:
+			var sb := Kit.box(Color(_glow.r, _glow.g, _glow.b, _glow.a * 0.35), 10, 0)
+			sb.set_border_width_all(3)
+			sb.border_color = _glow
+			draw_style_box(sb, r)
+		return
+	# Com arte: tudo treme junto (arte e moldura).
+	draw_set_transform(off)
+	var clip := _clip_polygon()
+	draw_colored_polygon(clip, BG)
+	_draw_art(clip)
 	if _glow.a > 0.0:
-		var sb := Kit.box(Color(_glow.r, _glow.g, _glow.b, _glow.a * 0.35), 10, 0)
-		sb.set_border_width_all(3)
-		sb.border_color = _glow
-		draw_style_box(sb, r)
+		draw_colored_polygon(clip, Color(_glow.r, _glow.g, _glow.b, _glow.a * 0.35))
+	if frame:
+		draw_style_box(frame, r)
+	if _glow.a > 0.0:
+		var ring := clip.duplicate()
+		ring.append(clip[0])
+		draw_polyline(ring, _glow, 3.0)
+	draw_set_transform(Vector2.ZERO)
 
 
-## A arte inteira cabe na foto (sem cortar o personagem), centrada e apoiada no chão.
-func _draw_art(off: Vector2) -> void:
+## Área de dentro da moldura (retângulo com cantos chanfrados).
+func _clip_polygon() -> PackedVector2Array:
+	var a := INSET
+	var b := INSET
+	var c := size.x - INSET
+	var d := size.y - INSET
+	var k := CHAMFER
+	return PackedVector2Array([
+		Vector2(a + k, b), Vector2(c - k, b), Vector2(c, b + k), Vector2(c, d - k),
+		Vector2(c - k, d), Vector2(a + k, d), Vector2(a, d - k), Vector2(a, b + k),
+	])
+
+
+## A arte cobre toda a área da moldura (o que sobra dos lados fica cortado), apoiada
+## embaixo e com o rosto perto do centro; só a parte dentro de "clip" é desenhada.
+func _draw_art(clip: PackedVector2Array) -> void:
+	var area := Rect2(Vector2(INSET, INSET), size - Vector2(INSET, INSET) * 2.0)
 	var ts := art.get_size()
-	var s := minf(size.x / ts.x, size.y / ts.y)
+	var s := maxf(area.size.x / ts.x, area.size.y / ts.y)
 	var d := ts * s
-	var pos := Vector2((size.x - d.x) * 0.5, size.y - d.y) + off
-	draw_texture_rect(art, Rect2(pos, d), false)
+	var x := area.position.x + area.size.x * 0.5 - d.x * FACE_X
+	x = clampf(x, area.end.x - d.x, area.position.x)
+	var pos := Vector2(x, area.end.y - d.y)
+	var uvs := PackedVector2Array()
+	for p in clip:
+		uvs.append((p - pos) / d)
+	draw_colored_polygon(clip, Color.WHITE, uvs, art)
 
 
 func _draw_silhouette(off: Vector2) -> void:
