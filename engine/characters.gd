@@ -46,7 +46,7 @@ const DATA := {
 }
 
 # Passivas.
-const THIRST_CAP := 4 ## Vampiro: vida máxima ganha com a Sede (+1 por cura), por luta.
+const THIRST_CAP := 3 ## Vampiro: vida máxima ganha com a Sede (+1 por cura), por luta.
 const FURY_STEP := 10 ## Bárbaro: +1 por golpe para cada 10 de vida perdida.
 const KEEP_MAX := 2 ## Perfeccionista: dados guardados no fim do turno (e marcas ao mesmo tempo).
 
