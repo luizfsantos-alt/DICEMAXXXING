@@ -561,3 +561,19 @@ func test_numeros_nao_saem_da_tela():
 	var grow := l.size.x * 0.05 ## O pulo de entrada passa um pouco do tamanho final.
 	assert_true(l.position.x - grow >= 0.0, "não vaza pela esquerda")
 	assert_true(l.position.x + l.size.x + grow <= d.fx_layer.size.x, "não vaza pela direita")
+
+
+func test_botao_menu_perde_a_partida():
+	var main = load("res://ui/main.tscn").instantiate()
+	add_child_autofree(main)
+	await wait_process_frames(2)
+	assert_false(main.quit_btn.visible, "no menu, sem botão")
+	main._on_new_run("vampire")
+	await wait_process_frames(2)
+	assert_true(main.quit_btn.visible, "na jornada, com botão")
+	main._on_quit_pressed()
+	assert_true(main.current is TowerScreen, "1º toque só pede confirmação")
+	main._on_quit_pressed()
+	await wait_process_frames(2)
+	assert_true(main.current is MenuScreen, "voltou ao menu")
+	assert_false(SaveGame.exists(), "partida apagada")

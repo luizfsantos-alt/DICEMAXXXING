@@ -426,6 +426,8 @@
   "subtitle": "Suba a torre. Perdeu, morreu.",
   "new_run": "Nova jornada",
   "continue": "Continuar",
+  "quit_menu": "Menu",
+  "quit_confirm": "Perder partida?",
   "you": "Você",
   "plain_die": "Comum",
   "hud": "Andar {n}/{max}  ·  {coins} moedas  ·  Vida {hp}/{maxhp}",
