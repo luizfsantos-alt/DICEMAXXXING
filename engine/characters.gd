@@ -36,7 +36,7 @@ const DATA := {
 		"spells": [["obra", 0, 0, 0, 1], ["dardo", 3, 0, 0, 1]],
 	},
 	"vampire": {
-		"hp": 60, "grid": Vector2i(2, 4), "blocked": [], "hand": 5, "bag_size": 8, "bag": ["Na"],
+		"hp": 70, "grid": Vector2i(2, 4), "blocked": [], "hand": 5, "bag_size": 8, "bag": ["Na"],
 		"spells": [["mordida", 0, 0, 0, 1], ["banquete", 1, 0, 1, 1]],
 	},
 	"barbarian": {
@@ -46,7 +46,7 @@ const DATA := {
 }
 
 # Passivas.
-const THIRST_CAP := 5 ## Vampiro: vida máxima ganha com cura que sobra, por luta.
+const THIRST_CAP := 8 ## Vampiro: vida máxima ganha com a Sede (+1 por cura), por luta.
 const FURY_STEP := 10 ## Bárbaro: +1 por golpe para cada 10 de vida perdida.
 const KEEP_MAX := 2 ## Perfeccionista: dados guardados no fim do turno (e marcas ao mesmo tempo).
 

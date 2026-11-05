@@ -235,13 +235,13 @@ func _roll_entry(e: Dictionary, rng: RandomNumberGenerator) -> void:
 		e.value *= 3
 
 
-## Cura. Vampiro (Sede): o que passaria do máximo vira vida máxima, até 5 por luta.
+## Cura. Vampiro (Sede): toda cura também dá +1 de vida máxima, até THIRST_CAP por luta.
 ## Retorna {hp: vida recuperada, max: vida máxima ganha}.
 func heal_full(n: int) -> Dictionary:
 	var got := heal(n)
 	var gain := 0
-	if archetype == "vampire" and n > got:
-		gain = mini(n - got, Characters.THIRST_CAP - thirst_used)
+	if archetype == "vampire" and n > 0:
+		gain = mini(1, Characters.THIRST_CAP - thirst_used)
 		if gain > 0:
 			thirst_used += gain
 			max_hp += gain

@@ -172,7 +172,7 @@ static func dmg_bonus(f: Fighter) -> int:
 	return f.sacrifice_bonus + Characters.fury(f)
 
 
-## Cura com a Sede do Vampiro (o que sobra vira vida máxima).
+## Cura com a Sede do Vampiro (+1 de vida máxima por cura).
 static func _heal(f: Fighter, n: int, ev: Array) -> void:
 	var r := f.heal_full(n)
 	ev.append({"t": "heal", "side": side(f), "n": int(r.hp)})
@@ -314,7 +314,7 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 			var raw := Config.scale(total, lvl)
 			hit(foe, f, raw + dmg_bonus(f), ev)
 			if f.hp > 0:
-				_heal(f, Config.ceil_div(raw, 2), ev)
+				_heal(f, raw, ev)
 		"feast":
 			hit(foe, f, Config.scale(total, lvl) + dmg_bonus(f), ev)
 			if f.hp > 0:

@@ -78,7 +78,7 @@ func test_mordida_e_banquete_curam():
 	H.hand(a, [5, 4, 2, 3])
 	var ev := H.cast(a, b, {"mordida": [0], "banquete": [1, 2, 3]})
 	assert_eq(_dmg(ev, "enemy"), 5 + 9)
-	assert_eq(a.hp, 20 + 3 + 2, "Mordida cura metade (3), Banquete cura o menor (2)")
+	assert_eq(a.hp, 20 + 5 + 2, "Mordida cura o dano (5), Banquete cura o menor (2)")
 
 
 func test_machadada_e_cerrar_os_dentes():
@@ -110,16 +110,21 @@ func test_furia_so_com_metade_da_vida():
 func test_sede_do_vampiro():
 	var v := EnemyFactory.base("vampire")
 	v.reset_fight_state()
-	assert_eq(v.hp, 60)
+	assert_eq(v.hp, 70)
+	v.hp = 50
 	var r := v.heal_full(4)
-	assert_eq(int(r.max), 4)
-	assert_eq(v.max_hp, 64)
-	assert_eq(v.hp, 64)
-	v.heal_full(10)
-	assert_eq(v.max_hp, 65, "até 5 por luta")
+	assert_eq(int(r.hp), 4, "cura normal mesmo machucado")
+	assert_eq(int(r.max), 1, "toda cura dá +1 de vida máxima")
+	assert_eq(v.max_hp, 71)
+	assert_eq(v.hp, 55)
+	v.heal_full(0)
+	assert_eq(v.max_hp, 71, "cura zero não conta")
+	for i in 20:
+		v.heal_full(2)
+	assert_eq(v.max_hp, 70 + Characters.THIRST_CAP, "até o limite por luta")
 	v.reset_fight_state()
 	v.heal_full(3)
-	assert_eq(v.max_hp, 68, "a luta seguinte libera de novo")
+	assert_eq(v.max_hp, 71 + Characters.THIRST_CAP, "a luta seguinte libera de novo")
 
 
 func test_vampiro_queima_em_dobro():

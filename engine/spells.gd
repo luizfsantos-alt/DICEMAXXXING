@@ -22,7 +22,7 @@ extends RefCounted
 ## (Plágio), bench (Arrancar das Mãos), spawn_half / spawn_copy (devolvem dados à mão
 ## na alocação), block ("mult"), block_product, block_hand ("per" × dados na mão),
 ## riposte, immune, cleanse, recycle, debuff (só "hand_mod"), dodge, mirror, heal,
-## maxhp, sacrifice, drain (dano = valor, cura metade), feast (dano = soma, cura o
+## maxhp, sacrifice, drain (dano = valor, cura o mesmo), feast (dano = soma, cura o
 ## menor). "heal" usa "mult".
 ## Opcionais: "hand_mod" (mexe na próxima mão do inimigo) e "mark" (marca o dado
 ## para a sua próxima mão: same, six, sum, plus2).

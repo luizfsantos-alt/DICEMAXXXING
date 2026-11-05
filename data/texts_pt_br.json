@@ -264,7 +264,7 @@
   ],
   "mordida": [
    "Mordida",
-   "Dano igual ao valor; cura metade (arredonda para cima)."
+   "Dano igual ao valor; cura o mesmo tanto."
   ],
   "banquete": [
    "Banquete",
@@ -355,7 +355,7 @@
   "vampire": [
    "Vampiro",
    "Sede",
-   "A cura que passaria da vida máxima vira vida máxima, para sempre (até 5 por luta). Queima causa o dobro de dano em você.",
+   "Toda cura que você recebe também dá +1 de vida máxima, para sempre (até 8 por luta). Queima causa o dobro de dano em você.",
    "\"Não bebo sangue. Recebo homenagens.\""
   ],
   "barbarian": [
@@ -675,7 +675,7 @@
   "concentrar": "Bloqueio = soma; funde num dado",
   "dardo": "Par: dano = valor + 2",
   "obra": "Trio: dano = soma ×2",
-  "mordida": "Dano = valor; cura metade",
+  "mordida": "Dano = valor; cura o mesmo",
   "banquete": "Dano = soma; cura o menor",
   "machadada": "Dano = valor ×2",
   "cerrar": "Cura = valor ×3"
@@ -724,7 +724,7 @@
   ],
   "thirst": [
    "Sede",
-   "Vida máxima já ganha nesta luta com a cura que sobra."
+   "Vida máxima já ganha nesta luta com a Sede (+1 por cura)."
   ],
   "hand_mod": [
    "Próxima mão",
