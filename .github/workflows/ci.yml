@@ -48,6 +48,8 @@ jobs:
   android:
     name: APK de debug
     needs: test
+    permissions:
+      contents: write ## Publicar o pré-lançamento com o APK.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -97,3 +99,18 @@ jobs:
           name: dicemaxxing-apk
           path: build/dicemaxxing.apk
           if-no-files-found: error
+
+      # O artefato acima vem dentro de um .zip, que nem todo celular abre. Aqui o .apk
+      # vai solto num pré-lançamento por branch (substituído a cada push), com link fixo:
+      # releases/download/apk-<branch>/dicemaxxing.apk
+      - name: Publicar APK solto (pré-lançamento da branch)
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="apk-${GITHUB_REF_NAME//\//-}"
+          gh release delete "$TAG" --yes --cleanup-tag || true
+          gh release create "$TAG" build/dicemaxxing.apk --prerelease --target "$GITHUB_SHA" \
+            --title "APK de debug · $GITHUB_REF_NAME" \
+            --notes "APK de debug do commit $GITHUB_SHA (branch $GITHUB_REF_NAME), gerado pelo CI."
+          echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/dicemaxxing.apk"
