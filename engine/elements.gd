@@ -11,17 +11,59 @@ const RARITY := {
 	"uncommon": ["U", "Hg"],
 	"rare": ["H", "Os"],
 }
+## Visual de cada dado (docs/DADOS_VISUAL.md). Três camadas:
+## - cor: body (corpo), body2 (miolo do vidro / reflexo do espelho), ink (pontinhos e
+##   algarismos) e accent (texto do elemento sobre o fundo escuro da interface);
+## - acabamento: finish (marfim, vidro, espelho, fosco, fibroso, ferrugem, grafite,
+##   ceroso), rough, metal, coat (clearcoat), alpha, rim;
+## - brilho: glow ("" nenhum, "pips" só os pontinhos, "body" o corpo, "rim" as
+##   arestas), emission e energy (em repouso). O brilho cresce com o estado (heat).
+const LOOKS := {
+	"": {"body": Color("#efe6d2"), "body2": Color("#fbf6ea"), "ink": Color("#2a2230"), "accent": Color("#efe6d2"),
+		"finish": "marfim", "rough": 0.5, "metal": 0.0, "coat": 0.3, "alpha": 1.0, "rim": 0.0,
+		"glow": "", "emission": Color.BLACK, "energy": 0.0},
+	"H": {"body": Color("#9a63f0"), "body2": Color("#f0d0ff"), "ink": Color("#ffffff"), "accent": Color("#d9a6ff"),
+		"finish": "vidro", "rough": 0.12, "metal": 0.0, "coat": 1.0, "alpha": 0.9, "rim": 0.5,
+		"glow": "pips", "emission": Color("#e07bff"), "energy": 0.6},
+	"Os": {"body": Color("#2f3d63"), "body2": Color("#6d84c4"), "ink": Color("#cfd8f0"), "accent": Color("#8fa8ff"),
+		"finish": "espelho", "rough": 0.12, "metal": 1.0, "coat": 0.0, "alpha": 1.0, "rim": 0.3,
+		"glow": "", "emission": Color.BLACK, "energy": 0.0},
+	"U": {"body": Color("#5fcf2a"), "body2": Color("#d4ff9a"), "ink": Color("#0f2a06"), "accent": Color("#8cf259"),
+		"finish": "vidro", "rough": 0.25, "metal": 0.0, "coat": 0.6, "alpha": 0.95, "rim": 0.3,
+		"glow": "body", "emission": Color("#7cff3a"), "energy": 0.45},
+	"Na": {"body": Color("#e8780f"), "body2": Color("#ffb35c"), "ink": Color("#3a1600"), "accent": Color("#ff9e4d"),
+		"finish": "ceroso", "rough": 0.55, "metal": 0.0, "coat": 0.0, "alpha": 1.0, "rim": 0.6,
+		"glow": "rim", "emission": Color("#ff6a00"), "energy": 0.8},
+	"Hg": {"body": Color("#dfe5ee"), "body2": Color("#ffffff"), "ink": Color("#1a1f2a"), "accent": Color("#d1d6e6"),
+		"finish": "espelho", "rough": 0.04, "metal": 1.0, "coat": 0.0, "alpha": 1.0, "rim": 0.0,
+		"glow": "", "emission": Color.BLACK, "energy": 0.0},
+	"Pb": {"body": Color("#555a60"), "body2": Color("#555a60"), "ink": Color("#c4c9cf"), "accent": Color("#9aa0a8"),
+		"finish": "fosco", "rough": 0.85, "metal": 0.3, "coat": 0.0, "alpha": 1.0, "rim": 0.0,
+		"glow": "", "emission": Color.BLACK, "energy": 0.0},
+	"Am": {"body": Color("#d9b44a"), "body2": Color("#e8c96a"), "ink": Color("#2b2410"), "accent": Color("#e3c25e"),
+		"finish": "fibroso", "rough": 0.9, "metal": 0.0, "coat": 0.0, "alpha": 1.0, "rim": 0.0,
+		"glow": "", "emission": Color.BLACK, "energy": 0.0},
+	"C": {"body": Color("#18181c"), "body2": Color("#34343c"), "ink": Color("#f4f8ff"), "accent": Color("#b8c4d6"),
+		"finish": "grafite", "rough": 0.3, "metal": 0.5, "coat": 0.5, "alpha": 1.0, "rim": 0.0,
+		"glow": "pips", "emission": Color("#9fd8ff"), "energy": 0.3},
+	"Fe": {"body": Color("#7a4128"), "body2": Color("#8f8f96"), "ink": Color("#f0c8a8"), "accent": Color("#c7764e"),
+		"finish": "ferrugem", "rough": 0.85, "metal": 0.2, "coat": 0.0, "alpha": 1.0, "rim": 0.0,
+		"glow": "", "emission": Color.BLACK, "energy": 0.0},
+}
+## Energia máxima do brilho com o estado ativo (heat = 1).
+const ENERGY_ACTIVE := {"H": 2.2, "U": 1.4, "Na": 1.6, "C": 1.8}
+## Cor do elemento em texto e rótulos (o accent de LOOKS: legível sobre o fundo escuro).
 const COLORS := {
-	"": Color(0.93, 0.91, 0.86),
-	"H": Color(0.75, 0.9, 1.0),
-	"Os": Color(0.55, 0.6, 0.75),
-	"U": Color(0.55, 0.95, 0.35),
-	"Na": Color(1.0, 0.62, 0.3),
-	"Hg": Color(0.82, 0.84, 0.9),
-	"Pb": Color(0.42, 0.42, 0.48),
-	"Am": Color(0.85, 0.82, 0.62),
-	"C": Color(0.24, 0.23, 0.22), ## Grafite.
-	"Fe": Color(0.58, 0.45, 0.4), ## Ferro oxidado.
+	"": Color("#efe6d2"),
+	"H": Color("#d9a6ff"),
+	"Os": Color("#8fa8ff"),
+	"U": Color("#8cf259"),
+	"Na": Color("#ff9e4d"),
+	"Hg": Color("#d1d6e6"),
+	"Pb": Color("#9aa0a8"),
+	"Am": Color("#e3c25e"),
+	"C": Color("#b8c4d6"),
+	"Fe": Color("#c7764e"),
 }
 const SOLITARY_BAG := 6 ## Hidrogênio: ×3 com bolsa deste tamanho ou menor (a inicial tem 8).
 const SOLITARY_MULT := 3
@@ -76,3 +118,31 @@ static func chain_bonus(f: Fighter) -> int:
 		if d != null and d.element == "C":
 			n += 1
 	return maxi(0, n - 1) * CHAIN_STEP
+
+
+static func look(el: String) -> Dictionary:
+	return LOOKS.get(el, LOOKS[""])
+
+
+## Energia do brilho para um estado (heat de 0, repouso, a 1, ativo). 0 se não brilha.
+static func energy(el: String, heat := 0.0) -> float:
+	var l := look(el)
+	if str(l.glow) == "":
+		return 0.0
+	return lerpf(float(l.energy), float(ENERGY_ACTIVE.get(el, l.energy)), clampf(heat, 0.0, 1.0))
+
+
+## Estado do dado d na mão de f, de 0 a 1 (docs/DADOS_VISUAL.md, "Brilho como estado"):
+## Hidrogênio com o Solitário valendo, Carbono pelo tamanho da cadeia, Urânio parado
+## na mão (vai envenenar se não for usado; idle = ainda não foi posto numa magia).
+static func heat(f: Fighter, d: Die, idle := true) -> float:
+	if d == null:
+		return 0.0
+	match d.element:
+		"H":
+			return 1.0 if solitary(f, d) else 0.0
+		"C":
+			return clampf(float(chain_bonus(f)) / CHAIN_STEP / 3.0, 0.0, 1.0)
+		"U":
+			return 1.0 if idle else 0.0
+	return 0.0

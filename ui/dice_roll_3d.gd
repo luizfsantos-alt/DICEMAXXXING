@@ -4,7 +4,11 @@ extends SubViewportContainer
 ## dados), quicam, batem uns nos outros e param no valor sorteado (DicePhysics).
 ## Fundo transparente; não pega toques (o "tocar acelera" da tela de duelo continua).
 ##
-## dice: Array de {value, element, faces (6 valores), face (índice que saiu), fixed}.
+## dice: Array de {value, element, faces (6 valores), face (índice que saiu), fixed,
+## heat (estado do brilho, 0 a 1; opcional)}.
+##
+## Visual (docs/DADOS_VISUAL.md): os metais refletem a taverna (céu só de reflexo, o
+## fundo continua transparente) e os dados que brilham projetam um halo na mesa.
 
 signal done
 
@@ -23,6 +27,9 @@ var vp: SubViewport
 var world: Node3D
 var _dice: Array = [] ## MeshInstance3D
 var _shadows: Array = [] ## MeshInstance3D
+var _halos: Array = [] ## MeshInstance3D ou null (dado sem brilho)
+var _glow: Array = [] ## Por dado: {el, heat, mats (6 materiais)}
+var _clock := 0.0
 
 
 func setup(px: Vector2) -> DiceRoll3D:
@@ -47,6 +54,12 @@ func setup(px: Vector2) -> DiceRoll3D:
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(0.85, 0.82, 0.95)
 	env.ambient_light_energy = 0.55
+	# Céu só para reflexo: sem ele os metais (Mercúrio, Ósmio) não têm o que refletir.
+	var pano := PanoramaSkyMaterial.new()
+	pano.panorama = load("res://assets/backgrounds/tavern.jpg")
+	env.sky = Sky.new()
+	env.sky.sky_material = pano
+	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	cam.environment = env
 	world.add_child(cam)
 	cam.look_at_from_position(Vector3(0, 30 * cos(t), 30 * sin(t)), Vector3.ZERO, Vector3.FORWARD)
@@ -111,10 +124,13 @@ static func face_labels(sim: DicePhysics, i: int, d: Dictionary) -> Array:
 
 
 func _build_nodes(dice: Array, sim: DicePhysics) -> void:
-	for c in _dice + _shadows:
-		c.queue_free()
+	for c in _dice + _shadows + _halos:
+		if c != null:
+			c.queue_free()
 	_dice = []
 	_shadows = []
+	_halos = []
+	_glow = []
 	var shadow_mesh := QuadMesh.new()
 	shadow_mesh.size = Vector2(1.5, 1.5)
 	shadow_mesh.orientation = PlaneMesh.FACE_Y
@@ -137,14 +153,70 @@ func _build_nodes(dice: Array, sim: DicePhysics) -> void:
 		var mi := MeshInstance3D.new()
 		mi.mesh = Dice3D.mesh()
 		var labels := face_labels(sim, i, d)
+		var heat := float(d.get("heat", 0.0))
+		var mats := []
 		for k in 6:
-			mi.set_surface_override_material(k, Dice3D.material(int(labels[k]), el))
+			var m := Dice3D.material(int(labels[k]), el, heat)
+			mi.set_surface_override_material(k, m)
+			mats.append(m)
+		_glow.append({"el": el, "heat": heat, "mats": mats})
+		var lk := Elements.look(el)
+		var halo: MeshInstance3D = null
+		if str(lk.glow) != "":
+			halo = MeshInstance3D.new()
+			halo.mesh = _halo_mesh(lk.emission)
+			world.add_child(halo)
+		_halos.append(halo)
 		world.add_child(mi)
 		_dice.append(mi)
 		var sh := MeshInstance3D.new()
 		sh.mesh = shadow_mesh
 		world.add_child(sh)
 		_shadows.append(sh)
+
+
+## Luz que o dado aceso joga na mesa: um disco colorido que some para as bordas.
+static func _halo_mesh(col: Color) -> QuadMesh:
+	var q := QuadMesh.new()
+	q.size = Vector2(2.8, 2.8)
+	q.orientation = PlaneMesh.FACE_Y
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	var g := GradientTexture2D.new()
+	g.fill = GradientTexture2D.FILL_RADIAL
+	g.fill_from = Vector2(0.5, 0.5)
+	g.fill_to = Vector2(1.0, 0.5)
+	var grad := Gradient.new()
+	grad.set_color(0, Color(col, 0.75))
+	grad.set_color(1, Color(col, 0.0))
+	g.gradient = grad
+	m.albedo_texture = g
+	q.material = m
+	return q
+
+
+## Pulso do brilho: lento em repouso; o Urânio ativo pisca como um contador Geiger.
+static func glow_pulse(el: String, heat: float, t: float) -> float:
+	if el == "U" and heat > 0.5:
+		var k := int(t * 9.0) % 11
+		return 1.5 if k in [1, 5, 8] else 1.0
+	return 1.0 + 0.15 * sin(t * TAU / 2.6)
+
+
+func _update_glow() -> void:
+	for i in _glow.size():
+		var g: Dictionary = _glow[i]
+		var base := Elements.energy(str(g.el), float(g.heat))
+		if base <= 0.0:
+			continue
+		var p := glow_pulse(str(g.el), float(g.heat), _clock)
+		for m: StandardMaterial3D in g.mats:
+			m.emission_energy_multiplier = base * p
+		if _halos[i] != null:
+			var a := clampf(base / 2.2, 0.25, 1.0) * p
+			var hm: StandardMaterial3D = (_halos[i].mesh as QuadMesh).material
+			hm.albedo_color = Color(1, 1, 1, clampf(a, 0.0, 1.0))
 
 
 func _show_frame(fr: Array) -> void:
@@ -156,6 +228,11 @@ func _show_frame(fr: Array) -> void:
 		_shadows[i].position = Vector3(p.x + hgt * 0.25, 0.01, p.z + hgt * 0.2)
 		var s := 1.0 + hgt * 0.25
 		_shadows[i].scale = Vector3(s, 1, s)
+		if _halos[i] != null:
+			# Mais alto, luz mais espalhada e mais fraca na mesa.
+			_halos[i].position = Vector3(p.x, 0.005, p.z)
+			var hs := 1.0 + hgt * 0.4
+			_halos[i].scale = Vector3(hs, 1, hs)
 
 
 func _play(sim: DicePhysics) -> void:
@@ -177,6 +254,8 @@ func _process(delta: float) -> void:
 	var last := _frames.size() - 1
 	var k := last if skip else mini(int(_t * FPS), last)
 	_show_frame(_frames[k])
+	_clock += delta
+	_update_glow()
 	_t += delta
 	if k < last:
 		return

@@ -21,7 +21,8 @@ static func uses_pips(v: int) -> bool:
 	return v >= 1 and v <= 6
 
 
-## Cor da tinta do baixo relevo: escura em dado claro, clara em dado escuro (Chumbo).
+## Tinta automática para um corpo qualquer: escura em corpo claro, clara em corpo escuro.
+## Os dados usam a tinta de Elements.LOOKS.
 static func ink(body: Color) -> Color:
 	return Color(0.09, 0.08, 0.11) if body.get_luminance() > 0.45 else Color(0.9, 0.9, 0.93)
 
@@ -34,27 +35,40 @@ static func _sb(bg: Color, radius: int) -> StyleBoxFlat:
 	return sb
 
 
-## Desenha o dado inteiro em r: corpo com chanfro, valor em baixo relevo e o símbolo
-## do elemento pequeno embaixo.
-static func draw(ci: CanvasItem, r: Rect2, value: int, element := "", dim := 0.0) -> void:
-	var body: Color = Elements.COLORS.get(element, Elements.COLORS[""])
+## Desenha o dado inteiro em r: halo (se brilha), corpo com chanfro e acabamento,
+## valor em baixo relevo e o símbolo do elemento pequeno embaixo.
+## heat: estado do brilho (0 repouso, 1 ativo); t: relógio, em segundos, para o pulso.
+static func draw(ci: CanvasItem, r: Rect2, value: int, element := "", dim := 0.0, heat := 0.0, t := 0.0) -> void:
+	var l := Elements.look(element)
+	var body: Color = l.body
+	var body2: Color = l.body2
+	var finish := str(l.finish)
 	if dim > 0.0:
 		body = body.darkened(dim)
+		body2 = body2.darkened(dim)
 	var s := minf(r.size.x, r.size.y)
 	var rad := int(s * 0.18)
+	var glow := 0.0
+	if dim <= 0.0 and str(l.glow) != "":
+		glow = Elements.energy(element, heat) * DiceRoll3D.glow_pulse(element, heat, t)
+		_halo(ci, r, rad, l.emission, glow)
 	# Chanfro: base mais escura embaixo, topo claro em cima, face no meio.
 	ci.draw_style_box(_sb(body.darkened(0.35), rad), r)
 	ci.draw_style_box(_sb(body.lightened(0.25), rad), Rect2(r.position, r.size - Vector2(0, s * 0.05)))
 	var inset := s * 0.035
 	var face := Rect2(r.position + Vector2(inset, inset), r.size - Vector2(inset * 2, inset * 2 + s * 0.03))
 	ci.draw_style_box(_sb(body, int(rad * 0.85)), face)
-	var col := ink(body)
+	_finish(ci, face, finish, body, body2, int(rad * 0.85), dim)
+	var col: Color = l.ink
 	if dim > 0.0:
 		col = col.lerp(body, 0.35)
+	var lit := str(l.glow) == "pips" and glow > 0.0
 	if uses_pips(value):
 		var fs := minf(face.size.x, face.size.y)
 		var o := face.position + (face.size - Vector2(fs, fs)) * 0.5
 		for p in PIPS[value]:
+			if lit:
+				_glow_dot(ci, o + p * fs, fs * PIP_R, l.emission, glow)
 			_engraved_dot(ci, o + p * fs, fs * PIP_R, body, col)
 	else:
 		_engraved_text(ci, face, str(value), body, col)
@@ -62,6 +76,99 @@ static func draw(ci: CanvasItem, r: Rect2, value: int, element := "", dim := 0.0
 		var es := maxi(9, int(s * 0.15))
 		ci.draw_string(ThemeDB.fallback_font, Vector2(face.position.x, face.end.y - es * 0.15), element,
 			HORIZONTAL_ALIGNMENT_CENTER, face.size.x, es, Color(col, 0.55))
+
+
+## Halo em volta do dado aceso: sombra colorida do StyleBox, maior com mais energia.
+static func _halo(ci: CanvasItem, r: Rect2, rad: int, col: Color, energy: float) -> void:
+	if energy <= 0.0:
+		return
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(col, 0.0)
+	sb.set_corner_radius_all(rad)
+	sb.shadow_color = Color(col, clampf(0.25 + energy * 0.25, 0.0, 0.85))
+	sb.shadow_size = int(minf(r.size.x, r.size.y) * (0.06 + energy * 0.05))
+	ci.draw_style_box(sb, r)
+
+
+## Pontinho aceso: brilho em volta do buraco (por baixo da tinta).
+static func _glow_dot(ci: CanvasItem, c: Vector2, rr: float, col: Color, energy: float) -> void:
+	var a := clampf(energy * 0.35, 0.0, 0.8)
+	ci.draw_circle(c, rr * (1.5 + energy * 0.35), Color(col, a * 0.35))
+	ci.draw_circle(c, rr * 1.2, Color(col, a))
+
+
+## Acabamento por cima da face (mesmas ideias das texturas do Dice3D).
+static func _finish(ci: CanvasItem, face: Rect2, finish: String, body: Color, body2: Color, rad: int, dim: float) -> void:
+	var p := face.position
+	var w := face.size.x
+	var h := face.size.y
+	var k := 1.0 - dim
+	match finish:
+		"marfim":
+			ci.draw_circle(p + Vector2(w * 0.28, h * 0.22), w * 0.2, Color(1, 1, 1, 0.12 * k))
+		"vidro", "ceroso":
+			# Miolo claro (luz presa dentro) e um reflexo pequeno no alto.
+			for i in 4:
+				ci.draw_circle(p + face.size * 0.5, w * (0.42 - i * 0.09), Color(body2, 0.14 * k))
+			if finish == "vidro":
+				ci.draw_circle(p + Vector2(w * 0.27, h * 0.17), w * 0.07, Color(1, 1, 1, 0.55 * k))
+				ci.draw_style_box(_border(Color(1, 1, 1, 0.35 * k), rad, 1), face)
+		"espelho":
+			# Faixa de reflexo na diagonal e borda chanfrada clara.
+			var band := PackedVector2Array([p + Vector2(w * 0.55, 0), p + Vector2(w * 0.8, 0), p + Vector2(w * 0.25, h), p + Vector2(0, h)])
+			_poly(ci, _clip(band, face), Color(body2, 0.35 * k))
+			ci.draw_style_box(_border(Color(1, 1, 1, 0.45 * k), rad, 2), face)
+		"fosco":
+			# Arranhões finos.
+			var rng := RandomNumberGenerator.new()
+			rng.seed = 11
+			for i in 7:
+				var a := p + Vector2(rng.randf_range(0.1, 0.9) * w, rng.randf_range(0.1, 0.9) * h)
+				var d := Vector2(rng.randf_range(0.08, 0.22) * w, rng.randf_range(-0.06, 0.06) * h)
+				ci.draw_line(a, a + d, Color(1, 1, 1, 0.13 * k), maxf(1.0, w * 0.01))
+		"fibroso":
+			# Fibras quase paralelas.
+			var n := 14
+			for i in n:
+				var y := p.y + h * (i + 0.5) / n
+				var off := h * 0.06 * sin(i * 1.7)
+				var c := Color(1, 1, 1, 0.12 * k) if i % 2 == 0 else Color(0, 0, 0, 0.1 * k)
+				ci.draw_line(Vector2(p.x + w * 0.06, y + off), Vector2(p.x + w * 0.94, y - off * 0.5 - h * 0.04), c, maxf(1.0, h * 0.012))
+		"ferrugem":
+			# Manchas de ferrugem e arestas gastas mostrando o metal.
+			var rng := RandomNumberGenerator.new()
+			rng.seed = 5
+			for i in 6:
+				var c := p + Vector2(rng.randf_range(0.2, 0.8) * w, rng.randf_range(0.2, 0.8) * h)
+				var tone := body.lightened(0.18) if i % 2 == 0 else body.darkened(0.25)
+				ci.draw_circle(c, w * rng.randf_range(0.08, 0.16), Color(tone, 0.6 * k + 0.2))
+			ci.draw_style_box(_border(Color(body2, 0.75 * k + 0.1), rad, maxi(2, int(w * 0.035))), face)
+		"grafite":
+			var band := PackedVector2Array([p + Vector2(w * 0.35, 0), p + Vector2(w * 0.65, 0), p + Vector2(w * 0.35, h), p + Vector2(w * 0.05, h)])
+			_poly(ci, _clip(band, face), Color(body2, 0.55 * k))
+
+
+static func _poly(ci: CanvasItem, poly: PackedVector2Array, col: Color) -> void:
+	if poly.size() >= 3:
+		ci.draw_colored_polygon(poly, col)
+
+
+static func _border(col: Color, radius: int, width: int) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.draw_center = false
+	sb.set_corner_radius_all(radius)
+	sb.set_border_width_all(width)
+	sb.border_color = col
+	sb.anti_aliasing = true
+	return sb
+
+
+## Recorta um polígono na face (com uma folga para não passar das bordas arredondadas).
+static func _clip(poly: PackedVector2Array, face: Rect2) -> PackedVector2Array:
+	var f := face.grow(-face.size.x * 0.06)
+	var box := PackedVector2Array([f.position, Vector2(f.end.x, f.position.y), f.end, Vector2(f.position.x, f.end.y)])
+	var out := Geometry2D.intersect_polygons(poly, box)
+	return out[0] if not out.is_empty() else PackedVector2Array()
 
 
 ## Pontinho escavado: borda de luz embaixo/direita, sombra em cima/esquerda, fundo.

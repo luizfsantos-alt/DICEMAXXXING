@@ -65,16 +65,17 @@ static func draw_and_roll(f: Fighter, foe: Fighter, rng: RandomNumberGenerator, 
 	apply_hand_mods(f, foe, ev)
 	var info := hand_dice(f)
 	ev.append({"t": "hand", "side": side(f), "values": f.hand_values(), "elements": info.elements,
-		"faces": info.faces, "face": info.face, "fixed": info.fixed})
+		"faces": info.faces, "face": info.face, "fixed": info.fixed, "heat": info.heat})
 
 
 ## Dados da mão para a interface (rolagem 3D): elemento, as seis faces de cada dado, a
-## face que saiu e se estava marcado (não rolou).
+## face que saiu, se estava marcado (não rolou) e o estado do brilho (Elements.heat).
 static func hand_dice(f: Fighter) -> Dictionary:
-	var out := {"elements": [], "faces": [], "face": [], "fixed": []}
+	var out := {"elements": [], "faces": [], "face": [], "fixed": [], "heat": []}
 	for e in f.hand:
 		var d := f.die_of(e)
 		out.elements.append(d.element)
+		out.heat.append(Elements.heat(f, d))
 		var fs := []
 		for k in 6:
 			fs.append(d.value(k))

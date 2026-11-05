@@ -69,3 +69,86 @@ func test_faces_2d_e_texturas():
 				dug += 1
 		assert_gt(dug, 50, "valor %d escavado na textura" % v)
 	assert_eq(Dice3D.mesh().get_surface_count(), 6)
+
+
+# ================================================================== Visual (docs/DADOS_VISUAL.md)
+const H := preload("res://tests/helpers.gd")
+const LOOK_KEYS := ["body", "body2", "ink", "accent", "finish", "rough", "metal", "coat", "alpha", "rim", "glow", "emission", "energy"]
+
+
+## Contraste (WCAG) entre duas cores.
+static func _contrast(a: Color, b: Color) -> float:
+	var la := _lum(a)
+	var lb := _lum(b)
+	return (maxf(la, lb) + 0.05) / (minf(la, lb) + 0.05)
+
+
+static func _lum(c: Color) -> float:
+	var l := c.srgb_to_linear()
+	return 0.2126 * l.r + 0.7152 * l.g + 0.0722 * l.b
+
+
+func test_todo_elemento_tem_visual_legivel():
+	for el in [""] + Elements.ALL:
+		assert_true(Elements.LOOKS.has(el), "visual de '%s'" % el)
+		var l: Dictionary = Elements.LOOKS[el]
+		for k in LOOK_KEYS:
+			assert_true(l.has(k), "'%s' tem %s" % [el, k])
+		assert_gt(_contrast(l.body, l.ink), 3.0, "tinta legível no corpo de '%s'" % el)
+		assert_gt(_contrast(l.accent, Kit.BG), 4.5, "texto de '%s' legível no fundo" % el)
+		assert_eq(Elements.COLORS[el], l.accent, "COLORS é o accent de '%s'" % el)
+
+
+func test_corpos_diferentes_entre_si():
+	var els := [""] + Elements.ALL
+	for i in els.size():
+		for j in range(i + 1, els.size()):
+			var a: Color = Elements.look(els[i]).body
+			var b: Color = Elements.look(els[j]).body
+			var d := Vector3(a.r - b.r, a.g - b.g, a.b - b.b).length()
+			assert_gt(d, 0.1, "corpos de '%s' e '%s' distintos" % [els[i], els[j]])
+
+
+func test_brilho_so_nos_quatro_e_cresce_com_o_estado():
+	for el in [""] + Elements.ALL:
+		var glows: bool = el in ["H", "U", "Na", "C"]
+		assert_eq(str(Elements.look(el).glow) != "", glows, "'%s' brilha?" % el)
+		if glows:
+			assert_gt(Elements.energy(el, 1.0), Elements.energy(el, 0.0), "'%s' acende mais ativo" % el)
+		else:
+			assert_eq(Elements.energy(el, 1.0), 0.0)
+	var m := Dice3D.material(5, "C", 1.0)
+	assert_true(m.emission_enabled)
+	assert_almost_eq(m.emission_energy_multiplier, Elements.energy("C", 1.0), 0.001)
+	assert_false(Dice3D.material(5, "Pb").emission_enabled)
+	assert_eq(Dice3D.material(5, "Hg").metallic, 1.0)
+	assert_eq(Dice3D.material(9, "H").transparency, BaseMaterial3D.TRANSPARENCY_ALPHA_DEPTH_PRE_PASS)
+	for glow in ["pips", "body", "rim"]:
+		var img := Dice3D.emission_texture(4, glow).get_image()
+		var c := img.get_pixel(Dice3D.TEX / 2, Dice3D.TEX / 2)
+		var e := img.get_pixel(0, Dice3D.TEX / 2)
+		match glow:
+			"rim":
+				assert_gt(e.r, 0.8, "aresta acesa")
+				assert_lt(c.r, 0.1, "centro apagado")
+			"body":
+				assert_gt(e.r, 0.8, "corpo aceso")
+	for el in [""] + Elements.ALL:
+		assert_not_null(Dice3D.albedo_texture(6, el), "textura de '%s'" % el)
+
+
+func test_estado_do_brilho():
+	var f: Fighter = H.fighter("eu", [], 40, true)
+	f.bag = [Die.with_element("H"), Die.basic(), Die.with_element("U"), Die.with_element("C"), Die.with_element("C")]
+	assert_eq(Elements.heat(f, f.bag[0]), 1.0, "Hidrogênio solitário (bolsa de 5)")
+	assert_eq(Elements.heat(f, f.bag[1]), 0.0, "comum não brilha")
+	assert_eq(Elements.heat(f, f.bag[2], true), 1.0, "Urânio parado na mão")
+	assert_eq(Elements.heat(f, f.bag[2], false), 0.0, "Urânio posto numa magia")
+	H.hand(f, [1, 2, 3, 4, 5])
+	assert_gt(Elements.heat(f, f.bag[3]), 0.0, "dois Carbonos na mão: cadeia")
+	H.hand(f, [1, 2, 3, 4])
+	assert_eq(Elements.heat(f, f.bag[3]), 0.0, "Carbono sozinho na mão")
+	for i in 4:
+		f.bag.append(Die.basic())
+	assert_eq(Elements.heat(f, f.bag[0]), 0.0, "Hidrogênio com bolsa grande")
+	assert_eq(Elements.heat(f, null), 0.0)
