@@ -15,19 +15,23 @@ Tela em paisagem.
   `ui/dice_physics.gd`, malha e texturas geradas em código em `ui/dice_3d.gd`). Faces de 1 a 6
   com pontinhos, valores maiores com algarismos, tudo em baixo relevo; o 2D segue a mesma regra
   (`ui/die_face.gd`). Tocar na tela pula a rolagem.
-- Fotos dos personagens: `assets/portraits/`, 3 variações por arquétipo (`sorcerer_1..3`,
-  `vampire_1..3`, `barbarian_1..3`); quem ainda não tem arte usa as provisórias `generic_1..3`.
+- Fotos dos personagens: `assets/portraits/`, 3 variações por arquétipo (`sorcerer_1..3`, `assassin_1..3`, `metallurgist_1..3`, `copyist_1..3`, `perfectionist_1..3`,
+  `vampire_1..3`, `barbarian_1..3`); quem ainda não tem arte usa as provisórias `generic_1..3`. Mestre e variantes têm foto própria (`porteiro_1`, `lixeiro_1`, `piromante_1`, `fundidor_1`, `monge_1`).
   A variação é sorteada uma vez por lutador e salva (`Fighter.portrait`), tanto para você quanto
   para o inimigo. A arte preenche a foto e só aparece dentro da moldura (`frame_enemy.png`
   vermelha, `frame_player.png` verde). Sem a arte, `ui/portrait.gd` desenha uma silhueta.
 - Fundo da tela de batalha: `assets/backgrounds/tavern.jpg` (cobre a tela, escurecido; painéis
   translúcidos por cima).
+- Ícones de status: `assets/icons/status/<id>.png` (64×64); quem ainda não tem arte mostra a sigla colorida.
 - Números sobre as fotos na fonte Bungee (`assets/fonts/`, licença SIL OFL) com contorno preto.
 - Efeitos das magias (`ui/spell_bolt.gd`): cada efeito voa do cartão da magia até a foto do alvo, em
   verde para cura, vermelho para dano e azul para os outros efeitos; ao chegar, a foto pisca na cor
   (e treme no dano) e o número sobe sobre ela (+X verde, −X vermelho). Veneno, queima e efeitos do
   fim do turno aparecem direto no alvo, sem viagem.
-- Logo provisório: `assets/logo.png` (também é o ícone do app, `assets/icon.png`).
+- Logo: `assets/logo.png` (dado com chapéu de mago, fundo recortado); ícone do app: `assets/icon.png` (o mesmo dado sobre fundo ameixa).
+- Arte a fazer, com prompts de gerador: [`docs/PAUTA_ARTE.html`](docs/PAUTA_ARTE.html). Geradores não fazem
+  transparência; os prompts pedem fundo magenta/verde chapado e `tools/recortar_fundo.py` recorta (também limpa o
+  quadriculado falso): `python3 tools/recortar_fundo.py gerada.png saida.png --size 64x64`.
 - Textos PT-BR: `data/texts_pt_br.json`. Tom (duelo de egos entre magos): [`docs/TOM.md`](docs/TOM.md).
 - Testes (GUT): `tests/`.
 - Simulador de balanceamento: `sim/simulate.gd`.

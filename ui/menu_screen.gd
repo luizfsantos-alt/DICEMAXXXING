@@ -22,7 +22,7 @@ func setup() -> MenuScreen:
 	var v := Kit.vbox(16)
 	v.custom_minimum_size = Vector2(1100, 0)
 	cc.add_child(v)
-	# Logo (provisório) ao lado do título.
+	# Logo ao lado do título.
 	var head := Kit.hbox(20)
 	head.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.add_child(head)

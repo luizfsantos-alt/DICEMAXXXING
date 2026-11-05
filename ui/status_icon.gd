@@ -5,6 +5,9 @@ extends Control
 
 signal held(icon: StatusIcon, on: bool)
 
+## Arte em assets/icons/status/<id>.png (64×64, fundo recortado); sem ela, a sigla
+## colorida de STYLE fica como placeholder.
+const ICON_DIR := "res://assets/icons/status/"
 ## id -> [sigla, cor]. Placeholders até haver arte.
 const STYLE := {
 	"block": ["BL", Color(0.4, 0.7, 1.0)],
@@ -24,6 +27,8 @@ var id := ""
 var count := 0
 var title := ""
 var desc := ""
+var art: Texture2D
+static var _cache := {} ## chave -> Texture2D ou null (não existe)
 
 
 func setup(status: Dictionary, px := 40) -> StatusIcon:
@@ -39,7 +44,16 @@ func set_status(status: Dictionary) -> void:
 	count = int(status.n)
 	title = str(status.get("name", id))
 	desc = str(status.get("desc", ""))
+	art = icon(_key())
 	queue_redraw()
+
+
+## Textura do ícone do efeito, ou null se ainda não há arte.
+static func icon(key: String) -> Texture2D:
+	if not _cache.has(key):
+		var path := ICON_DIR + key + ".png"
+		_cache[key] = load(path) if ResourceLoader.exists(path) else null
+	return _cache[key]
 
 
 func _gui_input(e: InputEvent) -> void:
@@ -48,9 +62,12 @@ func _gui_input(e: InputEvent) -> void:
 		accept_event()
 
 
+func _key() -> String:
+	return "hand_mod" if id.begins_with("mod_") else id
+
+
 func _style() -> Array:
-	var k := "hand_mod" if id.begins_with("mod_") else id
-	return STYLE.get(k, ["?", Kit.PANEL_HI])
+	return STYLE.get(_key(), ["?", Kit.PANEL_HI])
 
 
 func _draw() -> void:
@@ -58,14 +75,17 @@ func _draw() -> void:
 	var col: Color = st[1]
 	var s := minf(size.x, size.y)
 	var r := Rect2(Vector2(1, 1), Vector2(s - 2, s - 2))
-	draw_style_box(Kit.box(col.darkened(0.55), int(s * 0.22), 0), r)
-	var sb := Kit.box(Color.TRANSPARENT, int(s * 0.22), 0)
-	sb.set_border_width_all(2)
-	sb.border_color = col
-	draw_style_box(sb, r)
 	var font := ThemeDB.fallback_font
-	var fs := int(s * 0.36)
-	draw_string(font, Vector2(0, s * 0.46 + fs * 0.35), str(st[0]), HORIZONTAL_ALIGNMENT_CENTER, s, fs, col.lightened(0.3))
+	if art:
+		draw_texture_rect(art, r, false)
+	else:
+		draw_style_box(Kit.box(col.darkened(0.55), int(s * 0.22), 0), r)
+		var sb := Kit.box(Color.TRANSPARENT, int(s * 0.22), 0)
+		sb.set_border_width_all(2)
+		sb.border_color = col
+		draw_style_box(sb, r)
+		var fs := int(s * 0.36)
+		draw_string(font, Vector2(0, s * 0.46 + fs * 0.35), str(st[0]), HORIZONTAL_ALIGNMENT_CENTER, s, fs, col.lightened(0.3))
 	# Selo com a quantidade, no canto de baixo à direita.
 	var txt := str(count)
 	var bs := int(s * 0.3)
