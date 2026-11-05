@@ -7,6 +7,7 @@ extends SceneTree
 ## pega a primeira recompensa que couber e, nas paradas, prefere Cura com pouca vida.
 ## Experimentos (não mudam o jogo): --hand=-1 soma à mão de todos (jogador e inimigos,
 ## mínimo 2); --h-mult=2 e --h-bag=6 trocam o multiplicador e a bolsa máxima do Hidrogênio.
+## --enemy-hp=0.85 multiplica a vida dos inimigos; --hero-hp=70 troca a vida inicial do herói.
 ## --report imprime vitórias por elemento na bolsa e derrotas por tipo de inimigo.
 
 
@@ -15,6 +16,8 @@ var chosen := {}
 var won_with := {}
 var hand_delta := 0
 var report := false
+var enemy_hp := 1.0
+var hero_hp := 0
 
 
 func _init() -> void:
@@ -31,6 +34,10 @@ func _init() -> void:
 			spell_report = true
 		elif a == "--report":
 			report = true
+		elif a.begins_with("--enemy-hp="):
+			enemy_hp = float(a.split("=")[1])
+		elif a.begins_with("--hero-hp="):
+			hero_hp = int(a.split("=")[1])
 		elif a.begins_with("--hand="):
 			hand_delta = int(a.split("=")[1])
 		elif a.begins_with("--h-mult="):
@@ -43,6 +50,8 @@ func _init() -> void:
 			seed0 = int(a.split("=")[1])
 		elif a.begins_with("--door="):
 			door_pref = a.split("=")[1]
+	if enemy_hp != 1.0 or hero_hp > 0:
+		print("Experimento: vida dos inimigos ×%.2f · vida do herói %s" % [enemy_hp, str(hero_hp) if hero_hp > 0 else "padrão"])
 	if hand_delta != 0 or Elements.solitary_mult != Elements.SOLITARY_MULT or Elements.solitary_bag != Elements.SOLITARY_BAG:
 		print("Experimento: mão %+d · Hidrogênio ×%d com bolsa ≤ %d" % [hand_delta, Elements.solitary_mult, Elements.solitary_bag])
 	for c in chars:
@@ -63,6 +72,9 @@ func _simulate(char_id: String, runs: int, seed0: int, door_pref: String) -> voi
 	for i in runs:
 		var run := RunState.new_run(seed0 + i, char_id)
 		run.hero.hand_size = maxi(2, run.hero.hand_size + hand_delta)
+		if hero_hp > 0:
+			run.hero.max_hp = hero_hp
+			run.hero.hp = hero_hp
 		var els := {}
 		var guard := 0
 		while not (run.phase in ["victory", "defeat"]) and guard < 10000:
@@ -74,6 +86,9 @@ func _simulate(char_id: String, runs: int, seed0: int, door_pref: String) -> voi
 					run.duel.player.personality = "cauteloso"
 					var foe := run.duel.enemy
 					foe.hand_size = maxi(2, foe.hand_size + hand_delta)
+					if enemy_hp != 1.0:
+						foe.max_hp = maxi(1, int(round(foe.max_hp * enemy_hp)))
+						foe.hp = foe.max_hp
 					var kind := foe.master_id if foe.master_id != "" else (foe.variant if foe.variant != "" else foe.archetype)
 					if not (kind in ["minimalist", "monge"]) and foe.bag.any(func(d): return Elements.solitary(foe, d)):
 						kind += "+H"

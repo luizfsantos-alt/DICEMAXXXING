@@ -42,12 +42,13 @@ jobs:
 
       - name: Experimentos (temporário)
         run: |
-          for x in "--report" "--hand=-1 --report" "--hand=-2 --report" "--h-mult=2 --report" "--h-bag=6 --report"; do
-            for c in sorcerer minimalist vampire barbarian assassin; do
-              echo "=== $x · $c"
-              godot --headless -s res://sim/simulate.gd -- --runs=500 --seed=1 --door=normal --char=$c $x | grep -v "^Godot Engine"
-            done
+          run() { echo "=== $*"; godot --headless -s res://sim/simulate.gd -- --runs=500 --seed=1 --door=normal "$@" | grep -E "^(Venceu o andar (10|  5)|Turnos|  (monge|C|H ligado) )"; }
+          for c in sorcerer minimalist vampire barbarian; do
+            run --char=$c --report
+            for e in 0.85 0.75; do run --char=$c --hand=-1 --h-bag=6 --enemy-hp=$e --report; done
           done
+          for hp in 40 60 75 90; do run --char=assassin --hand=-1 --h-bag=6 --enemy-hp=0.85 --hero-hp=$hp; done
+          for hp in 60 75; do run --char=assassin --hand=-1 --h-bag=6 --enemy-hp=0.75 --hero-hp=$hp; done
 
       - uses: actions/upload-artifact@v4
         with:
