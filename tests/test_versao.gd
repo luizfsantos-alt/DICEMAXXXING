@@ -82,3 +82,13 @@ func test_menu_mostra_aviso():
 	m.show_update({"version": "9.9.9", "url": "https://github.com/x/y/dicemaxxing.apk"})
 	assert_not_null(m.update_bar)
 	assert_eq(m.update_url, "https://github.com/x/y/dicemaxxing.apk")
+
+
+func test_versao_no_menu():
+	assert_eq(MenuScreen.version_text("0.4.1", false), "Versão 0.4.1")
+	assert_eq(MenuScreen.version_text("0.4.1", true), "Versão 0.4.1 · debug", "APK de branch")
+	assert_eq(MenuScreen.version_text("", false), "", "sem versão, sem rótulo")
+	var m := MenuScreen.new().setup()
+	add_child_autofree(m)
+	var l: Label = m.get_node("Version")
+	assert_eq(l.text, MenuScreen.version_text(AppVersion.current(), OS.is_debug_build()))

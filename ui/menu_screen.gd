@@ -53,7 +53,29 @@ func setup() -> MenuScreen:
 	v.add_child(row)
 	for id in Characters.PLAYABLE:
 		row.add_child(_card(id))
+	add_child(_version_label())
 	return self
+
+
+## Versão instalada no canto de baixo à direita ("debug" nos APKs de branch), para saber
+## se o aviso de versão nova deveria aparecer.
+func _version_label() -> Label:
+	var txt := version_text(AppVersion.current(), OS.is_debug_build())
+	var l := Kit.label(txt, 16, Kit.MUTED)
+	l.name = "Version"
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	l.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 16)
+	l.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	l.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return l
+
+
+static func version_text(version: String, debug: bool) -> String:
+	if version == "":
+		return ""
+	var t := Texts.t("ui.version", {"version": version})
+	return t + " · debug" if debug else t
 
 
 func _card(id: String) -> Button:
