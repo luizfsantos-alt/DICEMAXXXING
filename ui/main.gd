@@ -8,6 +8,8 @@ var quit_btn: Button
 var _quit_armed := false
 ## Release mais novo achado no GitHub ({"version", "url"}); vazio se não houver.
 var update_info: Dictionary = {}
+## Pergunta "Sair do jogo?" aberta pelo botão voltar do Android.
+var exit_dialog: Overlay
 
 
 func _ready() -> void:
@@ -23,6 +25,32 @@ func _ready() -> void:
 		var uc := UpdateChecker.new()
 		uc.found.connect(_on_update_found)
 		add_child(uc)
+
+
+## Botão voltar do Android (quit_on_go_back está desligado no projeto): no menu sai
+## direto; durante a jornada pergunta antes. Voltar de novo fecha a pergunta.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		on_back()
+
+
+func on_back() -> void:
+	if is_instance_valid(exit_dialog):
+		exit_dialog.close()
+	elif current is MenuScreen:
+		get_tree().quit()
+	else:
+		open_exit_dialog()
+
+
+func open_exit_dialog() -> Overlay:
+	exit_dialog = Overlay.open(self, Texts.t("ui.exit_title"), Texts.t("ui.exit_no"), 560)
+	exit_dialog.add_text(Texts.t("ui.exit_note"), 20, Kit.MUTED)
+	var yes := Kit.button(Texts.t("ui.exit_yes"), func(): get_tree().quit(), Kit.DANGER.darkened(0.45), 24)
+	yes.custom_minimum_size = Vector2(160, 60)
+	exit_dialog.footer.add_child(yes)
+	exit_dialog.closed.connect(func(): exit_dialog = null)
+	return exit_dialog
 
 
 func _on_update_found(info: Dictionary) -> void:
@@ -77,6 +105,8 @@ func _swap(c: Control) -> void:
 	quit_btn.text = Texts.t("ui.quit_menu")
 	quit_btn.visible = not (c is MenuScreen or c is EndScreen)
 	move_child(quit_btn, -1)
+	if is_instance_valid(exit_dialog):
+		move_child(exit_dialog, -1)
 
 
 func show_menu() -> void:
