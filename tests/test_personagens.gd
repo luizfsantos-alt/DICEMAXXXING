@@ -14,6 +14,51 @@ func _dmg(ev: Array, side: String) -> int:
 
 
 # ------------------------------------------------------------------ Kits
+func test_agil_do_assassino_ganha_dado_ao_esquivar():
+	var s := EnemyFactory.base("assassin")
+	s.reset_fight_state()
+	var a := H.fighter("a", ["faisca"])
+	H.hand(s, [2])
+	H.cast(s, a, {"esquiva_mais": [0]})
+	assert_true(s.dodge)
+	H.hand(a, [6])
+	H.cast(a, s, {"faisca": [0]})
+	assert_eq(s.hp, s.max_hp, "esquivou")
+	assert_eq(s.dodge_bonus, Characters.AGILE_DICE)
+	var ev := []
+	Resolver.draw_and_roll(s, a, H.rng(), ev)
+	assert_eq(s.hand.size(), s.hand_size + Characters.AGILE_DICE, "+1 dado na próxima mão")
+	assert_true(ev.any(func(e): return e.t == "hand_mod" and e.mod == "plus1"))
+	Resolver.end_turn(s, [], [])
+	Resolver.draw_and_roll(s, a, H.rng(), [])
+	assert_eq(s.hand.size(), s.hand_size, "o bônus vale só uma mão")
+
+
+func test_esquiva_melhorada_sem_limite_e_fora_das_ofertas():
+	assert_false(Spells.is_once("esquiva_mais"))
+	for r in Config.RARITIES:
+		assert_false("esquiva_mais" in Spells.ids_of_rarity(r))
+
+
+func test_so_o_assassino_ganha_dado_ao_esquivar():
+	var b := H.fighter("b", ["esquiva"])
+	var a := H.fighter("a", ["faisca"])
+	H.hand(b, [2])
+	H.cast(b, a, {"esquiva": [0]})
+	H.hand(a, [6])
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(b.dodge_bonus, 0)
+
+
+func test_ferro_sempre_tira_3():
+	var d := Die.with_element("Fe")
+	for i in 6:
+		assert_eq(d.value(i), 3)
+	assert_eq(EnemyFactory.base("barbarian").bag.filter(func(x): return x.element == "Fe").size(), 2)
+	assert_false("Fe" in Elements.SHOP)
+	assert_eq(Texts.element_name("Fe"), "Ferro")
+
+
 func test_kits_de_todos_os_arquetipos():
 	for id in Characters.ALL:
 		var f := EnemyFactory.base(id)
@@ -33,7 +78,7 @@ func test_kits_de_todos_os_arquetipos():
 
 
 func test_jogaveis_sao_os_tres_menos_complexos():
-	assert_eq(Characters.PLAYABLE, ["minimalist", "vampire", "barbarian"])
+	assert_eq(Characters.PLAYABLE, ["assassin", "vampire", "barbarian"])
 	for id in Characters.PLAYABLE:
 		var run := RunState.new_run(7, id)
 		assert_eq(run.character, id)
@@ -97,34 +142,37 @@ func test_furia_so_com_metade_da_vida():
 	var f := EnemyFactory.base("barbarian")
 	f.hp = 60
 	assert_eq(Characters.fury(f), 0, "acima da metade, sem Fúria")
-	f.hp = 55
-	assert_eq(Characters.fury(f), 5, "acende em 55 de 110 com +5")
+	f.hp = 46
+	assert_eq(Characters.fury(f), 0, "46 de 90: ainda acima da metade")
+	f.hp = 45
+	assert_eq(Characters.fury(f), 4, "acende em 45 de 90 com +4")
 	f.hp = 20
-	assert_eq(Characters.fury(f), 9)
+	assert_eq(Characters.fury(f), 7)
 	var b := H.fighter("B", [], 80)
 	f.reset_fight_state()
 	H.hand(f, [5])
-	assert_eq(_dmg(H.cast(f, b, {"machadada": [0]}), "enemy"), 10 + 9, "Machadada + Fúria")
+	assert_eq(_dmg(H.cast(f, b, {"machadada": [0]}), "enemy"), 10 + 7, "Machadada + Fúria")
 
 
 func test_sede_do_vampiro():
 	var v := EnemyFactory.base("vampire")
 	v.reset_fight_state()
-	assert_eq(v.hp, 65)
+	var base := Characters.max_hp("vampire")
+	assert_eq(v.hp, base)
 	v.hp = 50
 	var r := v.heal_full(4)
 	assert_eq(int(r.hp), 4, "cura normal mesmo machucado")
 	assert_eq(int(r.max), 1, "toda cura dá +1 de vida máxima")
-	assert_eq(v.max_hp, 66)
+	assert_eq(v.max_hp, base + 1)
 	assert_eq(v.hp, 55)
 	v.heal_full(0)
-	assert_eq(v.max_hp, 66, "cura zero não conta")
+	assert_eq(v.max_hp, base + 1, "cura zero não conta")
 	for i in 20:
 		v.heal_full(2)
-	assert_eq(v.max_hp, 65 + Characters.THIRST_CAP, "até o limite por luta")
+	assert_eq(v.max_hp, base + Characters.THIRST_CAP, "até o limite por luta")
 	v.reset_fight_state()
 	v.heal_full(3)
-	assert_eq(v.max_hp, 66 + Characters.THIRST_CAP, "a luta seguinte libera de novo")
+	assert_eq(v.max_hp, base + 1 + Characters.THIRST_CAP, "a luta seguinte libera de novo")
 
 
 func test_vampiro_queima_em_dobro():
@@ -188,7 +236,7 @@ func test_perfeccionista_guarda_dois_dados():
 	var fixed := p.hand.filter(func(e): return e.get("fixed", false))
 	assert_eq(fixed.size(), 2)
 	assert_eq(fixed.map(func(e): return int(e.value)), [6, 6])
-	assert_eq(p.hand.size(), 7, "entram além da mão normal")
+	assert_eq(p.hand.size(), p.hand_size + 2, "entram além da mão normal")
 
 
 func test_ia_do_perfeccionista_guarda_repetidos():
@@ -259,12 +307,24 @@ func test_osmio_resiste_a_mao_menor():
 
 func test_aviso_de_elemento():
 	var f := H.fighter("A", [])
+	f.bag.resize(Elements.SOLITARY_BAG)
 	f.bag[0] = Die.with_element("H")
 	f.hand_size = 8
 	f.reset_fight_state()
 	var ev := []
 	Resolver.draw_and_roll(f, H.fighter("B", []), H.rng(), ev)
 	assert_true(ev.any(func(e): return e.t == "element" and e.el == "H"))
+
+
+func test_aviso_do_carbono_em_cadeia():
+	var f := H.fighter("A", [])
+	f.bag[0] = Die.with_element("C")
+	f.bag[1] = Die.with_element("C")
+	f.hand_size = 8
+	f.reset_fight_state()
+	var ev := []
+	Resolver.draw_and_roll(f, H.fighter("B", []), H.rng(), ev)
+	assert_true(ev.any(func(e): return e.t == "element" and e.el == "C"))
 
 
 # ------------------------------------------------------------------ Raridade

@@ -49,6 +49,7 @@ static func create(floor_n: int, door: String, rng: RandomNumberGenerator) -> Fi
 	var budget := int(round((floor_n - 1) * mult * Config.ENEMY_UPGRADES_PER_FLOOR))
 	for _k in budget:
 		upgrade(f, rng, floor_n)
+	f.max_hp = maxi(1, int(round(f.max_hp * Config.ENEMY_HP_MULT)))
 	f.hp = f.max_hp
 	return f
 

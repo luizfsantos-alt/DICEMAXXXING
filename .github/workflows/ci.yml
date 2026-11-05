@@ -36,7 +36,7 @@ jobs:
           godot --headless -s res://sim/simulate.gd -- --runs=1000 --seed=1 --door=facil | tee simulation.txt
           godot --headless -s res://sim/simulate.gd -- --runs=1000 --seed=1 --door=normal | tee -a simulation.txt
           godot --headless -s res://sim/simulate.gd -- --runs=1000 --seed=1 --door=dificil | tee -a simulation.txt
-          for c in minimalist vampire barbarian; do
+          for c in assassin vampire barbarian; do
             godot --headless -s res://sim/simulate.gd -- --runs=500 --seed=1 --door=normal --char=$c | tee -a simulation.txt
           done
 

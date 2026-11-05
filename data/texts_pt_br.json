@@ -138,6 +138,10 @@
    "Esquiva",
    "Dado de valor 2 ou menos. Anula o próximo golpe do inimigo. Uma vez por luta."
   ],
+  "esquiva_mais": [
+   "Esquiva Melhorada",
+   "Um 2. Anula o próximo golpe do inimigo. Sem limite por luta."
+  ],
   "corte": [
    "Corte Duplo",
    "Dois dados. Dano igual à soma; se ambos forem ímpares, golpeia de novo."
@@ -282,7 +286,7 @@
  "elements": {
   "H": [
    "Hidrogênio",
-   "Solitário: vale ×3 se a bolsa tiver 8 dados ou menos."
+   "Solitário: vale ×3 se a bolsa tiver 6 dados ou menos."
   ],
   "Os": [
    "Ósmio",
@@ -307,6 +311,14 @@
   "Am": [
    "Amianto",
    "Fibroso: +3 em todas as faces (4 a 9). Ao ser usado, causa 3 de dano em você."
+  ],
+  "Fe": [
+   "Ferro",
+   "Maciço: todas as faces são 3."
+  ],
+  "C": [
+   "Carbono",
+   "Cadeia: +2 para cada outro Carbono na mão."
   ]
  },
  "masters": {
@@ -325,7 +337,7 @@
   "assassin": [
    "Assassino",
    "Ágil",
-   "Mão de 6 dados.",
+   "Cada golpe que você esquiva dá +1 dado na sua próxima mão. Começa com a Esquiva Melhorada (sem limite por luta).",
    "Técnicas finas que aceitam quase qualquer dado."
   ],
   "minimalist": [
@@ -545,6 +557,9 @@
   "next_hand": "Próxima mão: {mod}",
   "mod_minus1": "−1 dado",
   "mod_minus2": "−2 dados",
+  "mod_plus1": "+1 dado (Ágil)",
+  "mod_plus2": "+2 dados (Ágil)",
+  "mod_plus3": "+3 dados (Ágil)",
   "mod_minus3": "−3 dados",
   "mod_minus4": "−4 dados",
   "mod_halve": "metade do valor",
@@ -577,6 +592,7 @@
   "fx_asbestos": "Amianto −{n}",
   "fx_el_H": "Hidrogênio ×3 = {v}",
   "fx_el_Hg": "Mercúrio copiou {v}",
+  "fx_el_C": "Carbono em cadeia = {v}",
   "fx_el_Na": "Sódio: queima {n}",
   "fx_el_U": "Urânio: veneno {n}",
   "fx_dead_weight": "Peso Morto: +{n} dado(s)",
@@ -628,6 +644,7 @@
   "asbestos": "Amianto: {who} perde {n}",
   "el_H": "Hidrogênio: {who} rola ×3 ({v})",
   "el_Hg": "Mercúrio: {who} copia o valor {v}",
+  "el_C": "Carbono: {who} encadeia e rola {v}",
   "dead_weight": "Peso Morto: {who} puxa mais {n} dado(s)",
   "copy": "Inspiração: {who} copia {name} nesta luta",
   "copy_none": "Inspiração: nada do outro cabe nas casas livres de {who}",
@@ -646,6 +663,7 @@
   "transfusao": "+valor na vida máxima, para sempre",
   "estocada": "Dano = valor + 1",
   "esquiva": "Anula o próximo golpe do inimigo",
+  "esquiva_mais": "Anula o próximo golpe do inimigo",
   "corte": "Soma; se os 2 forem ímpares, golpeia de novo",
   "sombras": "Dano = valor; ignora defesas",
   "bis": "Rola de novo e soma; repete na face máxima",

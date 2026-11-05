@@ -10,7 +10,7 @@ const INSANE_DOOR_CHANCE := 0.25
 
 # Bolsa e mão.
 const START_BAG := 8
-const HAND_SIZE := 5
+const HAND_SIZE := 4
 const TURN_LIMIT := 60 ## Turnos somados dos dois lados.
 
 # Personagens: engine/characters.gd.
@@ -35,6 +35,7 @@ const DOORS := {
 # Inimigos.
 const ENEMY_HP_BASE := 31
 const ENEMY_HP_PER_FLOOR := 5
+const ENEMY_HP_MULT := 0.9 ## Compensa a mão de 4 (lutas mais longas desgastam o herói).
 const MASTER_HP_MULT := 1.6
 const MINIMALIST_ENEMY_HP_MULT := 0.8 ## Compensa o Hidrogênio.
 const MONK_FLOOR := 5 ## Monge do Silêncio: a partir deste andar.
