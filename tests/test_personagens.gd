@@ -188,7 +188,7 @@ func test_perfeccionista_guarda_dois_dados():
 	var fixed := p.hand.filter(func(e): return e.get("fixed", false))
 	assert_eq(fixed.size(), 2)
 	assert_eq(fixed.map(func(e): return int(e.value)), [6, 6])
-	assert_eq(p.hand.size(), 7, "entram além da mão normal")
+	assert_eq(p.hand.size(), p.hand_size + 2, "entram além da mão normal")
 
 
 func test_ia_do_perfeccionista_guarda_repetidos():

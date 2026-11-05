@@ -1,6 +1,6 @@
 # Personagens novos (proposta)
 
-> **Status: implementado** (rodada 6 aprovada). **Jogáveis: Minimalista, Vampiro e Bárbaro**; os outros aparecem como inimigos. Decisões de implementação e números do simulador na seção 8. São 6 arquétipos novos (os 5 da proposta mais o Bárbaro), além do Feiticeiro e do Assassino, que continuam, jogáveis e usados pelos inimigos, no padrão de `docs/SPEC_v3.md` §3: **formato do inventário**, **uma passiva**, vida, mão, bolsa inicial e magias iniciais. Seguem o tom de `docs/TOM.md` e os princípios de `docs/CATALOGO_MAGIAS.md` §1. Números *(iniciais)*, a passar pelo simulador.
+> **Status: implementado** (rodada 6 aprovada). **Jogáveis: Assassino, Vampiro e Bárbaro**; os outros aparecem como inimigos (o Minimalista saiu por ora, seção 8.3). Decisões de implementação e números do simulador na seção 8. São 6 arquétipos novos (os 5 da proposta mais o Bárbaro), além do Feiticeiro e do Assassino, que continuam, jogáveis e usados pelos inimigos, no padrão de `docs/SPEC_v3.md` §3: **formato do inventário**, **uma passiva**, vida, mão, bolsa inicial e magias iniciais. Seguem o tom de `docs/TOM.md` e os princípios de `docs/CATALOGO_MAGIAS.md` §1. Números *(iniciais)*, a passar pelo simulador.
 
 ---
 
@@ -80,7 +80,7 @@ O **Vampiro** e o **Bárbaro** mexem os dois com vida, em direções opostas: o 
 
 ### 0.3 Referência de força
 
-Para comparar: o **Feiticeiro** tem 90 de vida, mão de 5 e causa uns **6 a 8 de dano por turno** com a Faísca, mais um pico de 14 a 20 com a Bola de Fogo (1× por luta). O inimigo do andar 1 tem **31 de vida** (porta normal). Os números de "por que se vira" abaixo são médias aproximadas para o andar 1, sem melhorias.
+Para comparar: o **Feiticeiro** tem 90 de vida, mão de 4 e causa uns **6 a 8 de dano por turno** com a Faísca, mais um pico de 14 a 20 com a Bola de Fogo (1× por luta). O inimigo do andar 1 tem **31 de vida** (porta normal). Os números de "por que se vira" abaixo são médias aproximadas para o andar 1, sem melhorias.
 
 ---
 
@@ -88,12 +88,12 @@ Para comparar: o **Feiticeiro** tem 90 de vida, mão de 5 e causa uns **6 a 8 de
 
 | Personagem | Inventário | Passiva | Vida | Mão | Bolsa inicial | Magias iniciais |
 |---|---|---|---|---|---|---|
-| **Minimalista** | Grade **3×2** (6 casas) | **Voto de Pobreza**: destruir dado no Poço é grátis, e toda recompensa pós-luta tem a opção "destruir 1 dado". | 70 | **4** | **5 dados**: 3 Hidrogênio + 2 comuns | Faísca, **Dardo Arcano** (nova) |
-| **Metalurgista** | Esteira **5×2** (10 casas) | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado da bolsa para a mão. A Loja e o Poço vendem Chumbo para você. | 100 | 5 | 8 dados: 5 comuns + 3 Chumbo | Levantar Peso (nível 2), Estocada |
-| **Copista** | Grade **4×2** (8 casas) | **Inspiração**: no início de cada luta, uma magia aleatória do inimigo que caiba nas suas casas livres é copiada nelas, no mesmo nível, até o fim da luta. | 80 | 5 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
-| **Perfeccionista** | **Moldura 4×3** sem as 2 casas do meio (10 casas) | **Ainda Não Está Bom**: no fim do turno, até 2 dados que sobraram na mão ficam marcados. Você pode ter 2 marcas. | 80 | 5 | 7 comuns + 1 Ósmio | **Dardo Arcano** (nova), **Obra-Prima** (nova) |
-| **Vampiro** | **Caixão 2×4** (2 de largura, 4 de altura) | **Sede**: toda cura que você recebe também dá +1 de vida máxima, para sempre (até 3 por luta). Queima causa o dobro de dano em você. | **65** | 5 | 7 comuns + 1 Sódio | **Mordida** (nova), **Banquete** (nova) |
-| **Bárbaro** | Grade **3×3** (9 casas) | **Fúria**: com metade da vida ou menos, toda magia de dano causa +1 por golpe para cada 10 de vida que você perdeu. | **110** | 5 | 6 comuns + 2 **Amianto** (novo) | **Machadada** (nova), **Cerrar os Dentes** (nova) |
+| **Minimalista** | Grade **3×2** (6 casas) | **Voto de Pobreza**: destruir dado no Poço é grátis, e toda recompensa pós-luta tem a opção "destruir 1 dado". | 70 | **3** | **5 dados**: 3 Hidrogênio + 2 comuns | Faísca, **Dardo Arcano** (nova) |
+| **Metalurgista** | Esteira **5×2** (10 casas) | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado da bolsa para a mão. A Loja e o Poço vendem Chumbo para você. | 100 | 4 | 8 dados: 5 comuns + 3 Chumbo | Levantar Peso (nível 2), Estocada |
+| **Copista** | Grade **4×2** (8 casas) | **Inspiração**: no início de cada luta, uma magia aleatória do inimigo que caiba nas suas casas livres é copiada nelas, no mesmo nível, até o fim da luta. | 80 | 4 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
+| **Perfeccionista** | **Moldura 4×3** sem as 2 casas do meio (10 casas) | **Ainda Não Está Bom**: no fim do turno, até 2 dados que sobraram na mão ficam marcados. Você pode ter 2 marcas. | 80 | 4 | 7 comuns + 1 Ósmio | **Dardo Arcano** (nova), **Obra-Prima** (nova) |
+| **Vampiro** | **Caixão 2×4** (2 de largura, 4 de altura) | **Sede**: toda cura que você recebe também dá +1 de vida máxima, para sempre (até 3 por luta). Queima causa o dobro de dano em você. | **65** | 4 | 7 comuns + 1 Sódio | **Mordida** (nova), **Banquete** (nova) |
+| **Bárbaro** | Grade **3×3** (9 casas) | **Fúria**: com metade da vida ou menos, toda magia de dano causa +1 por golpe para cada 10 de vida que você perdeu. | **110** | 4 | 6 comuns + 2 **Amianto** (novo) | **Machadada** (nova), **Cerrar os Dentes** (nova) |
 
 ### 1.1 Formatos
 
@@ -113,9 +113,9 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro   Bárbaro
 
 ### 2.1 Minimalista: "Possuo cinco dados. Os outros possuem desculpas."
 
-- **Plano:** bolsa minúscula. Com 5 dados e mão de 4, quase todo turno sai a bolsa inteira, e o Hidrogênio (×3 com bolsa de 8 ou menos) vale de 3 a 18. A Faísca e o Dardo Arcano usam os dois maiores: o Dardo pede um valor par, e o Hidrogênio ×3 dá 6, 12 ou 18 nas faces pares.
+- **Plano:** bolsa minúscula. Com 5 dados e mão de 3, quase todo turno saem 3 dos 5, e o Hidrogênio (×3 com bolsa de 6 ou menos) vale de 3 a 18. A Faísca e o Dardo Arcano usam os dois maiores: o Dardo pede um valor par, e o Hidrogênio ×3 dá 6, 12 ou 18 nas faces pares.
 - **Por que se vira:** dois dados de 9 a 18 por turno (+2 no Dardo) dão uns **20 a 24 de dano**. O inimigo do andar 1 cai em 2 turnos. A vida baixa (70) é o preço.
-- **Como cresce:** adesivos ×2 nos Hidrogênios (um 6 com adesivo vale 36). Cada dado novo é uma decisão séria: com 9 dados, o Hidrogênio desliga. A passiva deixa limpar a bolsa de graça.
+- **Como cresce:** adesivos ×2 nos Hidrogênios (um 6 com adesivo vale 36). Cada dado novo é uma decisão séria: com 7 dados, o Hidrogênio desliga. A passiva deixa limpar a bolsa de graça.
 - **Inventário:** 6 casas, 2 já ocupadas. Cabem o Meteoro (L de 4) ou uma Reta 3, não os dois.
 - **Ponto fraco:** o Lixeiro (Chumbo na bolsa), o Arrancar das Mãos (tira o melhor dado de uma bolsa de 5) e a Interrupção Rude (mão de 4 vira 2) machucam muito mais que nos outros.
 - **Combos do catálogo:** Bis! (o Hidrogênio na face máxima rola de novo e soma ×3), Física Aplicada (Hidrogênio com 1 = 3, o "menor" perfeito), Plágio.
@@ -245,7 +245,7 @@ Cada dado pode ter **um** elemento, que dá uma regra de uma linha a ele. No jog
 
 | Elemento | Na prática |
 |---|---|
-| **Hidrogênio** | Vale ×3, mas só com a bolsa de 8 dados ou menos (a bolsa inicial tem 8: comprar um dado já desliga). |
+| **Hidrogênio** | Vale ×3, mas só com a bolsa de 6 dados ou menos (a bolsa inicial tem 8: só funciona em bolsa enxugada). |
 | **Ósmio** | Âncora: sai sempre na primeira mão da luta. Também **não pode ser roubado nem arrancado** (Roubar a Cena e Arrancar das Mãos o pulam). O valor rola normalmente: é um dado comum que você sabe que vem. **Proposta (rodada 5): sai em toda mão** (ver 5.3). |
 | **Urânio** | Faces de 3 a 8. Se sobrar na mão sem uso, envenena **você** em 2 (o veneno não cai durante a luta). |
 | **Sódio** | Ao ser usado numa magia, queima o inimigo em 2. |
@@ -313,7 +313,7 @@ Código: `engine/characters.gd` (kits e passivas), `engine/resolver.gd` (Fúria,
 
 ### 8.1 Decisões tomadas na implementação (revisar depois de jogar)
 
-- **Jogáveis:** Minimalista, Vampiro e Bárbaro, os 3 com passiva automática (nenhuma interação nova na tela). Para liberar outro, basta incluir o id em `Characters.PLAYABLE`; o Perfeccionista ainda precisa da tela para escolher os dados guardados.
+- **Jogáveis:** Assassino, Vampiro e Bárbaro, os 3 com passiva automática (nenhuma interação nova na tela). O Minimalista saiu por ora (seção 8.3). Para liberar outro, basta incluir o id em `Characters.PLAYABLE`; o Perfeccionista ainda precisa da tela para escolher os dados guardados.
 - **Inimigos:** o arquétipo é sorteado entre os 8, com a mesma chance. Variantes (20%): Lixeiro (Assassino), Piromante (Feiticeiro), Fundidor (Metalurgista) e Monge do Silêncio (Minimalista, a partir do andar 5).
 - **Fúria:** calculada em cada golpe, com a vida daquele momento.
 - **Sede:** o limite de 3 volta a zero em cada luta e na parada de Cura.
