@@ -314,7 +314,7 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 			var raw := Config.scale(total, lvl)
 			hit(foe, f, raw + dmg_bonus(f), ev)
 			if f.hp > 0:
-				_heal(f, raw, ev)
+				_heal(f, Config.ceil_div(raw, 2), ev)
 		"feast":
 			hit(foe, f, Config.scale(total, lvl) + dmg_bonus(f), ev)
 			if f.hp > 0:

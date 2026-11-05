@@ -78,7 +78,7 @@ func test_mordida_e_banquete_curam():
 	H.hand(a, [5, 4, 2, 3])
 	var ev := H.cast(a, b, {"mordida": [0], "banquete": [1, 2, 3]})
 	assert_eq(_dmg(ev, "enemy"), 5 + 9)
-	assert_eq(a.hp, 20 + 5 + 2, "Mordida cura o dano (5), Banquete cura o menor (2)")
+	assert_eq(a.hp, 20 + 3 + 2, "Mordida cura metade (3), Banquete cura o menor (2)")
 
 
 func test_machadada_e_cerrar_os_dentes():

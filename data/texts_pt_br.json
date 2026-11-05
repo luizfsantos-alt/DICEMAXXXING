@@ -264,7 +264,7 @@
   ],
   "mordida": [
    "Mordida",
-   "Dano igual ao valor; cura o mesmo tanto."
+   "Dano igual ao valor; cura metade (arredonda para cima)."
   ],
   "banquete": [
    "Banquete",
@@ -677,7 +677,7 @@
   "concentrar": "Bloqueio = soma; funde num dado",
   "dardo": "Par: dano = valor + 2",
   "obra": "Trio: dano = soma ×2",
-  "mordida": "Dano = valor; cura o mesmo",
+  "mordida": "Dano = valor; cura metade",
   "banquete": "Dano = soma; cura o menor",
   "machadada": "Dano = valor ×2",
   "cerrar": "Cura = valor ×3"
