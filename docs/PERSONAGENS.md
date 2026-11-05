@@ -363,7 +363,7 @@ A sensação era de dados demais por turno: com só 2 magias iniciais, 3 dos 5 d
 - **Vida dos inimigos ×0,9** (`Config.ENEMY_HP_MULT`): as lutas ficaram mais longas e desgastavam o herói. ×0,85 e ×0,75 deixavam o jogo fácil demais.
 - **Bárbaro:** 2 **Ferros** (sempre 3) no lugar dos 2 Amiantos e vida 110 → 90. Os Ferros pagam o Cerrar os Dentes e não machucam: com 110 de vida ele foi a 32%.
 - **Vampiro:** vida 65 → 70.
-- **Assassino jogável** com vida 40 → 90 (com 40, 0%). Continua frágil por não ter ganho de vida próprio.
+- **Assassino jogável.** Primeiro com mão de 5 e vida 40 → 90 (com 40, 0%). Depois a passiva mudou: **Ágil** = cada golpe que ele esquiva dá +1 dado na próxima mão; mão de 4 como os outros; começa com a **Esquiva Melhorada** (anula o próximo golpe, sem limite por luta, só no kit inicial). Com dado ≤ 2 na Esquiva Melhorada ele esquivava em ~80% dos turnos e vencia 38% com 90 de vida; só com **um 2** (~52% dos turnos), fica assim: vida 50 → 1%, 60 → 3%, 70 → 6%, 80 → 12%, 90 → 17%. **Vida 85.** O bônus acumulando até o fim da luta (`--agile-stack`) somava só 2–3 pontos e ficou de fora. Os inimigos Assassinos usam o mesmo kit: o Bárbaro, que bate uma vez só por turno, sente no começo (andar 3: 69%, antes 93%), mas fecha em 13%.
 - **Minimalista fora dos jogáveis** por ora: 1–3% em todas as versões. O Monge (4 Hidrogênios) ainda vence 40–60% das lutas contra o jogador.
 
 | Bárbaro (Ferro) | 90 | 100 | 110 | 120 |
@@ -374,9 +374,9 @@ A sensação era de dados demais por turno: com só 2 magias iniciais, 3 dos 5 d
 |---|---|---|---|---|---|
 | % andar 10 | 11% | **14%** | 17% | 20% | 23% |
 
-| Assassino (inimigos ×0,9) | 75 | 85 | **90** |
-|---|---|---|---|
-| % andar 10 | 5% | 8% | **9–10%** |
+| Assassino (Ágil novo, Esquiva Melhorada com 2) | 60 | 70 | 80 | **85** | 90 |
+|---|---|---|---|---|---|
+| % andar 10 | 3% | 6% | 12% | **~14%** | 17% |
 
-Resultado com os valores escolhidos: Feiticeiro 14%, Assassino 10%, Vampiro 14%, Bárbaro 13%.
+Resultado com os valores escolhidos: Feiticeiro 13–14%, Assassino ~14% (85 de vida), Vampiro 14%, Bárbaro 13%.
 

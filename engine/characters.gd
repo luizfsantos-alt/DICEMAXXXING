@@ -16,7 +16,7 @@ const DATA := {
 		"spells": [["faisca", 3, 0, 0, 1], ["bola", 0, 0, 0, 1]],
 	},
 	"assassin": {
-		"hp": 90, "grid": Vector2i(6, 1), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Hg"],
+		"hp": 85, "grid": Vector2i(6, 1), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Hg"],
 		"spells": [["estocada", 0, 0, 0, 1], ["corte", 1, 0, 0, 1], ["esquiva_mais", 3, 0, 0, 1]],
 	},
 	"minimalist": {

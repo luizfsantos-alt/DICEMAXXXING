@@ -63,7 +63,7 @@ Escolhidos no início. O **formato do inventário** é a identidade; cada person
 | Personagem | Inventário | Passiva | Vida | Mão | Bolsa inicial | Magias iniciais |
 |---|---|---|---|---|---|---|
 | **Feiticeiro** | Grade **4×3** | **Erudito**: começa com 1 magia extra, à escolha entre 3. | 90 | 4 | 7 comuns + 1 Sódio | Faísca, Bola de Fogo (+1 do Erudito) |
-| **Assassino** | Cinto **6×1** | **Ágil**: mão de **5** dados (em vez de 4). | 90 | 5 | 7 comuns + 1 Mercúrio | Estocada, Corte Duplo |
+| **Assassino** | Cinto **6×1** | **Ágil**: cada golpe que ele esquiva dá +1 dado na próxima mão. | 85 | 4 | 7 comuns + 1 Mercúrio | Estocada, Corte Duplo, Esquiva Melhorada (um 2; sem limite por luta) |
 | **Minimalista** | Grade **3×2** | **Voto de Pobreza**: destruir no Poço é grátis; a recompensa tem a opção "destruir 1 dado". | 70 | 3 | 2 comuns + 3 Hidrogênio | Faísca, Dardo Arcano |
 | **Metalurgista** | Esteira **5×2** | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado. Loja e Poço vendem Chumbo. | 100 | 4 | 5 comuns + 3 Chumbo | Levantar Peso (nv 2), Estocada |
 | **Copista** | Grade **4×2** | **Inspiração**: no início da luta, copia uma magia aleatória do inimigo que caiba nas casas livres. | 80 | 4 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
@@ -84,7 +84,7 @@ Escolhidos no início. O **formato do inventário** é a identidade; cada person
 
 - Começa com **8 d6 comuns** *(inicial)*. Todos os dados são d6, sempre.
 - **Cada luta começa com a bolsa cheia e embaralhada.**
-- No início do seu turno você **tira a mão** (4 dados; 5 para o Assassino) e rola.
+- No início do seu turno você **tira a mão** (4 dados; +1 para o Assassino depois de cada golpe esquivado) e rola.
 - No fim do turno, todos os dados da mão vão para o **descarte**. Quando a bolsa esvazia, o descarte volta para ela.
 - **Adicionar dados tem consequência real:** dilui os bons, mas alimenta dados que gostam de bolsa grande.
 - **Destruir dados é caro:** Poço de Modificação, preço crescente por jornada *(inicial: 10 moedas, +10 por uso)*.
