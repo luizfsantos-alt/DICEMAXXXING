@@ -8,44 +8,34 @@ toda jornada, **C** detalhe/polimento.
 
 | Elemento | Arquivo |
 |---|---|
-| Fotos do Feiticeiro, Vampiro e Bárbaro (3 variações cada) | `assets/portraits/<arquétipo>_1..3.png` |
-| Molduras das fotos (jogador verde, inimigo vermelha) | `assets/portraits/frame_player.png`, `frame_enemy.png` |
+| Fotos dos 7 arquétipos com arte (3 variações cada): Feiticeiro, Assassino, Metalurgista, Copista, Perfeccionista, Vampiro e Bárbaro | `assets/portraits/<arquétipo>_1..3.png` |
+| Fotos do Mestre e das variantes (1 cada): Porteiro de Chumbo, Lixeiro, Piromante, Fundidor, Monge do Silêncio | `assets/portraits/<id>_1.png` |
+| Molduras das fotos (ferro; filete verde no jogador, vermelho no inimigo) | `assets/portraits/frame_player.png`, `frame_enemy.png` |
+| Logo (dado com chapéu de mago) e ícone do app | `assets/logo.png`, `assets/icon.png` |
 | Fundo da tela de luta (e reflexo dos dados 3D) | `assets/backgrounds/tavern.jpg` |
 | Fonte dos números sobre as fotos | `assets/fonts/Bungee-Regular.ttf` |
 | Dados 3D e 2D | gerados em código de propósito (`ui/dice_3d.gd`, `ui/die_face.gd`, `docs/DADOS_VISUAL.md`); não precisam de arquivo |
 
+Prompts e andamento item a item: [`docs/PAUTA_ARTE.html`](PAUTA_ARTE.html). Para recortar fundo de
+arte gerada: `tools/recortar_fundo.py`.
+
 ## 1. Personagens (fotos) — prioridade A
 
-Hoje `Portrait.WITH_ART = ["sorcerer", "vampire", "barbarian"]`; o resto cai em `generic_1..3.png`
-(provisórias). Para ligar um arquétipo novo: salvar `<id>_1..3.png` em `assets/portraits/` e
-incluir o id em `WITH_ART` (`ui/portrait.gd`).
+`Portrait.WITH_ART` lista os arquétipos com foto; o resto cai em `generic_1..3.png` (provisórias).
+Para ligar um arquétipo novo: salvar `<id>_1..3.png` em `assets/portraits/` e incluir o id em
+`WITH_ART` (`ui/portrait.gd`). Mestre e variantes não precisam de código: `Portrait.art_path` usa
+`<master_id>_1.png` ou `<variant>_1.png` quando o arquivo existe.
 
-| Arquétipo | Id | Jogável | Situação |
-|---|---|---|---|
-| **Assassino** | `assassin` | **sim** | **sem arte** (usa genérica) — o único jogável sem foto |
-| Minimalista | `minimalist` | não (inimigo) | sem arte |
-| Metalurgista | `metallurgist` | não (inimigo) | sem arte |
-| Copista | `copyist` | não (inimigo) | sem arte |
-| Perfeccionista | `perfectionist` | não (inimigo) | sem arte |
-
-Variantes e Mestre (hoje usam a foto do arquétipo base, sem nada que os diferencie):
-
-| Quem | Base | Situação |
+| Falta | Id | Situação |
 |---|---|---|
-| Porteiro de Chumbo (Mestre do andar 10) | Feiticeiro | sem arte própria |
-| Lixeiro | Assassino | sem arte própria |
-| Piromante | Feiticeiro | sem arte própria |
-| Fundidor | Metalurgista | sem arte própria |
-| Monge do Silêncio | Minimalista | sem arte própria |
+| Minimalista (3 variações) | `minimalist` | sem arte (usa genérica); é o último arquétipo |
 
-Arte provisória a substituir: `generic_1..3.png` (somem quando os 8 arquétipos tiverem foto).
+Quando o Minimalista tiver foto, as genéricas deixam de ser usadas e podem sair.
 
 ## 2. Menu inicial (`ui/menu_screen.gd`) — prioridade B
 
 | Elemento | Hoje |
 |---|---|
-| Logo | `assets/logo.png` marcado como **provisório** no código e no README |
-| Ícone do app | `assets/icon.png` = cópia do logo provisório |
 | Cartões de escolha de personagem | só texto e borda na cor do arquétipo; **sem foto/ilustração** |
 | Fundo | cor lisa (`Kit.BG`) |
 
@@ -94,11 +84,11 @@ Todos os cartões são botões de cor lisa com texto; nenhum tem ilustração ou
 
 ## Ordem sugerida
 
-1. Fotos do **Assassino** (único jogável sem arte).
-2. **Ícones de status** (11 ícones pequenos, aparecem em toda luta).
-3. Fotos dos 4 arquétipos inimigos restantes, depois Porteiro de Chumbo.
-4. Logo/ícone definitivo e retrato nos cartões do menu.
-5. Ícones de porta, parada e oferta na torre; ícone de moeda.
+1. **Ícones de status** (11 ícones pequenos, aparecem em toda luta).
+2. Fotos do Minimalista.
+3. Retrato nos cartões do menu (as fotos já existem; é só código).
+4. Moeda.
+5. Ícones de porta, parada e oferta na torre.
 6. Ícone por tipo de efeito nos cartões de magia (dano, bloqueio, cura, esquiva, debuff…), antes de
    pensar em ilustração por magia.
 7. Fundos do menu, torre e fim de jornada; tema de painéis/botões; som.

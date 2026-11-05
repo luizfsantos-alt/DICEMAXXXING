@@ -537,6 +537,24 @@ func test_foto_sorteia_variacao_e_guarda():
 		assert_eq(Fighter.from_dict(f.to_dict()).portrait, f.portrait, "variação salva")
 
 
+func test_mestre_e_variantes_tem_foto_propria():
+	var casos := [["sorcerer", "porteiro", ""], ["assassin", "", "lixeiro"], ["sorcerer", "", "piromante"],
+		["metallurgist", "", "fundidor"], ["minimalist", "", "monge"]]
+	for c in casos:
+		var f := Fighter.new()
+		f.archetype = c[0]
+		f.master_id = c[1]
+		f.variant = c[2]
+		var path := Portrait.art_path(f)
+		assert_eq(path, Portrait.ART_DIR + (c[1] if c[1] != "" else c[2]) + "_1.png", "foto própria de " + str(c))
+		assert_true(ResourceLoader.exists(path), "arte existe: " + path)
+	# Variante sem foto própria cai na do arquétipo.
+	var f2 := Fighter.new()
+	f2.archetype = "vampire"
+	f2.variant = "inexistente"
+	assert_true(Portrait.art_path(f2).begins_with(Portrait.ART_DIR + "vampire_"), "sem foto própria usa a do arquétipo")
+
+
 func test_moldura_e_fonte_dos_numeros_existem():
 	for p in Portrait.FRAMES.values():
 		assert_true(ResourceLoader.exists(Portrait.ART_DIR + p), "moldura: " + p)

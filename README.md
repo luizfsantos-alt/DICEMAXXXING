@@ -16,7 +16,7 @@ Tela em paisagem.
   com pontinhos, valores maiores com algarismos, tudo em baixo relevo; o 2D segue a mesma regra
   (`ui/die_face.gd`). Tocar na tela pula a rolagem.
 - Fotos dos personagens: `assets/portraits/`, 3 variações por arquétipo (`sorcerer_1..3`, `assassin_1..3`, `metallurgist_1..3`, `copyist_1..3`, `perfectionist_1..3`,
-  `vampire_1..3`, `barbarian_1..3`); quem ainda não tem arte usa as provisórias `generic_1..3`.
+  `vampire_1..3`, `barbarian_1..3`); quem ainda não tem arte usa as provisórias `generic_1..3`. Mestre e variantes têm foto própria (`porteiro_1`, `lixeiro_1`, `piromante_1`, `fundidor_1`, `monge_1`).
   A variação é sorteada uma vez por lutador e salva (`Fighter.portrait`), tanto para você quanto
   para o inimigo. A arte preenche a foto e só aparece dentro da moldura (`frame_enemy.png`
   vermelha, `frame_player.png` verde). Sem a arte, `ui/portrait.gd` desenha uma silhueta.

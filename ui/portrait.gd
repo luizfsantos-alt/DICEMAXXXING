@@ -32,9 +32,14 @@ var _glow := Color(0, 0, 0, 0) ## Brilho do último efeito (some sozinho).
 
 
 ## Caminho da foto do lutador; sorteia a variação se ainda não tiver uma.
+## Mestre de Andar e variantes (Lixeiro, Piromante…) têm foto própria, uma só
+## (<id>_1.png); sem ela, usam a do arquétipo.
 static func art_path(f: Fighter) -> String:
 	if f.portrait < 0 or f.portrait >= VARIATIONS:
 		f.portrait = randi() % VARIATIONS
+	for special in [f.master_id, f.variant]:
+		if special != "" and ResourceLoader.exists("%s%s_1.png" % [ART_DIR, special]):
+			return "%s%s_1.png" % [ART_DIR, special]
 	var key: String = f.archetype if f.archetype in WITH_ART else "generic"
 	return "%s%s_%d.png" % [ART_DIR, key, f.portrait + 1]
 
