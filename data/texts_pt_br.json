@@ -138,6 +138,10 @@
    "Esquiva",
    "Dado de valor 2 ou menos. Anula o próximo golpe do inimigo. Uma vez por luta."
   ],
+  "esquiva_mais": [
+   "Esquiva Melhorada",
+   "Dado de valor 2 ou menos. Anula o próximo golpe do inimigo. Sem limite por luta."
+  ],
   "corte": [
    "Corte Duplo",
    "Dois dados. Dano igual à soma; se ambos forem ímpares, golpeia de novo."
@@ -333,7 +337,7 @@
   "assassin": [
    "Assassino",
    "Ágil",
-   "Mão de 5 dados (os outros têm 4).",
+   "Cada golpe que você esquiva dá +1 dado na sua próxima mão. Começa com a Esquiva Melhorada (sem limite por luta).",
    "Técnicas finas que aceitam quase qualquer dado."
   ],
   "minimalist": [
@@ -553,6 +557,9 @@
   "next_hand": "Próxima mão: {mod}",
   "mod_minus1": "−1 dado",
   "mod_minus2": "−2 dados",
+  "mod_plus1": "+1 dado (Ágil)",
+  "mod_plus2": "+2 dados (Ágil)",
+  "mod_plus3": "+3 dados (Ágil)",
   "mod_minus3": "−3 dados",
   "mod_minus4": "−4 dados",
   "mod_halve": "metade do valor",
@@ -656,6 +663,7 @@
   "transfusao": "+valor na vida máxima, para sempre",
   "estocada": "Dano = valor + 1",
   "esquiva": "Anula o próximo golpe do inimigo",
+  "esquiva_mais": "Anula o próximo golpe do inimigo",
   "corte": "Soma; se os 2 forem ímpares, golpeia de novo",
   "sombras": "Dano = valor; ignora defesas",
   "bis": "Rola de novo e soma; repete na face máxima",

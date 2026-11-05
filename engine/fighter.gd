@@ -42,6 +42,7 @@ var fight_mods: Array = [] ## Adesivos mexidos nesta luta, para desfazer: [{bag,
 var hand_mods: Array = [] ## Mexidas do inimigo que valem na próxima mão.
 ## Perfeccionista: dados guardados no fim do turno, como marcas: [{bag, temp, value}].
 var keeps: Array = []
+var dodge_bonus: int = 0 ## Assassino (Ágil): dados a mais na próxima mão.
 var thirst_used: int = 0 ## Vampiro: vida máxima já ganha nesta luta com a Sede.
 ## Dados trocados só nesta luta (Fundidor): [{bag, die}] com o dado original.
 var restore: Array = []
@@ -93,6 +94,7 @@ func reset_fight_state() -> void:
 	turn_mods = []
 	keeps = []
 	thirst_used = 0
+	dodge_bonus = 0
 
 
 ## Desfaz o que vale só nesta luta (adesivos roubados pelo Plágio, Chumbo do Fundidor,
@@ -121,9 +123,10 @@ func uses_of(item: int) -> int:
 ## Tira a mão da bolsa. O Ósmio sai em toda mão, antes dos outros (ocupa vaga).
 ## minus: dados a menos (Interrupção Rude, Rasteira), com mínimo de 2. A marca, os
 ## dados guardados e os recebidos entram além da mão normal.
-func draw_hand(rng: RandomNumberGenerator, minus := 0) -> void:
+func draw_hand(rng: RandomNumberGenerator, minus := 0, bonus := 0) -> void:
 	hand = []
-	var n := hand_size if minus <= 0 else maxi(2, hand_size - minus)
+	var base := hand_size + maxi(0, bonus)
+	var n := base if minus <= 0 else maxi(2, base - minus)
 	for pile in [draw_pile, discard]:
 		for i in pile.duplicate():
 			if hand.size() < n and bag[i].element == "Os":
@@ -334,7 +337,7 @@ func to_dict() -> Dictionary:
 		"sacrifice_bonus": sacrifice_bonus, "once_used": once_used, "turns_taken": turns_taken,
 		"riposte": riposte, "immune": immune, "recycle": recycle, "marked": marked,
 		"extra_next": extra_next, "benched": benched, "fight_mods": fight_mods,
-		"hand_mods": hand_mods, "turn_mods": turn_mods, "keeps": keeps, "thirst_used": thirst_used,
+		"hand_mods": hand_mods, "turn_mods": turn_mods, "keeps": keeps, "thirst_used": thirst_used, "dodge_bonus": dodge_bonus,
 		"restore": restore,
 	}
 
@@ -389,6 +392,7 @@ static func from_dict(d: Dictionary) -> Fighter:
 	for k in d.get("keeps", []):
 		f.keeps.append({"bag": int(k.bag), "temp": k.get("temp", {}), "value": int(k.value)})
 	f.thirst_used = int(d.get("thirst_used", 0))
+	f.dodge_bonus = int(d.get("dodge_bonus", 0))
 	for r in d.get("restore", []):
 		f.restore.append({"bag": int(r.bag), "die": r.die})
 	return f

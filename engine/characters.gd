@@ -16,8 +16,8 @@ const DATA := {
 		"spells": [["faisca", 3, 0, 0, 1], ["bola", 0, 0, 0, 1]],
 	},
 	"assassin": {
-		"hp": 90, "grid": Vector2i(6, 1), "blocked": [], "hand": 5, "bag_size": 8, "bag": ["Hg"],
-		"spells": [["estocada", 0, 0, 0, 1], ["corte", 1, 0, 0, 1]],
+		"hp": 90, "grid": Vector2i(6, 1), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Hg"],
+		"spells": [["estocada", 0, 0, 0, 1], ["corte", 1, 0, 0, 1], ["esquiva_mais", 3, 0, 0, 1]],
 	},
 	"minimalist": {
 		"hp": 70, "grid": Vector2i(3, 2), "blocked": [], "hand": 3, "bag_size": 5, "bag": ["H", "H", "H"],
@@ -48,6 +48,9 @@ const DATA := {
 # Passivas.
 const THIRST_CAP := 3 ## Vampiro: vida máxima ganha com a Sede (+1 por cura), por luta.
 const FURY_STEP := 10 ## Bárbaro: +1 por golpe para cada 10 de vida perdida.
+const AGILE_DICE := 1 ## Assassino (Ágil): dados a mais na próxima mão por golpe esquivado.
+## Experimento do simulador: o bônus do Ágil acumula até o fim da luta.
+static var agile_stack := false
 const KEEP_MAX := 2 ## Perfeccionista: dados guardados no fim do turno (e marcas ao mesmo tempo).
 
 

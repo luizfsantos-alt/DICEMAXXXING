@@ -57,6 +57,8 @@ const DATA := {
 	"transfusao": {"shape": S_H2, "req": "pair", "fx": "maxhp", "use": "once", "pool": "sorcerer", "rarity": "uncommon"},
 	"estocada": {"shape": S1, "req": "any", "n": 1, "fx": "dmg", "plus": 1, "use": "always", "pool": "assassin", "rarity": "common"},
 	"esquiva": {"shape": S1, "req": "max", "v": 2, "fx": "dodge", "use": "once", "pool": "assassin", "rarity": "common"},
+	## Só no kit inicial do Assassino (não aparece em ofertas nem nos inimigos que compram).
+	"esquiva_mais": {"shape": S1, "req": "max", "v": 2, "fx": "dodge", "use": "always", "pool": "assassin", "rarity": "uncommon", "start_only": true},
 	"corte": {"shape": S_H2, "req": "any", "n": 2, "fx": "dmg", "odd_twice": true, "use": "always", "pool": "assassin", "rarity": "common"},
 	"sombras": {"shape": S_H3, "req": "exact", "v": 6, "fx": "dmg", "pierce": true, "use": "once", "pool": "assassin", "rarity": "uncommon"},
 	# Rodada 1 (Feiticeiro).
@@ -159,7 +161,7 @@ static func rarity(id: String) -> String:
 
 
 static func ids_of_rarity(r: String) -> Array:
-	return DATA.keys().filter(func(x): return rarity(x) == r)
+	return DATA.keys().filter(func(x): return rarity(x) == r and not DATA[x].get("start_only", false))
 
 
 ## Família de cor do efeito na interface: dmg, block, dodge, mirror, heal, maxhp, sacrifice.

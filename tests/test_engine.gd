@@ -158,7 +158,7 @@ func test_arranjo_inicial_e_valido_e_todas_as_magias_cabem():
 
 func test_kit_inicial_sem_defesa():
 	assert_eq(EnemyFactory.base("sorcerer").inventory.ids(), ["faisca", "bola"])
-	assert_eq(EnemyFactory.base("assassin").inventory.ids(), ["estocada", "corte"])
+	assert_eq(EnemyFactory.base("assassin").inventory.ids(), ["estocada", "corte", "esquiva_mais"])
 	var run := RunState.new_run(3)
 	run.choose(0) ## Erudito
 	assert_eq(run.hero.inventory.items.size(), 3, "Feiticeiro: 2 + a escolha do Erudito")

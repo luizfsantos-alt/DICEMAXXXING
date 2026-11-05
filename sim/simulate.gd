@@ -8,6 +8,7 @@ extends SceneTree
 ## Experimentos (não mudam o jogo): --hand=-1 soma à mão de todos (jogador e inimigos,
 ## mínimo 2); --h-mult=2 e --h-bag=6 trocam o multiplicador e a bolsa máxima do Hidrogênio.
 ## --enemy-hp=0.85 multiplica a vida dos inimigos; --hero-hp=70 troca a vida inicial do herói.
+## --agile-stack: o +1 dado do Ágil (Assassino) acumula até o fim da luta.
 ## --report imprime vitórias por elemento na bolsa e derrotas por tipo de inimigo.
 
 
@@ -34,6 +35,9 @@ func _init() -> void:
 			spell_report = true
 		elif a == "--report":
 			report = true
+		elif a == "--agile-stack":
+			Characters.agile_stack = true
+			print("Experimento: Ágil acumula até o fim da luta")
 		elif a.begins_with("--enemy-hp="):
 			enemy_hp = float(a.split("=")[1])
 		elif a.begins_with("--hero-hp="):

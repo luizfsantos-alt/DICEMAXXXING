@@ -14,6 +14,42 @@ func _dmg(ev: Array, side: String) -> int:
 
 
 # ------------------------------------------------------------------ Kits
+func test_agil_do_assassino_ganha_dado_ao_esquivar():
+	var s := EnemyFactory.base("assassin")
+	s.reset_fight_state()
+	var a := H.fighter("a", ["faisca"])
+	H.hand(s, [2])
+	H.cast(s, a, {"esquiva_mais": [0]})
+	assert_true(s.dodge)
+	H.hand(a, [6])
+	H.cast(a, s, {"faisca": [0]})
+	assert_eq(s.hp, s.max_hp, "esquivou")
+	assert_eq(s.dodge_bonus, Characters.AGILE_DICE)
+	var ev := []
+	Resolver.draw_and_roll(s, a, H.rng(), ev)
+	assert_eq(s.hand.size(), s.hand_size + Characters.AGILE_DICE, "+1 dado na próxima mão")
+	assert_true(ev.any(func(e): return e.t == "hand_mod" and e.mod == "plus1"))
+	Resolver.end_turn(s, [], [])
+	Resolver.draw_and_roll(s, a, H.rng(), [])
+	assert_eq(s.hand.size(), s.hand_size, "o bônus vale só uma mão")
+
+
+func test_esquiva_melhorada_sem_limite_e_fora_das_ofertas():
+	assert_false(Spells.is_once("esquiva_mais"))
+	for r in Config.RARITIES:
+		assert_false("esquiva_mais" in Spells.ids_of_rarity(r))
+
+
+func test_so_o_assassino_ganha_dado_ao_esquivar():
+	var b := H.fighter("b", ["esquiva"])
+	var a := H.fighter("a", ["faisca"])
+	H.hand(b, [2])
+	H.cast(b, a, {"esquiva": [0]})
+	H.hand(a, [6])
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(b.dodge_bonus, 0)
+
+
 func test_ferro_sempre_tira_3():
 	var d := Die.with_element("Fe")
 	for i in 6:

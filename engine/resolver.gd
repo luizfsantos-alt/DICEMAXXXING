@@ -47,9 +47,14 @@ static func draw_and_roll(f: Fighter, foe: Fighter, rng: RandomNumberGenerator, 
 			minus += 2
 		elif m == "minus1":
 			minus += 1
-	f.draw_hand(rng, minus)
+	var bonus := f.dodge_bonus
+	if not Characters.agile_stack:
+		f.dodge_bonus = 0
+	f.draw_hand(rng, minus, bonus)
 	if minus > 0:
 		ev.append({"t": "hand_mod", "side": side(f), "mod": "minus%d" % minus})
+	if bonus > 0:
+		ev.append({"t": "hand_mod", "side": side(f), "mod": "plus%d" % mini(bonus, 3)})
 	if f.is_player and foe.master_id == "porteiro" and negative(f, ev):
 		f.add_temp(Elements.lead())
 		ev.append({"t": "lead_hand", "side": side(f)})
@@ -450,6 +455,8 @@ static func hit(target: Fighter, attacker: Fighter, n: int, ev: Array, reflected
 		if target.dodge:
 			target.dodge = false
 			ev.append({"t": "dodged", "side": side(target), "n": n})
+			if target.archetype == "assassin":
+				target.dodge_bonus += Characters.AGILE_DICE
 			return
 		if target.mirror and not reflected:
 			target.mirror = false
