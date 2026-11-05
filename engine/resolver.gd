@@ -85,7 +85,7 @@ static func _announce_elements(f: Fighter, ev: Array) -> void:
 		var d := f.die_of(e)
 		if d == null or e.get("fixed", false):
 			continue
-		if d.element == "H" and f.bag.size() <= Elements.SOLITARY_BAG:
+		if Elements.solitary(f, d):
 			ev.append({"t": "element", "side": side(f), "el": "H", "v": int(e.value)})
 		elif d.element == "Hg" and int(e.value) > d.value(int(e.face)):
 			ev.append({"t": "element", "side": side(f), "el": "Hg", "v": int(e.value)})

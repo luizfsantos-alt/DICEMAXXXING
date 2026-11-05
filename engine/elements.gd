@@ -22,6 +22,10 @@ const COLORS := {
 	"Am": Color(0.85, 0.82, 0.62),
 }
 const SOLITARY_BAG := 8 ## Hidrogênio: ×3 com bolsa deste tamanho ou menor.
+const SOLITARY_MULT := 3
+## Valores em uso (o simulador troca para testar; o jogo usa os de cima).
+static var solitary_bag := SOLITARY_BAG
+static var solitary_mult := SOLITARY_MULT
 const ASBESTOS_PLUS := 3 ## Amianto: +3 em todas as faces.
 
 
@@ -51,3 +55,8 @@ static func rarity(el: String) -> String:
 		if el in RARITY[r]:
 			return r
 	return "common"
+
+
+## Hidrogênio ligado: vale ×solitary_mult com a bolsa de solitary_bag dados ou menos.
+static func solitary(f: Fighter, d: Die) -> bool:
+	return d != null and d.element == "H" and f.bag.size() <= solitary_bag

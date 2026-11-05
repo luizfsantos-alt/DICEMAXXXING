@@ -231,8 +231,8 @@ func _roll_entry(e: Dictionary, rng: RandomNumberGenerator) -> void:
 	var raw := d.value(e.face)
 	e.top = raw == d.max_value()
 	e.value = raw + int(e.get("plus", 0))
-	if d.element == "H" and bag.size() <= Elements.SOLITARY_BAG:
-		e.value *= 3
+	if Elements.solitary(self, d):
+		e.value *= Elements.solitary_mult
 
 
 ## Cura. Vampiro (Sede): toda cura também dá +1 de vida máxima, até THIRST_CAP por luta.
