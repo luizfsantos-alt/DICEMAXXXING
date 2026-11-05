@@ -13,7 +13,7 @@ const COLORS := {
 	"perfectionist": Color(0.35, 0.7, 0.65), "vampire": Color(0.6, 0.12, 0.2), "barbarian": Color(0.75, 0.45, 0.2),
 }
 const ART_DIR := "res://assets/portraits/"
-const WITH_ART := ["sorcerer", "vampire", "barbarian"] ## O resto usa "generic".
+const WITH_ART := ["sorcerer", "vampire", "barbarian", "assassin", "metallurgist"] ## O resto usa "generic".
 const VARIATIONS := 3
 const BG := Color(0.0, 0.0, 0.0) ## Igual ao fundo da arte, para emendar.
 const FRAMES := {true: "frame_player.png", false: "frame_enemy.png"}
