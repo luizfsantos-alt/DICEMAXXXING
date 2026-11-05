@@ -110,21 +110,21 @@ func test_furia_so_com_metade_da_vida():
 func test_sede_do_vampiro():
 	var v := EnemyFactory.base("vampire")
 	v.reset_fight_state()
-	assert_eq(v.hp, 70)
+	assert_eq(v.hp, 65)
 	v.hp = 50
 	var r := v.heal_full(4)
 	assert_eq(int(r.hp), 4, "cura normal mesmo machucado")
 	assert_eq(int(r.max), 1, "toda cura dá +1 de vida máxima")
-	assert_eq(v.max_hp, 71)
+	assert_eq(v.max_hp, 66)
 	assert_eq(v.hp, 55)
 	v.heal_full(0)
-	assert_eq(v.max_hp, 71, "cura zero não conta")
+	assert_eq(v.max_hp, 66, "cura zero não conta")
 	for i in 20:
 		v.heal_full(2)
-	assert_eq(v.max_hp, 70 + Characters.THIRST_CAP, "até o limite por luta")
+	assert_eq(v.max_hp, 65 + Characters.THIRST_CAP, "até o limite por luta")
 	v.reset_fight_state()
 	v.heal_full(3)
-	assert_eq(v.max_hp, 71 + Characters.THIRST_CAP, "a luta seguinte libera de novo")
+	assert_eq(v.max_hp, 66 + Characters.THIRST_CAP, "a luta seguinte libera de novo")
 
 
 func test_vampiro_queima_em_dobro():
