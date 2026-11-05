@@ -6,6 +6,8 @@ var current: Control
 ## Botão de depuração no canto: volta ao menu e apaga a partida ativa (pede um 2º toque).
 var quit_btn: Button
 var _quit_armed := false
+## Release mais novo achado no GitHub ({"version", "url"}); vazio se não houver.
+var update_info: Dictionary = {}
 
 
 func _ready() -> void:
@@ -16,6 +18,17 @@ func _ready() -> void:
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 	show_menu()
+	# Só no jogo exportado: no editor e nos testes não há consulta à rede.
+	if OS.has_feature("template"):
+		var uc := UpdateChecker.new()
+		uc.found.connect(_on_update_found)
+		add_child(uc)
+
+
+func _on_update_found(info: Dictionary) -> void:
+	update_info = info
+	if current is MenuScreen:
+		current.show_update(info)
 
 
 ## Botão pequeno no canto superior direito, por cima de todas as telas da jornada.
@@ -71,6 +84,8 @@ func show_menu() -> void:
 	m.new_run.connect(_on_new_run)
 	m.continue_run.connect(_on_continue)
 	_swap(m)
+	if not update_info.is_empty():
+		m.show_update(update_info)
 
 
 func _on_new_run(char_id: String) -> void:

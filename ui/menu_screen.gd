@@ -9,6 +9,9 @@ const LOGO := "res://assets/logo.png"
 signal continue_run
 
 var picks: Array = [] ## Botões dos personagens (testes).
+var header: VBoxContainer ## Título e subtítulo; o aviso de versão nova entra embaixo.
+var update_bar: Control ## Aviso de versão nova (null até haver uma).
+var update_url := ""
 
 
 func setup() -> MenuScreen:
@@ -33,6 +36,7 @@ func setup() -> MenuScreen:
 	var tv := Kit.vbox(2)
 	tv.alignment = BoxContainer.ALIGNMENT_CENTER
 	head.add_child(tv)
+	header = tv
 	var t := Kit.label(Texts.t("ui.title"), 64, Kit.ACCENT)
 	tv.add_child(t)
 	var sub := Kit.label(Texts.t("ui.subtitle"), 22, Kit.MUTED)
@@ -89,3 +93,24 @@ func _card(id: String) -> Button:
 	b.pressed.connect(func(): new_run.emit(id))
 	picks.append(b)
 	return b
+
+
+## Aviso de versão nova embaixo do subtítulo (cabe na altura do logo, não empurra o menu).
+## O botão abre o download do APK; a instalação fica com o Android.
+func show_update(info: Dictionary) -> void:
+	update_url = str(info.get("url", ""))
+	if update_url == "":
+		return
+	if update_bar:
+		update_bar.queue_free()
+	var h := Kit.hbox(12)
+	header.add_child(h)
+	var tv := Kit.vbox(0)
+	tv.alignment = BoxContainer.ALIGNMENT_CENTER
+	h.add_child(tv)
+	tv.add_child(Kit.label(Texts.t("ui.update_available", {"version": info.get("version", "")}), 18, Kit.OK))
+	tv.add_child(Kit.label(Texts.t("ui.update_note"), 14, Kit.MUTED))
+	var b := Kit.button(Texts.t("ui.update_download"), func(): OS.shell_open(update_url), Kit.PANEL_HI, 18)
+	b.custom_minimum_size = Vector2(110, 40)
+	h.add_child(b)
+	update_bar = h
