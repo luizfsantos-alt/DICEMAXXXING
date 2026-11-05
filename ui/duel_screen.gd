@@ -17,7 +17,8 @@ extends Control
 ## volta para a coluna, ele sai da magia). Também dá para tocar num dado e depois
 ## numa magia. Toque num dado encaixado para soltá-lo (ou na magia, para soltar
 ## todos). Não dá para terminar o turno com uma magia de vários dados pela metade.
-## Segurar a foto do inimigo mostra as magias dele no palco (só leitura); soltar volta. Segurar um ícone de status mostra a descrição.
+## Segurar a foto do inimigo mostra as magias dele no palco (só leitura); soltar
+## volta. Segurar um ícone de status mostra a descrição.
 
 signal finished
 signal stage_changed(side: String) ## O palco passou a mostrar as magias de "side".
