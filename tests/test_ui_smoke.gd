@@ -501,3 +501,26 @@ func test_nao_termina_turno_com_magia_de_varios_dados_pela_metade():
 	assert_eq(d.choice.incomplete_items(p), [])
 	await d._submit()
 	assert_true(run.duel.turn > turn or run.duel.state != "choosing", "agora o turno resolve")
+
+
+func test_efeitos_voam_da_magia_ate_o_alvo():
+	var run := _run_at_duel(77)
+	var d := DuelScreen.new().setup(run)
+	d.fast = true
+	add_child_autofree(d)
+	await wait_process_frames(2)
+	assert_not_null(d.enemy_photo.art, "arte provisória do inimigo")
+	assert_not_null(d.player_photo.art, "arte provisória do aliado (de costas)")
+	d.fast = false
+	d.fx_src = d._center(d.cards[0])
+	var before := d.bolts
+	await d._effect("enemy", "−5", "dmg")
+	assert_eq(d.bolts, before + 1, "dano com origem dispara o efeito")
+	var floats := d.fx_layer.get_children().filter(func(c): return c is Label and c.get_meta("fx_side", "") == "enemy")
+	assert_eq(floats.size(), 1, "número sobre o alvo")
+	assert_eq(floats[0].text, "−5")
+	assert_eq(floats[0].get_theme_color("font_color"), DuelScreen.FX_COLORS.dmg, "dano em vermelho")
+	await d._effect("player", "+3", "heal", null)
+	assert_eq(d.bolts, before + 1, "sem origem (veneno, queima) não voa")
+	await wait_seconds(1.2)
+	d.fast = true

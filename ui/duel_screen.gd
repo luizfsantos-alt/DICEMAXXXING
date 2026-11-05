@@ -31,6 +31,11 @@ const LEFT := 300 ## Coluna dos personagens.
 const DICE_W := 116 ## Coluna dos dados.
 const MARGIN := 14
 const GAP := 12
+## Cor do efeito que voa da magia até o alvo (e do número que aparece sobre ele).
+const FX_COLORS := {
+	"heal": Color(0.35, 0.95, 0.45), "dmg": Color(1.0, 0.25, 0.22), "fx": Color(0.35, 0.65, 1.0),
+}
+const BOLT_TIME := 0.34
 
 var run: RunState
 var duel: Duel
@@ -79,6 +84,9 @@ var tip_desc: Label
 var tip_icon: StatusIcon
 var stage_panel: PanelContainer
 var roller: DiceRoll3D ## Rolagem 3D em andamento (por cima do palco).
+var fx_src = null ## Ponto (camada de efeitos) de onde saem os efeitos: o cartão da última magia.
+var fx_bounce = null ## Golpe devolvido (Espelho, Revide): sai da foto de quem devolveu.
+var bolts := 0 ## Efeitos disparados (testes).
 
 
 func setup(r: RunState) -> DuelScreen:
@@ -193,6 +201,9 @@ func _photo_row(f: Fighter, is_player: bool) -> HBoxContainer:
 func _photo_label(photo: Control, text: String, fs: int, col: Color, head: bool) -> Label:
 	var l := Kit.label(text, fs, col, true)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# A arte é escura e passa por baixo do texto.
+	l.add_theme_constant_override("outline_size", 6)
+	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.set_anchors_preset(Control.PRESET_TOP_WIDE if head else Control.PRESET_BOTTOM_WIDE)
 	l.offset_left = 6
@@ -921,6 +932,8 @@ func _apply_event(ev: Dictionary) -> void:
 	var v: Dictionary = shown.get(s, {})
 	match str(ev.t):
 		"turn":
+			fx_src = null
+			fx_bounce = null
 			banner.text = Texts.t("ui.your_turn") if s == "player" else Texts.t("ui.enemy_turn")
 			# O palco e a coluna de dados passam para quem joga agora.
 			_set_active(s)
@@ -937,6 +950,7 @@ func _apply_event(ev: Dictionary) -> void:
 				shown.player.block = 0
 		"hand":
 			# Os dois lados rolam a mão na coluna de dados.
+			fx_src = null
 			if s == "enemy":
 				hint.text = Texts.t("ui.enemy_rolling")
 			_fill_tray(ev["values"], ev.get("elements", []), s == "player")
@@ -945,6 +959,8 @@ func _apply_event(ev: Dictionary) -> void:
 			var cc := _card_of(cards if s == "player" else enemy_cards, int(ev.item))
 			if cc and cc.shown_used != null:
 				cc.shown_used.append(int(ev.item))
+			fx_src = _center(cc) if cc else null
+			fx_bounce = null
 			var vals := " + ".join(PackedStringArray(ev["values"].map(func(x): return str(x))))
 			if s == "player":
 				var pc := _card_of(cards, int(ev.item))
@@ -975,19 +991,24 @@ func _apply_event(ev: Dictionary) -> void:
 			v.hp -= int(ev.dmg)
 			v.block = maxi(0, int(v.block) - int(ev.absorbed))
 			var hit_txt := "−%d" % int(ev.dmg) if int(ev.dmg) > 0 else Texts.t("ui.fx_absorb", {"n": ev.absorbed})
-			_float(s, hit_txt, Kit.DANGER)
+			var from = fx_bounce if ev.get("reflected", false) and fx_bounce != null else fx_src
+			fx_bounce = null
+			await _effect(s, hit_txt, "dmg" if int(ev.dmg) > 0 else "fx", from)
 			_note(s, hit_txt)
 		"asbestos":
 			v.hp -= int(ev.n)
-			_float(s, Texts.t("ui.fx_asbestos", {"n": ev.n}), Elements.COLORS.Am)
+			await _effect(s, Texts.t("ui.fx_asbestos", {"n": ev.n}), "dmg")
 			_note(s, Texts.t("ui.fx_asbestos", {"n": ev.n}))
 		"element":
 			_float(s, Texts.t("ui.fx_el_" + str(ev.el), {"v": ev.v}), Elements.COLORS.get(str(ev.el), Kit.TEXT))
 		"burn_up":
 			if str(ev.get("src", "")) == "Na":
-				_float(s, Texts.t("ui.fx_el_Na", {"n": ev.n}), Elements.COLORS.Na)
+				await _effect(s, Texts.t("ui.fx_el_Na", {"n": ev.n}), "fx")
+			else:
+				await _effect(s, Texts.t("ui.fx_burn_up", {"n": ev.n}), "fx")
 		"poison_up":
-			_float(s, Texts.t("ui.fx_el_U", {"n": ev.n}), Elements.COLORS.U)
+			# Urânio parado no fim do turno: sem magia de origem.
+			await _effect(s, Texts.t("ui.fx_el_U", {"n": ev.n}), "fx", null)
 		"dead_weight":
 			_float(s, Texts.t("ui.fx_dead_weight", {"n": ev.n}), Elements.COLORS.Pb)
 		"copy":
@@ -996,33 +1017,59 @@ func _apply_event(ev: Dictionary) -> void:
 		"lead_convert":
 			_float(s, Texts.t("ui.fx_lead"), Elements.COLORS.Pb)
 		"poison", "burn", "idle_dmg":
+			# Começo ou fim do turno: o dano acontece no próprio alvo, sem viagem.
 			v.hp -= int(ev.n)
-			_float(s, "−%d" % int(ev.n), Color(0.6, 0.9, 0.3) if ev.t == "poison" else Color(1.0, 0.6, 0.2))
+			await _effect(s, "−%d" % int(ev.n), "dmg", null)
 			_note(s, Texts.t("ui.fx_" + str(ev.t), {"n": ev.n}))
 		"riposte":
-			_float(s, Texts.t("ui.fx_riposte"), Kit.SHIELD)
+			await _effect(s, Texts.t("ui.fx_riposte"), "fx", null)
+			fx_bounce = _portrait_point(s)
 			_note(s, Texts.t("ui.fx_riposte"))
 		"immune_block":
-			_float(s, Texts.t("ui.fx_immune"), Kit.SHIELD)
+			await _effect(s, Texts.t("ui.fx_immune"), "fx")
 			_note(s, Texts.t("ui.fx_immune"))
 		"encore":
 			_float(s, "+%d" % int(ev.v), Kit.ACCENT)
 		"block":
+			# Bloqueio reciclado (dados parados no fim do turno) não vem de uma magia.
+			await _effect(s, Texts.t("ui.fx_block", {"n": ev.n}), "fx", null if ev.get("recycled", false) else fx_src)
 			v.block = int(ev.total)
-			_float(s, Texts.t("ui.fx_block", {"n": ev.n}), Kit.SHIELD)
 		"heal":
+			await _effect(s, Texts.t("ui.fx_heal", {"n": ev.n}), "heal")
 			v.hp += int(ev.n)
-			_float(s, Texts.t("ui.fx_heal", {"n": ev.n}), Kit.OK)
 		"maxhp":
+			await _effect(s, Texts.t("ui.fx_thirst" if ev.get("thirst", false) else "ui.fx_maxhp", {"n": ev.n}), "heal")
 			v.max += int(ev.n)
 			v.hp += int(ev.n)
-			_float(s, Texts.t("ui.fx_thirst" if ev.get("thirst", false) else "ui.fx_maxhp", {"n": ev.n}), Kit.OK)
 		"dodged":
-			_float(s, Texts.t("ui.fx_dodged"), Kit.SHIELD)
+			await _effect(s, Texts.t("ui.fx_dodged"), "fx")
 			_note(s, Texts.t("ui.fx_dodged"))
 		"mirrored":
-			_float(s, Texts.t("ui.fx_mirror"), Kit.TEXT)
+			await _effect(s, Texts.t("ui.fx_mirror"), "fx")
+			fx_bounce = _portrait_point(s)
 			_note(s, Texts.t("ui.fx_mirror"))
+		"dodge_up":
+			await _effect(s, Texts.t("status.dodge.0"), "fx")
+		"mirror_up":
+			await _effect(s, Texts.t("status.mirror.0"), "fx")
+		"riposte_up":
+			await _effect(s, "%s %d" % [Texts.t("status.riposte.0"), int(ev.n)], "fx")
+		"immune_up":
+			await _effect(s, Texts.t("status.immune.0"), "fx")
+		"cleanse":
+			await _effect(s, Texts.t("ui.fx_cleanse"), "fx")
+		"recycle_up":
+			await _effect(s, Texts.t("ui.fx_recycle"), "fx")
+		"hand_mod_up":
+			await _effect(s, Texts.t("ui.mod_" + str(ev.mod)), "fx")
+		"mark":
+			await _effect(s, Texts.t("status.marked.0"), "fx")
+		"bench":
+			await _effect(s, Texts.t("ui.fx_bench"), "fx")
+		"steal_sticker":
+			await _effect(s, Texts.t("ui.fx_steal"), "fx")
+		"sacrifice":
+			await _effect(s, Texts.t("ui.fx_sacrifice", {"n": ev.bonus}), "fx")
 	_refresh_shown_only()
 
 
@@ -1051,17 +1098,61 @@ func _refresh_shown_only() -> void:
 	_refresh_status()
 
 
+## Texto que sobe e some sobre a foto de "s" (+X verde, −X vermelho, efeitos em azul).
+## Textos seguidos no mesmo lado empilham para não se cobrirem.
 func _float(s: String, text: String, col: Color) -> void:
 	if fast:
 		return
-	var bar: Control = bars[s]
-	var l := Kit.label(text, 30, col)
-	l.position = bar.global_position + Vector2(bar.size.x * 0.5 - 40, -30)
+	var at := _portrait_point(s)
+	var stack := 0
+	for c in fx_layer.get_children():
+		if c is Label and c.get_meta("fx_side", "") == s and not c.is_queued_for_deletion():
+			stack += 1
+	var l := Kit.label(text, 34, col)
+	l.set_meta("fx_side", s)
+	l.add_theme_constant_override("outline_size", 8)
+	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.size = Vector2(260, 44)
+	l.position = at - Vector2(130, 22 - 34 * (stack % 3))
+	l.pivot_offset = l.size / 2.0
+	l.scale = Vector2(0.5, 0.5)
 	fx_layer.add_child(l)
 	var tw := l.create_tween()
-	tw.tween_property(l, "position:y", l.position.y - 40, 0.8)
-	tw.parallel().tween_property(l, "modulate:a", 0.0, 0.8)
+	tw.tween_property(l, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(l, "position:y", l.position.y - 46, 0.85)
+	tw.parallel().tween_property(l, "modulate:a", 0.0, 0.85).set_delay(0.25)
 	tw.tween_callback(l.queue_free)
+
+
+## Um efeito chega em "s": voa de "from" (por padrão, o cartão da última magia) até a
+## foto do alvo na cor do tipo ("heal", "dmg", "fx") e então mostra o texto e a reação.
+## Sem origem (veneno, queima, fim do turno) ou acelerando, só o texto e a reação.
+func _effect(s: String, text: String, kind: String, from: Variant = "src") -> void:
+	if from is String:
+		from = fx_src
+	var col: Color = FX_COLORS[kind]
+	if from != null and not fast and not skip and is_inside_tree():
+		bolts += 1
+		var b := SpellBolt.new().setup(from, _portrait_point(s), col, BOLT_TIME)
+		fx_layer.add_child(b)
+		await b.arrived
+	if fast:
+		return
+	_float(s, text, col)
+	var ph: Portrait = player_photo if s == "player" else enemy_photo
+	ph.react(col, kind == "dmg")
+
+
+## Centro de um controle na camada de efeitos.
+func _center(c: Control) -> Vector2:
+	return c.get_global_transform() * (c.size * 0.5) - fx_layer.global_position
+
+
+func _portrait_point(s: String) -> Vector2:
+	var ph: Portrait = player_photo if s == "player" else enemy_photo
+	return ph.target_point() - fx_layer.global_position
 
 
 func _feed_events(events: Array) -> void:
