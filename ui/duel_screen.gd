@@ -180,7 +180,7 @@ func _build_fighters() -> VBoxContainer:
 func _photo_row(f: Fighter, is_player: bool) -> HBoxContainer:
 	var row := Kit.hbox(6)
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	var photo := Portrait.new().setup(f.archetype, 100, is_player)
+	var photo := Portrait.new().setup(f, 100, is_player)
 	photo.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	row.add_child(photo)
 	var side := "player" if is_player else "enemy"

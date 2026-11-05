@@ -1,7 +1,9 @@
 class_name Portrait
 extends Control
-## Espaço do personagem. Arte provisória: o mago de costas para o seu lado e o vampiro
-## para o inimigo (assets/portraits/). Sem a arte, desenha uma silhueta na cor do arquétipo.
+## Espaço do personagem. Cada arquétipo com arte tem 3 variações em assets/portraits/
+## (<arquétipo>_1..3.png); quem ainda não tem arte usa as 3 provisórias (generic_1..3.png).
+## A variação é sorteada uma vez e guardada no lutador (Fighter.portrait), então não muda
+## no meio da run. Sem a arte, desenha uma silhueta na cor do arquétipo.
 ## Também faz o retorno visual quando um efeito chega (tremida e brilho colorido).
 
 const COLORS := {
@@ -9,10 +11,9 @@ const COLORS := {
 	"minimalist": Color(0.85, 0.85, 0.9), "metallurgist": Color(0.5, 0.52, 0.58), "copyist": Color(0.75, 0.6, 0.3),
 	"perfectionist": Color(0.35, 0.7, 0.65), "vampire": Color(0.6, 0.12, 0.2), "barbarian": Color(0.75, 0.45, 0.2),
 }
-const ART := {
-	true: "res://assets/portraits/ally_back.png",
-	false: "res://assets/portraits/enemy.png",
-}
+const ART_DIR := "res://assets/portraits/"
+const WITH_ART := ["sorcerer", "vampire", "barbarian"] ## O resto usa "generic".
+const VARIATIONS := 3
 const BG := Color(0.0, 0.0, 0.0) ## Igual ao fundo da arte, para emendar.
 
 var archetype := "sorcerer"
@@ -22,14 +23,22 @@ var _shake := 0.0 ## Tremida restante (segundos).
 var _glow := Color(0, 0, 0, 0) ## Brilho do último efeito (some sozinho).
 
 
-func setup(arch: String, h: int, is_back := false) -> Portrait:
-	archetype = arch
+## Caminho da foto do lutador; sorteia a variação se ainda não tiver uma.
+static func art_path(f: Fighter) -> String:
+	if f.portrait < 0 or f.portrait >= VARIATIONS:
+		f.portrait = randi() % VARIATIONS
+	var key: String = f.archetype if f.archetype in WITH_ART else "generic"
+	return "%s%s_%d.png" % [ART_DIR, key, f.portrait + 1]
+
+
+func setup(f: Fighter, h: int, is_back := false) -> Portrait:
+	archetype = f.archetype
 	back = is_back
 	custom_minimum_size = Vector2(0, h)
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	clip_contents = true
-	var path: String = ART[is_back]
+	var path := art_path(f)
 	if ResourceLoader.exists(path):
 		art = load(path)
 	set_process(false)

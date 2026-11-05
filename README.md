@@ -15,8 +15,10 @@ Tela em paisagem.
   `ui/dice_physics.gd`, malha e texturas geradas em código em `ui/dice_3d.gd`). Faces de 1 a 6
   com pontinhos, valores maiores com algarismos, tudo em baixo relevo; o 2D segue a mesma regra
   (`ui/die_face.gd`). Tocar na tela pula a rolagem.
-- Fotos provisórias dos personagens: `assets/portraits/` (`ally_back.png`, o mago de costas, para o
-  seu lado; `enemy.png` para o inimigo). Sem a arte, `ui/portrait.gd` desenha uma silhueta.
+- Fotos dos personagens: `assets/portraits/`, 3 variações por arquétipo (`sorcerer_1..3`,
+  `vampire_1..3`, `barbarian_1..3`); quem ainda não tem arte usa as provisórias `generic_1..3`.
+  A variação é sorteada uma vez por lutador e salva (`Fighter.portrait`), tanto para você quanto
+  para o inimigo. Sem a arte, `ui/portrait.gd` desenha uma silhueta.
 - Efeitos das magias (`ui/spell_bolt.gd`): cada efeito voa do cartão da magia até a foto do alvo, em
   verde para cura, vermelho para dano e azul para os outros efeitos; ao chegar, a foto pisca na cor
   (e treme no dano) e o número sobe sobre ela (+X verde, −X vermelho). Veneno, queima e efeitos do

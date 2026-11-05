@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b0o7ddao4cjfk"
-path="res://.godot/imported/ally_back.png-8aca8891b2064c9151a5469d983c1a3d.ctex"
+uid="uid://4va7ggd1lxbgd"
+path="res://.godot/imported/vampire_2.png-734b1844f339ad830b5f712b49320d4e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/portraits/ally_back.png"
-dest_files=["res://.godot/imported/ally_back.png-8aca8891b2064c9151a5469d983c1a3d.ctex"]
+source_file="res://assets/portraits/vampire_2.png"
+dest_files=["res://.godot/imported/vampire_2.png-734b1844f339ad830b5f712b49320d4e.ctex"]
 
 [params]
 
