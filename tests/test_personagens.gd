@@ -133,7 +133,7 @@ func test_vampiro_queima_em_dobro():
 	v.burn = 3
 	var ev := []
 	Resolver.start_turn(v, ev)
-	assert_eq(v.hp, 54)
+	assert_eq(v.hp, v.max_hp - 6, "queima 3 causa 6")
 
 
 func test_peso_morto_puxa_dados():
