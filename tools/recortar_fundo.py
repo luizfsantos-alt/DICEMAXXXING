@@ -17,6 +17,7 @@ Uso:
 Opções:
   --key   auto (padrão), magenta, green, blue, checker ou uma cor #rrggbb
   --tol   tolerância da cor-chave, 0 a 441 (padrão 90; quadriculado usa 40)
+  --flood só apaga o fundo que encosta nas bordas (quando a cor-chave aparece dentro do desenho)
   --size  LxA final: corta a sobra, encaixa sem distorcer e reduz com vizinho mais
           próximo (não borra o pixel). Sem --size, só corta a sobra (use --no-trim para manter)
 Só precisa de Pillow (pip install pillow).
@@ -113,7 +114,7 @@ def despill(px, w, h, gone, key, reach=4):
             px[x, y] = tuple(p)
 
 
-def recortar(img, key="auto", tol=None, trim=True, size=None):
+def recortar(img, key="auto", tol=None, trim=True, size=None, flood=False):
     img = img.convert("RGBA")
     w, h = img.size
     px = img.load()
@@ -131,8 +132,8 @@ def recortar(img, key="auto", tol=None, trim=True, size=None):
     t2 = tol * tol
     near = lambda p: any(dist2(p, c) <= t2 for c in colors)
     gone = bytearray(w * h)
-    if mode == "checker":
-        # Só o que encosta na borda: cinzas dentro do desenho ficam.
+    if mode == "checker" or flood:
+        # Só o que encosta na borda: cinzas (ou a cor-chave, com --flood) dentro do desenho ficam.
         q = deque()
         for x in range(w):
             for y in (0, h - 1):
@@ -156,6 +157,7 @@ def recortar(img, key="auto", tol=None, trim=True, size=None):
             for x in range(w):
                 if near(px[x, y]):
                     gone[y * w + x] = 1
+    if mode != "checker":
         # Franja: pixel misturado com a chave, colado no recorte, também sai.
         fr2 = (tol * 2) ** 2
         fringe = []
@@ -204,6 +206,7 @@ def main():
     ap.add_argument("--tol", type=int)
     ap.add_argument("--size", help="LxA, ex.: 64x64")
     ap.add_argument("--no-trim", action="store_true")
+    ap.add_argument("--flood", action="store_true", help="só apaga o fundo ligado às bordas (a cor-chave aparece dentro do desenho)")
     a = ap.parse_args()
     size = tuple(int(v) for v in a.size.lower().split("x")) if a.size else None
     if a.dir:
@@ -214,7 +217,7 @@ def main():
     else:
         ap.error("passe entrada e saída, ou várias entradas com --dir")
     for src, dst in pairs:
-        out, mode = recortar(Image.open(src), a.key, a.tol, not a.no_trim, size)
+        out, mode = recortar(Image.open(src), a.key, a.tol, not a.no_trim, size, a.flood)
         out.save(dst)
         print(f"{src} -> {dst}  ({mode}, {out.width}x{out.height})")
 

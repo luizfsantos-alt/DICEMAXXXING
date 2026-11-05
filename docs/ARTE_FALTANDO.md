@@ -13,6 +13,7 @@ toda jornada, **C** detalhe/polimento.
 | Molduras das fotos (ferro; filete verde no jogador, vermelho no inimigo) | `assets/portraits/frame_player.png`, `frame_enemy.png` |
 | Logo (dado com chapéu de mago) e ícone do app | `assets/logo.png`, `assets/icon.png` |
 | Fundo da tela de luta (e reflexo dos dados 3D) | `assets/backgrounds/tavern.jpg` |
+| Ícones de status: bloqueio, veneno, queima, espelho, esquiva, revide, imune | `assets/icons/status/<id>.png` (64×64) |
 | Fonte dos números sobre as fotos | `assets/fonts/Bungee-Regular.ttf` |
 | Dados 3D e 2D | gerados em código de propósito (`ui/dice_3d.gd`, `ui/die_face.gd`, `docs/DADOS_VISUAL.md`); não precisam de arquivo |
 
@@ -55,7 +56,7 @@ Todos os cartões são botões de cor lisa com texto; nenhum tem ilustração ou
 
 | Elemento | Arquivo | Hoje |
 |---|---|---|
-| **Ícones de status** (11) | `ui/status_icon.gd` | sigla de 2 letras num quadrado colorido ("Placeholders até haver arte"): bloqueio `BL`, veneno `VE`, queima `QU`, espelho `ES`, esquiva `EV`, revide `RE`, imune `IM`, dado guardado `GU`, fúria `FU`, sede `SE`, mexida na próxima mão `PM` |
+| **Ícones de status**: faltam 4 | `ui/status_icon.gd` | dado guardado `GU`, fúria `FU`, sede `SE` e mexida na próxima mão `PM` seguem como sigla num quadrado colorido; os outros 7 já têm arte (`assets/icons/status/`) |
 | **Cartões de magia** (46 magias) | `ui/spell_card.gd` | só texto (nome, efeito, uso) e buracos; sem ícone/ilustração por magia nem por tipo de efeito |
 | Ícone de moeda | `duel_screen.gd` (faixa do rodapé) | dois círculos dourados desenhados |
 | Barra de vida | `ui/hp_bar.gd` | retângulo arredondado liso |
@@ -84,7 +85,7 @@ Todos os cartões são botões de cor lisa com texto; nenhum tem ilustração ou
 
 ## Ordem sugerida
 
-1. **Ícones de status** (11 ícones pequenos, aparecem em toda luta).
+1. Os 4 **ícones de status** que faltam (dado guardado, fúria, sede, próxima mão).
 2. Fotos do Minimalista.
 3. Retrato nos cartões do menu (as fotos já existem; é só código).
 4. Moeda.
