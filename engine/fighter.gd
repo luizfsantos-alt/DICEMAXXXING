@@ -8,6 +8,7 @@ var archetype: String = "sorcerer" ## Characters.ALL
 var variant: String = "" ## "", lixeiro, piromante, fundidor, monge
 var master_id: String = "" ## Mestre de Andar (ex.: porteiro).
 var personality: String = "" ## bruto, cauteloso, caotico (oculta na UI).
+var portrait: int = -1 ## Variação da foto (sorteada pela UI na primeira vez; -1 = ainda não).
 var max_hp: int = 50
 var hp: int = 50
 var hand_size: int = Config.HAND_SIZE
@@ -320,7 +321,7 @@ func to_dict() -> Dictionary:
 			"top": e.get("top", false), "fixed": e.get("fixed", false), "plus": e.get("plus", 0), "spawn": e.get("spawn", -1)})
 	return {
 		"name": name, "is_player": is_player, "archetype": archetype, "variant": variant,
-		"master_id": master_id, "personality": personality, "max_hp": max_hp, "hp": hp,
+		"master_id": master_id, "personality": personality, "portrait": portrait, "max_hp": max_hp, "hp": hp,
 		"hand_size": hand_size, "bag": bag_d, "inventory": inventory.to_dict(),
 		"draw_pile": draw_pile, "discard": discard, "hand": hand_d, "last_hand": last_hand,
 		"block": block, "mirror": mirror, "dodge": dodge, "poison": poison, "burn": burn,
@@ -340,6 +341,7 @@ static func from_dict(d: Dictionary) -> Fighter:
 	f.variant = str(d.get("variant", ""))
 	f.master_id = str(d.get("master_id", ""))
 	f.personality = str(d.get("personality", ""))
+	f.portrait = int(d.get("portrait", -1))
 	f.max_hp = int(d.get("max_hp", 50))
 	f.hp = int(d.get("hp", 50))
 	f.hand_size = int(d.get("hand_size", Config.HAND_SIZE))

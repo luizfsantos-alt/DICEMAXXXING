@@ -524,3 +524,14 @@ func test_efeitos_voam_da_magia_ate_o_alvo():
 	assert_eq(d.bolts, before + 1, "sem origem (veneno, queima) não voa")
 	await wait_seconds(1.2)
 	d.fast = true
+
+
+func test_foto_sorteia_variacao_e_guarda():
+	for arch in ["sorcerer", "vampire", "barbarian", "assassin", "copyist"]:
+		var f := Fighter.new()
+		f.archetype = arch
+		var path := Portrait.art_path(f)
+		assert_between(f.portrait, 0, Portrait.VARIATIONS - 1, "variação sorteada")
+		assert_eq(Portrait.art_path(f), path, "mesma foto na próxima vez")
+		assert_true(ResourceLoader.exists(path), "arte existe: " + path)
+		assert_eq(Fighter.from_dict(f.to_dict()).portrait, f.portrait, "variação salva")
