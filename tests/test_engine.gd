@@ -23,7 +23,9 @@ func test_chumbo_tem_tres_faces_1_travadas():
 
 func test_hidrogenio_triplica_com_bolsa_pequena():
 	var f := H.fighter("a", ["faisca"])
+	f.bag.resize(Elements.SOLITARY_BAG)
 	f.bag[0] = Die.with_element("H")
+	f.reset_fight_state()
 	f.draw_pile = [0]
 	f.hand_size = 1
 	f.draw_hand(H.rng())
@@ -31,7 +33,7 @@ func test_hidrogenio_triplica_com_bolsa_pequena():
 	assert_eq(f.hand[0].value, (int(f.hand[0].face) + 1) * 3)
 	f.bag.append(Die.basic())
 	f.roll_hand(H.rng(), [])
-	assert_eq(f.hand[0].value, int(f.hand[0].face) + 1, "9 dados: sem bônus")
+	assert_eq(f.hand[0].value, int(f.hand[0].face) + 1, "bolsa acima do limite: sem bônus")
 
 
 func test_carbono_soma_a_cadeia_da_mao():

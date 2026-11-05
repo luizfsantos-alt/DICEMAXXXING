@@ -22,7 +22,7 @@ const COLORS := {
 	"Am": Color(0.85, 0.82, 0.62),
 	"C": Color(0.24, 0.23, 0.22), ## Grafite.
 }
-const SOLITARY_BAG := 8 ## Hidrogênio: ×3 com bolsa deste tamanho ou menor.
+const SOLITARY_BAG := 6 ## Hidrogênio: ×3 com bolsa deste tamanho ou menor (a inicial tem 8).
 const SOLITARY_MULT := 3
 ## Valores em uso (o simulador troca para testar; o jogo usa os de cima).
 static var solitary_bag := SOLITARY_BAG

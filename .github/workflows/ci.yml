@@ -36,18 +36,16 @@ jobs:
           godot --headless -s res://sim/simulate.gd -- --runs=1000 --seed=1 --door=facil | tee simulation.txt
           godot --headless -s res://sim/simulate.gd -- --runs=1000 --seed=1 --door=normal | tee -a simulation.txt
           godot --headless -s res://sim/simulate.gd -- --runs=1000 --seed=1 --door=dificil | tee -a simulation.txt
-          for c in minimalist vampire barbarian; do
+          for c in assassin vampire barbarian; do
             godot --headless -s res://sim/simulate.gd -- --runs=500 --seed=1 --door=normal --char=$c | tee -a simulation.txt
           done
 
       - name: Experimentos (temporário)
         run: |
           run() { echo "=== $*"; godot --headless -s res://sim/simulate.gd -- --runs=500 --seed=1 --door=normal "$@" | grep -E "^(Venceu o andar (10|  5)|Turnos|  (monge|C|H ligado) )"; }
-          for c in sorcerer minimalist vampire barbarian; do
-            for e in 0.9 0.95 1.0; do run --char=$c --hand=-1 --h-bag=6 --enemy-hp=$e --report; done
-          done
-          for hp in 75 85 90; do run --char=assassin --hand=-1 --h-bag=6 --enemy-hp=0.9 --hero-hp=$hp; done
-          for hp in 80 90; do run --char=minimalist --hand=-1 --h-bag=6 --enemy-hp=0.9 --hero-hp=$hp; done
+          for hp in 85 90 95 100; do run --char=barbarian --hero-hp=$hp; done
+          for hp in 70 75 80 85; do run --char=vampire --hero-hp=$hp; done
+          run --char=minimalist --report
 
       - uses: actions/upload-artifact@v4
         with:

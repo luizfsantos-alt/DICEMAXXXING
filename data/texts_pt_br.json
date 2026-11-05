@@ -282,7 +282,7 @@
  "elements": {
   "H": [
    "Hidrogênio",
-   "Solitário: vale ×3 se a bolsa tiver 8 dados ou menos."
+   "Solitário: vale ×3 se a bolsa tiver 6 dados ou menos."
   ],
   "Os": [
    "Ósmio",
@@ -329,7 +329,7 @@
   "assassin": [
    "Assassino",
    "Ágil",
-   "Mão de 6 dados.",
+   "Mão de 5 dados (os outros têm 4).",
    "Técnicas finas que aceitam quase qualquer dado."
   ],
   "minimalist": [

@@ -33,7 +33,7 @@ func test_kits_de_todos_os_arquetipos():
 
 
 func test_jogaveis_sao_os_tres_menos_complexos():
-	assert_eq(Characters.PLAYABLE, ["minimalist", "vampire", "barbarian"])
+	assert_eq(Characters.PLAYABLE, ["assassin", "vampire", "barbarian"])
 	for id in Characters.PLAYABLE:
 		var run := RunState.new_run(7, id)
 		assert_eq(run.character, id)
@@ -259,6 +259,7 @@ func test_osmio_resiste_a_mao_menor():
 
 func test_aviso_de_elemento():
 	var f := H.fighter("A", [])
+	f.bag.resize(Elements.SOLITARY_BAG)
 	f.bag[0] = Die.with_element("H")
 	f.hand_size = 8
 	f.reset_fight_state()
