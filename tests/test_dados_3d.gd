@@ -111,7 +111,7 @@ func test_corpos_diferentes_entre_si():
 
 func test_brilho_so_nos_quatro_e_cresce_com_o_estado():
 	for el in [""] + Elements.ALL:
-		var glows := el in ["H", "U", "Na", "C"]
+		var glows: bool = el in ["H", "U", "Na", "C"]
 		assert_eq(str(Elements.look(el).glow) != "", glows, "'%s' brilha?" % el)
 		if glows:
 			assert_gt(Elements.energy(el, 1.0), Elements.energy(el, 0.0), "'%s' acende mais ativo" % el)
