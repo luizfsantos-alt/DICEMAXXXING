@@ -36,6 +36,12 @@ const FX_COLORS := {
 	"heal": Color(0.35, 0.95, 0.45), "dmg": Color(1.0, 0.25, 0.22), "fx": Color(0.35, 0.65, 1.0),
 }
 const BOLT_TIME := 0.34
+const BACKGROUND := "res://assets/backgrounds/tavern.jpg"
+const BACKGROUND_SHADE := 0.3 ## Escurece o fundo.
+const PANEL_BG := Color(0.098, 0.086, 0.125, 0.82) ## Painéis translúcidos sobre o fundo.
+## Fonte grossa dos números sobre as fotos (Bungee, SIL OFL: assets/fonts/Bungee-OFL.txt).
+## O texto pode passar da foto; só a arte do personagem fica presa na moldura.
+var fx_font: Font = load("res://assets/fonts/Bungee-Regular.ttf") if ResourceLoader.exists("res://assets/fonts/Bungee-Regular.ttf") else null
 
 var run: RunState
 var duel: Duel
@@ -103,6 +109,7 @@ func setup(r: RunState) -> DuelScreen:
 
 # ================================================================== Layout
 func _build() -> void:
+	_build_background()
 	var root := Kit.hbox(GAP)
 	var m := MarginContainer.new()
 	for k in ["left", "right", "top", "bottom"]:
@@ -130,6 +137,24 @@ func _build() -> void:
 		if ev is InputEventMouseButton and ev.pressed:
 			skip = true)
 	add_child(catcher)
+
+
+## Fundo: a taverna cobrindo a tela inteira, escurecida para os painéis e textos lerem bem.
+func _build_background() -> void:
+	if not ResourceLoader.exists(BACKGROUND):
+		return
+	var bg := TextureRect.new()
+	bg.texture = load(BACKGROUND)
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(bg)
+	var shade := ColorRect.new()
+	shade.color = Color(0, 0, 0, BACKGROUND_SHADE)
+	shade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(shade)
 
 
 ## Coluna 1: foto do inimigo + status, as duas barras, sua foto + status, moedas.
@@ -160,7 +185,7 @@ func _build_fighters() -> VBoxContainer:
 
 	# Moedas: faixa fina no rodapé.
 	var strip := PanelContainer.new()
-	strip.add_theme_stylebox_override("panel", Kit.box(Color(0.098, 0.086, 0.125), 8, 4))
+	strip.add_theme_stylebox_override("panel", Kit.box(PANEL_BG, 8, 4))
 	var sh := Kit.hbox(8)
 	strip.add_child(sh)
 	var coin := Control.new()
@@ -206,13 +231,13 @@ func _photo_label(photo: Control, text: String, fs: int, col: Color, head: bool)
 	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.set_anchors_preset(Control.PRESET_TOP_WIDE if head else Control.PRESET_BOTTOM_WIDE)
-	l.offset_left = 6
-	l.offset_right = -6
+	l.offset_left = 12
+	l.offset_right = -12
 	if head:
-		l.offset_top = 4
+		l.offset_top = 8
 	else:
 		l.grow_vertical = Control.GROW_DIRECTION_BEGIN
-		l.offset_bottom = -4
+		l.offset_bottom = -10
 	photo.add_child(l)
 	return l
 
@@ -225,7 +250,7 @@ func _build_stage() -> VBoxContainer:
 	col.add_child(stage_title)
 	var stage := PanelContainer.new()
 	stage.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	stage.add_theme_stylebox_override("panel", Kit.box(Color(0.098, 0.086, 0.125), 18, 10))
+	stage.add_theme_stylebox_override("panel", Kit.box(PANEL_BG, 18, 10))
 	col.add_child(stage)
 	stage_panel = stage
 
@@ -287,7 +312,7 @@ func _build_stage() -> VBoxContainer:
 func _build_dice() -> PanelContainer:
 	var pc := PanelContainer.new()
 	pc.custom_minimum_size = Vector2(DICE_W, 0)
-	pc.add_theme_stylebox_override("panel", Kit.box(Color(0.098, 0.086, 0.125), 14, 6))
+	pc.add_theme_stylebox_override("panel", Kit.box(PANEL_BG, 14, 6))
 	var v := Kit.vbox(6)
 	pc.add_child(v)
 	dice_title = Kit.label("", 13, Kit.MUTED, true)
@@ -1108,10 +1133,12 @@ func _float(s: String, text: String, col: Color) -> void:
 	for c in fx_layer.get_children():
 		if c is Label and c.get_meta("fx_side", "") == s and not c.is_queued_for_deletion():
 			stack += 1
-	var l := Kit.label(text, 34, col)
+	var l := Kit.label(text, 30, col)
 	l.set_meta("fx_side", s)
-	l.add_theme_constant_override("outline_size", 8)
-	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	if fx_font:
+		l.add_theme_font_override("font", fx_font)
+	l.add_theme_constant_override("outline_size", 12)
+	l.add_theme_color_override("font_outline_color", Color.BLACK)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	l.size = Vector2(260, 44)
@@ -1121,8 +1148,8 @@ func _float(s: String, text: String, col: Color) -> void:
 	fx_layer.add_child(l)
 	var tw := l.create_tween()
 	tw.tween_property(l, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(l, "position:y", l.position.y - 46, 0.85)
-	tw.parallel().tween_property(l, "modulate:a", 0.0, 0.85).set_delay(0.25)
+	tw.tween_property(l, "position:y", l.position.y - 46, 1.1)
+	tw.parallel().tween_property(l, "modulate:a", 0.0, 0.6).set_delay(0.5)
 	tw.tween_callback(l.queue_free)
 
 

@@ -18,7 +18,11 @@ Tela em paisagem.
 - Fotos dos personagens: `assets/portraits/`, 3 variações por arquétipo (`sorcerer_1..3`,
   `vampire_1..3`, `barbarian_1..3`); quem ainda não tem arte usa as provisórias `generic_1..3`.
   A variação é sorteada uma vez por lutador e salva (`Fighter.portrait`), tanto para você quanto
-  para o inimigo. Sem a arte, `ui/portrait.gd` desenha uma silhueta.
+  para o inimigo. A arte preenche a foto e só aparece dentro da moldura (`frame_enemy.png`
+  vermelha, `frame_player.png` verde). Sem a arte, `ui/portrait.gd` desenha uma silhueta.
+- Fundo da tela de batalha: `assets/backgrounds/tavern.jpg` (cobre a tela, escurecido; painéis
+  translúcidos por cima).
+- Números sobre as fotos na fonte Bungee (`assets/fonts/`, licença SIL OFL) com contorno preto.
 - Efeitos das magias (`ui/spell_bolt.gd`): cada efeito voa do cartão da magia até a foto do alvo, em
   verde para cura, vermelho para dano e azul para os outros efeitos; ao chegar, a foto pisca na cor
   (e treme no dano) e o número sobe sobre ela (+X verde, −X vermelho). Veneno, queima e efeitos do
