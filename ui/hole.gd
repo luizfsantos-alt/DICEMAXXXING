@@ -21,6 +21,7 @@ var faded := false ## Dado já lançado neste turno.
 var _glows := false ## O dado encaixado brilha (pulsa: redesenha a cada quadro).
 var heat := 0.0 ## Estado do brilho do dado (Elements.heat): 0 repouso, 1 ativo.
 var interactive := true
+var floor_hidden := false ## Só o dado, sem o buraco (dado voando).
 
 
 func setup(px: int, i := -1) -> Hole:
@@ -84,6 +85,10 @@ func _draw() -> void:
 	var o := Vector2((size.x - s) * 0.5, (size.y - s) * 0.5)
 	var r := Rect2(o, Vector2(s, s))
 	var rad := int(s * 0.2)
+	if floor_hidden and has_die:
+		var p0 := s * 0.06
+		DieFace.draw(self, Rect2(r.position + Vector2(p0, p0), Vector2(s - p0 * 2, s - p0 * 2)), value, element, 0.0, heat, Time.get_ticks_msec() / 1000.0)
+		return
 	# Afundado: borda de cima mais escura, fundo um pouco mais claro embaixo.
 	draw_style_box(_sb(FLOOR, rad), r)
 	var lip := maxf(3.0, s * 0.07)

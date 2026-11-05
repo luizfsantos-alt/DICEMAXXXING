@@ -30,6 +30,8 @@ var _shadows: Array = [] ## MeshInstance3D
 var _halos: Array = [] ## MeshInstance3D ou null (dado sem brilho)
 var _glow: Array = [] ## Por dado: {el, heat, mats (6 materiais)}
 var _clock := 0.0
+var _cam: Camera3D
+var _sim: DicePhysics
 
 
 func setup(px: Vector2) -> DiceRoll3D:
@@ -45,34 +47,54 @@ func setup(px: Vector2) -> DiceRoll3D:
 	add_child(vp)
 	world = Node3D.new()
 	vp.add_child(world)
-	var cam := Camera3D.new()
+	_cam = Camera3D.new()
+	world.add_child(_cam)
+	stage(world, _cam, VIEW)
+	return self
+
+
+## Câmera, ambiente e luzes da mesa. Os dados da coluna (DieSnapshot) usam a mesma
+## montagem, para o dado ter a mesma cara na mesa e na coluna.
+static func stage(world: Node3D, cam: Camera3D, view: float) -> void:
 	cam.projection = Camera3D.PROJECTION_ORTHOGONAL
-	cam.size = VIEW
+	cam.size = view
 	var t := deg_to_rad(TILT)
+	cam.environment = environment()
+	cam.look_at_from_position(Vector3(0, 30 * cos(t), 30 * sin(t)), Vector3.ZERO, Vector3.FORWARD)
+	add_lights(world)
+
+
+static func environment() -> Environment:
 	var env := Environment.new()
 	env.background_mode = Environment.BG_CLEAR_COLOR
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(0.85, 0.82, 0.95)
-	env.ambient_light_energy = 0.55
+	env.ambient_light_energy = 0.6
 	# Céu só para reflexo: sem ele os metais (Mercúrio, Ósmio) não têm o que refletir.
+	# Mais forte que a foto: a taverna é escura e o metal sumiria no fundo.
 	var pano := PanoramaSkyMaterial.new()
 	pano.panorama = load("res://assets/backgrounds/tavern.jpg")
+	pano.energy_multiplier = 1.6
 	env.sky = Sky.new()
 	env.sky.sky_material = pano
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
-	cam.environment = env
-	world.add_child(cam)
-	cam.look_at_from_position(Vector3(0, 30 * cos(t), 30 * sin(t)), Vector3.ZERO, Vector3.FORWARD)
-	var sun := DirectionalLight3D.new()
-	sun.light_energy = 1.25
-	world.add_child(sun)
-	# Luz de cima, vinda do alto à esquerda (a mesma das faces 2D).
-	sun.look_at_from_position(Vector3(-4, 10, -3), Vector3.ZERO, Vector3.UP)
-	var fill := DirectionalLight3D.new()
-	fill.light_energy = 0.25
-	world.add_child(fill)
-	fill.look_at_from_position(Vector3(5, 4, 6), Vector3.ZERO, Vector3.UP)
-	return self
+	return env
+
+
+## Luz principal do alto à esquerda (a mesma das faces 2D), uma luz suave de cima, uma
+## lateral baixa vinda da esquerda (desenha as arestas e o brilho dos metais) e um
+## preenchimento fraco do outro lado.
+static func add_lights(world: Node3D) -> void:
+	for l in [
+		[Vector3(-4, 10, -3), 1.1],
+		[Vector3(0.6, 10, 1.5), 0.35],
+		[Vector3(-10, 3.5, 1.5), 0.55],
+		[Vector3(5, 4, 6), 0.25],
+	]:
+		var d := DirectionalLight3D.new()
+		d.light_energy = l[1]
+		world.add_child(d)
+		d.look_at_from_position(l[0], Vector3.ZERO, Vector3.UP)
 
 
 ## Meia largura e meia profundidade da caixa invisível (as bordas da área).
@@ -88,6 +110,7 @@ func roll(dice: Array, rng: RandomNumberGenerator = null) -> void:
 		rng = RandomNumberGenerator.new()
 		rng.randomize()
 	var sim := plan(dice, arena(), rng)
+	_sim = sim
 	_build_nodes(dice, sim)
 	await _play(sim)
 
@@ -217,6 +240,31 @@ func _update_glow() -> void:
 			var a := clampf(base / 2.2, 0.25, 1.0) * p
 			var hm: StandardMaterial3D = (_halos[i].mesh as QuadMesh).material
 			hm.albedo_color = Color(1, 1, 1, clampf(a, 0.0, 1.0))
+
+
+## Onde cada dado parou, na tela (coordenadas deste controle): centro, largura da aresta
+## em pixels e o ângulo da face de cima (para o dado voar até a coluna sem pular).
+func dice_on_screen() -> Array:
+	var out := []
+	if _cam == null or _sim == null:
+		return out
+	for i in _dice.size():
+		var mi: MeshInstance3D = _dice[i]
+		var p := mi.position
+		var c := _cam.unproject_position(p)
+		var w := _cam.unproject_position(p + Vector3.RIGHT * 0.5).distance_to(_cam.unproject_position(p - Vector3.RIGHT * 0.5))
+		var n: Vector3 = DicePhysics.FACE_NORMALS[_sim.up_face(i)]
+		var u := mi.transform.basis * Dice3D._face_u(n)
+		var a := _cam.unproject_position(p + u * 0.5) - c
+		out.append({"center": c, "width": w, "angle": atan2(a.y, a.x)})
+	return out
+
+
+## Esconde os dados (e sombras e halos): quem segue é a cópia que voa até a coluna.
+func hide_dice() -> void:
+	for c in _dice + _shadows + _halos:
+		if c != null:
+			c.visible = false
 
 
 func _show_frame(fr: Array) -> void:
