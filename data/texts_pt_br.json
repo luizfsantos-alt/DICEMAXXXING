@@ -509,7 +509,7 @@
   "hint_place": "Encaixe os dados nos buracos das magias",
   "tap_to_skip": "Toque para acelerar",
   "hud_duel": "Andar {n}/{max} · {coins} moedas · Turno {t}",
-  "enemy_sub": "{arch} · Bolsa {n} · toque para ver tudo",
+  "enemy_sub": "{arch} · Bolsa {n}",
   "bag_line": "Bolsa {n} · {d} no descarte",
   "no_accept": "não aceita {v}",
   "die_selected": "Dado {v} na mão: toque numa magia acesa",
@@ -573,7 +573,12 @@
   "fx_el_U": "Urânio: veneno {n}",
   "fx_dead_weight": "Peso Morto: +{n} dado(s)",
   "fx_copy": "Copiou {name}",
-  "fx_thirst": "Sede: +{n} vida máx."
+  "fx_thirst": "Sede: +{n} vida máx.",
+  "hud_floor": "Andar {n}/{max} · Turno {t}",
+  "enemy_sheet": "Ficha",
+  "read_only": "segurando: só leitura",
+  "your_hand": "SUA MÃO",
+  "enemy_dice": "DADOS DO INIMIGO"
  },
  "ev": {
   "hand": "{who} rolou: {v}",
@@ -673,5 +678,51 @@
   "common": "Comum",
   "uncommon": "Incomum",
   "rare": "Rara"
+ },
+ "status": {
+  "block": [
+   "Bloqueio",
+   "Absorve o dano dos golpes. Some no início do próximo turno de quem o criou."
+  ],
+  "poison": [
+   "Veneno",
+   "Causa esse dano no início de cada turno deste lado."
+  ],
+  "burn": [
+   "Queima",
+   "Causa esse dano no início de cada turno deste lado."
+  ],
+  "mirror": [
+   "Espelho",
+   "Devolve o próximo golpe a quem atacou."
+  ],
+  "dodge": [
+   "Esquiva",
+   "Escapa do próximo golpe."
+  ],
+  "riposte": [
+   "Revide",
+   "Devolve esse dano a cada golpe recebido enquanto houver bloqueio."
+  ],
+  "immune": [
+   "Imune",
+   "Anula os próximos efeitos negativos do adversário."
+  ],
+  "marked": [
+   "Dado guardado",
+   "Esses dados entram na próxima mão sem rolar."
+  ],
+  "fury": [
+   "Fúria",
+   "Com metade da vida ou menos, cada golpe causa esse dano a mais."
+  ],
+  "thirst": [
+   "Sede",
+   "Vida máxima já ganha nesta luta com a cura que sobra."
+  ],
+  "hand_mod": [
+   "Próxima mão",
+   "Uma mexida do adversário que vale na próxima mão deste lado."
+  ]
  }
 }

@@ -252,13 +252,20 @@ Jogar a fatia vertical e decidir o que ajustar antes de investir em conteúdo.
 
 ## 13. Tela de luta (paisagem)
 
-- **Trilho à esquerda** com os dois personagens: inimigo em cima (tocar abre a ficha completa), você embaixo. Cada um tem espaço para o personagem (placeholder até haver arte), nome, bolsa, vida e efeitos.
-- **Magias do inimigo** no alto, **bandeja da mão** no meio com "Terminar turno", **suas magias** embaixo, perto do polegar.
-- Na luta, toda magia é um **cartão do mesmo tamanho**: nome, efeito curto, "1× por luta"/"usada" e **um buraco por dado pedido**. O formato só importa no grimório.
-- **Buracos:** a exigência fica escrita no fundo do buraco vazio ("≤ 3", "1"); par = dois buracos ligados por "=". Com um dado selecionado, os buracos que o aceitam acendem e as magias que não aceitam apagam ("não aceita 6"). A mão também é uma bandeja de buracos: o dado que sai deixa o buraco com o nome da magia.
-- **Prévia** no cartão ("→ 5 de dano") e resumo do turno embaixo da mão.
-- **Sem registro fixo:** o resultado aparece no lugar (números sobre a vida, cartão do inimigo aceso com os dados que ele usou) e um **resumo do turno do inimigo** fica até você tocar num dado. O histórico completo abre pelo botão **Histórico**.
-- **Os dois lados rolam no centro.** Na vez do inimigo, a mão dele rola na mesma bandeja e cada dado voa até o buraco da magia dele, na ordem do inventário. Os dados ficam nos cartões do inimigo até o próximo turno dele.
+Paisagem, 1280×720 (stretch `canvas_items`/`expand`). Três colunas, da esquerda para a direita:
+
+1. **Personagens.** De cima para baixo: **foto do inimigo** com a **coluna de status** dele logo à direita; **barra de vida do inimigo** e **barra de vida do jogador**, juntas no meio, na largura toda da coluna; **sua foto** com a sua coluna de status; e, no rodapé, uma **faixa fina de moedas** (ícone e total da jornada). Nome e bolsa aparecem sobre as fotos (placeholder até haver arte).
+2. **Palco compartilhado.** Mostra **as magias de quem está jogando**: no seu turno, as suas; na vez do inimigo (resolução), as dele. Não há duas fileiras ao mesmo tempo. O palco comporta **todas** as magias do lado ativo, sem limite fixo: uma grade calcula colunas e linhas pela quantidade e, quando não cabem no tamanho padrão, **todos os cartões encolhem por igual**, mantendo a proporção, **sem rolagem**. Com poucas magias, os cartões ficam no tamanho padrão (não esticam). No rodapé do palco ficam o banner do turno, a dica, o resumo, os botões **Histórico** e **Ficha** (do inimigo) e **"Terminar turno"**.
+3. **Dados.** Coluna vertical na altura toda, dados empilhados de cima para baixo: no seu turno, **a sua mão**; na vez do inimigo, **os dados dele**. Com muitos dados, eles encolhem pelo mesmo critério do palco.
+
+- **Cartões:** toda magia é um **cartão do mesmo tamanho**: nome, efeito curto, "1× por luta"/"usada" e **um buraco por dado pedido**. O formato só importa no grimório.
+- **Buracos:** a exigência fica escrita no fundo do buraco vazio ("≤ 3", "1"); par = dois buracos ligados por "=". Com um dado selecionado, os buracos que o aceitam acendem e as magias que não aceitam apagam ("não aceita 6"). A mão também é uma coluna de buracos: o dado que sai deixa o buraco com o nome da magia.
+- **Encaixar:** toque num dado da mão e depois numa magia. Toque num dado posto (ou na magia) para devolvê-lo.
+- **Segurar a foto do inimigo**, a qualquer momento (inclusive no seu turno), troca o palco para as magias dele em **só leitura** (não aceitam dados; o título mostra a última mão dele). Ao soltar, o palco volta ao turno atual, com os seus dados encaixados intactos. A sua foto não tem interação.
+- **Status:** um ícone por efeito ativo (bloqueio, veneno, queima, espelho, esquiva, revide, imune, dado guardado, fúria, sede, mexidas na próxima mão), empilhados na coluna ao lado da foto, cada um com um **selo da quantidade**. O ícone some quando o efeito chega a 0. **Segurar** o ícone mostra nome e descrição; soltar fecha. O bloqueio é um ícone de status, não aparece na barra de vida.
+- **Prévia** no cartão ("→ 5 de dano") e resumo do turno no rodapé do palco.
+- **Sem registro fixo:** o resultado aparece no lugar (números sobre a vida, cartão do inimigo aceso com os dados que ele usou) e um **resumo do turno do inimigo** fica até você tocar num dado. O histórico completo abre pelo botão **Histórico**; a ficha completa do inimigo, pelo botão **Ficha**.
+- **Os dois lados rolam na coluna de dados.** Na vez do inimigo, a mão dele rola na coluna e cada dado voa até o buraco da magia dele no palco, na ordem do inventário. Os dados ficam nos cartões do inimigo até o próximo turno dele (visíveis segurando a foto).
 
 ### 13.1 Grimório (organizar as magias)
 
