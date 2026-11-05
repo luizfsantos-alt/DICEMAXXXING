@@ -16,7 +16,8 @@ const DEPTH := 3.2 ## Profundidade do baixo relevo, em pixels da textura.
 static var _glyphs := {}
 static var _mesh: ArrayMesh
 static var _albedo := {} ## "valor|elemento" -> ImageTexture
-static var _normals := {} ## valor -> ImageTexture
+static var _normals := {} ## "valor|acabamento" -> ImageTexture
+static var _emission := {} ## "valor|brilho" -> ImageTexture
 
 
 # ================================================================== Malha
@@ -84,17 +85,34 @@ static func labels(up: int, value: int, faces: Array, face: int) -> Array:
 
 
 # ================================================================== Texturas
-static func material(value: int, element: String) -> StandardMaterial3D:
+## Material de uma face: cor, acabamento e brilho do elemento (Elements.LOOKS).
+## heat: estado do dado, de 0 (repouso) a 1 (efeito ativo); só muda a energia do brilho.
+static func material(value: int, element: String, heat := 0.0) -> StandardMaterial3D:
+	var l := Elements.look(element)
 	var m := StandardMaterial3D.new()
 	m.albedo_texture = albedo_texture(value, element)
 	m.normal_enabled = true
-	m.normal_texture = normal_texture(value)
+	m.normal_texture = normal_texture(value, str(l.finish))
 	m.normal_scale = 1.4
-	m.roughness = 0.42
+	m.roughness = float(l.rough)
+	m.metallic = float(l.metal)
 	m.metallic_specular = 0.6
-	if element in ["Hg", "Os", "Pb", "Fe"]:
-		m.metallic = 0.45
-		m.roughness = 0.3
+	if float(l.coat) > 0.0:
+		m.clearcoat_enabled = true
+		m.clearcoat = float(l.coat)
+		m.clearcoat_roughness = 0.15
+	if float(l.rim) > 0.0:
+		m.rim_enabled = true
+		m.rim = float(l.rim)
+		m.rim_tint = 0.6
+	if float(l.alpha) < 1.0:
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_DEPTH_PRE_PASS
+		m.albedo_color = Color(1, 1, 1, float(l.alpha))
+	if str(l.glow) != "":
+		m.emission_enabled = true
+		m.emission = l.emission
+		m.emission_energy_multiplier = Elements.energy(element, heat)
+		m.emission_texture = emission_texture(value, str(l.glow))
 	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	return m
 
@@ -103,24 +121,117 @@ static func albedo_texture(value: int, element: String) -> ImageTexture:
 	var key := "%d|%s" % [value, element]
 	if _albedo.has(key):
 		return _albedo[key]
-	var body: Color = Elements.COLORS.get(element, Elements.COLORS[""])
-	var ink := DieFace.ink(body)
+	var l := Elements.look(element)
+	var body: Color = l.body
+	var body2: Color = l.body2
+	var ink: Color = l.ink
+	var finish := str(l.finish)
 	var depth := depth_map(value)
+	var noise := _noise(finish)
 	var img := Image.create(TEX, TEX, false, Image.FORMAT_RGB8)
 	for y in TEX:
 		for x in TEX:
+			var u := (x + 0.5) / TEX
+			var v := (y + 0.5) / TEX
+			var c := _finish_color(finish, body, body2, u, v, noise)
 			var d: float = depth[y * TEX + x]
-			img.set_pixel(x, y, body.lerp(ink, smoothstep(0.0, 0.12, d)))
+			img.set_pixel(x, y, c.lerp(ink, smoothstep(0.0, 0.12, d)))
 	img.generate_mipmaps()
 	var t := ImageTexture.create_from_image(img)
 	_albedo[key] = t
 	return t
 
 
-static func normal_texture(value: int) -> ImageTexture:
-	if _normals.has(value):
-		return _normals[value]
+## Ruído fixo (mesma semente sempre) para os acabamentos com textura.
+static func _noise(finish: String) -> FastNoiseLite:
+	if not (finish in ["fosco", "fibroso", "ferrugem"]):
+		return null
+	var n := FastNoiseLite.new()
+	n.seed = 7
+	n.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	n.frequency = 0.06 if finish == "ferrugem" else 0.2
+	return n
+
+
+## Cor do corpo no ponto (u, v) da face, antes da tinta do baixo relevo.
+static func _finish_color(finish: String, body: Color, body2: Color, u: float, v: float, noise: FastNoiseLite) -> Color:
+	var edge := minf(minf(u, 1.0 - u), minf(v, 1.0 - v)) ## 0 na aresta, 0,5 no centro.
+	match finish:
+		"vidro", "ceroso":
+			# Miolo mais claro: luz presa dentro do material.
+			var r := Vector2(u - 0.5, v - 0.5).length() / 0.7
+			return body2.lerp(body, clampf(r, 0.0, 1.0))
+		"espelho":
+			# Faixa clara diagonal (o reflexo de verdade vem do céu do ambiente).
+			var band := 1.0 - clampf(absf((u + v) - 0.9) / 0.18, 0.0, 1.0)
+			return body.lerp(body2, band * 0.45)
+		"fosco":
+			# Arranhões: riscos finos e claros em duas direções.
+			var s1 := absf(fmod(u * 9.0 + v * 4.0 + noise.get_noise_2d(u * 40, v * 40) * 0.6, 1.0) - 0.5)
+			var s2 := absf(fmod(u * 3.0 - v * 7.0, 1.0) - 0.5)
+			var scratch := maxf(1.0 - smoothstep(0.0, 0.025, s1), 1.0 - smoothstep(0.0, 0.02, s2)) * 0.5
+			return body.lightened(scratch * 0.35).darkened(maxf(0.0, noise.get_noise_2d(u * 90, v * 90)) * 0.12)
+		"fibroso":
+			# Fibras finas quase paralelas.
+			var f := sin((u * 0.35 + v) * 140.0 + noise.get_noise_2d(u * 60, v * 60) * 6.0)
+			return body.lightened(maxf(0.0, f) * 0.14).darkened(maxf(0.0, -f) * 0.12)
+		"ferrugem":
+			# Manchas de ferrugem e o metal aparecendo nas arestas gastas.
+			var n := noise.get_noise_2d(u * TEX, v * TEX)
+			var c := body.lightened(maxf(0.0, n) * 0.25).darkened(maxf(0.0, -n) * 0.3)
+			var wear := 1.0 - smoothstep(0.03, 0.09 + n * 0.03, edge)
+			return c.lerp(body2, wear)
+		"grafite":
+			# Lustro de grafite: uma faixa suave na diagonal.
+			var sheen := 1.0 - clampf(absf((u + v) - 1.0) / 0.35, 0.0, 1.0)
+			return body.lerp(body2, sheen * 0.6)
+	# Marfim: só um leve degradê de cima para baixo.
+	return body.lerp(body2, (1.0 - v) * 0.35)
+
+
+## Máscara do brilho: "pips" acende os baixos relevos, "body" o corpo (sem os
+## baixos relevos, para o valor continuar legível) e "rim" as arestas.
+static func emission_texture(value: int, glow: String) -> ImageTexture:
+	var key := "%d|%s" % [value, glow]
+	if _emission.has(key):
+		return _emission[key]
 	var depth := depth_map(value)
+	var img := Image.create(TEX, TEX, false, Image.FORMAT_RGB8)
+	for y in TEX:
+		for x in TEX:
+			var d := smoothstep(0.0, 0.12, depth[y * TEX + x])
+			var k := 0.0
+			match glow:
+				"pips":
+					k = d
+				"body":
+					k = 1.0 - d
+				"rim":
+					var u := (x + 0.5) / TEX
+					var v := (y + 0.5) / TEX
+					var edge := minf(minf(u, 1.0 - u), minf(v, 1.0 - v))
+					k = 1.0 - smoothstep(0.0, 0.14, edge)
+			img.set_pixel(x, y, Color(k, k, k))
+	img.generate_mipmaps()
+	var t := ImageTexture.create_from_image(img)
+	_emission[key] = t
+	return t
+
+
+static func normal_texture(value: int, finish := "") -> ImageTexture:
+	var key := "%d|%s" % [value, finish if finish in ["fosco", "fibroso", "ferrugem"] else ""]
+	if _normals.has(key):
+		return _normals[key]
+	var depth := depth_map(value)
+	var noise := _noise(finish)
+	if noise != null:
+		# Relevo do acabamento: fibras, arranhões ou corrosão bem rasos.
+		var amp := 0.06 if finish == "ferrugem" else 0.035
+		for y in TEX:
+			for x in TEX:
+				var i := y * TEX + x
+				var n := noise.get_noise_2d(x * (0.4 if finish == "fibroso" else 1.0), y * (3.0 if finish == "fibroso" else 1.0))
+				depth[i] = depth[i] + (n * 0.5 + 0.5) * amp
 	var img := Image.create(TEX, TEX, false, Image.FORMAT_RGB8)
 	for y in TEX:
 		for x in TEX:
@@ -135,7 +246,7 @@ static func normal_texture(value: int) -> ImageTexture:
 			img.set_pixel(x, y, Color(nv.x * 0.5 + 0.5, nv.y * 0.5 + 0.5, nv.z * 0.5 + 0.5))
 	img.generate_mipmaps()
 	var t := ImageTexture.create_from_image(img)
-	_normals[value] = t
+	_normals[key] = t
 	return t
 
 

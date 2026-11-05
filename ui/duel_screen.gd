@@ -525,21 +525,24 @@ func _start_player_phase() -> void:
 func _build_tray() -> void:
 	var p := duel.player
 	var els := []
+	var heats := []
 	for e in p.hand:
 		var d := p.die_of(e)
 		els.append(d.element if d else "")
-	_fill_tray(p.hand_values(), els, true)
+		heats.append(Elements.heat(p, d))
+	_fill_tray(p.hand_values(), els, true, heats)
 
 
 ## Coluna de dados com uma mão qualquer (a sua é tocável; a do inimigo, não).
-func _fill_tray(values: Array, elements: Array, interactive: bool) -> void:
+## heats: estado do brilho de cada dado (Elements.heat), opcional.
+func _fill_tray(values: Array, elements: Array, interactive: bool, heats: Array = []) -> void:
 	Kit.clear(tray)
 	tray_views = []
 	dice_side = "player" if interactive else "enemy"
 	dice_title.text = Texts.t("ui.your_hand") if interactive else Texts.t("ui.enemy_dice")
 	for h in values.size():
 		var v := Hole.new().set_interactive(interactive).setup(DIE, h)
-		v.set_die(int(values[h]), elements[h] if h < elements.size() else "")
+		v.set_die(int(values[h]), elements[h] if h < elements.size() else "", float(_at(heats, h, 0.0)))
 		if interactive:
 			v.tapped.connect(_on_die)
 			v.set_drag_forwarding(_drag_from.bind(v), _can_drop_tray, _drop_tray)
@@ -561,6 +564,7 @@ func _roll_tray(ev: Dictionary) -> void:
 			"faces": _at(ev.get("faces", []), k, []),
 			"face": int(_at(ev.get("face", []), k, 0)),
 			"fixed": bool(_at(ev.get("fixed", []), k, false)),
+			"heat": float(_at(ev.get("heat", []), k, 0.0)),
 		})
 	for v: Hole in tray_views:
 		v.has_die = false
@@ -623,7 +627,7 @@ func _fly(from: Hole, to: Hole) -> void:
 		return
 	var fs := _visual_px(from)
 	var g := Hole.new().set_interactive(false).setup(int(fs))
-	g.set_die(from.value, from.element)
+	g.set_die(from.value, from.element, from.heat)
 	g.position = from.global_position - fx_layer.global_position
 	fx_layer.add_child(g)
 	from.has_die = false
@@ -658,19 +662,23 @@ func _refresh_tray() -> void:
 		if hv.index in used:
 			hv.caption = Texts.spell_name(p.inventory.items[_item_of(hv.index)].id)
 		hv.raised = hv.index == selected
+		if hv.index >= 0 and hv.index < p.hand.size():
+			hv.heat = Elements.heat(p, p.die_of(p.hand[hv.index]), not (hv.index in used))
 		hv.queue_redraw()
 	var sel := int(p.hand[selected].value) if selected >= 0 else -1
 	var sel_top := bool(p.hand[selected].get("top", false)) if selected >= 0 else false
 	for c in cards:
 		var vals := choice.values_in(p, c.item)
 		var els := []
+		var heats := []
 		for h in choice.dice_in(c.item):
 			var d := p.die_of(p.hand[h])
 			els.append(d.element if d else "")
+			heats.append(Elements.heat(p, d, false))
 		var ins := choice.dice_in(c.item)
 		for k in c.holes.size():
 			c.holes[k].index = int(ins[k]) if k < ins.size() else -1
-		c.refresh(vals, els, sel if (dragging >= 0 or not (selected in used)) else -1, choice.tops_in(p, c.item), sel_top)
+		c.refresh(vals, els, sel if (dragging >= 0 or not (selected in used)) else -1, choice.tops_in(p, c.item), sel_top, heats)
 	if phase != "player":
 		return
 	# Magia de vários dados pela metade: o botão fica apagado (tocar explica).
@@ -716,7 +724,7 @@ func _drag_from(_at: Vector2, hole: Hole) -> Variant:
 	var h := hole.index
 	var px := int(maxf(24.0, _visual_px(hole)))
 	var g := Hole.new().set_interactive(false).setup(px)
-	g.set_die(hole.value, hole.element)
+	g.set_die(hole.value, hole.element, hole.heat)
 	g.position = -g.size / 2.0
 	var prev := Control.new()
 	prev.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -997,7 +1005,7 @@ func _apply_event(ev: Dictionary) -> void:
 			fx_src = null
 			if s == "enemy":
 				hint.text = Texts.t("ui.enemy_rolling")
-			_fill_tray(ev["values"], ev.get("elements", []), s == "player")
+			_fill_tray(ev["values"], ev.get("elements", []), s == "player", ev.get("heat", []))
 			await _roll_tray(ev)
 		"cast":
 			var cc := _card_of(cards if s == "player" else enemy_cards, int(ev.item))
@@ -1040,6 +1048,7 @@ func _apply_event(ev: Dictionary) -> void:
 			await _effect(s, hit_txt, "dmg" if int(ev.dmg) > 0 else "fx", from)
 			_note(s, hit_txt)
 		"asbestos":
+			_burst(fx_src, Elements.look("Am").body, false)
 			v.hp -= int(ev.n)
 			await _effect(s, Texts.t("ui.fx_asbestos", {"n": ev.n}), "dmg")
 			_note(s, Texts.t("ui.fx_asbestos", {"n": ev.n}))
@@ -1047,6 +1056,7 @@ func _apply_event(ev: Dictionary) -> void:
 			_float(s, Texts.t("ui.fx_el_" + str(ev.el), {"v": ev.v}), Elements.COLORS.get(str(ev.el), Kit.TEXT))
 		"burn_up":
 			if str(ev.get("src", "")) == "Na":
+				_burst(fx_src, Elements.look("Na").emission, true)
 				await _effect(s, Texts.t("ui.fx_el_Na", {"n": ev.n}), "fx")
 			else:
 				await _effect(s, Texts.t("ui.fx_burn_up", {"n": ev.n}), "fx")
@@ -1144,6 +1154,32 @@ func _refresh_shown_only() -> void:
 
 ## Texto que sobe e some sobre a foto de "s" (+X verde, −X vermelho, efeitos em azul).
 ## Textos seguidos no mesmo lado empilham para não se cobrirem.
+## Explosão de partículas no ponto at (camada de efeitos): faíscas do Sódio (sparks)
+## ou poeira do Amianto. Some sozinha.
+func _burst(at: Variant, col: Color, sparks: bool) -> void:
+	if fast or skip or at == null or not is_inside_tree():
+		return
+	var pt := CPUParticles2D.new()
+	pt.position = at
+	pt.one_shot = true
+	pt.explosiveness = 0.9
+	pt.amount = 28 if sparks else 40
+	pt.lifetime = 0.6 if sparks else 1.1
+	pt.spread = 180.0
+	pt.gravity = Vector2(0, 260) if sparks else Vector2(0, -25)
+	pt.initial_velocity_min = 180.0 if sparks else 30.0
+	pt.initial_velocity_max = 340.0 if sparks else 90.0
+	pt.scale_amount_min = 2.0 if sparks else 3.0
+	pt.scale_amount_max = 4.0 if sparks else 7.0
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(col.lightened(0.4), 1.0) if sparks else Color(col, 0.7))
+	ramp.set_color(1, Color(col, 0.0))
+	pt.color_ramp = ramp
+	fx_layer.add_child(pt)
+	pt.emitting = true
+	pt.finished.connect(pt.queue_free)
+
+
 func _float(s: String, text: String, col: Color) -> void:
 	if fast:
 		return

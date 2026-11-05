@@ -18,6 +18,8 @@ var element := ""
 var lit := false ## Aceita o dado selecionado.
 var raised := false ## Dado selecionado: levantado.
 var faded := false ## Dado já lançado neste turno.
+var _glows := false ## O dado encaixado brilha (pulsa: redesenha a cada quadro).
+var heat := 0.0 ## Estado do brilho do dado (Elements.heat): 0 repouso, 1 ativo.
 var interactive := true
 
 
@@ -35,11 +37,23 @@ func set_interactive(on: bool) -> Hole:
 	return self
 
 
-func set_die(v: int, el := "") -> void:
+func set_die(v: int, el := "", h := 0.0) -> void:
 	has_die = true
 	value = v
 	element = el
+	heat = h
+	_glows = str(Elements.look(el).glow) != ""
 	queue_redraw()
+
+
+func set_heat(h: float) -> void:
+	heat = h
+	queue_redraw()
+
+
+func _process(_delta: float) -> void:
+	if _glows and has_die and not faded:
+		queue_redraw()
 
 
 func clear_die() -> void:
@@ -92,6 +106,6 @@ func _draw() -> void:
 	if raised:
 		d.position.y -= s * 0.14
 		draw_style_box(_sb(Color(0, 0, 0, 0.45), rad), Rect2(d.position + Vector2(0, s * 0.12), d.size))
-	DieFace.draw(self, d, value, element, 0.6 if faded else 0.0)
+	DieFace.draw(self, d, value, element, 0.6 if faded else 0.0, heat, Time.get_ticks_msec() / 1000.0)
 	if raised:
 		draw_style_box(_sb(Color.TRANSPARENT, int(rad * 0.85) + 2, 4, Kit.ACCENT), d.grow(3))

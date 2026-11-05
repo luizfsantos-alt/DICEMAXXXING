@@ -134,7 +134,7 @@ func _req_text(placed: Array, k: int) -> String:
 
 ## values: dados postos (valores); sel: valor do dado selecionado (-1 = nenhum).
 ## tops: face mais alta, por dado posto; sel_top: o dado selecionado está na face mais alta.
-func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top := false) -> void:
+func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top := false, heats: Array = []) -> void:
 	var is_used := used()
 	var lvl := int(fighter.inventory.items[item].level)
 	var tags := []
@@ -152,7 +152,7 @@ func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top
 	for k in holes.size():
 		var h: Hole = holes[k]
 		if k < values.size():
-			h.set_die(int(values[k]), elements[k] if k < elements.size() else "")
+			h.set_die(int(values[k]), elements[k] if k < elements.size() else "", float(heats[k]) if k < heats.size() else 0.0)
 		else:
 			h.clear_die()
 		h.req = _req_text(values, k)
