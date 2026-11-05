@@ -43,7 +43,7 @@ jobs:
       - name: Experimentos (temporário)
         run: |
           for x in "--report" "--hand=-1 --report" "--hand=-2 --report" "--h-mult=2 --report" "--h-bag=6 --report"; do
-            for c in sorcerer minimalist vampire barbarian; do
+            for c in sorcerer minimalist vampire barbarian assassin; do
               echo "=== $x · $c"
               godot --headless -s res://sim/simulate.gd -- --runs=500 --seed=1 --door=normal --char=$c $x | grep -v "^Godot Engine"
             done
