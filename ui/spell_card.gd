@@ -1,6 +1,6 @@
 class_name SpellCard
 extends PanelContainer
-## Magia na luta: cartão de tamanho fixo (o formato só importa no grimório).
+## Magia na luta: cartão de tamanho padrão no palco (o formato só importa no grimório).
 ## Nome, efeito curto, uso, um buraco por dado pedido e a prévia do resultado.
 
 signal tapped(item: int)
@@ -37,6 +37,10 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 	tag_label = Kit.label("", 14, Kit.ACCENT)
 	fx_label = Kit.label(spell_fx(id), 15 if compact else 17, Color(0.85, 0.83, 0.89), true)
 	preview = Kit.label("", 19, Kit.TEXT, true)
+	# O cartão tem tamanho padrão no palco (FitGrid): textos longos não o esticam.
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	fx_label.max_lines_visible = 3
+	preview.max_lines_visible = 2
 	var hrow := Kit.hbox(6)
 	hrow.alignment = BoxContainer.ALIGNMENT_BEGIN
 	var n := Spells.dice_needed(id)
@@ -184,11 +188,12 @@ func show_cast(values: Array) -> void:
 	flash()
 
 
+## Brilho rápido (sem mexer na escala, que o palco usa para encolher os cartões).
 func flash() -> void:
-	pivot_offset = size / 2.0
+	var m0 := modulate
 	var tw := create_tween()
-	tw.tween_property(self, "scale", Vector2(1.04, 1.04), 0.1)
-	tw.tween_property(self, "scale", Vector2.ONE, 0.2)
+	tw.tween_property(self, "modulate", Color(1.45, 1.35, 1.1, m0.a), 0.1)
+	tw.tween_property(self, "modulate", m0, 0.2)
 
 
 ## "→ 6 de dano", "→ 9 bloq"… com os valores postos (exigência completa).

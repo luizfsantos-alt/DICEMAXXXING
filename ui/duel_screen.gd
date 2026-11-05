@@ -1,23 +1,33 @@
 class_name DuelScreen
 extends Control
-## Tela da luta em paisagem (docs/SPEC_v3.md §6), turnos sequenciais.
+## Tela da luta em paisagem (docs/SPEC_v3.md §13), turnos sequenciais (§6).
 ##
-## Layout: trilho à esquerda com os dois personagens (inimigo em cima, você embaixo);
-## à direita, as magias do inimigo, a bandeja da mão e as suas magias, todas em
-## cartões iguais (o formato só importa no grimório). Cada magia tem um buraco por
-## dado pedido. Não há registro na tela: o resultado aparece no lugar e o histórico
-## completo abre por botão.
+## Três colunas, da esquerda para a direita:
+## 1. Personagens: foto do inimigo (com a coluna de status dele à direita), as duas
+##    barras de vida juntas no meio, a sua foto (com a sua coluna de status) e, no
+##    rodapé, as moedas da jornada.
+## 2. Palco compartilhado: as magias de quem está jogando (no seu turno, as suas; na vez
+##    do inimigo, as dele). Todas cabem: os cartões encolhem por igual, sem rolagem
+##    (FitGrid). Embaixo, o banner, a dica, o resumo, o histórico e "Terminar turno".
+## 3. Dados: coluna na altura toda com a mão de quem está jogando.
 ##
 ## Fases: "player" (você encaixa dados nas magias), "resolve" (eventos animados: o seu
 ## turno, depois o turno inteiro do inimigo; tocar acelera) e "over".
 ## Interação: toque num dado da mão e depois numa magia. Toque num dado posto (ou na
-## magia) para devolvê-lo.
+## magia) para devolvê-lo. Segurar a foto do inimigo mostra as magias dele no palco
+## (só leitura); soltar volta. Segurar um ícone de status mostra a descrição.
 
 signal finished
+signal stage_changed(side: String) ## O palco passou a mostrar as magias de "side".
 
-const DIE := 92 ## Buraco da mão.
-const EDIE := 28 ## Última mão do inimigo.
-const RAIL := 270
+const DIE := 92 ## Buraco da mão (tamanho padrão; a coluna encolhe se não couber).
+const HOLE := 50 ## Buraco no cartão de magia.
+const CARD := Vector2(240, 236) ## Cartão de magia no tamanho padrão.
+const STATUS_PX := 40
+const LEFT := 300 ## Coluna dos personagens.
+const DICE_W := 116 ## Coluna dos dados.
+const MARGIN := 14
+const GAP := 12
 
 var run: RunState
 var duel: Duel
@@ -29,25 +39,39 @@ var skip := false
 var shown := {} ## side -> {hp, max, block}
 var history: Array = [] ## Linhas do histórico (bbcode).
 var summary: Array = [] ## Resumo do turno do inimigo.
+var active_side := "player" ## De quem é a vez (o palco e os dados seguem).
+var dice_side := "player" ## De quem são os dados na coluna da direita.
+var peeking := false ## Segurando a foto do inimigo.
+var _stage_shown := ""
 
 var hud: Label
 var enemy_name: Label
 var enemy_sub: Label
-var enemy_status: Label
 var player_sub: Label
-var player_status: Label
+var enemy_photo: Portrait
+var player_photo: Portrait
 var bars := {}
-var enemy_tray: HBoxContainer
+var status_cols := {} ## side -> FitGrid de StatusIcon
+var status_shown := {} ## side -> lista exibida (para não refazer à toa)
+var coins_label: Label
+var stage_title: Label
+var player_grid: FitGrid
+var enemy_grid: FitGrid
 var enemy_cards: Array = []
 var cards: Array = []
-var tray: HBoxContainer
-var tray_views: Array = [] ## Hole por dado da mão.
+var dice_title: Label
+var tray: FitGrid
+var tray_views: Array = [] ## Hole por dado da coluna.
 var banner: Label
 var hint: Label
 var info: Label
 var end_btn: Button
 var catcher: Control
 var fx_layer: Control
+var tip: PanelContainer ## Descrição do status segurado.
+var tip_title: Label
+var tip_desc: Label
+var tip_icon: StatusIcon
 
 
 func setup(r: RunState) -> DuelScreen:
@@ -63,109 +87,27 @@ func setup(r: RunState) -> DuelScreen:
 
 # ================================================================== Layout
 func _build() -> void:
-	var root := Kit.hbox(18)
+	var root := Kit.hbox(GAP)
 	var m := MarginContainer.new()
-	for k in ["left", "right"]:
-		m.add_theme_constant_override("margin_" + k, 18)
-	for k in ["top", "bottom"]:
-		m.add_theme_constant_override("margin_" + k, 12)
+	for k in ["left", "right", "top", "bottom"]:
+		m.add_theme_constant_override("margin_" + k, MARGIN)
 	m.add_child(root)
 	m.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(m)
-
-	# Trilho: inimigo em cima, você embaixo.
-	var rail := Kit.vbox(10)
-	rail.custom_minimum_size = Vector2(RAIL, 0)
-	root.add_child(rail)
-	var e := duel.enemy
-	var eb := _fighter_box(e, false)
-	eb.gui_input.connect(func(ev):
-		if ev is InputEventMouseButton and ev.button_index == MOUSE_BUTTON_LEFT and not ev.pressed:
-			open_enemy_consult())
-	rail.add_child(eb)
-	var mid := Kit.vbox(8)
-	mid.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	mid.alignment = BoxContainer.ALIGNMENT_CENTER
-	rail.add_child(mid)
-	hud = Kit.label("", 16, Kit.MUTED, true)
-	hud.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	mid.add_child(hud)
-	var hb := Kit.button(Texts.t("ui.history"), open_history, Kit.PANEL, 18)
-	hb.custom_minimum_size = Vector2(0, 44)
-	mid.add_child(hb)
-	rail.add_child(_fighter_box(duel.player, true))
-
-	# Arena.
-	var arena := Kit.vbox(8)
-	arena.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	root.add_child(arena)
-	var eh := Kit.hbox(6)
-	arena.add_child(eh)
-	var el := Kit.label(Texts.t("ui.enemy_spells"), 15, Kit.MUTED)
-	el.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	eh.add_child(el)
-	enemy_tray = Kit.hbox(5)
-	enemy_tray.custom_minimum_size = Vector2(0, EDIE)
-	eh.add_child(enemy_tray)
-	var eg := _card_grid(e.inventory.order().size(), 4)
-	arena.add_child(eg)
-	for item in e.inventory.order():
-		var c := SpellCard.new().setup(e, item, 40, true)
-		c.tapped.connect(func(_i): open_enemy_consult())
-		eg.add_child(c)
-		enemy_cards.append(c)
-
-	# Centro: turno, bandeja da mão e botão.
-	var center := PanelContainer.new()
-	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	center.add_theme_stylebox_override("panel", Kit.box(Color(0.098, 0.086, 0.125), 18, 14))
-	arena.add_child(center)
-	var cv := Kit.vbox(6)
-	cv.alignment = BoxContainer.ALIGNMENT_CENTER
-	center.add_child(cv)
-	var crow := Kit.hbox(14)
-	crow.alignment = BoxContainer.ALIGNMENT_CENTER
-	cv.add_child(crow)
-	var bv := Kit.vbox(2)
-	bv.custom_minimum_size = Vector2(150, 0)
-	bv.alignment = BoxContainer.ALIGNMENT_CENTER
-	banner = Kit.label("", 28, Kit.ACCENT, true)
-	bv.add_child(banner)
-	hint = Kit.label(Texts.t("ui.hint_place"), 15, Kit.MUTED, true)
-	bv.add_child(hint)
-	crow.add_child(bv)
-	tray = Kit.hbox(8)
-	tray.alignment = BoxContainer.ALIGNMENT_CENTER
-	tray.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tray.custom_minimum_size = Vector2(0, DIE)
-	crow.add_child(tray)
-	end_btn = Kit.button(Texts.t("ui.end_turn"), _on_end_turn, Kit.ACCENT.darkened(0.45), 24)
-	end_btn.custom_minimum_size = Vector2(200, 88)
-	crow.add_child(end_btn)
-	info = Kit.label("", 18, Kit.TEXT, true)
-	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cv.add_child(info)
-
-	# Suas magias, perto do polegar.
-	arena.add_child(Kit.label(Texts.t("ui.your_spells"), 15, Kit.MUTED))
-	var p := duel.player
-	var n := p.inventory.order().size()
-	var pg := _card_grid(n, 4)
-	arena.add_child(pg)
-	var big := n <= 4
-	for item in p.inventory.order():
-		var c := SpellCard.new().setup(p, item, 68 if big else 50)
-		c.custom_minimum_size = Vector2(0, 186 if big else 128)
-		c.tapped.connect(_on_card)
-		pg.add_child(c)
-		cards.append(c)
+	root.add_child(_build_fighters())
+	root.add_child(_build_stage())
+	root.add_child(_build_dice())
 
 	fx_layer = Control.new()
 	fx_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	fx_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(fx_layer)
+	_build_tip()
+	# Durante a resolução, tocar no palco ou nos dados acelera. A coluna dos personagens
+	# fica de fora: dá para segurar a foto do inimigo e os ícones a qualquer momento.
 	catcher = Control.new()
 	catcher.set_anchors_preset(Control.PRESET_FULL_RECT)
+	catcher.offset_left = MARGIN + LEFT + GAP * 0.5
 	catcher.mouse_filter = Control.MOUSE_FILTER_STOP
 	catcher.visible = false
 	catcher.gui_input.connect(func(ev):
@@ -174,47 +116,309 @@ func _build() -> void:
 	add_child(catcher)
 
 
-## Grade de cartões: até "per_row" por linha, linhas equilibradas.
-func _card_grid(n: int, per_row: int) -> GridContainer:
-	var g := GridContainer.new()
-	var rows := maxi(1, ceili(float(n) / per_row))
-	g.columns = maxi(1, ceili(float(n) / rows))
-	g.add_theme_constant_override("h_separation", 10)
-	g.add_theme_constant_override("v_separation", 8)
-	g.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	return g
+## Coluna 1: foto do inimigo + status, as duas barras, sua foto + status, moedas.
+func _build_fighters() -> VBoxContainer:
+	var col := Kit.vbox(8)
+	col.custom_minimum_size = Vector2(LEFT, 0)
+	var e := duel.enemy
+	var p := duel.player
+
+	var erow := _photo_row(e, false)
+	col.add_child(erow)
+	enemy_photo.mouse_filter = Control.MOUSE_FILTER_STOP
+	enemy_photo.gui_input.connect(_on_enemy_photo_input)
+	enemy_name = _photo_label(enemy_photo, e.name, 18, Kit.TEXT, true)
+	enemy_sub = _photo_label(enemy_photo, "", 13, Kit.MUTED, false)
+
+	var bv := Kit.vbox(4)
+	for s in ["enemy", "player"]:
+		var b := HpBar.new().setup(Kit.DANGER if s == "enemy" else Kit.OK)
+		b.custom_minimum_size = Vector2(0, 34)
+		bars[s] = b
+		bv.add_child(b)
+	col.add_child(bv)
+
+	col.add_child(_photo_row(p, true))
+	_photo_label(player_photo, Texts.t("ui.you") + " · " + Texts.t("archetypes." + p.archetype), 18, Kit.TEXT, true)
+	player_sub = _photo_label(player_photo, "", 13, Kit.MUTED, false)
+
+	# Moedas: faixa fina no rodapé.
+	var strip := PanelContainer.new()
+	strip.add_theme_stylebox_override("panel", Kit.box(Color(0.098, 0.086, 0.125), 8, 4))
+	var sh := Kit.hbox(8)
+	strip.add_child(sh)
+	var coin := Control.new()
+	coin.custom_minimum_size = Vector2(20, 20)
+	coin.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	coin.draw.connect(func():
+		coin.draw_circle(coin.size * 0.5, 9.0, Kit.ACCENT.darkened(0.25))
+		coin.draw_circle(coin.size * 0.5, 6.0, Kit.ACCENT))
+	sh.add_child(coin)
+	coins_label = Kit.label("", 17, Kit.ACCENT)
+	sh.add_child(coins_label)
+	col.add_child(strip)
+	return col
 
 
-func _fighter_box(f: Fighter, is_player: bool) -> PanelContainer:
-	var b := PanelContainer.new()
-	var sb := Kit.box(Color(0.114, 0.102, 0.141), 14, 10)
+## Foto do personagem com a coluna de status logo à direita.
+func _photo_row(f: Fighter, is_player: bool) -> HBoxContainer:
+	var row := Kit.hbox(6)
+	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var photo := Portrait.new().setup(f.archetype, 100, is_player)
+	photo.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	row.add_child(photo)
+	var side := "player" if is_player else "enemy"
+	var sc := FitGrid.new().setup(Vector2(STATUS_PX, STATUS_PX), 4, true)
+	sc.custom_minimum_size = Vector2(STATUS_PX, 0)
+	sc.size_flags_horizontal = Control.SIZE_FILL
+	row.add_child(sc)
+	status_cols[side] = sc
+	status_shown[side] = []
+	if is_player:
+		player_photo = photo
+	else:
+		enemy_photo = photo
+	return row
+
+
+## Texto sobre a foto: nome no alto ("head"), linha de bolsa embaixo.
+func _photo_label(photo: Control, text: String, fs: int, col: Color, head: bool) -> Label:
+	var l := Kit.label(text, fs, col, true)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.set_anchors_preset(Control.PRESET_TOP_WIDE if head else Control.PRESET_BOTTOM_WIDE)
+	l.offset_left = 6
+	l.offset_right = -6
+	if head:
+		l.offset_top = 4
+	else:
+		l.grow_vertical = Control.GROW_DIRECTION_BEGIN
+		l.offset_bottom = -4
+	photo.add_child(l)
+	return l
+
+
+## Coluna 2: palco compartilhado (magias do lado ativo) e o rodapé.
+func _build_stage() -> VBoxContainer:
+	var col := Kit.vbox(8)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stage_title = Kit.label("", 15, Kit.MUTED)
+	col.add_child(stage_title)
+	var stage := PanelContainer.new()
+	stage.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	stage.add_theme_stylebox_override("panel", Kit.box(Color(0.098, 0.086, 0.125), 18, 10))
+	col.add_child(stage)
+
+	var p := duel.player
+	player_grid = FitGrid.new().setup(CARD, 10)
+	stage.add_child(player_grid)
+	for item in p.inventory.order():
+		var c := SpellCard.new().setup(p, item, HOLE)
+		c.tapped.connect(_on_card)
+		player_grid.add_child(c)
+		cards.append(c)
+	var e := duel.enemy
+	enemy_grid = FitGrid.new().setup(CARD, 10)
+	enemy_grid.visible = false
+	stage.add_child(enemy_grid)
+	for item in e.inventory.order():
+		# Só leitura: tocar não faz nada.
+		var c := SpellCard.new().setup(e, item, HOLE)
+		enemy_grid.add_child(c)
+		enemy_cards.append(c)
+
+	# Rodapé: banner e dica, resumo, histórico/ficha e "Terminar turno".
+	var foot := Kit.hbox(10)
+	foot.custom_minimum_size = Vector2(0, 88)
+	col.add_child(foot)
+	var bv := Kit.vbox(2)
+	bv.custom_minimum_size = Vector2(170, 0)
+	bv.alignment = BoxContainer.ALIGNMENT_CENTER
+	banner = Kit.label("", 26, Kit.ACCENT, true)
+	bv.add_child(banner)
+	hint = Kit.label(Texts.t("ui.hint_place"), 14, Kit.MUTED, true)
+	bv.add_child(hint)
+	hud = Kit.label("", 13, Kit.MUTED, true)
+	bv.add_child(hud)
+	foot.add_child(bv)
+	info = Kit.label("", 16, Kit.TEXT, true)
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	info.max_lines_visible = 4
+	foot.add_child(info)
+	var btns := Kit.vbox(6)
+	btns.alignment = BoxContainer.ALIGNMENT_CENTER
+	var hb := Kit.button(Texts.t("ui.history"), open_history, Kit.PANEL, 16)
+	hb.custom_minimum_size = Vector2(124, 40)
+	btns.add_child(hb)
+	var sb := Kit.button(Texts.t("ui.enemy_sheet"), open_enemy_consult, Kit.PANEL, 16)
+	sb.custom_minimum_size = Vector2(124, 40)
+	btns.add_child(sb)
+	foot.add_child(btns)
+	end_btn = Kit.button(Texts.t("ui.end_turn"), _on_end_turn, Kit.ACCENT.darkened(0.45), 22)
+	end_btn.custom_minimum_size = Vector2(180, 84)
+	end_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	foot.add_child(end_btn)
+	return col
+
+
+## Coluna 3: os dados de quem está jogando, na altura toda.
+func _build_dice() -> PanelContainer:
+	var pc := PanelContainer.new()
+	pc.custom_minimum_size = Vector2(DICE_W, 0)
+	pc.add_theme_stylebox_override("panel", Kit.box(Color(0.098, 0.086, 0.125), 14, 6))
+	var v := Kit.vbox(6)
+	pc.add_child(v)
+	dice_title = Kit.label("", 13, Kit.MUTED, true)
+	dice_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(dice_title)
+	tray = FitGrid.new().setup(Vector2(DIE, DIE), 8)
+	v.add_child(tray)
+	return pc
+
+
+func _build_tip() -> void:
+	tip = PanelContainer.new()
+	var sb := Kit.box(Color(0.06, 0.055, 0.08, 0.97), 12, 12)
 	sb.set_border_width_all(1)
 	sb.border_color = SpellCard.LINE
-	b.add_theme_stylebox_override("panel", sb)
-	b.mouse_filter = Control.MOUSE_FILTER_STOP if not is_player else Control.MOUSE_FILTER_IGNORE
+	tip.add_theme_stylebox_override("panel", sb)
+	tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tip.custom_minimum_size = Vector2(280, 0)
 	var v := Kit.vbox(4)
-	b.add_child(v)
-	v.add_child(Portrait.new().setup(f.archetype, 112, is_player))
-	var side := "player" if is_player else "enemy"
-	if is_player:
-		v.add_child(Kit.label(Texts.t("ui.you") + " · " + Texts.t("archetypes." + f.archetype), 20, Kit.TEXT))
-		player_sub = Kit.label("", 14, Kit.MUTED)
-		v.add_child(player_sub)
+	tip.add_child(v)
+	tip_title = Kit.label("", 19, Kit.ACCENT)
+	v.add_child(tip_title)
+	tip_desc = Kit.label("", 16, Kit.TEXT, true)
+	tip_desc.custom_minimum_size = Vector2(256, 0)
+	v.add_child(tip_desc)
+	tip.visible = false
+	fx_layer.add_child(tip)
+
+
+# ================================================================== Palco
+## O palco mostra as magias de quem joga, ou as do inimigo enquanto a foto dele é segurada.
+func stage_side() -> String:
+	return "enemy" if peeking else active_side
+
+
+func set_peek(on: bool) -> void:
+	peeking = on
+	_update_stage()
+
+
+func _on_enemy_photo_input(ev: InputEvent) -> void:
+	if ev is InputEventMouseButton and ev.button_index == MOUSE_BUTTON_LEFT:
+		set_peek(ev.pressed)
+
+
+func _set_active(side: String) -> void:
+	active_side = side
+	_update_stage()
+
+
+func _update_stage() -> void:
+	var s := stage_side()
+	player_grid.visible = s == "player"
+	enemy_grid.visible = s == "enemy"
+	if s == "player":
+		stage_title.text = Texts.t("ui.your_spells")
 	else:
-		enemy_name = Kit.label(f.name, 20, Kit.TEXT, true)
-		v.add_child(enemy_name)
-		enemy_sub = Kit.label("", 14, Kit.MUTED, true)
-		v.add_child(enemy_sub)
-	bars[side] = HpBar.new().setup(Kit.OK if is_player else Kit.DANGER)
-	bars[side].custom_minimum_size = Vector2(0, 30)
-	v.add_child(bars[side])
-	var st := Kit.label("", 15, Color(1.0, 0.69, 0.4))
-	v.add_child(st)
-	if is_player:
-		player_status = st
-	else:
-		enemy_status = st
-	return b
+		stage_title.text = Texts.t("ui.enemy_spells")
+		if peeking and active_side == "player":
+			stage_title.text += "  ·  " + Texts.t("ui.read_only")
+			var last := duel.enemy.last_hand
+			if not last.is_empty():
+				stage_title.text += "  ·  " + Texts.t("ui.enemy_last") + " " + " ".join(PackedStringArray(last.map(func(x): return str(x))))
+	if s != _stage_shown:
+		_stage_shown = s
+		stage_changed.emit(s)
+
+
+# ================================================================== Status
+## Efeitos ativos de um lado, na ordem dos ícones: [{id, n, name, desc}].
+## O bloqueio vem de fora (o valor exibido durante a animação).
+static func statuses(f: Fighter, block: int) -> Array:
+	var out := []
+	if block > 0:
+		out.append(_st("block", block))
+	if f.poison > 0:
+		out.append(_st("poison", f.poison))
+	if f.burn > 0:
+		out.append(_st("burn", f.burn))
+	if f.mirror:
+		out.append(_st("mirror", 1))
+	if f.dodge:
+		out.append(_st("dodge", 1))
+	if f.riposte > 0:
+		out.append(_st("riposte", f.riposte))
+	if f.immune > 0:
+		out.append(_st("immune", f.immune))
+	var kept := (0 if f.marked.is_empty() else 1) + f.keeps.size()
+	if kept > 0:
+		out.append(_st("marked", kept))
+	var fury := Characters.fury(f)
+	if fury > 0:
+		out.append(_st("fury", fury))
+	if f.archetype == "vampire" and f.thirst_used > 0:
+		var t := _st("thirst", f.thirst_used)
+		t.desc += " " + Texts.t("ui.thirst", {"n": f.thirst_used, "max": Characters.THIRST_CAP})
+		out.append(t)
+	var mods := {}
+	for m in f.hand_mods:
+		mods[str(m)] = int(mods.get(str(m), 0)) + 1
+	for m in mods:
+		out.append({"id": "mod_" + m, "n": mods[m],
+			"name": Texts.t("ui.next_hand", {"mod": Texts.t("ui.mod_" + m)}), "desc": Texts.t("status.hand_mod.1")})
+	return out
+
+
+static func _st(id: String, n: int) -> Dictionary:
+	return {"id": id, "n": n, "name": Texts.t("status.%s.0" % id), "desc": Texts.t("status.%s.1" % id)}
+
+
+func _refresh_status() -> void:
+	for f in [duel.player, duel.enemy]:
+		var s := Resolver.side(f)
+		var lst := statuses(f, int(shown[s].block))
+		if lst == status_shown[s]:
+			continue
+		status_shown[s] = lst
+		var col: FitGrid = status_cols[s]
+		if tip.visible and is_instance_valid(tip_icon) and tip_icon.get_parent() == col:
+			_hide_tip()
+		Kit.clear(col)
+		for st in lst:
+			var ic := StatusIcon.new().setup(st, STATUS_PX)
+			ic.held.connect(_on_status_held)
+			col.add_child(ic)
+
+
+## Ícones de status exibidos de um lado (testes e dicas).
+func status_icons(side: String) -> Array:
+	return status_cols[side].get_children().filter(func(x): return x is StatusIcon and not x.is_queued_for_deletion())
+
+
+func _on_status_held(ic: StatusIcon, on: bool) -> void:
+	if not on:
+		_hide_tip()
+		return
+	tip_icon = ic
+	tip_title.text = ic.title + ("  ·  %d" % ic.count)
+	tip_desc.text = ic.desc
+	tip.visible = true
+	tip.reset_size()
+	var r := Rect2(ic.global_position, ic.size * ic.get_global_transform().get_scale())
+	var pos := Vector2(r.end.x + 8, r.position.y)
+	var vp := get_viewport_rect().size if is_inside_tree() else size
+	pos.x = minf(pos.x, vp.x - tip.size.x - 4)
+	pos.y = clampf(pos.y, 4, maxf(4, vp.y - tip.size.y - 4))
+	tip.position = pos - fx_layer.global_position
+
+
+func _hide_tip() -> void:
+	tip.visible = false
+	tip_icon = null
 
 
 # ================================================================== Estado
@@ -225,43 +429,20 @@ func _sync_shown() -> void:
 
 
 func _refresh_bars() -> void:
-	for s in ["player", "enemy"]:
-		var v: Dictionary = shown[s]
-		bars[s].set_values(v.max, v.hp, v.block, 0)
-	hud.text = Texts.t("ui.hud_duel", {"n": run.floor_n, "max": Config.LAST_FLOOR, "coins": run.coins, "t": duel.turn})
+	_refresh_shown_only()
+	hud.text = Texts.t("ui.hud_floor", {"n": run.floor_n, "max": Config.LAST_FLOOR, "t": duel.turn})
+	coins_label.text = str(run.coins)
 	var e := duel.enemy
 	var arch := Texts.master_name(e.master_id) if e.master_id != "" else Texts.t("archetypes." + e.archetype)
 	enemy_sub.text = Texts.t("ui.enemy_sub", {"arch": arch, "n": e.bag.size()})
 	player_sub.text = Texts.t("ui.bag_line", {"n": duel.player.bag.size(), "d": duel.player.discard.size()})
-	enemy_status.text = _status(e)
-	enemy_status.visible = enemy_status.text != ""
-	player_status.text = _status(duel.player)
-	player_status.visible = player_status.text != ""
 
 
+## Texto corrido dos efeitos (ficha do inimigo).
 func _status(f: Fighter) -> String:
 	var p := []
-	if f.poison > 0:
-		p.append(Texts.t("ui.poison", {"n": f.poison}))
-	if f.burn > 0:
-		p.append(Texts.t("ui.burn", {"n": f.burn}))
-	if f.mirror:
-		p.append(Texts.t("ui.mirror"))
-	if f.dodge:
-		p.append(Texts.t("ui.dodge"))
-	if f.riposte > 0:
-		p.append(Texts.t("ui.riposte", {"n": f.riposte}))
-	if f.immune > 0:
-		p.append(Texts.t("ui.immune"))
-	if not f.marked.is_empty() or not f.keeps.is_empty():
-		p.append(Texts.t("ui.marked"))
-	var fury := Characters.fury(f)
-	if fury > 0:
-		p.append(Texts.t("ui.fury", {"n": fury}))
-	if f.archetype == "vampire" and f.thirst_used > 0:
-		p.append(Texts.t("ui.thirst", {"n": f.thirst_used, "max": Characters.THIRST_CAP}))
-	for m in f.hand_mods:
-		p.append(Texts.t("ui.next_hand", {"mod": Texts.t("ui.mod_" + str(m))}))
+	for st in statuses(f, f.block):
+		p.append(st.name if st.id in ["mirror", "dodge", "immune", "marked"] or str(st.id).begins_with("mod_") else "%s %d" % [st.name, st.n])
 	return " · ".join(p)
 
 
@@ -275,8 +456,8 @@ func _start_player_phase() -> void:
 	hint.text = Texts.t("ui.hint_place")
 	catcher.visible = false
 	end_btn.disabled = false
+	_set_active("player")
 	_build_tray()
-	_build_enemy_tray(duel.enemy.last_hand)
 	_sync_shown()
 	_refresh_tray()
 	if not summary.is_empty():
@@ -285,30 +466,22 @@ func _start_player_phase() -> void:
 
 
 func _build_tray() -> void:
-	Kit.clear(tray)
-	tray_views = []
 	var p := duel.player
-	for h in p.hand.size():
-		var e: Dictionary = p.hand[h]
+	var els := []
+	for e in p.hand:
 		var d := p.die_of(e)
-		var v := Hole.new().setup(_die_px(p.hand.size()), h)
-		v.set_die(int(e.value), d.element if d else "")
-		v.tapped.connect(_on_die)
-		tray.add_child(v)
-		tray_views.append(v)
+		els.append(d.element if d else "")
+	_fill_tray(p.hand_values(), els, true)
 
 
-## Buraco da bandeja: menor quando a mão tem mais de 5 dados (cabe na largura).
-func _die_px(n: int) -> int:
-	return DIE if n <= 5 else maxi(60, int((540.0 - (n - 1) * 8) / n))
-
-
-## Bandeja do centro com uma mão qualquer (a sua é tocável; a do inimigo, não).
+## Coluna de dados com uma mão qualquer (a sua é tocável; a do inimigo, não).
 func _fill_tray(values: Array, elements: Array, interactive: bool) -> void:
 	Kit.clear(tray)
 	tray_views = []
+	dice_side = "player" if interactive else "enemy"
+	dice_title.text = Texts.t("ui.your_hand") if interactive else Texts.t("ui.enemy_dice")
 	for h in values.size():
-		var v := Hole.new().set_interactive(interactive).setup(_die_px(values.size()), h)
+		var v := Hole.new().set_interactive(interactive).setup(DIE, h)
 		v.set_die(int(values[h]), elements[h] if h < elements.size() else "")
 		if interactive:
 			v.tapped.connect(_on_die)
@@ -335,34 +508,28 @@ func _roll_tray() -> void:
 		tray_views[k].queue_redraw()
 
 
+## Tamanho na tela (com a escala do palco ou da coluna).
+static func _visual_px(c: Control) -> float:
+	return c.size.x * c.get_global_transform().get_scale().x
+
+
 ## Um dado voa de um buraco para outro (camada de efeitos).
 func _fly(from: Hole, to: Hole) -> void:
 	if fast or skip or not is_inside_tree():
 		return
-	var g := Hole.new().set_interactive(false).setup(int(from.size.x))
+	var fs := _visual_px(from)
+	var g := Hole.new().set_interactive(false).setup(int(fs))
 	g.set_die(from.value, from.element)
-	g.position = from.global_position
+	g.position = from.global_position - fx_layer.global_position
 	fx_layer.add_child(g)
 	from.has_die = false
 	from.queue_redraw()
-	var sc := to.size.x / maxf(1.0, from.size.x)
+	var sc := _visual_px(to) / maxf(1.0, fs)
 	var tw := g.create_tween()
-	tw.tween_property(g, "position", to.global_position, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(g, "position", to.global_position - fx_layer.global_position, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 	tw.parallel().tween_property(g, "scale", Vector2(sc, sc), 0.3)
 	await _wait(0.32)
 	g.queue_free()
-
-
-func _build_enemy_tray(values: Array, elements: Array = []) -> void:
-	Kit.clear(enemy_tray)
-	if values.is_empty():
-		return
-	enemy_tray.add_child(Kit.label(Texts.t("ui.enemy_last"), 14, Kit.MUTED))
-	for i in values.size():
-		var v := DieView.new()
-		v.interactive = false
-		v.setup(i, int(values[i]), elements[i] if i < elements.size() else "", EDIE)
-		enemy_tray.add_child(v)
 
 
 func _item_of(h: int) -> int:
@@ -574,6 +741,8 @@ func _apply_event(ev: Dictionary) -> void:
 	match str(ev.t):
 		"turn":
 			banner.text = Texts.t("ui.your_turn") if s == "player" else Texts.t("ui.enemy_turn")
+			# O palco e a coluna de dados passam para quem joga agora.
+			_set_active(s)
 			if s == "enemy":
 				shown.enemy.block = 0
 				summary = []
@@ -586,7 +755,7 @@ func _apply_event(ev: Dictionary) -> void:
 			else:
 				shown.player.block = 0
 		"hand":
-			# Os dois lados rolam a mão na bandeja do centro.
+			# Os dois lados rolam a mão na coluna de dados.
 			if s == "enemy":
 				hint.text = Texts.t("ui.enemy_rolling")
 			_fill_tray(ev["values"], ev.get("elements", []), s == "player")
@@ -697,7 +866,8 @@ func _note(s: String, text: String) -> void:
 func _refresh_shown_only() -> void:
 	for s in ["player", "enemy"]:
 		var v: Dictionary = shown[s]
-		bars[s].set_values(v.max, v.hp, v.block, 0)
+		bars[s].set_values(v.max, v.hp, 0, 0) ## O bloqueio é um ícone de status.
+	_refresh_status()
 
 
 func _float(s: String, text: String, col: Color) -> void:

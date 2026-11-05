@@ -283,3 +283,165 @@ func H_rng() -> RandomNumberGenerator:
 	var r := RandomNumberGenerator.new()
 	r.seed = 3
 	return r
+
+
+# ================================================================== Layout da luta
+## Tela da luta num quadro 1280×720, como no celular em paisagem.
+func _duel_in_frame(run: RunState) -> DuelScreen:
+	var frame := Control.new()
+	frame.size = Vector2(1280, 720)
+	add_child_autofree(frame)
+	var d := DuelScreen.new().setup(run)
+	d.fast = true
+	frame.add_child(d)
+	return d
+
+
+func _press(on: bool) -> InputEventMouseButton:
+	var e := InputEventMouseButton.new()
+	e.button_index = MOUSE_BUTTON_LEFT
+	e.pressed = on
+	return e
+
+
+func test_grade_calcula_colunas_e_encolhe():
+	var avail := Vector2(792, 550)
+	var one := FitGrid.arrange(1, avail, DuelScreen.CARD, 10)
+	assert_eq(one.scale, 1.0, "uma magia fica no tamanho padrão")
+	var three := FitGrid.arrange(3, avail, DuelScreen.CARD, 10)
+	assert_eq([three.cols, three.rows, three.scale], [3, 1, 1.0], "três numa linha, tamanho padrão")
+	var twelve := FitGrid.arrange(12, avail, DuelScreen.CARD, 10)
+	assert_lt(twelve.scale, 1.0, "doze encolhem")
+	assert_true(twelve.cols * twelve.rows >= 12)
+	var w: float = twelve.cols * DuelScreen.CARD.x * twelve.scale + 10 * (twelve.cols - 1)
+	var h: float = twelve.rows * DuelScreen.CARD.y * twelve.scale + 10 * (twelve.rows - 1)
+	assert_true(w <= avail.x + 0.5 and h <= avail.y + 0.5, "doze cabem sem rolagem")
+
+
+func test_palco_cabe_todas_as_magias():
+	var pool := ["faisca", "bola", "foto", "transfusao"]
+	for n in [1, 3, 6, 12]:
+		var run := _run_at_duel(77)
+		var p := run.duel.player
+		p.inventory = Inventory.make(12, 12)
+		for k in n:
+			assert_true(p.inventory.add(pool[k % pool.size()]), "cabe no inventário")
+		var d := _duel_in_frame(run)
+		await wait_process_frames(4)
+		var g := d.player_grid
+		assert_true(g.visible)
+		assert_eq(g.visible_children().size(), n, "%d magias no palco" % n)
+		assert_gt(g.size.x, 100.0)
+		var rects := []
+		for c in g.visible_children():
+			var r := FitGrid.visual_rect(c)
+			assert_true(Rect2(Vector2.ZERO, g.size).grow(0.5).encloses(r), "%d magias: cartão dentro do palco" % n)
+			assert_true(r.size.x <= DuelScreen.CARD.x + 0.5 and r.size.y <= DuelScreen.CARD.y + 0.5, "não estica além do padrão")
+			for o in rects:
+				assert_false(r.grow(-0.5).intersects(o), "%d magias: sem sobreposição" % n)
+			rects.append(r)
+		if n <= 3:
+			assert_eq(g.fit_scale, 1.0, "%d magias: tamanho padrão" % n)
+		var anc: Node = g
+		while anc:
+			assert_false(anc is ScrollContainer, "sem rolagem")
+			anc = anc.get_parent()
+
+
+func test_palco_e_dados_trocam_por_turno():
+	var run := _run_at_duel(321)
+	var d := _duel_in_frame(run)
+	await wait_process_frames(2)
+	assert_eq(d.stage_side(), "player")
+	assert_true(d.player_grid.visible and not d.enemy_grid.visible)
+	assert_eq(d.dice_side, "player")
+	var sides := []
+	d.stage_changed.connect(func(s): sides.append(s))
+	await d._submit()
+	await wait_process_frames(2)
+	assert_true("enemy" in sides, "o palco mostrou as magias do inimigo na vez dele")
+	if run.duel.state != "choosing":
+		return
+	assert_eq(sides.back(), "player", "no turno seguinte o palco volta para você")
+	assert_true(d.player_grid.visible and not d.enemy_grid.visible)
+	assert_eq(d.dice_side, "player")
+	assert_true(d.tray_views[0].interactive)
+	# A coluna de dados mostra os dados do inimigo na vez dele.
+	await d._apply_event({"t": "turn", "side": "enemy"})
+	assert_eq(d.stage_side(), "enemy")
+	assert_true(d.enemy_grid.visible and not d.player_grid.visible)
+	await d._apply_event({"t": "hand", "side": "enemy", "values": [3, 5, 1], "elements": []})
+	assert_eq(d.dice_side, "enemy")
+	assert_eq(d.tray_views.size(), 3)
+	assert_false(d.tray_views[0].interactive, "dados do inimigo não são tocáveis")
+	d._start_player_phase()
+	assert_eq(d.stage_side(), "player")
+	assert_eq(d.dice_side, "player")
+	assert_eq(d.tray_views.size(), run.duel.player.hand.size())
+
+
+func test_segurar_a_foto_do_inimigo():
+	var run := _run_at_duel(12)
+	var d := _duel_in_frame(run)
+	await wait_process_frames(2)
+	var faisca := run.duel.player.inventory.ids().find("faisca")
+	d._on_die(d.tray_views[0])
+	d._on_card(faisca)
+	assert_eq(d.choice.dice_in(faisca), [0])
+	d._on_enemy_photo_input(_press(true))
+	assert_true(d.peeking)
+	assert_eq(d.stage_side(), "enemy", "segurando: magias do inimigo")
+	assert_true(d.enemy_grid.visible and not d.player_grid.visible)
+	# Só leitura: tocar numa magia do inimigo não muda nada.
+	d.enemy_cards[0]._gui_input(_press(false))
+	assert_eq(d.choice.used_dice(), [0])
+	d._on_enemy_photo_input(_press(false))
+	assert_false(d.peeking)
+	assert_eq(d.stage_side(), "player", "soltar volta para as suas magias")
+	assert_true(d.player_grid.visible and not d.enemy_grid.visible)
+	assert_eq(d.choice.dice_in(faisca), [0], "dados encaixados preservados")
+	var fc: SpellCard = d._card_of(d.cards, faisca)
+	assert_true(fc.holes[0].has_die)
+
+
+func _icon(d: DuelScreen, side: String, id: String) -> StatusIcon:
+	for ic in d.status_icons(side):
+		if ic.id == id:
+			return ic
+	return null
+
+
+func test_icones_de_status():
+	var run := _run_at_duel(12)
+	var d := _duel_in_frame(run)
+	await wait_process_frames(2)
+	var e := run.duel.enemy
+	var p := run.duel.player
+	assert_null(_icon(d, "enemy", "poison"))
+	e.poison = 3
+	e.burn = 2
+	p.block = 5
+	d._sync_shown()
+	var pi := _icon(d, "enemy", "poison")
+	assert_not_null(pi, "veneno aparece")
+	assert_eq(pi.count, 3)
+	assert_eq(_icon(d, "enemy", "burn").count, 2)
+	assert_eq(_icon(d, "player", "block").count, 5, "bloqueio é um ícone de status")
+	assert_eq(d.bars.player.shield, 0, "a barra de vida não mostra mais o bloqueio")
+	# Segurar mostra nome e descrição; soltar fecha.
+	pi._gui_input(_press(true))
+	assert_true(d.tip.visible)
+	assert_string_contains(d.tip_title.text, Texts.t("status.poison.0"))
+	assert_eq(d.tip_desc.text, Texts.t("status.poison.1"))
+	pi._gui_input(_press(false))
+	assert_false(d.tip.visible)
+	e.poison = 1
+	d._sync_shown()
+	assert_eq(_icon(d, "enemy", "poison").count, 1, "contagem atualiza")
+	e.poison = 0
+	p.block = 0
+	d._sync_shown()
+	assert_null(_icon(d, "enemy", "poison"), "veneno some em 0")
+	assert_null(_icon(d, "player", "block"), "bloqueio some em 0")
+	assert_not_null(_icon(d, "enemy", "burn"))
+	assert_eq(d.status_icons("enemy").size(), 1)
