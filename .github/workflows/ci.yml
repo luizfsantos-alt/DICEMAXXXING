@@ -49,7 +49,7 @@ jobs:
     name: APK
     needs: test
     permissions:
-      contents: write ## Publicar o pré-lançamento da branch e o release da tag.
+      contents: write ## Publicar o pré-lançamento da branch e os releases (tag ou versão nova).
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -78,11 +78,24 @@ jobs:
 
       # version/code = número do run (sobe a cada build; o Android não instala código menor).
       # Tag v1.2.3: version/name e application/config/version viram 1.2.3 e o APK sai em release.
-      # Branch: mantém a versão do project.godot e sai em debug.
+      # Push na branch principal com uma config/version que ainda não tem tag (alguém subiu a
+      # versão): o APK sai em release e o passo "Publicar release automático" cria a tag.
+      # Outras branches: mantêm a versão do project.godot e saem em debug.
       - name: Versão
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAIN: ${{ github.event.repository.default_branch }}
         run: |
           CODE="$GITHUB_RUN_NUMBER"
-          if [ "$GITHUB_REF_TYPE" = tag ] && [[ "$GITHUB_REF_NAME" == v* ]]; then
+          CUR=$(sed -n 's/^config\/version="\(.*\)"/\1/p' project.godot)
+          if [ "$GITHUB_EVENT_NAME" = push ] && [ "$GITHUB_REF_TYPE" = branch ] && [ "$GITHUB_REF_NAME" = "$MAIN" ] \
+            && [[ "$CUR" =~ ^[0-9]+(\.[0-9]+)*(-[0-9A-Za-z.]+)?$ ]] \
+            && ! gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v$CUR" > /dev/null 2>&1; then
+            echo "Versão $CUR sem tag na branch principal: release automático v$CUR."
+            echo "AUTO_TAG=v$CUR" >> "$GITHUB_ENV"
+            NAME="$CUR"
+            MODE=release
+          elif [ "$GITHUB_REF_TYPE" = tag ] && [[ "$GITHUB_REF_NAME" == v* ]]; then
             NAME="${GITHUB_REF_NAME#v}"
             if ! [[ "$NAME" =~ ^[0-9]+(\.[0-9]+)*(-[0-9A-Za-z.]+)?$ ]]; then
               echo "Tag fora do formato v1.2.3: $GITHUB_REF_NAME"; exit 1
@@ -167,6 +180,19 @@ jobs:
             --title "APK de debug · $GITHUB_REF_NAME" \
             --notes "APK de debug do commit $GITHUB_SHA (branch $GITHUB_REF_NAME), gerado pelo CI."
           echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/dicemaxxing.apk"
+
+      # Versão nova na branch principal: cria a tag e o release (não é pré-lançamento), que o
+      # jogo acha em /releases/latest. Tags criadas pelo token do CI não disparam outro run.
+      - name: Publicar release automático (versão nova na branch principal)
+        if: env.AUTO_TAG != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PRE=""
+          [[ "$APK_VERSION" == *-* ]] && PRE="--prerelease" ## v1.0.0-beta não vira o "latest".
+          gh release create "$AUTO_TAG" build/dicemaxxing.apk --target "$GITHUB_SHA" $PRE \
+            --title "DICEMAXXING $APK_VERSION" --generate-notes
+          echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$AUTO_TAG/dicemaxxing.apk"
 
       # Tag v*: release de verdade (não é pré-lançamento), que o jogo acha em /releases/latest
       # e oferece no aviso de "Nova versão disponível".
