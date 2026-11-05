@@ -577,3 +577,40 @@ func test_botao_menu_perde_a_partida():
 	await wait_process_frames(2)
 	assert_true(main.current is MenuScreen, "voltou ao menu")
 	assert_false(SaveGame.exists(), "partida apagada")
+
+
+func test_voltar_na_jornada_pergunta_antes_de_sair():
+	var main = load("res://ui/main.tscn").instantiate()
+	add_child_autofree(main)
+	await wait_process_frames(2)
+	main._on_new_run("sorcerer")
+	await wait_process_frames(2)
+	main.on_back()
+	assert_true(is_instance_valid(main.exit_dialog), "abre a pergunta")
+	assert_eq(main.exit_dialog.footer.get_child_count(), 2, "continuar e sair")
+	main.on_back()
+	assert_null(main.exit_dialog, "voltar de novo fecha a pergunta")
+	await wait_process_frames(2)
+	assert_true(main.current is TowerScreen, "continua no jogo")
+
+
+func test_acoes_da_mesma_magia_marcam_o_item():
+	var run := _run_at_duel(321)
+	var p: Fighter = run.duel.player
+	var e: Fighter = run.duel.enemy
+	var ev := []
+	var choice := TurnChoice.new()
+	for item in p.inventory.items.size():
+		for h in p.hand.size():
+			choice.place(p, item, h)
+	Resolver.cast_all(p, e, choice, ev)
+	var cast_seen := false
+	for x in ev:
+		if str(x.t) == "cast":
+			cast_seen = true
+			assert_false(x.has("of_item"), "o cast em si não leva a marca")
+		elif cast_seen:
+			assert_true(x.has("of_item"), "efeito %s marcado" % x.t)
+	assert_true(DuelScreen._same_item({"of_item": 1}, {"of_item": 1}))
+	assert_false(DuelScreen._same_item({"of_item": 1}, {"of_item": 2}))
+	assert_false(DuelScreen._same_item({"t": "cast"}, {"of_item": 1}))

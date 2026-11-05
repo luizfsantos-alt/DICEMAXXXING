@@ -30,12 +30,17 @@ const STATUS_PX := 40
 const LEFT := 300 ## Coluna dos personagens.
 const DICE_W := 116 ## Coluna dos dados.
 const MARGIN := 14
+## Folga extra à direita: no Android, deslizar a partir da borda abre o gesto do sistema
+## (voltar/menu); a coluna dos dados fica longe dela para não acioná-lo sem querer.
+const EDGE_RIGHT := 56
 const GAP := 12
 ## Cor do efeito que voa da magia até o alvo (e do número que aparece sobre ele).
 const FX_COLORS := {
 	"heal": Color(0.35, 0.95, 0.45), "dmg": Color(1.0, 0.25, 0.22), "fx": Color(0.35, 0.65, 1.0),
 }
 const BOLT_TIME := 0.34
+const CHAIN_BOLT_TIME := 0.2 ## Voo das ações seguintes da mesma magia.
+const CHAIN_DELAY := 0.1 ## Pausa entre ações da mesma magia (vários efeitos de um item).
 const BACKGROUND := "res://assets/backgrounds/tavern.jpg"
 const BACKGROUND_SHADE := 0.68 ## Escurece bastante o fundo.
 const FX_SIZE := 30 ## Números sobre as fotos.
@@ -96,6 +101,7 @@ var roller: DiceRoll3D ## Rolagem 3D em andamento (por cima do palco).
 var fx_src = null ## Ponto (camada de efeitos) de onde saem os efeitos: o cartão da última magia.
 var fx_bounce = null ## Golpe devolvido (Espelho, Revide): sai da foto de quem devolveu.
 var bolts := 0 ## Efeitos disparados (testes).
+var chained := false ## A ação atual vem da mesma magia que a anterior.
 
 
 func setup(r: RunState) -> DuelScreen:
@@ -116,7 +122,7 @@ func _build() -> void:
 	var root := Kit.hbox(GAP)
 	var m := MarginContainer.new()
 	for k in ["left", "right", "top", "bottom"]:
-		m.add_theme_constant_override("margin_" + k, MARGIN)
+		m.add_theme_constant_override("margin_" + k, EDGE_RIGHT if k == "right" else MARGIN)
 	m.add_child(root)
 	m.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(m)
@@ -935,11 +941,21 @@ func _wait(t: float) -> void:
 
 
 func _animate(events: Array) -> void:
-	for ev in events:
+	for i in events.size():
+		var ev: Dictionary = events[i]
+		chained = i > 0 and _same_item(events[i - 1], ev)
 		await _apply_event(ev)
 		_feed_events([ev])
-		await _wait(_delay(ev))
+		var next_chained := i + 1 < events.size() and _same_item(ev, events[i + 1])
+		await _wait(CHAIN_DELAY if next_chained else _delay(ev))
+	chained = false
 	_sync_shown()
+
+
+## "b" é mais uma ação da mesma magia que "a". Só os efeitos levam "of_item" (o
+## "cast" não): a pausa entre o cartão piscar e o primeiro efeito continua normal.
+static func _same_item(a: Dictionary, b: Dictionary) -> bool:
+	return a.has("of_item") and b.has("of_item") and int(a.of_item) == int(b.of_item)
 
 
 func _delay(ev: Dictionary) -> float:
@@ -1179,7 +1195,7 @@ func _effect(s: String, text: String, kind: String, from: Variant = "src") -> vo
 	var col: Color = FX_COLORS[kind]
 	if from != null and not fast and not skip and is_inside_tree():
 		bolts += 1
-		var b := SpellBolt.new().setup(from, _portrait_point(s), col, BOLT_TIME)
+		var b := SpellBolt.new().setup(from, _portrait_point(s), col, CHAIN_BOLT_TIME if chained else BOLT_TIME)
 		fx_layer.add_child(b)
 		await b.arrived
 	if fast:

@@ -199,7 +199,12 @@ static func cast_all(f: Fighter, foe: Fighter, choice: TurnChoice, ev: Array, rn
 			break
 		var dice: Array = choice.dice_in(item)
 		used.append_array(dice)
+		var start := ev.size()
 		cast(f, foe, item, dice, ev, rng)
+		# Tudo o que a magia causou (depois do "cast") vem do mesmo item: a tela
+		# encurta a pausa entre essas ações para mostrar que andam juntas.
+		for k in range(start + 1, ev.size()):
+			ev[k]["of_item"] = item
 	return used
 
 
