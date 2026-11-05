@@ -56,6 +56,9 @@ Instale o `.apk` no celular (é preciso permitir "instalar apps desconhecidos").
   `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD` e `ANDROID_KEY_ALIAS`. Assinatura
   igual + `version/code` maior (o número do run do CI) = o Android instala por cima e o save fica.
   Sem os secrets, branches saem com chave descartável e tags falham.
+- **Lançar uma versão:** suba `config/version` no `project.godot` (ex.: `0.4.0`) e faça o merge
+  na branch principal. O CI vê que ainda não existe a tag `v0.4.0`, gera o APK de release e
+  cria a tag e o release sozinho. Versão com sufixo (`0.5.0-beta`) sai como pré-lançamento.
 - Push de uma tag `v1.2.3` gera um APK de release e o release `v1.2.3` no GitHub. A versão
   (`version/name` e `application/config/version`) vem da tag. Tag com sufixo (`v1.2.3-beta`)
   sai como pré-lançamento.
