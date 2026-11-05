@@ -445,3 +445,59 @@ func test_icones_de_status():
 	assert_null(_icon(d, "player", "block"), "bloqueio some em 0")
 	assert_not_null(_icon(d, "enemy", "burn"))
 	assert_eq(d.status_icons("enemy").size(), 1)
+
+
+func test_arrastar_dados_entre_magias_e_soltar_com_toque():
+	var run := _run_at_duel(77)
+	var p := run.duel.player
+	p.inventory.add("corte")
+	var faisca := p.inventory.ids().find("faisca")
+	var corte := p.inventory.ids().find("corte")
+	assert_gt(corte, -1, "Corte no grimório")
+	var d := DuelScreen.new().setup(run)
+	d.fast = true
+	add_child_autofree(d)
+	await wait_process_frames(2)
+	var cc: SpellCard = d._card_of(d.cards, corte)
+	assert_true(cc.holes[0].interactive, "buracos das suas magias são tocáveis")
+	assert_true(d._can_drop_card(Vector2.ZERO, {"die": 0}, corte), "aceita dado arrastado")
+	assert_false(d._can_drop_card(Vector2.ZERO, {"x": 1}, corte), "recusa outra coisa")
+	# Arrasta o dado 0 para a Faísca, depois da Faísca para o Corte.
+	d._drop_card(Vector2.ZERO, {"die": 0}, faisca)
+	assert_eq(d.choice.dice_in(faisca), [0])
+	d._drop_card(Vector2.ZERO, {"die": 0}, corte)
+	assert_eq(d.choice.dice_in(faisca), [], "saiu da Faísca")
+	assert_eq(d.choice.dice_in(corte), [0], "foi para o Corte")
+	assert_eq(cc.holes[0].index, 0, "o buraco sabe qual dado tem")
+	d._drop_card(Vector2.ZERO, {"die": 1}, corte)
+	assert_eq(d.choice.dice_in(corte), [0, 1])
+	# Tocar num dado encaixado solta só ele.
+	d._on_card_hole(cc.holes[0], corte)
+	assert_eq(d.choice.dice_in(corte), [1], "tocar no buraco solta o dado")
+	# Arrastar de volta para a coluna também solta.
+	d._drop_tray(Vector2.ZERO, {"die": 1})
+	assert_eq(d.choice.used_dice(), [], "dado volta para a mão")
+
+
+func test_nao_termina_turno_com_magia_de_varios_dados_pela_metade():
+	var run := _run_at_duel(78)
+	var p := run.duel.player
+	p.inventory.add("corte")
+	var faisca := p.inventory.ids().find("faisca")
+	var corte := p.inventory.ids().find("corte")
+	var d := DuelScreen.new().setup(run)
+	d.fast = true
+	add_child_autofree(d)
+	await wait_process_frames(2)
+	var turn := run.duel.turn
+	assert_true(d.move_die(0, corte))
+	assert_eq(d.choice.incomplete_items(p), [corte])
+	await d._submit()
+	assert_eq(run.duel.turn, turn, "turno não termina com o Corte pela metade")
+	assert_eq(d.phase, "player")
+	assert_true(d.info.text.contains(Texts.spell_name("corte")), "explica qual magia falta")
+	# Vazia pode: tira o dado do Corte e põe na Faísca.
+	assert_true(d.move_die(0, faisca))
+	assert_eq(d.choice.incomplete_items(p), [])
+	await d._submit()
+	assert_true(run.duel.turn > turn or run.duel.state != "choosing", "agora o turno resolve")

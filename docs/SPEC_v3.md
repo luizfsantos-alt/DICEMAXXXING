@@ -260,7 +260,8 @@ Paisagem, 1280×720 (stretch `canvas_items`/`expand`). Três colunas, da esquerd
 
 - **Cartões:** toda magia é um **cartão do mesmo tamanho**: nome, efeito curto, "1× por luta"/"usada" e **um buraco por dado pedido**. O formato só importa no grimório.
 - **Buracos:** a exigência fica escrita no fundo do buraco vazio ("≤ 3", "1"); par = dois buracos ligados por "=". Com um dado selecionado, os buracos que o aceitam acendem e as magias que não aceitam apagam ("não aceita 6"). A mão também é uma coluna de buracos: o dado que sai deixa o buraco com o nome da magia.
-- **Encaixar:** toque num dado da mão e depois numa magia. Toque num dado posto (ou na magia) para devolvê-lo.
+- **Encaixar:** arraste um dado da mão até a magia que quiser (ou de uma magia para outra; arrastado de volta para a coluna, ele sai da magia). Também vale tocar num dado e depois numa magia. Toque num dado encaixado para soltá-lo (ou na magia, para soltar todos).
+- **Terminar turno:** não dá com uma magia de vários dados pela metade; ela precisa estar completa ou vazia.
 - **Segurar a foto do inimigo**, a qualquer momento (inclusive no seu turno), troca o palco para as magias dele em **só leitura** (não aceitam dados; o título mostra a última mão dele). Ao soltar, o palco volta ao turno atual, com os seus dados encaixados intactos. A sua foto não tem interação.
 - **Status:** um ícone por efeito ativo (bloqueio, veneno, queima, espelho, esquiva, revide, imune, dado guardado, fúria, sede, mexidas na próxima mão), empilhados na coluna ao lado da foto, cada um com um **selo da quantidade**. O ícone some quando o efeito chega a 0. **Segurar** o ícone mostra nome e descrição; soltar fecha. O bloqueio é um ícone de status, não aparece na barra de vida.
 - **Prévia** no cartão ("→ 5 de dano") e resumo do turno no rodapé do palco.

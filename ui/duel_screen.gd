@@ -13,9 +13,11 @@ extends Control
 ##
 ## Fases: "player" (você encaixa dados nas magias), "resolve" (eventos animados: o seu
 ## turno, depois o turno inteiro do inimigo; tocar acelera) e "over".
-## Interação: toque num dado da mão e depois numa magia. Toque num dado posto (ou na
-## magia) para devolvê-lo. Segurar a foto do inimigo mostra as magias dele no palco
-## (só leitura); soltar volta. Segurar um ícone de status mostra a descrição.
+## Interação: arraste um dado da mão até uma magia (ou de uma magia para outra; de
+## volta para a coluna, ele sai da magia). Também dá para tocar num dado e depois
+## numa magia. Toque num dado encaixado para soltá-lo (ou na magia, para soltar
+## todos). Não dá para terminar o turno com uma magia de vários dados pela metade.
+## Segurar a foto do inimigo mostra as magias dele no palco (só leitura); soltar volta. Segurar um ícone de status mostra a descrição.
 
 signal finished
 signal stage_changed(side: String) ## O palco passou a mostrar as magias de "side".
@@ -35,6 +37,8 @@ var fast := false ## Testes: sem esperas.
 var phase := "player"
 var choice := TurnChoice.new()
 var selected := -1
+var dragging := -1 ## Dado da mão sendo arrastado.
+var _drag_end_frame := -100
 var skip := false
 var shown := {} ## side -> {hp, max, block}
 var history: Array = [] ## Linhas do histórico (bbcode).
@@ -219,6 +223,7 @@ func _build_stage() -> VBoxContainer:
 	for item in p.inventory.order():
 		var c := SpellCard.new().setup(p, item, HOLE)
 		c.tapped.connect(_on_card)
+		_wire_card(c)
 		player_grid.add_child(c)
 		cards.append(c)
 	var e := duel.enemy
@@ -278,6 +283,8 @@ func _build_dice() -> PanelContainer:
 	v.add_child(dice_title)
 	tray = FitGrid.new().setup(Vector2(DIE, DIE), 8)
 	v.add_child(tray)
+	# Soltar um dado encaixado na coluna devolve ele para a mão.
+	pc.set_drag_forwarding(Callable(), _can_drop_tray, _drop_tray)
 	return pc
 
 
@@ -489,6 +496,7 @@ func _fill_tray(values: Array, elements: Array, interactive: bool) -> void:
 		v.set_die(int(values[h]), elements[h] if h < elements.size() else "")
 		if interactive:
 			v.tapped.connect(_on_die)
+			v.set_drag_forwarding(_drag_from.bind(v), _can_drop_tray, _drop_tray)
 		tray.add_child(v)
 		tray_views.append(v)
 
@@ -599,12 +607,10 @@ func _refresh_tray() -> void:
 	var used := choice.used_dice()
 	for v in tray_views:
 		var hv: Hole = v
+		hv.has_die = not (hv.index in used or hv.index == dragging)
+		hv.caption = ""
 		if hv.index in used:
-			hv.has_die = false
 			hv.caption = Texts.spell_name(p.inventory.items[_item_of(hv.index)].id)
-		else:
-			hv.has_die = true
-			hv.caption = ""
 		hv.raised = hv.index == selected
 		hv.queue_redraw()
 	var sel := int(p.hand[selected].value) if selected >= 0 else -1
@@ -615,9 +621,14 @@ func _refresh_tray() -> void:
 		for h in choice.dice_in(c.item):
 			var d := p.die_of(p.hand[h])
 			els.append(d.element if d else "")
-		c.refresh(vals, els, sel if not (selected in used) else -1, choice.tops_in(p, c.item), sel_top)
+		var ins := choice.dice_in(c.item)
+		for k in c.holes.size():
+			c.holes[k].index = int(ins[k]) if k < ins.size() else -1
+		c.refresh(vals, els, sel if (dragging >= 0 or not (selected in used)) else -1, choice.tops_in(p, c.item), sel_top)
 	if phase != "player":
 		return
+	# Magia de vários dados pela metade: o botão fica apagado (tocar explica).
+	end_btn.modulate.a = 1.0 if choice.incomplete_items(p).is_empty() else 0.5
 	if selected >= 0:
 		info.text = Texts.t("ui.die_selected", {"v": sel})
 		var sd := p.die_of(p.hand[selected])
@@ -637,8 +648,112 @@ func _refresh_tray() -> void:
 
 
 # ================================================================== Interação
+## O toque que encerra um arrasto não conta como toque.
+func _just_dragged() -> bool:
+	return dragging >= 0 or Engine.get_process_frames() - _drag_end_frame <= 1
+
+
+## Cartão do jogador: recebe dados arrastados; tocar num buraco com dado o solta.
+func _wire_card(c: SpellCard) -> void:
+	c.set_drag_forwarding(Callable(), _can_drop_card.bind(c.item), _drop_card.bind(c.item))
+	for h: Hole in c.holes:
+		h.set_interactive(true)
+		h.tapped.connect(_on_card_hole.bind(c.item))
+		h.set_drag_forwarding(_drag_from.bind(h), _can_drop_card.bind(c.item), _drop_card.bind(c.item))
+
+
+## Começa a arrastar o dado do buraco (da mão ou de uma magia).
+func _drag_from(_at: Vector2, hole: Hole) -> Variant:
+	var p := duel.player
+	if phase != "player" or not hole.has_die or hole.index < 0 or hole.index >= p.hand.size():
+		return null
+	var h := hole.index
+	var px := int(maxf(24.0, _visual_px(hole)))
+	var g := Hole.new().set_interactive(false).setup(px)
+	g.set_die(hole.value, hole.element)
+	g.position = -g.size / 2.0
+	var prev := Control.new()
+	prev.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	prev.add_child(g)
+	hole.set_drag_preview(prev)
+	summary = []
+	dragging = h
+	selected = h
+	_refresh_tray()
+	return {"die": h}
+
+
+func _drag_die(data: Variant) -> int:
+	if phase != "player" or not (data is Dictionary) or not data.has("die"):
+		return -1
+	var h := int(data.die)
+	return h if h >= 0 and h < duel.player.hand.size() else -1
+
+
+func _can_drop_card(_at: Vector2, data: Variant, item: int) -> bool:
+	return _drag_die(data) >= 0 and item >= 0
+
+
+func _drop_card(_at: Vector2, data: Variant, item: int) -> void:
+	move_die(_drag_die(data), item)
+
+
+func _can_drop_tray(_at: Vector2, data: Variant) -> bool:
+	return _drag_die(data) >= 0
+
+
+func _drop_tray(_at: Vector2, data: Variant) -> void:
+	var h := _drag_die(data)
+	if h >= 0 and _item_of(h) >= 0:
+		choice.remove_die(h, duel.player)
+	selected = -1
+	_refresh_tray()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_DRAG_END and dragging >= 0:
+		dragging = -1
+		selected = -1
+		_drag_end_frame = Engine.get_process_frames()
+		if phase == "player":
+			_refresh_tray()
+
+
+## Põe o dado h na magia item, tirando-o antes da magia onde estava (se a nova não
+## aceitar, ele fica onde estava). Retorna false se não aceitar.
+func move_die(h: int, item: int) -> bool:
+	var p := duel.player
+	if phase != "player" or h < 0 or h >= p.hand.size() or item < 0:
+		return false
+	if h in choice.dice_in(item):
+		return true
+	if _item_of(h) >= 0:
+		var e: Dictionary = p.hand[h]
+		if not TurnChoice.can_cast(p, item) or not Spells.accepts_partial(p.inventory.items[item].id, choice.values_in(p, item), int(e.value), bool(e.get("top", false))):
+			# Mostra o motivo sem tirar o dado de onde está.
+			var ok := place(h, item)
+			selected = -1
+			_refresh_tray()
+			return ok
+		choice.remove_die(h, p)
+	return place(h, item)
+
+
+## Tocar num buraco de magia: com dado, solta só ele; vazio, vale como tocar na magia.
+func _on_card_hole(hole: Hole, item: int) -> void:
+	if phase != "player" or _just_dragged():
+		return
+	if hole.has_die and hole.index >= 0 and hole.index in choice.dice_in(item):
+		summary = []
+		choice.remove_die(hole.index, duel.player)
+		selected = -1
+		_refresh_tray()
+		return
+	_on_card(item)
+
+
 func _on_die(v: Hole) -> void:
-	if phase != "player":
+	if phase != "player" or _just_dragged():
 		return
 	summary = []
 	if v.index in choice.used_dice():
@@ -650,7 +765,7 @@ func _on_die(v: Hole) -> void:
 
 
 func _on_card(item: int) -> void:
-	if phase != "player" or item < 0:
+	if phase != "player" or item < 0 or _just_dragged():
 		return
 	summary = []
 	if selected >= 0:
@@ -727,9 +842,24 @@ func _on_end_turn() -> void:
 	_submit()
 
 
+## Bloqueia o fim do turno com magia de vários dados pela metade (vazia pode).
+func can_end_turn() -> bool:
+	var bad := choice.incomplete_items(duel.player)
+	if bad.is_empty():
+		return true
+	var item: int = bad[0]
+	info.text = Texts.t("ui.incomplete_block", {"name": Texts.spell_name(duel.player.inventory.items[item].id)})
+	info.add_theme_color_override("font_color", Kit.DANGER.lightened(0.2))
+	var c := _card_of(cards, item)
+	if c:
+		c.flash()
+	return false
+
+
 func _submit() -> void:
-	if phase != "player":
+	if phase != "player" or not can_end_turn():
 		return
+	end_btn.modulate.a = 1.0
 	phase = "resolve"
 	end_btn.disabled = true
 	catcher.visible = true

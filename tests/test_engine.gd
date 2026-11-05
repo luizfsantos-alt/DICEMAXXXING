@@ -409,3 +409,15 @@ func test_salvar_e_carregar_no_meio_do_duelo():
 
 func test_save_antigo_e_ignorado():
 	assert_null(RunState.from_dict({"version": 1, "fight": 3}))
+
+
+func test_magia_de_varios_dados_pela_metade_fica_incompleta():
+	var f := H.fighter("Eu", ["faisca", "corte"], 40, true)
+	H.hand(f, [4, 5, 6])
+	var c := TurnChoice.new()
+	assert_true(c.place(f, 0, 0))
+	assert_eq(c.incomplete_items(f), [], "magia de um dado já completa")
+	assert_true(c.place(f, 1, 1))
+	assert_eq(c.incomplete_items(f), [1], "Corte com um dado só")
+	assert_true(c.place(f, 1, 2))
+	assert_eq(c.incomplete_items(f), [], "Corte completo")

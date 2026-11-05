@@ -129,6 +129,18 @@ func ready_items(f: Fighter) -> Array:
 	return out
 
 
+## Magias com dado posto mas exigência incompleta (só as de mais de um dado:
+## as de um dado só aceitam o dado se ele já completa). Vazias não contam.
+## O jogador não pode terminar o turno com alguma assim.
+func incomplete_items(f: Fighter) -> Array:
+	var out := []
+	for item in f.inventory.order():
+		if casts.has(item) and not casts[item].is_empty() and Spells.dice_needed(f.inventory.items[item].id) > 1 \
+				and not Spells.complete(f.inventory.items[item].id, values_in(f, item), tops_in(f, item)):
+			out.append(item)
+	return out
+
+
 ## "" se válida, ou a descrição do problema.
 func validate(f: Fighter) -> String:
 	var seen := {}
