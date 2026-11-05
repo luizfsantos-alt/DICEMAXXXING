@@ -35,7 +35,8 @@ static func _sb(bg: Color, radius: int) -> StyleBoxFlat:
 	return sb
 
 
-## Desenha o dado inteiro em r: halo (se brilha), corpo com chanfro e acabamento,
+## Desenha o dado inteiro em r: halo (se brilha) e a foto do dado 3D (DieSnapshot). Sem a
+## foto (ainda não tirada, ou sem vídeo), a face 2D: corpo com chanfro e acabamento,
 ## valor em baixo relevo e o símbolo do elemento pequeno embaixo.
 ## heat: estado do brilho (0 repouso, 1 ativo); t: relógio, em segundos, para o pulso.
 static func draw(ci: CanvasItem, r: Rect2, value: int, element := "", dim := 0.0, heat := 0.0, t := 0.0) -> void:
@@ -49,9 +50,15 @@ static func draw(ci: CanvasItem, r: Rect2, value: int, element := "", dim := 0.0
 	var s := minf(r.size.x, r.size.y)
 	var rad := int(s * 0.18)
 	var glow := 0.0
+	# Com vídeo, o dado é a foto do dado 3D (DieSnapshot): igual ao que estava na mesa.
+	var snap := DieSnapshot.texture(value, element, heat, ci)
 	if dim <= 0.0 and str(l.glow) != "":
 		glow = Elements.energy(element, heat) * DiceRoll3D.glow_pulse(element, heat, t)
-		_halo(ci, r, rad, l.emission, glow)
+		_halo(ci, r.grow(-s * (1.0 - DieSnapshot.FILL) * 0.5) if snap != null else r, rad, l.emission, glow)
+	if snap != null:
+		var m := Color(1, 1, 1) if dim <= 0.0 else Color(1.0 - dim, 1.0 - dim, 1.0 - dim)
+		ci.draw_texture_rect(snap, DieSnapshot.rect_for(r), false, m)
+		return
 	# Chanfro: base mais escura embaixo, topo claro em cima, face no meio.
 	ci.draw_style_box(_sb(body.darkened(0.35), rad), r)
 	ci.draw_style_box(_sb(body.lightened(0.25), rad), Rect2(r.position, r.size - Vector2(0, s * 0.05)))

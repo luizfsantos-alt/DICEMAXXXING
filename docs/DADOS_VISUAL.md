@@ -16,10 +16,10 @@ A tabela fica em `Elements.LOOKS` (`engine/elements.gd`). `Elements.COLORS` cont
 |---|---|---|---|---|---|
 | Comum | `#efe6d2` | `#2a2230` | `#efe6d2` | marfim (rugosidade 0,5, clearcoat 0,3) | — |
 | Hidrogênio | `#9a63f0` | `#ffffff` | `#d9a6ff` | vidro (rugosidade 0,12, alfa 0,9, clearcoat 1, rim) | pontinhos `#e07bff` |
-| Ósmio | `#2f3d63` | `#cfd8f0` | `#8fa8ff` | espelho (metal 1, rugosidade 0,12) | — |
+| Ósmio | `#2f3d63` | `#cfd8f0` | `#8fa8ff` | espelho (metal 0,8, rugosidade 0,16) | — |
 | Urânio | `#5fcf2a` | `#0f2a06` | `#8cf259` | vidro (rugosidade 0,25, clearcoat 0,6) | corpo `#7cff3a` |
 | Sódio | `#e8780f` | `#3a1600` | `#ff9e4d` | ceroso (rugosidade 0,55, rim) | arestas `#ff6a00` |
-| Mercúrio | `#dfe5ee` | `#1a1f2a` | `#d1d6e6` | espelho (metal 1, rugosidade 0,04) | — |
+| Mercúrio | `#dfe5ee` | `#1a1f2a` | `#d1d6e6` | espelho (metal 0,7, rugosidade 0,14, clearcoat 0,4) | — |
 | Chumbo | `#555a60` | `#c4c9cf` | `#9aa0a8` | fosco com arranhões (rugosidade 0,85) | — |
 | Amianto | `#d9b44a` | `#2b2410` | `#e3c25e` | fibroso (rugosidade 0,9) | — |
 | Carbono | `#18181c` | `#f4f8ff` | `#b8c4d6` | grafite (metal 0,5, clearcoat 0,5) | pontinhos `#9fd8ff` |
@@ -36,6 +36,11 @@ A tabela fica em `Elements.LOOKS` (`engine/elements.gd`). `Elements.COLORS` cont
 | Urânio | corpo aceso, pulso lento | parado na mão, ainda não posto numa magia | pisca como contador Geiger |
 | Sódio | brasa nas arestas | queima o inimigo ao ser usado | faíscas |
 | Amianto | — | causa dano em quem usa | nuvem de poeira |
+
+## Luz e aparência na coluna
+
+- A mesa tem quatro luzes (`DiceRoll3D.add_lights`): a principal do alto à esquerda, uma suave de cima, uma lateral baixa da esquerda e um preenchimento fraco do outro lado. O céu de reflexo é mais forte que a foto da taverna, e os metais não são espelho puro (Mercúrio metal 0,7, Ósmio 0,8), senão sumiam no fundo escuro.
+- Os dados da coluna e dos cartões são fotos do próprio dado 3D (`DieSnapshot`), com a mesma câmera e as mesmas luzes da mesa. Quando a rolagem para, cada dado voa de onde parou até o seu buraco, girando até ficar reto, com a mesma cara. Sem vídeo (testes, simulação) ou enquanto a foto não fica pronta, vale a face 2D (`DieFace`).
 
 ## Itinerário
 

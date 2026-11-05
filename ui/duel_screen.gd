@@ -97,6 +97,7 @@ var tip_title: Label
 var tip_desc: Label
 var tip_icon: StatusIcon
 var stage_panel: PanelContainer
+const FLY_TO_TRAY := 0.32 ## Voo de cada dado da mesa até a coluna, em segundos.
 var roller: DiceRoll3D ## Rolagem 3D em andamento (por cima do palco).
 var fx_src = null ## Ponto (camada de efeitos) de onde saem os efeitos: o cartão da última magia.
 var fx_bounce = null ## Golpe devolvido (Espelho, Revide): sai da foto de quem devolveu.
@@ -569,24 +570,67 @@ func _roll_tray(ev: Dictionary) -> void:
 	for v: Hole in tray_views:
 		v.has_die = false
 		v.queue_redraw()
+	# Fotos dos dados para a coluna: tiradas durante a rolagem, prontas quando os dados param.
+	for d in dice:
+		DieSnapshot.prepare(int(d.value), str(d.element), float(d.heat))
 	var r := Rect2(stage_panel.global_position - fx_layer.global_position, stage_panel.size)
 	roller = DiceRoll3D.new().setup(r.size)
 	roller.position = r.position
 	fx_layer.add_child(roller)
 	roller.skip_check = func() -> bool: return skip
 	await roller.roll(dice)
+	var spots := roller.dice_on_screen() if not skip else []
+	if not spots.is_empty():
+		roller.hide_dice()
 	var fade := roller.create_tween()
 	fade.tween_property(roller, "modulate:a", 0.0, 0.18)
 	fade.tween_callback(roller.queue_free)
+	var origin := roller.position
 	roller = null
-	for v: Hole in tray_views:
-		v.has_die = true
-		v.queue_redraw()
-		if not skip:
-			v.pivot_offset = v.size / 2.0
-			var tw := v.create_tween()
-			v.scale = Vector2(0.6, 0.6)
-			tw.tween_property(v, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	if spots.is_empty():
+		for v: Hole in tray_views:
+			v.has_die = true
+			v.queue_redraw()
+		return
+	await _fly_to_tray(spots, origin)
+
+
+## Cada dado sai de onde parou na mesa e voa até o seu buraco na coluna, com a mesma
+## cara (a foto do dado 3D) e girando até ficar reto. spots: DiceRoll3D.dice_on_screen;
+## origin: posição da mesa na camada de efeitos.
+func _fly_to_tray(spots: Array, origin: Vector2) -> void:
+	var last: Tween = null
+	for k in tray_views.size():
+		var v: Hole = tray_views[k]
+		if k >= spots.size() or not is_inside_tree():
+			v.has_die = true
+			v.queue_redraw()
+			continue
+		var sp: Dictionary = spots[k]
+		var target_px := maxf(24.0, _visual_px(v))
+		# Buraco cujo dado tem a mesma aresta que o dado 3D tinha na tela.
+		var start_px := float(sp.width) / DieSnapshot.FILL / 0.88
+		var g := Hole.new().set_interactive(false).setup(int(target_px))
+		g.set_die(v.value, v.element, v.heat)
+		g.pivot_offset = g.size / 2.0
+		g.scale = Vector2.ONE * (start_px / target_px)
+		g.rotation = wrapf(float(sp.angle), -PI, PI) ## Começa girado como estava na mesa.
+		g.position = origin + sp.center - g.size / 2.0
+		g.floor_hidden = true
+		fx_layer.add_child(g)
+		var dest := v.global_position + v.size * v.get_global_transform().get_scale() / 2.0 - fx_layer.global_position
+		var tw := g.create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+		var delay := k * 0.04
+		tw.tween_property(g, "position", dest - g.size / 2.0, FLY_TO_TRAY).set_delay(delay)
+		tw.tween_property(g, "scale", Vector2.ONE, FLY_TO_TRAY).set_delay(delay)
+		tw.tween_property(g, "rotation", 0.0, FLY_TO_TRAY).set_delay(delay)
+		tw.chain().tween_callback(func() -> void:
+			v.has_die = true
+			v.queue_redraw()
+			g.queue_free())
+		last = tw
+	if last != null:
+		await last.finished
 
 
 static func _at(a: Array, k: int, def: Variant) -> Variant:

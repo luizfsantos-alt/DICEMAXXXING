@@ -121,7 +121,8 @@ func test_brilho_so_nos_quatro_e_cresce_com_o_estado():
 	assert_true(m.emission_enabled)
 	assert_almost_eq(m.emission_energy_multiplier, Elements.energy("C", 1.0), 0.001)
 	assert_false(Dice3D.material(5, "Pb").emission_enabled)
-	assert_eq(Dice3D.material(5, "Hg").metallic, 1.0)
+	assert_gt(Dice3D.material(5, "Hg").metallic, 0.5, "Mercúrio é metal")
+	assert_lt(Dice3D.material(5, "Hg").metallic, 1.0, "mas não espelho puro (sumia no fundo escuro)")
 	assert_eq(Dice3D.material(9, "H").transparency, BaseMaterial3D.TRANSPARENCY_ALPHA_DEPTH_PRE_PASS)
 	for glow in ["pips", "body", "rim"]:
 		var img := Dice3D.emission_texture(4, glow).get_image()
@@ -152,3 +153,14 @@ func test_estado_do_brilho():
 		f.bag.append(Die.basic())
 	assert_eq(Elements.heat(f, f.bag[0]), 0.0, "Hidrogênio com bolsa grande")
 	assert_eq(Elements.heat(f, null), 0.0)
+
+
+func test_foto_do_dado_para_a_coluna():
+	assert_eq(DieSnapshot.key(5, "Hg"), "5|Hg|0")
+	assert_eq(DieSnapshot.key(5, "H", 1.0), "5|H|2")
+	assert_eq(DieSnapshot.key(5, "C", 0.4), "5|C|1", "brilho em três degraus")
+	var r := DieSnapshot.rect_for(Rect2(10, 10, 100, 100))
+	assert_almost_eq(r.get_center(), Vector2(60, 60), Vector2(0.01, 0.01), "foto centrada no dado")
+	assert_almost_eq(r.size.x * 1.0 / DieSnapshot.VIEW, 100.0 * DieSnapshot.FILL, 0.01, "aresta do dado = FILL do quadrado")
+	if not DieSnapshot.enabled():
+		assert_null(DieSnapshot.texture(5, "Hg"), "sem vídeo: face 2D")
