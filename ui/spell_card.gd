@@ -76,7 +76,7 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 
 
 func _joiner() -> Label:
-	var j := Kit.label("=" if str(Spells.get_def(id).req) == "pair" else "›", 20, Hole.REQ_COLOR)
+	var j := Kit.label("=" if str(Spells.get_def(id).req) in ["pair", "trio"] else "›", 20, Hole.REQ_COLOR)
 	j.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	return j
 
@@ -123,7 +123,7 @@ func _req_text(placed: Array, k: int) -> String:
 			return "MÁX"
 		"low_one":
 			return "≤ %d" % int(d.v) if k == holes.size() - 1 else ""
-		"pair":
+		"pair", "trio":
 			return str(placed[0]) if not placed.is_empty() else ""
 	return ""
 
@@ -134,6 +134,8 @@ func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top
 	var is_used := used()
 	var lvl := int(fighter.inventory.items[item].level)
 	var tags := []
+	if bool(fighter.inventory.items[item].get("temp", false)):
+		tags.append(Texts.t("ui.copy_tag"))
 	if lvl > 1:
 		tags.append(Texts.t("ui.level", {"n": lvl}))
 	if is_used:
@@ -196,7 +198,7 @@ static func preview_text(f: Fighter, i: int, values: Array) -> String:
 	var d := Spells.get_def(spell)
 	var lvl := int(it.level)
 	var mult := int(d.get("mult", 1))
-	var bonus := f.sacrifice_bonus
+	var bonus := Resolver.dmg_bonus(f)
 	var total := 0
 	var prod := 1
 	for v in values:
@@ -265,7 +267,11 @@ static func preview_text(f: Fighter, i: int, values: Array) -> String:
 		"mirror":
 			s = Texts.t("ui.pv_mirror")
 		"heal":
-			s = Texts.t("ui.pv_heal", {"n": Config.scale(total, lvl)})
+			s = Texts.t("ui.pv_heal", {"n": Config.scale(total * mult, lvl)})
+		"drain":
+			s = Texts.t("ui.pv_dmg", {"n": Config.scale(total, lvl) + bonus}) + " · " + Texts.t("ui.pv_heal", {"n": Config.ceil_div(Config.scale(total, lvl), 2)}).trim_prefix("→ ")
+		"feast":
+			s = Texts.t("ui.pv_dmg", {"n": Config.scale(total, lvl) + bonus}) + " · " + Texts.t("ui.pv_heal", {"n": Config.scale(lo, lvl)}).trim_prefix("→ ")
 		"maxhp":
 			s = Texts.t("ui.pv_maxhp", {"n": Config.scale(int(values[0]), lvl)})
 		"sacrifice":

@@ -58,6 +58,8 @@ static func req_label(id: String) -> String:
 			return "%d dados, um ≤ %d" % [int(d.n), int(d.v)]
 		"pair":
 			return "dois iguais"
+		"trio":
+			return "três iguais"
 		"seq3":
 			return "sequência"
 	return ""
@@ -97,6 +99,8 @@ func _draw() -> void:
 	var font := ThemeDB.fallback_font
 	for y in inv.height:
 		for x in inv.width:
+			if not inv.is_cell(Vector2i(x, y)):
+				continue ## Casa que não existe (ex.: o meio da Moldura).
 			var r := Rect2(Vector2(x, y) * cell, Vector2(cell, cell)).grow(-2)
 			draw_style_box(Kit.box(Color(0.1, 0.09, 0.13), 8, 0), r)
 	for i in inv.items.size():

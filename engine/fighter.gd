@@ -4,8 +4,8 @@ extends RefCounted
 
 var name: String = ""
 var is_player: bool = false
-var archetype: String = "sorcerer" ## sorcerer, assassin
-var variant: String = "" ## "", lixeiro, piromante
+var archetype: String = "sorcerer" ## Characters.ALL
+var variant: String = "" ## "", lixeiro, piromante, fundidor, monge
 var master_id: String = "" ## Mestre de Andar (ex.: porteiro).
 var personality: String = "" ## bruto, cauteloso, caotico (oculta na UI).
 var max_hp: int = 50
@@ -39,6 +39,11 @@ var extra_next: Array = [] ## Dados que entram na próxima mão sem rolar: [{tem
 var benched: Array = [] ## Índices da bolsa fora desta luta (Arrancar das Mãos).
 var fight_mods: Array = [] ## Adesivos mexidos nesta luta, para desfazer: [{bag, face, d}].
 var hand_mods: Array = [] ## Mexidas do inimigo que valem na próxima mão.
+## Perfeccionista: dados guardados no fim do turno, como marcas: [{bag, temp, value}].
+var keeps: Array = []
+var thirst_used: int = 0 ## Vampiro: vida máxima já ganha nesta luta com a Sede.
+## Dados trocados só nesta luta (Fundidor): [{bag, die}] com o dado original.
+var restore: Array = []
 var turn_mods: Array = [] ## Mexidas valendo neste turno.
 
 
@@ -85,10 +90,20 @@ func reset_fight_state() -> void:
 	benched = []
 	hand_mods = []
 	turn_mods = []
+	keeps = []
+	thirst_used = 0
 
 
-## Desfaz o que vale só nesta luta (adesivos roubados pelo Plágio).
+## Desfaz o que vale só nesta luta (adesivos roubados pelo Plágio, Chumbo do Fundidor,
+## cópia do Copista).
 func end_fight_cleanup() -> void:
+	for r in restore:
+		var b := int(r.bag)
+		if b >= 0 and b < bag.size():
+			bag[b] = Die.from_dict(r.die)
+	restore = []
+	if inventory:
+		inventory.drop_temp()
 	for m in fight_mods:
 		var b := int(m.bag)
 		if b >= 0 and b < bag.size():
@@ -102,26 +117,22 @@ func uses_of(item: int) -> int:
 	return once_used.count(item)
 
 
-## Tira a mão da bolsa. Na primeira mão, o Ósmio sai sempre. minus: dados a menos
-## (Interrupção Rude, Rasteira), com mínimo de 2. A marca e os dados recebidos entram
-## além da mão normal.
+## Tira a mão da bolsa. O Ósmio sai em toda mão, antes dos outros (ocupa vaga).
+## minus: dados a menos (Interrupção Rude, Rasteira), com mínimo de 2. A marca, os
+## dados guardados e os recebidos entram além da mão normal.
 func draw_hand(rng: RandomNumberGenerator, minus := 0) -> void:
 	hand = []
 	var n := hand_size if minus <= 0 else maxi(2, hand_size - minus)
-	if turns_taken == 0:
-		for i in draw_pile.duplicate():
+	for pile in [draw_pile, discard]:
+		for i in pile.duplicate():
 			if hand.size() < n and bag[i].element == "Os":
-				draw_pile.erase(i)
+				pile.erase(i)
 				hand.append(_entry(i))
 	while hand.size() < n:
-		if draw_pile.is_empty():
-			if discard.is_empty():
-				break
-			draw_pile = discard
-			discard = []
-			_shuffle(draw_pile, rng)
-		var k := rng.randi_range(0, draw_pile.size() - 1)
-		hand.append(_entry(int(draw_pile.pop_at(k))))
+		var e := draw_one(rng)
+		if e.is_empty():
+			break
+		hand.append(e)
 	if not marked.is_empty():
 		var m := marked
 		marked = {}
@@ -139,6 +150,26 @@ func draw_hand(rng: RandomNumberGenerator, minus := 0) -> void:
 		e.value = int(x.value)
 		hand.append(e)
 	extra_next = []
+	for k in keeps:
+		var e := _entry(int(k.bag))
+		if int(k.bag) < 0:
+			e.temp = Die.from_dict(k.temp)
+		e.fixed = true
+		e.value = int(k.value)
+		hand.append(e)
+	keeps = []
+
+
+## Tira um dado da bolsa (o descarte volta embaralhado se ela esvaziar). {} se não há.
+func draw_one(rng: RandomNumberGenerator) -> Dictionary:
+	if draw_pile.is_empty():
+		if discard.is_empty():
+			return {}
+		draw_pile = discard
+		discard = []
+		_shuffle(draw_pile, rng)
+	var k := rng.randi_range(0, draw_pile.size() - 1)
+	return _entry(int(draw_pile.pop_at(k)))
 
 
 func add_temp(d: Die) -> void:
@@ -159,19 +190,25 @@ func bench(i: int) -> void:
 		benched.append(i)
 
 
-## Rola a mão. foe_last: últimos valores do adversário (Mercúrio).
-func roll_hand(rng: RandomNumberGenerator, foe_last: Array) -> void:
+## Rola a mão. foe_last: últimos valores do adversário (Mercúrio). Metalurgista
+## (Peso Morto): cada Chumbo que sai com 1 puxa mais um dado. Retorna quantos puxou.
+func roll_hand(rng: RandomNumberGenerator, foe_last: Array) -> int:
 	for e in hand:
-		if e.get("fixed", false):
-			e.top = false
-			continue
-		var d := die_of(e)
-		e.face = rng.randi_range(0, 5)
-		var raw := d.value(e.face)
-		e.top = raw == d.max_value()
-		e.value = raw + int(e.get("plus", 0))
-		if d.element == "H" and bag.size() <= Elements.SOLITARY_BAG:
-			e.value *= 3
+		_roll_entry(e, rng)
+	var pulled := 0
+	if archetype == "metallurgist":
+		var k := 0
+		while k < hand.size():
+			var e: Dictionary = hand[k]
+			k += 1
+			if e.get("fixed", false) or die_of(e) == null or die_of(e).element != "Pb" or int(e.value) != 1:
+				continue
+			var x := draw_one(rng)
+			if x.is_empty():
+				break
+			_roll_entry(x, rng)
+			hand.append(x)
+			pulled += 1
 	var top := 0
 	for e in hand:
 		if die_of(e).element != "Hg":
@@ -181,6 +218,34 @@ func roll_hand(rng: RandomNumberGenerator, foe_last: Array) -> void:
 	for e in hand:
 		if die_of(e).element == "Hg" and not e.get("fixed", false):
 			e.value = maxi(int(e.value), top)
+	return pulled
+
+
+func _roll_entry(e: Dictionary, rng: RandomNumberGenerator) -> void:
+	if e.get("fixed", false):
+		e.top = false
+		return
+	var d := die_of(e)
+	e.face = rng.randi_range(0, 5)
+	var raw := d.value(e.face)
+	e.top = raw == d.max_value()
+	e.value = raw + int(e.get("plus", 0))
+	if d.element == "H" and bag.size() <= Elements.SOLITARY_BAG:
+		e.value *= 3
+
+
+## Cura. Vampiro (Sede): o que passaria do máximo vira vida máxima, até 5 por luta.
+## Retorna {hp: vida recuperada, max: vida máxima ganha}.
+func heal_full(n: int) -> Dictionary:
+	var got := heal(n)
+	var gain := 0
+	if archetype == "vampire" and n > got:
+		gain = mini(n - got, Characters.THIRST_CAP - thirst_used)
+		if gain > 0:
+			thirst_used += gain
+			max_hp += gain
+			hp += gain
+	return {"hp": got, "max": maxi(0, gain)}
 
 
 ## Remove um dado da bolsa para sempre (Sacrifício, Fornalha) e corrige os índices.
@@ -205,6 +270,14 @@ func destroy_bag_die(i: int) -> void:
 			marked = {}
 		elif int(marked.bag) > i:
 			marked.bag = int(marked.bag) - 1
+	keeps = keeps.filter(func(k): return int(k.bag) != i)
+	for k in keeps:
+		if int(k.bag) > i:
+			k.bag = int(k.bag) - 1
+	restore = restore.filter(func(r): return int(r.bag) != i)
+	for r in restore:
+		if int(r.bag) > i:
+			r.bag = int(r.bag) - 1
 	var keep := []
 	for m in fight_mods:
 		if int(m.bag) == i:
@@ -217,10 +290,14 @@ func destroy_bag_die(i: int) -> void:
 
 func discard_hand() -> void:
 	last_hand = hand_values()
-	var held := int(marked.bag) if not marked.is_empty() else -1
+	var held := []
+	if not marked.is_empty():
+		held.append(int(marked.bag))
+	for k in keeps:
+		held.append(int(k.bag))
 	for e in hand:
 		var b := int(e.bag)
-		if b >= 0 and b != held and not (b in benched) and not (b in discard):
+		if b >= 0 and not (b in held) and not (b in benched) and not (b in discard):
 			discard.append(b)
 	hand = []
 
@@ -250,7 +327,8 @@ func to_dict() -> Dictionary:
 		"sacrifice_bonus": sacrifice_bonus, "once_used": once_used, "turns_taken": turns_taken,
 		"riposte": riposte, "immune": immune, "recycle": recycle, "marked": marked,
 		"extra_next": extra_next, "benched": benched, "fight_mods": fight_mods,
-		"hand_mods": hand_mods, "turn_mods": turn_mods,
+		"hand_mods": hand_mods, "turn_mods": turn_mods, "keeps": keeps, "thirst_used": thirst_used,
+		"restore": restore,
 	}
 
 
@@ -300,4 +378,9 @@ static func from_dict(d: Dictionary) -> Fighter:
 		f.hand_mods.append(str(m))
 	for m in d.get("turn_mods", []):
 		f.turn_mods.append(str(m))
+	for k in d.get("keeps", []):
+		f.keeps.append({"bag": int(k.bag), "temp": k.get("temp", {}), "value": int(k.value)})
+	f.thirst_used = int(d.get("thirst_used", 0))
+	for r in d.get("restore", []):
+		f.restore.append({"bag": int(r.bag), "die": r.die})
 	return f

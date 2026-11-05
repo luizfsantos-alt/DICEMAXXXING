@@ -24,7 +24,7 @@ func test_nova_jornada_pela_raiz():
 	var main = load("res://ui/main.tscn").instantiate()
 	add_child_autofree(main)
 	await wait_process_frames(2)
-	main._on_new_run()
+	main._on_new_run("sorcerer")
 	await wait_process_frames(2)
 	assert_true(main.current is TowerScreen, "começa na escolha do Erudito")
 	var t: TowerScreen = main.current
@@ -222,3 +222,64 @@ func test_inimigo_encaixa_dados_nas_magias_dele():
 				filled += 1
 	assert_gt(filled, 0, "dados do inimigo ficam nos buracos das magias dele")
 	assert_true(d.tray_views[0].interactive, "a bandeja volta a ser a sua mão")
+
+
+func test_menu_oferece_os_tres_jogaveis():
+	var main = load("res://ui/main.tscn").instantiate()
+	add_child_autofree(main)
+	await wait_process_frames(2)
+	var m: MenuScreen = main.current
+	assert_eq(m.picks.size(), 3)
+	m.picks[2].pressed.emit()
+	await wait_process_frames(2)
+	assert_eq(main.run.character, "barbarian")
+	assert_eq(main.run.phase, "doors")
+	assert_true(main.current is TowerScreen)
+
+
+func test_luta_com_cada_jogavel_pela_interface():
+	for id in Characters.PLAYABLE:
+		var run := RunState.new_run(42, id)
+		run.choose(0) ## Porta
+		var d := DuelScreen.new().setup(run)
+		d.fast = true
+		add_child_autofree(d)
+		await wait_process_frames(2)
+		assert_eq(d.tray_views.size(), run.duel.player.hand.size(), id)
+		var guard := 0
+		while run.duel.state == "choosing" and guard < 40:
+			guard += 1
+			d.choice = EnemyAI.choose(run.duel.player, run.duel.enemy, H_rng())
+			await d._submit()
+		assert_ne(run.duel.state, "choosing", "%s termina a luta" % id)
+		d.queue_free()
+
+
+func test_ofertas_mostram_raridade():
+	var run := RunState.new_run(8, "vampire")
+	run.phase = "shop"
+	run.options = Shop.shop(run.hero, run.rng, 0, 5)
+	var t := TowerScreen.new().setup(run)
+	add_child_autofree(t)
+	await wait_process_frames(2)
+	assert_eq(TowerScreen.offer_rarity(run.options[0]), Spells.rarity(run.options[0].id))
+	assert_eq(t.cards.get_child_count(), run.options.size())
+
+
+func test_mestre_e_bolsa_na_torre():
+	var run := RunState.new_run(8, "minimalist")
+	run.phase = "master_reward"
+	run.options = Shop.master_reward()
+	var t := TowerScreen.new().setup(run)
+	add_child_autofree(t)
+	await wait_process_frames(2)
+	assert_eq(t.cards.get_child_count(), 3)
+	var o := BagPanel.open(t, run.hero.bag)
+	await wait_process_frames(1)
+	assert_not_null(o)
+
+
+func H_rng() -> RandomNumberGenerator:
+	var r := RandomNumberGenerator.new()
+	r.seed = 3
+	return r

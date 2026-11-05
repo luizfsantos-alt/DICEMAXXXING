@@ -1,28 +1,50 @@
 extends SceneTree
 ## Simulador headless de jornadas para balanceamento (docs/SPEC_v3.md).
-## Uso: godot --headless -s res://sim/simulate.gd -- --runs=1000 --seed=1 --door=normal
+## Uso: godot --headless -s res://sim/simulate.gd -- --runs=1000 --seed=1 --door=normal --char=sorcerer
+## --char=all roda cada personagem. --spells imprime, por magia, quantas vezes foi
+## oferecida, escolhida e quantas jornadas que a tinham chegaram ao fim (docs/RARIDADE.md §7).
 ## O bot joga com a IA "cautelosa", escolhe sempre a porta pedida (ou a mais fácil),
 ## pega a primeira recompensa que couber e, nas paradas, prefere Cura com pouca vida.
+
+
+var offered := {}
+var chosen := {}
+var won_with := {}
 
 
 func _init() -> void:
 	var runs := 1000
 	var seed0 := 1
 	var door_pref := "normal"
+	var chars := ["sorcerer"]
+	var spell_report := false
 	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--char="):
+			var c := a.split("=")[1]
+			chars = Characters.ALL if c == "all" else [c]
+		elif a == "--spells":
+			spell_report = true
 		if a.begins_with("--runs="):
 			runs = int(a.split("=")[1])
 		elif a.begins_with("--seed="):
 			seed0 = int(a.split("=")[1])
 		elif a.begins_with("--door="):
 			door_pref = a.split("=")[1]
+	for c in chars:
+		_simulate(c, runs, seed0, door_pref)
+	if spell_report:
+		_print_spells()
+	quit()
+
+
+func _simulate(char_id: String, runs: int, seed0: int, door_pref: String) -> void:
 	var reached := {}
 	var died_at := {}
 	var turns_total := 0
 	var duels_total := 0
 	var hp_after := {}
 	for i in runs:
-		var run := RunState.new_run(seed0 + i)
+		var run := RunState.new_run(seed0 + i, char_id)
 		var guard := 0
 		while not (run.phase in ["victory", "defeat"]) and guard < 10000:
 			guard += 1
@@ -54,22 +76,35 @@ func _init() -> void:
 					run.choose(pick)
 				_:
 					_take_something(run)
+		if run.phase == "victory":
+			for id in run.hero.inventory.ids():
+				won_with[id] = won_with.get(id, 0) + 1
 		var last_won := run.floor_n if run.phase == "victory" else run.floor_n - 1
 		for f in range(1, last_won + 1):
 			reached[f] = reached.get(f, 0) + 1
 		if run.phase == "defeat":
 			died_at[run.floor_n] = died_at.get(run.floor_n, 0) + 1
-	print("Porta: %s · Jornadas: %d" % [door_pref, runs])
+	print("Personagem: %s · Porta: %s · Jornadas: %d" % [char_id, door_pref, runs])
 	print("Turnos médios por luta (dois lados): %.2f" % (float(turns_total) / maxi(1, duels_total)))
 	for f in range(1, Config.LAST_FLOOR + 1):
 		var w: int = reached.get(f, 0)
 		print("Venceu o andar %2d: %5.1f%%   vida média depois: %3.0f%%" % [f, 100.0 * w / runs, 100.0 * hp_after.get(f, 0.0) / maxi(1, w)])
-	quit()
+
+
+func _print_spells() -> void:
+	print("Magia (raridade): oferecida · escolhida · jornadas vencidas com ela")
+	var ids := Spells.DATA.keys()
+	ids.sort_custom(func(a, b): return chosen.get(a, 0) > chosen.get(b, 0))
+	for id in ids:
+		print("  %-12s (%s): %5d · %5d · %4d" % [id, Spells.rarity(id), offered.get(id, 0), chosen.get(id, 0), won_with.get(id, 0)])
 
 
 ## Recompensa, Loja, Escola, Poço, Erudito: compra em ordem o que puder (até 3 vezes); depois sai.
 func _take_something(run: RunState) -> void:
 	var phase := run.phase
+	for o in run.options:
+		if o.kind == "spell":
+			offered[o.id] = offered.get(o.id, 0) + 1
 	for _k in 3:
 		var bought := false
 		for j in run.options.size():
@@ -82,6 +117,8 @@ func _take_something(run: RunState) -> void:
 			elif o.needs == "die":
 				target = {"die": _plain_die(run.hero)}
 			if run.choose(j, target) == "":
+				if o.kind == "spell":
+					chosen[o.id] = chosen.get(o.id, 0) + 1
 				bought = true
 				break
 		if run.phase != phase or not bought:

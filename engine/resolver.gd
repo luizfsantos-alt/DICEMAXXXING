@@ -20,8 +20,10 @@ static func start_turn(f: Fighter, ev: Array) -> void:
 		f.hp -= f.poison
 		ev.append({"t": "poison", "side": side(f), "n": f.poison})
 	if f.burn > 0:
-		f.hp -= f.burn
-		ev.append({"t": "burn", "side": side(f), "n": f.burn})
+		# Vampiro: a queima causa o dobro.
+		var n := f.burn * (2 if f.archetype == "vampire" else 1)
+		f.hp -= n
+		ev.append({"t": "burn", "side": side(f), "n": n})
 		f.burn -= 1
 
 
@@ -51,12 +53,27 @@ static func draw_and_roll(f: Fighter, foe: Fighter, rng: RandomNumberGenerator, 
 	if f.is_player and foe.master_id == "porteiro" and negative(f, ev):
 		f.add_temp(Elements.lead())
 		ev.append({"t": "lead_hand", "side": side(f)})
-	f.roll_hand(rng, foe.last_hand)
+	var pulled := f.roll_hand(rng, foe.last_hand)
+	if pulled > 0:
+		ev.append({"t": "dead_weight", "side": side(f), "n": pulled})
+	_announce_elements(f, ev)
 	apply_hand_mods(f, foe, ev)
 	var els := []
 	for e in f.hand:
 		els.append(f.die_of(e).element)
 	ev.append({"t": "hand", "side": side(f), "values": f.hand_values(), "elements": els})
+
+
+## Elementos que mudaram o valor ao rolar (Hidrogênio ×3, Mercúrio copiou).
+static func _announce_elements(f: Fighter, ev: Array) -> void:
+	for e in f.hand:
+		var d := f.die_of(e)
+		if d == null or e.get("fixed", false):
+			continue
+		if d.element == "H" and f.bag.size() <= Elements.SOLITARY_BAG:
+			ev.append({"t": "element", "side": side(f), "el": "H", "v": int(e.value)})
+		elif d.element == "Hg" and int(e.value) > d.value(int(e.face)):
+			ev.append({"t": "element", "side": side(f), "el": "Hg", "v": int(e.value)})
 
 
 ## Mexidas na mão recém-rolada (ordem fixa, para ficar previsível).
@@ -97,12 +114,55 @@ static func apply_hand_mods(f: Fighter, foe: Fighter, ev: Array) -> void:
 		ev.append({"t": "hand_mod", "side": side(f), "mod": m})
 
 
-## Efeitos de quem age no próprio turno que mexem na bolsa do outro (Lixeiro).
+## Efeitos de quem age no próprio turno que mexem na bolsa do outro (Lixeiro, Fundidor).
 static func on_turn_effects(f: Fighter, foe: Fighter, ev: Array) -> void:
 	if f.variant == "lixeiro" and f.turns_taken == 0 and negative(foe, ev):
 		foe.bag.append(Elements.lead())
 		foe.discard.append(foe.bag.size() - 1)
 		ev.append({"t": "lead_bag", "side": side(foe)})
+	if f.variant == "fundidor" and f.turns_taken == 0:
+		# O dado comum mais forte do outro vira Chumbo até o fim da luta.
+		var best := -1
+		for i in foe.bag.size():
+			if foe.bag[i].element == "" and (best < 0 or foe.bag[i].face_sum() > foe.bag[best].face_sum()):
+				best = i
+		if best >= 0 and negative(foe, ev):
+			foe.restore.append({"bag": best, "die": foe.bag[best].to_dict()})
+			Elements.apply(foe.bag[best], "Pb")
+			ev.append({"t": "lead_convert", "side": side(foe)})
+
+
+## Copista (Inspiração): no início da luta, copia uma magia aleatória do outro que
+## caiba nas casas livres, sem mexer nas peças. A cópia some no fim da luta.
+static func inspire(f: Fighter, foe: Fighter, rng: RandomNumberGenerator, ev: Array) -> void:
+	if f.archetype != "copyist":
+		return
+	var options := []
+	for it in foe.inventory.items:
+		if bool(it.get("temp", false)):
+			continue
+		var spot := f.inventory.find_spot(str(it.id))
+		if not spot.is_empty():
+			options.append({"id": str(it.id), "level": int(it.level), "spot": spot})
+	if options.is_empty():
+		ev.append({"t": "copy", "side": side(f), "spell": ""})
+		return
+	var o: Dictionary = options[rng.randi_range(0, options.size() - 1)]
+	f.inventory.items.append({"id": o.id, "level": o.level, "x": o.spot.x, "y": o.spot.y, "rot": o.spot.rot, "temp": true})
+	ev.append({"t": "copy", "side": side(f), "spell": o.id})
+
+
+## Bônus de dano por golpe: Sacrifício + Fúria do Bárbaro.
+static func dmg_bonus(f: Fighter) -> int:
+	return f.sacrifice_bonus + Characters.fury(f)
+
+
+## Cura com a Sede do Vampiro (o que sobra vira vida máxima).
+static func _heal(f: Fighter, n: int, ev: Array) -> void:
+	var r := f.heal_full(n)
+	ev.append({"t": "heal", "side": side(f), "n": int(r.hp)})
+	if int(r.max) > 0:
+		ev.append({"t": "maxhp", "side": side(f), "n": int(r.max), "thirst": true})
 
 
 ## 4. Resolução: magias prontas, na ordem do inventário. Para se alguém morrer.
@@ -151,21 +211,20 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 	if Spells.is_once(id):
 		f.once_used.append(item)
 	ev.append({"t": "cast", "side": side(f), "spell": id, "item": item, "dice": dice.duplicate(), "values": values})
-	var bonus := f.sacrifice_bonus
 	var mult := int(def.get("mult", 1))
 	match str(def.fx):
 		"dmg":
-			var n := Config.scale((total + int(def.get("plus", 0))) * mult, lvl) + bonus
+			var raw := Config.scale((total + int(def.get("plus", 0))) * mult, lvl)
 			var pierce := bool(def.get("pierce", false))
-			hit(foe, f, n, ev, false, pierce)
+			hit(foe, f, raw + dmg_bonus(f), ev, false, pierce)
 			if def.get("odd_twice", false) and values.all(func(v): return v % 2 == 1) and foe.hp > 0 and f.hp > 0:
-				hit(foe, f, n, ev)
+				hit(foe, f, raw + dmg_bonus(f), ev)
 			if def.has("burn") and foe.hp > 0:
 				_burn(foe, int(def.burn), ev)
 		"product":
-			hit(foe, f, Config.scale(_product(values) * mult, lvl) + bonus, ev)
+			hit(foe, f, Config.scale(_product(values) * mult, lvl) + dmg_bonus(f), ev)
 		"lever":
-			hit(foe, f, Config.scale(int(values.max()) * int(values.min()), lvl) + bonus, ev)
+			hit(foe, f, Config.scale(int(values.max()) * int(values.min()), lvl) + dmg_bonus(f), ev)
 		"multi":
 			var blows := values.duplicate()
 			if values.size() > 1 and values.all(func(v): return v == values[0]):
@@ -173,15 +232,15 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 			for v in blows:
 				if foe.hp <= 0 or f.hp <= 0:
 					break
-				hit(foe, f, Config.scale(int(v) * mult, lvl) + bonus, ev)
+				hit(foe, f, Config.scale(int(v) * mult, lvl) + dmg_bonus(f), ev)
 		"ones":
 			var ones := 0
 			for e in f.hand:
 				if int(e.bag) != -2 and int(e.value) == 1:
 					ones += 1
-			hit(foe, f, Config.scale(int(def.get("per", 1)) * ones, lvl) + bonus, ev)
+			hit(foe, f, Config.scale(int(def.get("per", 1)) * ones, lvl) + dmg_bonus(f), ev)
 		"top_x":
-			hit(foe, f, Config.scale(int(values.max()) * mult, lvl) + bonus, ev)
+			hit(foe, f, Config.scale(int(values.max()) * mult, lvl) + dmg_bonus(f), ev)
 		"encore":
 			var d := f.die_of(f.hand[dice[0]])
 			var top := d.max_value()
@@ -192,15 +251,15 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 				ev.append({"t": "encore", "side": side(f), "v": v, "again": v == top})
 				if v != top:
 					break
-			hit(foe, f, Config.scale(sum, lvl) + bonus, ev)
+			hit(foe, f, Config.scale(sum, lvl) + dmg_bonus(f), ev)
 		"steal_sticker":
 			var v := _steal_sticker(f, foe, dice[0], ev)
-			hit(foe, f, Config.scale(v, lvl) + bonus, ev)
+			hit(foe, f, Config.scale(v, lvl) + dmg_bonus(f), ev)
 		"bench":
-			hit(foe, f, Config.scale(total, lvl) + bonus, ev)
+			hit(foe, f, Config.scale(total, lvl) + dmg_bonus(f), ev)
 			_bench_strongest(foe, ev)
 		"spawn_half":
-			hit(foe, f, Config.scale(total, lvl) + bonus, ev)
+			hit(foe, f, Config.scale(total, lvl) + dmg_bonus(f), ev)
 		"spawn_copy":
 			pass
 		"block":
@@ -235,8 +294,16 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 			f.mirror = true
 			ev.append({"t": "mirror_up", "side": side(f)})
 		"heal":
-			var got := f.heal(Config.scale(total, lvl))
-			ev.append({"t": "heal", "side": side(f), "n": got})
+			_heal(f, Config.scale(total * mult, lvl), ev)
+		"drain":
+			var raw := Config.scale(total, lvl)
+			hit(foe, f, raw + dmg_bonus(f), ev)
+			if f.hp > 0:
+				_heal(f, Config.ceil_div(raw, 2), ev)
+		"feast":
+			hit(foe, f, Config.scale(total, lvl) + dmg_bonus(f), ev)
+			if f.hp > 0:
+				_heal(f, Config.scale(int(values.min()), lvl), ev)
 		"maxhp":
 			var n := Config.scale(int(values[0]), lvl)
 			f.max_hp += n
@@ -259,11 +326,17 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 	# Marca para a sua próxima mão.
 	if def.has("mark"):
 		_mark(f, dice, str(def.mark), total, ev)
-	# Sódio: queima o inimigo ao ser usado.
+	# Sódio: queima o inimigo ao ser usado. Amianto: machuca quem usa (não é golpe).
 	for h in dice:
 		var e: Dictionary = f.hand[h]
-		if int(e.bag) != -2 and f.die_of(e) and f.die_of(e).element == "Na" and foe.hp > 0:
-			_burn(foe, Config.SODIUM_BURN, ev)
+		if int(e.bag) == -2 or f.die_of(e) == null:
+			continue
+		var el := f.die_of(e).element
+		if el == "Na" and foe.hp > 0:
+			_burn(foe, Config.SODIUM_BURN, ev, "Na")
+		elif el == "Am" and f.hp > 0:
+			f.hp -= Config.ASBESTOS_DMG
+			ev.append({"t": "asbestos", "side": side(f), "n": Config.ASBESTOS_DMG})
 
 
 static func _block(f: Fighter, b: int, ev: Array) -> void:
@@ -271,11 +344,11 @@ static func _block(f: Fighter, b: int, ev: Array) -> void:
 	ev.append({"t": "block", "side": side(f), "n": b, "total": f.block})
 
 
-static func _burn(f: Fighter, n: int, ev: Array) -> void:
+static func _burn(f: Fighter, n: int, ev: Array, src := "") -> void:
 	if not negative(f, ev):
 		return
 	f.burn += n
-	ev.append({"t": "burn_up", "side": side(f), "n": n, "total": f.burn})
+	ev.append({"t": "burn_up", "side": side(f), "n": n, "total": f.burn, "src": src})
 
 
 ## Plágio: rouba 1 adesivo ×2 do dado mais adesivado do inimigo e cola na face usada,
@@ -376,9 +449,11 @@ static func hit(target: Fighter, attacker: Fighter, n: int, ev: Array, reflected
 		hit(attacker, target, target.riposte, ev, true)
 
 
-## 5. Fim: dados parados (Expectativa Tóxica, Improviso Brilhante, Urânio); a mão vai
-## para o descarte.
-static func end_turn(f: Fighter, used: Array, ev: Array) -> void:
+## 5. Fim: dados parados (Expectativa Tóxica, Improviso Brilhante, Urânio); o
+## Perfeccionista guarda até 2 sobras (keep); a mão vai para o descarte.
+static func end_turn(f: Fighter, used: Array, ev: Array, keep: Array = []) -> void:
+	if f.archetype == "perfectionist":
+		_keep(f, used, keep, ev)
 	var idle := "idle_dmg" in f.turn_mods
 	for h in f.hand.size():
 		var e: Dictionary = f.hand[h]
@@ -397,3 +472,24 @@ static func end_turn(f: Fighter, used: Array, ev: Array) -> void:
 	f.turn_mods = []
 	f.discard_hand()
 	f.turns_taken += 1
+
+
+## Perfeccionista (Ainda Não Está Bom): as sobras escolhidas entram na próxima mão
+## com o mesmo valor. No máximo 2 marcas ao mesmo tempo (contando a das magias).
+static func _keep(f: Fighter, used: Array, keep: Array, ev: Array) -> void:
+	var room := Characters.KEEP_MAX - (0 if f.marked.is_empty() else 1)
+	var n := 0
+	for h in keep:
+		if n >= room or h < 0 or h >= f.hand.size() or h in used:
+			continue
+		var e: Dictionary = f.hand[h]
+		if int(e.bag) == -2:
+			continue
+		var k := {"bag": int(e.bag), "temp": {}, "value": int(e.value)}
+		if int(e.bag) < 0:
+			var d := f.die_of(e)
+			k.temp = d.to_dict() if d else Die.basic().to_dict()
+		f.keeps.append(k)
+		n += 1
+	if n > 0:
+		ev.append({"t": "keep", "side": side(f), "n": n})

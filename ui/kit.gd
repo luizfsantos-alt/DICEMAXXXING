@@ -11,6 +11,10 @@ const OK := Color(0.35, 0.85, 0.45)
 const SHIELD := Color(0.4, 0.7, 1.0)
 const TEXT := Color(0.95, 0.94, 0.97)
 const MUTED := Color(0.65, 0.62, 0.72)
+## Raridade (docs/RARIDADE.md §2): cinza, azul, dourada.
+const RARITY_COLORS := {
+	"common": Color(0.62, 0.62, 0.66), "uncommon": Color(0.35, 0.6, 1.0), "rare": Color(1.0, 0.78, 0.25),
+}
 
 
 static func label(text: String, size := 26, color := TEXT, wrap := false) -> Label:

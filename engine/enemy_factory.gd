@@ -2,6 +2,12 @@ class_name EnemyFactory
 extends RefCounted
 ## Inimigos montados como um jogador (docs/SPEC_v3.md §8): mesmo arquétipo, mesmo
 ## inventário inicial e um orçamento de melhorias proporcional ao andar e à porta.
+## As compras seguem a tabela de raridade do andar (docs/RARIDADE.md).
+
+## Variantes por arquétipo (docs/PERSONAGENS.md §4).
+const VARIANTS := {
+	"assassin": "lixeiro", "sorcerer": "piromante", "metallurgist": "fundidor", "minimalist": "monge",
+}
 
 
 static func is_master(floor_n: int) -> bool:
@@ -18,47 +24,62 @@ static func create(floor_n: int, door: String, rng: RandomNumberGenerator) -> Fi
 		f.name = Texts.master_name("porteiro")
 		mult = 1.0
 	else:
-		f = base("assassin" if rng.randf() < 0.5 else "sorcerer")
-		var r := rng.randf()
-		if r < 0.2:
-			f.variant = "lixeiro" if f.archetype == "assassin" else "piromante"
+		f = base(Characters.ALL[rng.randi_range(0, Characters.ALL.size() - 1)])
+		var v: String = VARIANTS.get(f.archetype, "")
+		if v != "" and rng.randf() < Config.VARIANT_CHANCE and (v != "monge" or floor_n >= Config.MONK_FLOOR):
+			f.variant = v
 		f.personality = EnemyAI.PERSONALITIES[rng.randi_range(0, EnemyAI.PERSONALITIES.size() - 1)]
 		f.name = random_name(rng)
-	if f.variant == "piromante":
-		Elements.apply(f.bag[0], "Na")
-		Elements.apply(f.bag[1], "Na")
+	match f.variant:
+		"piromante":
+			var n := 0
+			for d in f.bag:
+				if n < 2 and d.element == "":
+					Elements.apply(d, "Na")
+					n += 1
+		"monge":
+			f.bag = []
+			for _i in 4:
+				f.bag.append(Die.with_element("H"))
 	f.max_hp = int(round((Config.ENEMY_HP_BASE + Config.ENEMY_HP_PER_FLOOR * (floor_n - 1)) * mult))
+	if f.archetype == "minimalist":
+		f.max_hp = int(round(f.max_hp * Config.MINIMALIST_ENEMY_HP_MULT))
 	if is_master(floor_n):
 		f.max_hp = int(round(f.max_hp * Config.MASTER_HP_MULT))
 	var budget := int(round((floor_n - 1) * mult * Config.ENEMY_UPGRADES_PER_FLOOR))
 	for _k in budget:
-		upgrade(f, rng)
+		upgrade(f, rng, floor_n)
 	f.hp = f.max_hp
 	return f
 
 
+## Lutador com o kit inicial do arquétipo (o mesmo do jogador).
 static func base(archetype: String) -> Fighter:
+	var c := Characters.get_def(archetype)
 	var f := Fighter.new()
-	f.archetype = archetype
-	var grid: Vector2i = Config.SORCERER_GRID if archetype == "sorcerer" else Config.ASSASSIN_GRID
-	f.inventory = Inventory.make(grid.x, grid.y)
-	var ids: Array = Spells.STARTING[archetype]
-	for k in ids.size():
-		var pos: Array = Spells.STARTING_LAYOUT[archetype][k]
-		f.inventory.items.append({"id": ids[k], "level": 1, "x": pos[0], "y": pos[1], "rot": pos[2]})
-	for _i in Config.START_BAG:
+	f.archetype = archetype if Characters.DATA.has(archetype) else "sorcerer"
+	var grid: Vector2i = c.grid
+	f.inventory = Inventory.make(grid.x, grid.y, c.blocked)
+	for s in c.spells:
+		f.inventory.items.append({"id": s[0], "level": s[4], "x": s[1], "y": s[2], "rot": s[3]})
+	for el in c.bag:
+		f.bag.append(Die.with_element(el))
+	while f.bag.size() < int(c.bag_size):
 		f.bag.append(Die.basic())
-	f.hand_size = Config.HAND_SIZE + (Config.ASSASSIN_HAND_BONUS if archetype == "assassin" else 0)
+	f.hand_size = int(c.hand)
+	f.max_hp = int(c.hp)
+	f.hp = f.max_hp
 	return f
 
 
 ## Uma melhoria aleatória, como uma recompensa de jogador.
-static func upgrade(f: Fighter, rng: RandomNumberGenerator) -> void:
+static func upgrade(f: Fighter, rng: RandomNumberGenerator, floor_n := 1) -> void:
 	match rng.randi_range(0, 4):
 		0:
-			var pool := Spells.DATA.keys().filter(func(id): return Spells.in_pool(id, f.archetype) and f.inventory.fits(id))
-			if not pool.is_empty():
-				f.inventory.add(pool[rng.randi_range(0, pool.size() - 1)])
+			var id := Shop.pick_spell(rng, Shop.band(floor_n), func(x): return Spells.in_pool(x, f.archetype) and f.inventory.fits(x),
+				"" if floor_n >= Config.RARE_ENEMY_FLOOR else "uncommon")
+			if id != "":
+				f.inventory.add(id)
 				return
 			_sticker(f, rng)
 		1:
@@ -69,9 +90,10 @@ static func upgrade(f: Fighter, rng: RandomNumberGenerator) -> void:
 				return
 			_sticker(f, rng)
 		2:
-			var d: Die = f.bag[rng.randi_range(0, f.bag.size() - 1)]
-			if d.element == "":
-				Elements.apply(d, Elements.SHOP[rng.randi_range(0, Elements.SHOP.size() - 1)])
+			var plain := f.bag.filter(func(d): return d.element == "")
+			if not plain.is_empty():
+				var max_r := "" if floor_n >= Config.RARE_ENEMY_FLOOR else "uncommon"
+				Elements.apply(plain[rng.randi_range(0, plain.size() - 1)], Shop.pick_element(rng, Shop.band(floor_n), max_r))
 			else:
 				_sticker(f, rng)
 		3:

@@ -18,7 +18,15 @@ static func open(parent: Control, bag: Array, mode := "view", on_pick: Callable 
 		var name := Kit.label(Texts.element_name(d.element), 20, Elements.COLORS.get(d.element, Kit.TEXT))
 		name.custom_minimum_size = Vector2(170, 0)
 		name.tooltip_text = Texts.element_desc(d.element)
-		row.add_child(name)
+		var head := Kit.vbox(0)
+		head.custom_minimum_size = Vector2(170, 0)
+		head.add_child(name)
+		if d.element != "":
+			# O efeito escrito na linha: tooltip não abre no toque.
+			var desc := Kit.label(Texts.element_desc(d.element), 13, Kit.MUTED, true)
+			desc.custom_minimum_size = Vector2(170, 0)
+			head.add_child(desc)
+		row.add_child(head)
 		for f in 6:
 			var txt := str(d.value(f))
 			if d.stickers[f] > 0:

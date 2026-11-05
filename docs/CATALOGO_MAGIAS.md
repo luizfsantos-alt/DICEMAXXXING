@@ -1,8 +1,8 @@
 # Catálogo de magias
 
-> **Status: fonte da verdade e implementado.** Junta as magias da `docs/SPEC_v3.md` §5 com as aprovadas nas duas rodadas de proposta (`docs/MAGIAS_DICE_FUCKERY.md` e `docs/MAGIAS_FISICAS.md`, que passam a ser histórico), já com os ajustes do feedback. **Todas as 39 magias estão no jogo** (`engine/spells.gd`, ids na seção 9). Números *(iniciais)*, a passar pelo simulador.
+> **Status: fonte da verdade e implementado.** Junta as magias da `docs/SPEC_v3.md` §5 com as aprovadas nas duas rodadas de proposta (`docs/MAGIAS_DICE_FUCKERY.md` e `docs/MAGIAS_FISICAS.md`, que passam a ser histórico), já com os ajustes do feedback. **Todas as 39 magias estão no jogo** (`engine/spells.gd`, ids na seção 9), mais 6 dos personagens novos (seção 10). Cada magia tem uma raridade (`docs/RARIDADE.md`). Números *(iniciais)*, a passar pelo simulador.
 
-**39 magias:** 21 ofensivas e 18 defensivas. Vêm 12 da base, 11 da rodada 1 e 16 da rodada 2. 31 são retas e cabem no cinto do Assassino.
+**45 magias** (39 + 6 dos personagens, seção 10). As 39 originais: 21 ofensivas e 18 defensivas. Vêm 12 da base, 11 da rodada 1 e 16 da rodada 2. 31 são retas e cabem no cinto do Assassino.
 
 ---
 
@@ -234,3 +234,21 @@ Todas as magias estão em `engine/spells.gd` (dados), `engine/resolver.gd` (efei
 - **Revide Elegante**: vale enquanto houver bloqueio no começo do golpe; o revide não é refletido nem revidado.
 - **Hélio** ainda não existe no jogo; quando entrar, os efeitos acima devem pular dados de Hélio.
 - **Loja e Escola** oferecem todas as magias ao jogador. **Inimigos** só compram do próprio grupo (Feiticeiro ou Assassino) e as de "qualquer".
+
+---
+
+## 10. Magias dos personagens novos (implementadas)
+
+Vieram de `docs/PERSONAGENS.md`. Todas entram na Loja, na Escola e nas recompensas para qualquer personagem.
+
+| id | Magia | Formato | Grupo | Pede | Efeito | Uso | Raridade |
+|---|---|---|---|---|---|---|---|
+| `dardo` | **Dardo Arcano** | 1×1 | qualquer | dado par | Dano = valor + 2. | sempre | Comum |
+| `obra` | **Obra-Prima** | L (4) | Perfeccionista | 3 dados iguais (trio) | Dano = soma ×2. | sempre | Incomum |
+| `mordida` | **Mordida** | 1×1 | Vampiro | qualquer dado | Dano = valor; cura metade (arredonda para cima). | sempre | Comum |
+| `banquete` | **Banquete** | Reta 3 | Vampiro | 3 dados quaisquer | Dano = soma; cura = o menor dos três. | sempre | Incomum |
+| `machadada` | **Machadada** | 1×2 | Bárbaro | dado ≥ 4 | Dano = valor ×2. | sempre | Comum |
+| `cerrar` | **Cerrar os Dentes** | 1×1 | Bárbaro | dado ≤ 3 | Cura = valor ×3. | 2× por luta | Comum |
+
+- **Exigência nova "trio"**: 3 dados iguais; os buracos mostram "=" entre eles.
+- A cura cresce com o nível, como o dano. A Fúria do Bárbaro e o Sacrifício somam em cada golpe.

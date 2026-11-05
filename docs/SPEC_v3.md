@@ -56,18 +56,27 @@
 
 ## 3. Personagens
 
-Jogáveis, escolhidos no início. O **formato do inventário** é a identidade; cada personagem tem também **uma passiva simples**. As peças podem girar.
+Escolhidos no início. O **formato do inventário** é a identidade; cada personagem tem também **uma passiva simples**. As peças podem girar. Os 6 arquétipos novos estão detalhados em `docs/PERSONAGENS.md`; os kits, em `engine/characters.gd`.
 
-| Personagem | Inventário | Passiva | Vida *(inicial)* | Magias iniciais |
-|---|---|---|---|---|
-| **Feiticeiro** | Grade **4×3** | **Erudito**: começa com 1 magia extra, à escolha entre 3. | 50 | Faísca, Bola de Fogo (+1 do Erudito) |
-| **Assassino** | Cinto **6×1** | **Ágil**: mão de **6** dados (em vez de 5). | 40 | Estocada, Corte Duplo |
+**Jogáveis hoje: Minimalista, Vampiro e Bárbaro** (os 3 menos complexos, `Characters.PLAYABLE`). Os outros 5 aparecem como inimigos e já funcionam no motor.
+
+| Personagem | Inventário | Passiva | Vida | Mão | Bolsa inicial | Magias iniciais |
+|---|---|---|---|---|---|---|
+| **Feiticeiro** | Grade **4×3** | **Erudito**: começa com 1 magia extra, à escolha entre 3. | 90 | 5 | 7 comuns + 1 Sódio | Faísca, Bola de Fogo (+1 do Erudito) |
+| **Assassino** | Cinto **6×1** | **Ágil**: mão de **6** dados (em vez de 5). | 40 | 6 | 7 comuns + 1 Mercúrio | Estocada, Corte Duplo |
+| **Minimalista** | Grade **3×2** | **Voto de Pobreza**: destruir no Poço é grátis; a recompensa tem a opção "destruir 1 dado". | 70 | 4 | 2 comuns + 3 Hidrogênio | Faísca, Dardo Arcano |
+| **Metalurgista** | Esteira **5×2** | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado. Loja e Poço vendem Chumbo. | 100 | 5 | 5 comuns + 3 Chumbo | Levantar Peso (nv 2), Estocada |
+| **Copista** | Grade **4×2** | **Inspiração**: no início da luta, copia uma magia aleatória do inimigo que caiba nas casas livres. | 80 | 5 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
+| **Perfeccionista** | **Moldura 4×3** sem o meio | **Ainda Não Está Bom**: guarda até 2 sobras no fim do turno; pode ter 2 marcas. | 80 | 5 | 7 comuns + 1 Ósmio | Dardo Arcano, Obra-Prima |
+| **Vampiro** | **Caixão 2×4** | **Sede**: a cura que passaria do máximo vira vida máxima (até 5 por luta). Queima em dobro. | 60 | 5 | 7 comuns + 1 Sódio | Mordida, Banquete |
+| **Bárbaro** | Grade **3×3** | **Fúria**: com metade da vida ou menos, +1 por golpe a cada 10 de vida perdida. | 110 | 5 | 6 comuns + 2 Amianto | Machadada, Cerrar os Dentes |
 
 - **Feiticeiro**: magias grandes e exigentes (pares, sequências), efeitos fortes, várias de uso único por luta.
 - **Assassino**: técnicas finas que aceitam quase qualquer dado; força na quantidade e na esquiva.
 - **Ninguém começa com defesa** (jogador e inimigos): Escudo Arcano e Esquiva vêm da loja, da escola, das recompensas e das melhorias do inimigo, como qualquer magia.
 - A loja é a mesma para todos, mas peças 2×2 ou em L não cabem num cinto.
-- **Futuro:** vários outros arquétipos, cada um com um formato de inventário próprio (ex.: cruz, 2×5, grade com buracos). Inimigos ganham os mesmos arquétipos quando eles forem criados.
+- **Todo personagem começa com um elemento** (`docs/PERSONAGENS.md` §5).
+- Os inimigos usam os 8 arquétipos, com o mesmo kit e a mesma passiva (seção 8).
 
 ---
 
@@ -90,7 +99,8 @@ Cada dado pode ter **um** elemento, além de qualquer número de adesivos. O efe
 | **Hidrogênio** | Solitário: vale ×3 se a bolsa tiver 8 dados ou menos. |
 | **Nitrogênio** | Multidão: +1 em cada face para cada 4 dados na bolsa. |
 | **Carbono** | Cadeia: +1 para cada outro Carbono na bolsa. |
-| **Ósmio** | Âncora: sempre sai na primeira mão de cada luta; não pode ser roubado. |
+| **Ósmio** | Âncora: sai **em toda mão** (ocupa uma vaga); não pode ser roubado nem arrancado. |
+| **Amianto** | Fibroso: +3 em todas as faces (4 a 9); ao ser usado, causa 3 de dano em quem usa (não é golpe). |
 | **Oganessônio** | Faces enormes; desintegra (sai da bolsa) após 1 uso. |
 | **Urânio** | Valor alto; se ficar na mão sem uso até o fim do seu turno, **envenena** você (acumula). |
 | **Chumbo** | **3 faces são 1 fixo** (não podem ser editadas). Normalmente é lixo posto pelo inimigo. |
@@ -193,6 +203,7 @@ Alguns inimigos põem dados-lixo na sua bolsa durante a luta. **Os dados-lixo fi
 
 - **Nenhuma no protótipo.**
 - Futuro: desbloquear personagens e magias novas na loja, **sem poder permanente**.
+- Futuro: builds vencedoras viram inimigos das próximas masmorras (`docs/ROADMAP.md`).
 
 ---
 
@@ -228,11 +239,14 @@ Jogar a fatia vertical e decidir o que ajustar antes de investir em conteúdo.
 - **Lixeiro**: no primeiro turno dele, põe 1 Chumbo na sua bolsa (permanente).
 - **Adicionar magia** reorganiza o grimório sozinho quando ela só cabe mexendo nas outras peças. "Não cabe" só aparece quando nenhum arranjo serve.
 - **Arranjo inicial** do Feiticeiro deixa um espaço em L, para o Meteoro caber.
-- **Recompensa do Mestre** (+casas ou +1 na mão) não existe na fatia, porque o Mestre é a última luta.
+- **Recompensa do Mestre** (+1 coluna no inventário, +1 na mão ou uma magia Rara entre 3) está no motor, mas não aparece na fatia, porque o Mestre é a última luta.
+- **Raridade** de magias e dados: `docs/RARIDADE.md` (implementada).
 - O inimigo recebe **0,4 melhoria por andar** × o multiplicador da porta (fácil 0,8; normal 1,0; difícil 1,3; insana 1,7).
 - **Vida:** Feiticeiro 90; inimigo 31 + 5 por andar (× porta); Mestre ×1,6.
 
-**Simulador** (`sim/simulate.gd`, bot com a IA cautelosa, 400 jornadas): lutas com cerca de 2 a 3 turnos de cada lado (4 a 5 somados). Chegam ao fim do andar 10 cerca de 10% pela porta fácil, 5% pela normal e 1% pela difícil. Histórico: com Escudo e Esquiva no kit, eram 10 a 13 turnos somados e lutas contra Feiticeiro cauteloso batendo a trava de 60; sem defesa no kit e com a vida antiga dos inimigos (36 + 6), só 4%, 2% e 0% chegavam ao fim. Um humano escolhendo portas, recompensas e paradas deve ir melhor que o bot.
+**Simulador, com personagens, elementos e raridade** (`--char=all`, 300 jornadas, porta normal): chegam ao fim do andar 10 o Bárbaro (18%), o Feiticeiro (15%), o Metalurgista (11%), o Minimalista (7%), o Vampiro (6%), o Copista (1%), o Perfeccionista (1%) e o Assassino (0%). Os números de antes, só com o Feiticeiro, ficam abaixo como histórico.
+
+**Simulador antigo** (`sim/simulate.gd`, bot com a IA cautelosa, 400 jornadas): lutas com cerca de 2 a 3 turnos de cada lado (4 a 5 somados). Chegam ao fim do andar 10 cerca de 10% pela porta fácil, 5% pela normal e 1% pela difícil. Histórico: com Escudo e Esquiva no kit, eram 10 a 13 turnos somados e lutas contra Feiticeiro cauteloso batendo a trava de 60; sem defesa no kit e com a vida antiga dos inimigos (36 + 6), só 4%, 2% e 0% chegavam ao fim. Um humano escolhendo portas, recompensas e paradas deve ir melhor que o bot.
 
 ---
 

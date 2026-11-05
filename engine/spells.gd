@@ -12,6 +12,7 @@ extends RefCounted
 ## - top:     1 dado na face mais alta que ele tem (dado marcado nunca conta).
 ## - pair:    2 dados iguais.
 ## - seq3:    3 dados em sequência (ex.: 3-4-5).
+## - trio:    3 dados iguais.
 ##
 ## Efeitos ("fx"), resolvidos em Resolver.cast:
 ## dmg (dano = soma + "plus", × "mult"; "pierce" ignora todas as defesas; "burn";
@@ -21,9 +22,12 @@ extends RefCounted
 ## (Plágio), bench (Arrancar das Mãos), spawn_half / spawn_copy (devolvem dados à mão
 ## na alocação), block ("mult"), block_product, block_hand ("per" × dados na mão),
 ## riposte, immune, cleanse, recycle, debuff (só "hand_mod"), dodge, mirror, heal,
-## maxhp, sacrifice.
+## maxhp, sacrifice, drain (dano = valor, cura metade), feast (dano = soma, cura o
+## menor). "heal" usa "mult".
 ## Opcionais: "hand_mod" (mexe na próxima mão do inimigo) e "mark" (marca o dado
 ## para a sua próxima mão: same, six, sum, plus2).
+##
+## Raridade ("rarity"): common, uncommon, rare (docs/RARIDADE.md).
 ##
 ## Uso ("use"): always, once (1× por luta), twice (2× por luta). Sempre no máximo 1×
 ## por turno.
@@ -43,47 +47,54 @@ const S_D3 := [Vector2i(0, 0), Vector2i(1, 1), Vector2i(2, 2)]
 
 const DATA := {
 	# Base.
-	"faisca": {"shape": S1, "req": "any", "n": 1, "fx": "dmg", "use": "always", "pool": "sorcerer"},
-	"escudo": {"shape": S_V2, "req": "max", "v": 3, "fx": "block", "mult": 3, "use": "always", "pool": "sorcerer"},
-	"bola": {"shape": S_SQ, "req": "pair", "fx": "dmg", "mult": 2, "burn": 3, "use": "once", "pool": "sorcerer"},
-	"meteoro": {"shape": S_L4, "req": "seq3", "fx": "dmg", "plus": 10, "use": "once", "pool": "sorcerer"},
-	"espelho": {"shape": S1, "req": "exact", "v": 1, "fx": "mirror", "use": "always", "pool": "sorcerer"},
-	"sacrificio": {"shape": S1, "req": "exact", "v": 1, "fx": "sacrifice", "use": "always", "pool": "sorcerer"},
-	"remendo": {"shape": S1, "req": "any", "n": 1, "fx": "heal", "use": "once", "pool": "any"},
-	"transfusao": {"shape": S_H2, "req": "pair", "fx": "maxhp", "use": "once", "pool": "sorcerer"},
-	"estocada": {"shape": S1, "req": "any", "n": 1, "fx": "dmg", "plus": 1, "use": "always", "pool": "assassin"},
-	"esquiva": {"shape": S1, "req": "max", "v": 2, "fx": "dodge", "use": "once", "pool": "assassin"},
-	"corte": {"shape": S_H2, "req": "any", "n": 2, "fx": "dmg", "odd_twice": true, "use": "always", "pool": "assassin"},
-	"sombras": {"shape": S_H3, "req": "exact", "v": 6, "fx": "dmg", "pierce": true, "use": "once", "pool": "assassin"},
+	"faisca": {"shape": S1, "req": "any", "n": 1, "fx": "dmg", "use": "always", "pool": "sorcerer", "rarity": "common"},
+	"escudo": {"shape": S_V2, "req": "max", "v": 3, "fx": "block", "mult": 3, "use": "always", "pool": "sorcerer", "rarity": "common"},
+	"bola": {"shape": S_SQ, "req": "pair", "fx": "dmg", "mult": 2, "burn": 3, "use": "once", "pool": "sorcerer", "rarity": "uncommon"},
+	"meteoro": {"shape": S_L4, "req": "seq3", "fx": "dmg", "plus": 10, "use": "once", "pool": "sorcerer", "rarity": "uncommon"},
+	"espelho": {"shape": S1, "req": "exact", "v": 1, "fx": "mirror", "use": "always", "pool": "sorcerer", "rarity": "uncommon"},
+	"sacrificio": {"shape": S1, "req": "exact", "v": 1, "fx": "sacrifice", "use": "always", "pool": "sorcerer", "rarity": "rare"},
+	"remendo": {"shape": S1, "req": "any", "n": 1, "fx": "heal", "use": "once", "pool": "any", "rarity": "common"},
+	"transfusao": {"shape": S_H2, "req": "pair", "fx": "maxhp", "use": "once", "pool": "sorcerer", "rarity": "uncommon"},
+	"estocada": {"shape": S1, "req": "any", "n": 1, "fx": "dmg", "plus": 1, "use": "always", "pool": "assassin", "rarity": "common"},
+	"esquiva": {"shape": S1, "req": "max", "v": 2, "fx": "dodge", "use": "once", "pool": "assassin", "rarity": "common"},
+	"corte": {"shape": S_H2, "req": "any", "n": 2, "fx": "dmg", "odd_twice": true, "use": "always", "pool": "assassin", "rarity": "common"},
+	"sombras": {"shape": S_H3, "req": "exact", "v": 6, "fx": "dmg", "pierce": true, "use": "once", "pool": "assassin", "rarity": "uncommon"},
 	# Rodada 1 (Feiticeiro).
-	"bis": {"shape": S_H3, "req": "top", "fx": "encore", "use": "always", "pool": "sorcerer"},
-	"plagio": {"shape": S_V2, "req": "max", "v": 2, "fx": "steal_sticker", "use": "once", "pool": "sorcerer"},
-	"roubar_cena": {"shape": S1, "req": "exact", "v": 2, "fx": "debuff", "hand_mod": "steal_top", "use": "once", "pool": "sorcerer"},
-	"imitacao": {"shape": S_H2, "req": "any", "n": 1, "fx": "spawn_copy", "use": "always", "pool": "sorcerer"},
-	"expectativa": {"shape": S_T4, "req": "min", "v": 5, "fx": "dmg", "mult": 2, "hand_mod": "idle_dmg", "use": "once", "pool": "sorcerer"},
-	"matematica": {"shape": S_X5, "req": "max_n", "n": 3, "v": 4, "fx": "product", "use": "once", "pool": "sorcerer"},
-	"meia_verdade": {"shape": S1, "req": "exact", "v": 6, "fx": "debuff", "hand_mod": "even_to_one", "use": "once", "pool": "sorcerer"},
-	"interrupcao": {"shape": S_D2, "req": "max_n", "n": 2, "v": 3, "fx": "debuff", "hand_mod": "minus2", "use": "once", "pool": "sorcerer"},
-	"pose": {"shape": S_V2, "req": "any", "n": 1, "fx": "block", "mark": "same", "use": "always", "pool": "sorcerer"},
-	"improviso": {"shape": S_H4, "req": "exact", "v": 1, "fx": "recycle", "use": "always", "pool": "sorcerer"},
-	"imune": {"shape": S1, "req": "even", "fx": "immune", "mult": 2, "use": "once", "pool": "sorcerer"},
+	"bis": {"shape": S_H3, "req": "top", "fx": "encore", "use": "always", "pool": "sorcerer", "rarity": "rare"},
+	"plagio": {"shape": S_V2, "req": "max", "v": 2, "fx": "steal_sticker", "use": "once", "pool": "sorcerer", "rarity": "uncommon"},
+	"roubar_cena": {"shape": S1, "req": "exact", "v": 2, "fx": "debuff", "hand_mod": "steal_top", "use": "once", "pool": "sorcerer", "rarity": "uncommon"},
+	"imitacao": {"shape": S_H2, "req": "any", "n": 1, "fx": "spawn_copy", "use": "always", "pool": "sorcerer", "rarity": "rare"},
+	"expectativa": {"shape": S_T4, "req": "min", "v": 5, "fx": "dmg", "mult": 2, "hand_mod": "idle_dmg", "use": "once", "pool": "sorcerer", "rarity": "uncommon"},
+	"matematica": {"shape": S_X5, "req": "max_n", "n": 3, "v": 4, "fx": "product", "use": "once", "pool": "sorcerer", "rarity": "rare"},
+	"meia_verdade": {"shape": S1, "req": "exact", "v": 6, "fx": "debuff", "hand_mod": "even_to_one", "use": "once", "pool": "sorcerer", "rarity": "uncommon"},
+	"interrupcao": {"shape": S_D2, "req": "max_n", "n": 2, "v": 3, "fx": "debuff", "hand_mod": "minus2", "use": "once", "pool": "sorcerer", "rarity": "uncommon"},
+	"pose": {"shape": S_V2, "req": "any", "n": 1, "fx": "block", "mark": "same", "use": "always", "pool": "sorcerer", "rarity": "common"},
+	"improviso": {"shape": S_H4, "req": "exact", "v": 1, "fx": "recycle", "use": "always", "pool": "sorcerer", "rarity": "rare"},
+	"imune": {"shape": S1, "req": "even", "fx": "immune", "mult": 2, "use": "once", "pool": "sorcerer", "rarity": "common"},
 	# Rodada 2 (Assassino, magos de dano físico).
-	"forca": {"shape": S1, "req": "min", "v": 4, "fx": "spawn_half", "use": "always", "pool": "assassin"},
-	"fisica": {"shape": S_H3, "req": "low_one", "n": 2, "v": 3, "fx": "lever", "use": "always", "pool": "assassin"},
-	"arrancar": {"shape": S_V2, "req": "max", "v": 2, "fx": "bench", "use": "once", "pool": "assassin"},
-	"velocidade": {"shape": S_H3, "req": "max_n", "n": 3, "v": 3, "fx": "multi", "mult": 2, "use": "always", "pool": "assassin"},
-	"peso": {"shape": S1, "req": "exact", "v": 1, "fx": "ones", "per": 4, "use": "always", "pool": "assassin"},
-	"impulso": {"shape": S_V2, "req": "any", "n": 1, "fx": "dmg", "mark": "plus2", "use": "always", "pool": "assassin"},
-	"anatomia": {"shape": S_L3, "req": "pair", "fx": "dmg", "mult": 2, "hand_mod": "top_to_one", "use": "once", "pool": "assassin"},
-	"foto": {"shape": S_H4, "req": "min_n", "n": 4, "v": 5, "fx": "top_x", "mult": 4, "use": "once", "pool": "assassin"},
-	"revide": {"shape": S_H2, "req": "max", "v": 3, "fx": "riposte", "mult": 2, "use": "always", "pool": "assassin"},
-	"chave": {"shape": S1, "req": "exact", "v": 3, "fx": "debuff", "hand_mod": "halve", "use": "once", "pool": "assassin"},
-	"rasteira": {"shape": S_D3, "req": "max_n", "n": 2, "v": 2, "fx": "block", "mult": 2, "hand_mod": "minus1", "use": "always", "pool": "assassin"},
-	"suor": {"shape": S1, "req": "odd", "fx": "cleanse", "use": "twice", "pool": "assassin"},
-	"armadura": {"shape": S_H2, "req": "max_n", "n": 2, "v": 3, "fx": "block_product", "mult": 2, "use": "always", "pool": "assassin"},
-	"recuo": {"shape": S1, "req": "max", "v": 2, "fx": "dodge", "mark": "six", "use": "once", "pool": "assassin"},
-	"presenca": {"shape": S_V2, "req": "exact", "v": 6, "fx": "block_hand", "per": 3, "use": "always", "pool": "assassin"},
-	"concentrar": {"shape": S_L3, "req": "pair", "fx": "block", "mark": "sum", "use": "always", "pool": "assassin"},
+	"forca": {"shape": S1, "req": "min", "v": 4, "fx": "spawn_half", "use": "always", "pool": "assassin", "rarity": "rare"},
+	"fisica": {"shape": S_H3, "req": "low_one", "n": 2, "v": 3, "fx": "lever", "use": "always", "pool": "assassin", "rarity": "rare"},
+	"arrancar": {"shape": S_V2, "req": "max", "v": 2, "fx": "bench", "use": "once", "pool": "assassin", "rarity": "uncommon"},
+	"velocidade": {"shape": S_H3, "req": "max_n", "n": 3, "v": 3, "fx": "multi", "mult": 2, "use": "always", "pool": "assassin", "rarity": "uncommon"},
+	"peso": {"shape": S1, "req": "exact", "v": 1, "fx": "ones", "per": 4, "use": "always", "pool": "assassin", "rarity": "common"},
+	"impulso": {"shape": S_V2, "req": "any", "n": 1, "fx": "dmg", "mark": "plus2", "use": "always", "pool": "assassin", "rarity": "common"},
+	"anatomia": {"shape": S_L3, "req": "pair", "fx": "dmg", "mult": 2, "hand_mod": "top_to_one", "use": "once", "pool": "assassin", "rarity": "uncommon"},
+	"foto": {"shape": S_H4, "req": "min_n", "n": 4, "v": 5, "fx": "top_x", "mult": 4, "use": "once", "pool": "assassin", "rarity": "rare"},
+	"revide": {"shape": S_H2, "req": "max", "v": 3, "fx": "riposte", "mult": 2, "use": "always", "pool": "assassin", "rarity": "uncommon"},
+	"chave": {"shape": S1, "req": "exact", "v": 3, "fx": "debuff", "hand_mod": "halve", "use": "once", "pool": "assassin", "rarity": "rare"},
+	"rasteira": {"shape": S_D3, "req": "max_n", "n": 2, "v": 2, "fx": "block", "mult": 2, "hand_mod": "minus1", "use": "always", "pool": "assassin", "rarity": "uncommon"},
+	"suor": {"shape": S1, "req": "odd", "fx": "cleanse", "use": "twice", "pool": "assassin", "rarity": "common"},
+	"armadura": {"shape": S_H2, "req": "max_n", "n": 2, "v": 3, "fx": "block_product", "mult": 2, "use": "always", "pool": "assassin", "rarity": "common"},
+	"recuo": {"shape": S1, "req": "max", "v": 2, "fx": "dodge", "mark": "six", "use": "once", "pool": "assassin", "rarity": "uncommon"},
+	"presenca": {"shape": S_V2, "req": "exact", "v": 6, "fx": "block_hand", "per": 3, "use": "always", "pool": "assassin", "rarity": "uncommon"},
+	"concentrar": {"shape": S_L3, "req": "pair", "fx": "block", "mark": "sum", "use": "always", "pool": "assassin", "rarity": "uncommon"},
+	# Personagens novos (docs/PERSONAGENS.md).
+	"dardo": {"shape": S1, "req": "even", "fx": "dmg", "plus": 2, "use": "always", "pool": "any", "rarity": "common"},
+	"obra": {"shape": S_L4, "req": "trio", "fx": "dmg", "mult": 2, "use": "always", "pool": "perfectionist", "rarity": "uncommon"},
+	"mordida": {"shape": S1, "req": "any", "n": 1, "fx": "drain", "use": "always", "pool": "vampire", "rarity": "common"},
+	"banquete": {"shape": S_H3, "req": "any", "n": 3, "fx": "feast", "use": "always", "pool": "vampire", "rarity": "uncommon"},
+	"machadada": {"shape": S_V2, "req": "min", "v": 4, "fx": "dmg", "mult": 2, "use": "always", "pool": "barbarian", "rarity": "common"},
+	"cerrar": {"shape": S1, "req": "max", "v": 3, "fx": "heal", "mult": 3, "use": "twice", "pool": "barbarian", "rarity": "common"},
 }
 
 ## Mexidas na próxima mão do inimigo (Resolver.apply_hand_mods).
@@ -91,17 +102,7 @@ const HAND_MODS := ["steal_top", "idle_dmg", "even_to_one", "minus2", "minus1", 
 const IDLE_DMG := 2 ## Expectativa Tóxica: dano por dado parado.
 const ENCORE_MAX := 5 ## Bis!: no máximo 5 rolagens extras.
 
-## Kit inicial sem defesa: Escudo Arcano e Esquiva vêm da loja, da escola e das
-## recompensas, como qualquer magia. O Feiticeiro ainda escolhe 1 (Erudito).
-const STARTING := {
-	"sorcerer": ["faisca", "bola"],
-	"assassin": ["estocada", "corte"],
-}
-## Arranjo inicial: [x, y, rot] de cada magia inicial. O do Feiticeiro deixa um L livre.
-const STARTING_LAYOUT := {
-	"sorcerer": [[3, 0, 0], [0, 0, 0]],
-	"assassin": [[0, 0, 0], [1, 0, 0]],
-}
+## Kits iniciais: engine/characters.gd.
 const ERUDITE_CHOICES := ["espelho", "remendo", "sacrificio", "transfusao", "meteoro"]
 
 
@@ -114,7 +115,7 @@ static func dice_needed(id: String) -> int:
 	match str(d.get("req", "any")):
 		"pair":
 			return 2
-		"seq3":
+		"seq3", "trio":
 			return 3
 	return int(d.get("n", 1))
 
@@ -130,17 +131,42 @@ static func max_uses(id: String) -> int:
 
 
 ## A magia é do grupo do arquétipo (ou de qualquer um)? Os inimigos só compram do
-## próprio grupo.
+## próprio grupo (docs/PERSONAGENS.md §3.4).
 static func in_pool(id: String, archetype: String) -> bool:
-	var p := str(get_def(id).get("pool", "any"))
-	return p == "any" or p == archetype
+	var d := get_def(id)
+	var p := str(d.get("pool", "any"))
+	if p == "any" or p == archetype:
+		return true
+	var base := p in ["sorcerer", "assassin"]
+	match archetype:
+		"minimalist":
+			return p == "sorcerer" and dice_needed(id) == 1
+		"metallurgist":
+			return p == "assassin" or id in ["espelho", "sacrificio", "improviso"]
+		"copyist":
+			return p == "sorcerer"
+		"perfectionist":
+			return base and (str(d.req) in ["pair", "trio", "seq3"] or d.has("mark"))
+		"vampire":
+			return (base and color_family(id) == "dmg") or id == "transfusao"
+		"barbarian":
+			return p == "assassin"
+	return false
+
+
+static func rarity(id: String) -> String:
+	return str(get_def(id).get("rarity", "common"))
+
+
+static func ids_of_rarity(r: String) -> Array:
+	return DATA.keys().filter(func(x): return rarity(x) == r)
 
 
 ## Família de cor do efeito na interface: dmg, block, dodge, mirror, heal, maxhp, sacrifice.
 static func color_family(id: String) -> String:
 	var fx := str(get_def(id).get("fx", "dmg"))
 	match fx:
-		"product", "lever", "multi", "ones", "top_x", "encore", "steal_sticker", "bench", "spawn_half":
+		"product", "lever", "multi", "ones", "top_x", "encore", "steal_sticker", "bench", "spawn_half", "drain", "feast":
 			return "dmg"
 		"block_product", "block_hand", "riposte", "recycle":
 			return "block"
@@ -211,7 +237,7 @@ static func accepts_partial(id: String, placed: Array, v: int, top := false) -> 
 				if int(x) <= int(d.v):
 					return true
 			return false
-		"pair":
+		"pair", "trio":
 			return placed.is_empty() or int(placed[0]) == v
 		"seq3":
 			if v in placed:
@@ -235,5 +261,11 @@ static func complete(id: String, values: Array, tops: Array = []) -> bool:
 	return true
 
 
-static func sell_price(level: int) -> int:
-	return Config.ceil_div(Config.PRICE_SPELL * level, 2)
+## Preço na Loja, pela raridade.
+static func price(id: String) -> int:
+	return int(Config.PRICE_SPELL_BY_RARITY.get(rarity(id), Config.PRICE_SPELL))
+
+
+## Venda: metade do preço, vezes o nível.
+static func sell_price(id: String, level: int) -> int:
+	return Config.ceil_div(price(id) * level, 2)

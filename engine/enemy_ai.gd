@@ -6,12 +6,12 @@ extends RefCounted
 
 const PERSONALITIES := ["bruto", "cauteloso", "caotico"]
 const SPAWN := ["forca", "imitacao"]
-const OFFENSE := ["foto", "matematica", "sombras", "meteoro", "bola", "expectativa", "anatomia",
-	"fisica", "velocidade", "bis", "peso", "plagio", "arrancar", "impulso", "corte", "sacrificio",
-	"estocada", "faisca"]
+const OFFENSE := ["foto", "matematica", "obra", "sombras", "meteoro", "bola", "expectativa", "anatomia",
+	"fisica", "velocidade", "bis", "banquete", "machadada", "peso", "plagio", "arrancar", "impulso", "corte",
+	"sacrificio", "mordida", "dardo", "estocada", "faisca"]
 const DEBUFF := ["interrupcao", "chave", "meia_verdade", "roubar_cena"]
 const DEFENSE := ["esquiva", "recuo", "espelho", "imune", "revide", "armadura", "escudo", "presenca",
-	"rasteira", "concentrar", "pose", "suor", "remendo", "transfusao", "improviso"]
+	"rasteira", "concentrar", "pose", "suor", "cerrar", "remendo", "transfusao", "improviso"]
 
 
 static func choose(f: Fighter, foe: Fighter, rng: RandomNumberGenerator) -> TurnChoice:
@@ -40,7 +40,26 @@ static func choose(f: Fighter, foe: Fighter, rng: RandomNumberGenerator) -> Turn
 		if not ok:
 			for h in c.dice_in(item).duplicate():
 				c.remove_die(h, f)
+	if f.archetype == "perfectionist":
+		c.keep = keep_pick(f, c.used_dice())
 	return c
+
+
+## Perfeccionista: guarda as 2 sobras de valor mais repetido (em empate, o maior).
+static func keep_pick(f: Fighter, used: Array) -> Array:
+	var free := []
+	for h in f.hand.size():
+		if not (h in used) and int(f.hand[h].bag) != -2:
+			free.append(h)
+	var count := {}
+	for h in free:
+		var v := int(f.hand[h].value)
+		count[v] = count.get(v, 0) + 1
+	free.sort_custom(func(a, b):
+		var va := int(f.hand[a].value)
+		var vb := int(f.hand[b].value)
+		return count[va] > count[vb] or (count[va] == count[vb] and va > vb))
+	return free.slice(0, Characters.KEEP_MAX)
 
 
 static func _priority(f: Fighter, foe: Fighter, id: String) -> int:
@@ -55,8 +74,12 @@ static func _priority(f: Fighter, foe: Fighter, id: String) -> int:
 	elif id in DEFENSE:
 		base = 50 - DEFENSE.find(id) * 2
 	match id:
-		"remendo":
-			if f.hp >= f.max_hp:
+		"remendo", "cerrar":
+			# A Sede do Vampiro aproveita a cura com a vida cheia.
+			if f.hp >= f.max_hp and f.archetype != "vampire":
+				return 0
+			# A Fúria do Bárbaro prefere ficar com pouca vida, até ficar perigoso.
+			if f.archetype == "barbarian" and f.hp * 4 > f.max_hp:
 				return 0
 			base += 60 if low else 0
 		"suor":
@@ -93,6 +116,14 @@ static func best_dice(f: Fighter, id: String, taken: Array) -> Array:
 	match str(d.req):
 		"any":
 			return free.slice(0, n) if free.size() >= n else []
+		"trio":
+			for i in free.size():
+				var same := [free[i]]
+				for j in range(i + 1, free.size()):
+					if f.hand[free[j]].value == f.hand[free[i]].value:
+						same.append(free[j])
+				if same.size() >= 3:
+					return same.slice(0, 3)
 		"pair":
 			for i in free.size():
 				for j in range(i + 1, free.size()):
