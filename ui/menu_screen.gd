@@ -4,6 +4,8 @@ extends Control
 ## (Characters.PLAYABLE).
 
 signal new_run(char_id: String)
+
+const LOGO := "res://assets/logo.png"
 signal continue_run
 
 var picks: Array = [] ## Botões dos personagens (testes).
@@ -17,12 +19,24 @@ func setup() -> MenuScreen:
 	var v := Kit.vbox(16)
 	v.custom_minimum_size = Vector2(1100, 0)
 	cc.add_child(v)
+	# Logo (provisório) ao lado do título.
+	var head := Kit.hbox(20)
+	head.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.add_child(head)
+	var logo := TextureRect.new()
+	logo.texture = load(LOGO)
+	logo.custom_minimum_size = Vector2(140, 140)
+	logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	logo.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	head.add_child(logo)
+	var tv := Kit.vbox(2)
+	tv.alignment = BoxContainer.ALIGNMENT_CENTER
+	head.add_child(tv)
 	var t := Kit.label(Texts.t("ui.title"), 64, Kit.ACCENT)
-	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(t)
-	var sub := Kit.label(Texts.t("ui.subtitle"), 22, Kit.MUTED, true)
-	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(sub)
+	tv.add_child(t)
+	var sub := Kit.label(Texts.t("ui.subtitle"), 22, Kit.MUTED)
+	tv.add_child(sub)
 	var c := Kit.button(Texts.t("ui.continue"), func(): continue_run.emit(), Kit.PANEL_HI, 28)
 	c.custom_minimum_size = Vector2(0, 64)
 	c.disabled = not SaveGame.exists()

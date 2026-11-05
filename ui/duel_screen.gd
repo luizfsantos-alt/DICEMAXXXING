@@ -72,6 +72,8 @@ var tip: PanelContainer ## Descrição do status segurado.
 var tip_title: Label
 var tip_desc: Label
 var tip_icon: StatusIcon
+var stage_panel: PanelContainer
+var roller: DiceRoll3D ## Rolagem 3D em andamento (por cima do palco).
 
 
 func setup(r: RunState) -> DuelScreen:
@@ -82,6 +84,7 @@ func setup(r: RunState) -> DuelScreen:
 	_sync_shown()
 	_feed_events(duel.turn_events)
 	_start_player_phase()
+	_intro_roll.call_deferred()
 	return self
 
 
@@ -208,6 +211,7 @@ func _build_stage() -> VBoxContainer:
 	stage.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	stage.add_theme_stylebox_override("panel", Kit.box(Color(0.098, 0.086, 0.125), 18, 10))
 	col.add_child(stage)
+	stage_panel = stage
 
 	var p := duel.player
 	player_grid = FitGrid.new().setup(CARD, 10)
@@ -489,23 +493,69 @@ func _fill_tray(values: Array, elements: Array, interactive: bool) -> void:
 		tray_views.append(v)
 
 
-## Rolagem: as faces trocam rápido antes de parar no valor sorteado.
-func _roll_tray() -> void:
-	if fast or skip:
+## Rolagem 3D por cima do palco: os buracos da coluna ficam vazios enquanto os dados
+## rolam e se enchem quando param. ev: o evento "hand" (valores, elementos, faces...).
+func _roll_tray(ev: Dictionary) -> void:
+	if fast or skip or not is_inside_tree() or stage_panel == null:
 		return
-	var final := []
-	for v in tray_views:
-		final.append(v.value)
-	for step in 6:
-		for v in tray_views:
-			v.value = randi_range(1, 6)
-			v.queue_redraw()
-		await _wait(0.06)
-		if skip:
-			break
-	for k in tray_views.size():
-		tray_views[k].value = final[k]
-		tray_views[k].queue_redraw()
+	var dice := []
+	var vals: Array = ev.get("values", [])
+	for k in vals.size():
+		dice.append({
+			"value": int(vals[k]),
+			"element": _at(ev.get("elements", []), k, ""),
+			"faces": _at(ev.get("faces", []), k, []),
+			"face": int(_at(ev.get("face", []), k, 0)),
+			"fixed": bool(_at(ev.get("fixed", []), k, false)),
+		})
+	for v: Hole in tray_views:
+		v.has_die = false
+		v.queue_redraw()
+	var r := Rect2(stage_panel.global_position - fx_layer.global_position, stage_panel.size)
+	roller = DiceRoll3D.new().setup(r.size)
+	roller.position = r.position
+	fx_layer.add_child(roller)
+	roller.skip_check = func() -> bool: return skip
+	await roller.roll(dice)
+	var fade := roller.create_tween()
+	fade.tween_property(roller, "modulate:a", 0.0, 0.18)
+	fade.tween_callback(roller.queue_free)
+	roller = null
+	for v: Hole in tray_views:
+		v.has_die = true
+		v.queue_redraw()
+		if not skip:
+			v.pivot_offset = v.size / 2.0
+			var tw := v.create_tween()
+			v.scale = Vector2(0.6, 0.6)
+			tw.tween_property(v, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+static func _at(a: Array, k: int, def: Variant) -> Variant:
+	return a[k] if k < a.size() else def
+
+
+## Primeira mão da luta: rola em 3D ao abrir a tela (tocar pula).
+func _intro_roll() -> void:
+	if fast or not is_inside_tree() or phase != "player":
+		return
+	# Espera o primeiro layout (o palco precisa ter tamanho).
+	await get_tree().process_frame
+	if fast or not is_inside_tree() or phase != "player":
+		return
+	phase = "resolve"
+	end_btn.disabled = true
+	catcher.visible = true
+	skip = false
+	var ev := Resolver.hand_dice(duel.player)
+	ev["values"] = duel.player.hand_values()
+	await _roll_tray(ev)
+	if not is_inside_tree():
+		return
+	skip = false
+	catcher.visible = false
+	end_btn.disabled = false
+	phase = "player"
 
 
 ## Tamanho na tela (com a escala do palco ou da coluna).
@@ -759,7 +809,7 @@ func _apply_event(ev: Dictionary) -> void:
 			if s == "enemy":
 				hint.text = Texts.t("ui.enemy_rolling")
 			_fill_tray(ev["values"], ev.get("elements", []), s == "player")
-			await _roll_tray()
+			await _roll_tray(ev)
 		"cast":
 			var cc := _card_of(cards if s == "player" else enemy_cards, int(ev.item))
 			if cc and cc.shown_used != null:

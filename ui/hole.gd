@@ -92,15 +92,6 @@ func _draw() -> void:
 	if raised:
 		d.position.y -= s * 0.14
 		draw_style_box(_sb(Color(0, 0, 0, 0.45), rad), Rect2(d.position + Vector2(0, s * 0.12), d.size))
-	var col: Color = Elements.COLORS.get(element, Elements.COLORS[""])
-	if faded:
-		col = col.darkened(0.6)
-	draw_style_box(_sb(col, int(rad * 0.85)), d)
+	DieFace.draw(self, d, value, element, 0.6 if faded else 0.0)
 	if raised:
 		draw_style_box(_sb(Color.TRANSPARENT, int(rad * 0.85) + 2, 4, Kit.ACCENT), d.grow(3))
-	var dark := Color(0.1, 0.09, 0.12)
-	var txt := str(value)
-	var fs2 := int(d.size.x * (0.56 if txt.length() <= 2 else 0.4))
-	draw_string(font, d.position + Vector2(0, d.size.y * 0.5 + fs2 * 0.36), txt, HORIZONTAL_ALIGNMENT_CENTER, d.size.x, fs2, dark)
-	if element != "":
-		draw_string(font, d.position + Vector2(d.size.x * 0.08, d.size.y * 0.25), element, HORIZONTAL_ALIGNMENT_LEFT, -1, maxi(10, int(d.size.x * 0.2)), dark)
