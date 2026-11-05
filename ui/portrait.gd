@@ -4,6 +4,8 @@ extends Control
 
 const COLORS := {
 	"sorcerer": Color(0.45, 0.4, 0.85), "assassin": Color(0.75, 0.3, 0.35),
+	"minimalist": Color(0.85, 0.85, 0.9), "metallurgist": Color(0.5, 0.52, 0.58), "copyist": Color(0.75, 0.6, 0.3),
+	"perfectionist": Color(0.35, 0.7, 0.65), "vampire": Color(0.6, 0.12, 0.2), "barbarian": Color(0.75, 0.45, 0.2),
 }
 
 var archetype := "sorcerer"

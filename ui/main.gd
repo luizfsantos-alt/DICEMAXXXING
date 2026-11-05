@@ -29,11 +29,11 @@ func show_menu() -> void:
 	_swap(m)
 
 
-func _on_new_run() -> void:
+func _on_new_run(char_id: String) -> void:
 	SaveGame.clear()
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
-	run = RunState.new_run(rng.randi())
+	run = RunState.new_run(rng.randi(), char_id)
 	SaveGame.save(run)
 	show_phase()
 

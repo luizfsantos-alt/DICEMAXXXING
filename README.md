@@ -5,8 +5,9 @@ Tela em paisagem.
 
 - Regras: [`docs/SPEC_v3.md`](docs/SPEC_v3.md) (v3, fonte da verdade). A fatia vertical (seção 12) está implementada.
 - Magias: [`docs/CATALOGO_MAGIAS.md`](docs/CATALOGO_MAGIAS.md) (catálogo único e princípios de design). Propostas anteriores, com o feedback, em `docs/MAGIAS_DICE_FUCKERY.md` e `docs/MAGIAS_FISICAS.md`.
-- Personagens novos (proposta): [`docs/PERSONAGENS.md`](docs/PERSONAGENS.md).
-- Raridade de magias e dados (proposta): [`docs/RARIDADE.md`](docs/RARIDADE.md).
+- Personagens: [`docs/PERSONAGENS.md`](docs/PERSONAGENS.md). Jogáveis: Minimalista, Vampiro e Bárbaro.
+- Raridade de magias e dados: [`docs/RARIDADE.md`](docs/RARIDADE.md).
+- Ideias futuras: [`docs/ROADMAP.md`](docs/ROADMAP.md) (ex.: builds vencedoras viram inimigos).
 - Histórico: [`docs/SPEC.md`](docs/SPEC.md) (v2, coliseu com equipamentos; substituída).
 - Motor de regras (sem cenas, testável): `engine/`.
 - Interface (placeholders, paisagem): `ui/`. A tela de duelo anima os eventos do motor.
@@ -20,7 +21,7 @@ Tela em paisagem.
 godot --headless --import
 godot --headless -s addons/gut/gut_cmdln.gd -gexit                 # testes
 godot --headless -s res://sim/check.gd                              # scripts sem erro
-godot --headless -s res://sim/simulate.gd -- --runs=1000 --door=normal   # simulação
+godot --headless -s res://sim/simulate.gd -- --runs=1000 --door=normal --char=all --spells   # simulação
 ```
 
 ## APK

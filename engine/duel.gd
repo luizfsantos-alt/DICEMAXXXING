@@ -20,6 +20,8 @@ func setup(p: Fighter, e: Fighter, duel_seed: int) -> void:
 		f.reset_fight_state()
 	rng.seed = duel_seed
 	turn_events = []
+	Resolver.inspire(p, e, rng, turn_events)
+	Resolver.inspire(e, p, rng, turn_events)
 	_begin_player_turn(turn_events)
 
 
@@ -44,7 +46,7 @@ func submit(choice: TurnChoice) -> Dictionary:
 	var hp_e := enemy.hp
 	var used := Resolver.cast_all(player, enemy, choice, ev, rng)
 	dealt += maxi(0, hp_e - enemy.hp)
-	Resolver.end_turn(player, used, ev)
+	Resolver.end_turn(player, used, ev, choice.keep)
 	var rep := {"events": ev, "enemy_choice": {}, "enemy_hand": []}
 	if _check(ev) or _limit(ev):
 		return rep
@@ -60,7 +62,7 @@ func submit(choice: TurnChoice) -> Dictionary:
 		var ec := EnemyAI.choose(enemy, player, rng)
 		rep.enemy_choice = ec.to_dict()
 		var eu := Resolver.cast_all(enemy, player, ec, ev, rng)
-		Resolver.end_turn(enemy, eu, ev)
+		Resolver.end_turn(enemy, eu, ev, ec.keep)
 	taken += maxi(0, hp_p - player.hp)
 	if _check(ev) or _limit(ev):
 		return rep

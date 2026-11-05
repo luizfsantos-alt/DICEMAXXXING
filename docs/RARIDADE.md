@@ -1,6 +1,6 @@
 # Raridade de magias e dados (proposta)
 
-> **Status: proposta, rodada 2.** Classes aprovadas (rodada 1). Cada magia e cada dado com elemento recebe uma **classe de raridade**. A classe controla a **chance de aparecer** nas ofertas, o **preço** e **a partir de quando os inimigos podem ter**. O efeito da magia não muda com a raridade. Números *(iniciais)*, a passar pelo simulador. Inclui as magias e o Amianto propostos em `docs/PERSONAGENS.md`.
+> **Status: implementado.** Classes aprovadas (rodada 1). Código: `engine/shop.gd` (sorteio e preços), `engine/spells.gd` e `engine/elements.gd` (classe de cada item), `engine/enemy_factory.gd` (compras dos inimigos). O simulador mostra, por magia, ofertas, escolhas e vitórias com `--spells`. Cada magia e cada dado com elemento recebe uma **classe de raridade**. A classe controla a **chance de aparecer** nas ofertas, o **preço** e **a partir de quando os inimigos podem ter**. O efeito da magia não muda com a raridade. Números *(iniciais)*, a passar pelo simulador. Inclui as magias e o Amianto propostos em `docs/PERSONAGENS.md`.
 
 ---
 

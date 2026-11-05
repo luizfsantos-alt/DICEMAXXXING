@@ -5,14 +5,24 @@ extends RefCounted
 
 var width: int = 4
 var height: int = 3
-var items: Array = [] ## [{id, level, x, y, rot}]
+var items: Array = [] ## [{id, level, x, y, rot, temp?}]; temp: cópia que some no fim da luta.
+var blocked: Array = [] ## Casas que não existem (Vector2i), ex.: o meio da Moldura.
 
 
-static func make(w: int, h: int) -> Inventory:
+static func make(w: int, h: int, holes: Array = []) -> Inventory:
 	var inv := Inventory.new()
 	inv.width = w
 	inv.height = h
+	inv.blocked = holes.duplicate()
 	return inv
+
+
+func is_cell(c: Vector2i) -> bool:
+	return c.x >= 0 and c.y >= 0 and c.x < width and c.y < height and not (c in blocked)
+
+
+func cell_count() -> int:
+	return width * height - blocked.size()
 
 
 func cells_of(it: Dictionary) -> Array:
@@ -37,7 +47,7 @@ func can_place(id: String, rot: int, x: int, y: int, ignore: int = -1) -> bool:
 	var occ := occupied(ignore)
 	for c in Spells.shape(id, rot):
 		var p: Vector2i = Vector2i(x, y) + c
-		if p.x < 0 or p.y < 0 or p.x >= width or p.y >= height or occ.has(p):
+		if not is_cell(p) or occ.has(p):
 			return false
 	return true
 
@@ -80,14 +90,14 @@ func add(id: String, level: int = 1) -> bool:
 func _repack(id: String) -> Array:
 	var ids_all := ids()
 	ids_all.append(id)
-	var free := width * height
+	var free := cell_count()
 	for x in ids_all:
 		free -= Spells.shape(x).size()
 	if free < 0:
 		return []
 	var order_idx := range(ids_all.size())
 	order_idx.sort_custom(func(a, b): return Spells.shape(ids_all[a]).size() > Spells.shape(ids_all[b]).size())
-	var tmp := Inventory.make(width, height)
+	var tmp := Inventory.make(width, height, blocked)
 	var placed := {}
 	_steps = 0
 	if not _place_rec(tmp, ids_all, order_idx, 0, placed):
@@ -169,11 +179,30 @@ func copy() -> Inventory:
 
 
 func to_dict() -> Dictionary:
-	return {"width": width, "height": height, "items": items.duplicate(true)}
+	var bl := []
+	for c in blocked:
+		bl.append([c.x, c.y])
+	return {"width": width, "height": height, "blocked": bl, "items": items.duplicate(true)}
 
 
 static func from_dict(d: Dictionary) -> Inventory:
-	var inv := Inventory.make(int(d.get("width", 4)), int(d.get("height", 3)))
+	var holes := []
+	for c in d.get("blocked", []):
+		holes.append(Vector2i(int(c[0]), int(c[1])))
+	var inv := Inventory.make(int(d.get("width", 4)), int(d.get("height", 3)), holes)
 	for it in d.get("items", []):
-		inv.items.append({"id": str(it.id), "level": int(it.level), "x": int(it.x), "y": int(it.y), "rot": int(it.rot)})
+		var x := {"id": str(it.id), "level": int(it.level), "x": int(it.x), "y": int(it.y), "rot": int(it.rot)}
+		if bool(it.get("temp", false)):
+			x.temp = true
+		inv.items.append(x)
 	return inv
+
+
+## Tira as cópias temporárias (Copista). Elas ficam sempre no fim da lista.
+func drop_temp() -> void:
+	items = items.filter(func(it): return not bool(it.get("temp", false)))
+
+
+## +1 coluna (recompensa do Mestre de Andar).
+func grow() -> void:
+	width += 1

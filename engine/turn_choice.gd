@@ -10,6 +10,7 @@ extends RefCounted
 
 var casts: Dictionary = {} ## item -> Array de índices da mão
 var spawned: Dictionary = {} ## item -> índices da mão dos dados devolvidos
+var keep: Array = [] ## Perfeccionista: sobras a guardar para a próxima mão (até 2).
 
 
 static func make(c: Dictionary = {}) -> TurnChoice:
@@ -140,6 +141,11 @@ func validate(f: Fighter) -> String:
 			if h < 0 or h >= f.hand.size() or seen.has(h):
 				return "dado inválido"
 			seen[h] = true
+	if keep.size() > Characters.KEEP_MAX:
+		return "dados guardados demais"
+	for h in keep:
+		if f.archetype != "perfectionist" or h < 0 or h >= f.hand.size() or seen.has(h):
+			return "dado guardado inválido"
 	return ""
 
 
@@ -147,8 +153,14 @@ func to_dict() -> Dictionary:
 	var d := {}
 	for k in casts:
 		d[str(k)] = casts[k]
+	if not keep.is_empty():
+		d["keep"] = keep
 	return d
 
 
 static func from_dict(d: Dictionary) -> TurnChoice:
-	return TurnChoice.make(d)
+	var c := d.duplicate()
+	c.erase("keep")
+	var t := TurnChoice.make(c)
+	t.keep = Die._ints(d.get("keep", []))
+	return t

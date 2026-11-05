@@ -129,7 +129,7 @@ func test_kit_inicial_sem_defesa():
 	run.choose(0) ## Erudito
 	assert_eq(run.hero.inventory.items.size(), 3, "Feiticeiro: 2 + a escolha do Erudito")
 	assert_false("escudo" in run.hero.inventory.ids())
-	assert_true("escudo" in Shop.spell_pool(run.hero), "Escudo segue nas ofertas")
+	assert_true("escudo" in Spells.ids_of_rarity("common"), "Escudo segue nas ofertas (Comum)")
 
 
 func test_adicionar_reorganiza_quando_preciso():

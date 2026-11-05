@@ -1,6 +1,6 @@
 # Personagens novos (proposta)
 
-> **Status: proposta, rodada 6.** São 6 arquétipos novos (os 5 da proposta mais o Bárbaro), além do Feiticeiro e do Assassino, que continuam, jogáveis e usados pelos inimigos, no padrão de `docs/SPEC_v3.md` §3: **formato do inventário**, **uma passiva**, vida, mão, bolsa inicial e magias iniciais. Seguem o tom de `docs/TOM.md` e os princípios de `docs/CATALOGO_MAGIAS.md` §1. Números *(iniciais)*, a passar pelo simulador.
+> **Status: implementado** (rodada 6 aprovada). **Jogáveis: Minimalista, Vampiro e Bárbaro**; os outros aparecem como inimigos. Decisões de implementação e números do simulador na seção 8. São 6 arquétipos novos (os 5 da proposta mais o Bárbaro), além do Feiticeiro e do Assassino, que continuam, jogáveis e usados pelos inimigos, no padrão de `docs/SPEC_v3.md` §3: **formato do inventário**, **uma passiva**, vida, mão, bolsa inicial e magias iniciais. Seguem o tom de `docs/TOM.md` e os princípios de `docs/CATALOGO_MAGIAS.md` §1. Números *(iniciais)*, a passar pelo simulador.
 
 ---
 
@@ -304,3 +304,38 @@ Elementos novos (Hélio, Vidro, Ferro, Ouro… da `SPEC_v3.md` §4.1) ficam para
 | Vida dos personagens | 60 a 110: o simulador deve dizer se a ordem (Vampiro e Minimalista mais frágeis, Metalurgista e Bárbaro mais resistentes) faz sentido. |
 | Escolha de personagem | Todos liberados desde o começo (a SPEC não tem meta-progressão no protótipo). |
 | Nomes | Minimalista, Metalurgista, Copista e Perfeccionista servem para qualquer gênero (TOM §5). "Vampiro" e "Bárbaro" não: manter assim? |
+
+---
+
+## 8. Implementação
+
+Código: `engine/characters.gd` (kits e passivas), `engine/resolver.gd` (Fúria, Sede, Amianto, Fundidor, Copista, dados guardados), `engine/fighter.gd` (Ósmio em toda mão, Peso Morto), `engine/shop.gd` (ofertas dos passivos e raridade). Testes em `tests/test_personagens.gd`.
+
+### 8.1 Decisões tomadas na implementação (revisar depois de jogar)
+
+- **Jogáveis:** Minimalista, Vampiro e Bárbaro, os 3 com passiva automática (nenhuma interação nova na tela). Para liberar outro, basta incluir o id em `Characters.PLAYABLE`; o Perfeccionista ainda precisa da tela para escolher os dados guardados.
+- **Inimigos:** o arquétipo é sorteado entre os 8, com a mesma chance. Variantes (20%): Lixeiro (Assassino), Piromante (Feiticeiro), Fundidor (Metalurgista) e Monge do Silêncio (Minimalista, a partir do andar 5).
+- **Fúria:** calculada em cada golpe, com a vida daquele momento.
+- **Sede:** o limite de 5 volta a zero em cada luta e na parada de Cura.
+- **Peso Morto:** os dados puxados também podem puxar (um Chumbo puxado que sai com 1 puxa outro).
+- **Copista:** os dois lados copiam no começo da luta (o jogador primeiro). Só copia peças originais, nunca a cópia do outro. A cópia aparece no cartão com a etiqueta CÓPIA.
+- **Perfeccionista:** os dados guardados e a marca das magias somam no máximo 2. A IA guarda os dois valores mais repetidos.
+- **Fundidor:** troca o dado comum mais forte (maior soma de faces).
+- **Elementos:** "tocar e segurar" virou **tocar**: o dado selecionado mostra o elemento e o efeito. A lista da bolsa mostra o efeito escrito em cada linha.
+
+### 8.2 Simulador
+
+`--char=all`, 300 jornadas por porta, bot com a IA cautelosa. Porcentagem que vence o andar 10:
+
+| Personagem | Fácil | Normal | Difícil |
+|---|---|---|---|
+| Bárbaro | 21% | 18% | 4% |
+| Feiticeiro | 19% | 15% | 3% |
+| Metalurgista | 14% | 11% | 1% |
+| Minimalista | 10% | 7% | 1% |
+| Vampiro | 7% | 6% | 1% |
+| Copista | 2% | 1% | 0% |
+| Perfeccionista | 1% | 1% | 0% |
+| Assassino | 0% | 0% | 0% |
+
+O bot não sabe usar bem o espaço livre do Copista nem o trio do Perfeccionista, então esses números subestimam os dois. O Vampiro é o mais fraco dos jogáveis; o Bárbaro, o mais forte.

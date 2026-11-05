@@ -48,7 +48,7 @@ func refresh() -> void:
 	hud.text = Texts.t("ui.hud", {"n": run.floor_n, "max": Config.LAST_FLOOR, "coins": run.coins, "hp": h.hp, "maxhp": h.max_hp})
 	title.text = Texts.t({
 		"start_pick": "ui.pick_start", "doors": "ui.pick_door", "reward": "ui.pick_reward",
-		"rest": "ui.pick_rest", "shop": "stops.shop.0", "school": "stops.school.0", "well": "stops.well.0",
+		"master_reward": "ui.pick_master", "master_rare": "ui.pick_master_rare", "rest": "ui.pick_rest", "shop": "stops.shop.0", "school": "stops.school.0", "well": "stops.well.0",
 	}.get(run.phase, "ui.title"))
 	Kit.clear(cards)
 	for i in run.options.size():
@@ -59,7 +59,7 @@ func refresh() -> void:
 		for k in h.inventory.items.size():
 			var it: Dictionary = h.inventory.items[k]
 			var idx := k
-			var b := Kit.button(Texts.t("ui.sell", {"name": Texts.spell_name(it.id), "n": Spells.sell_price(int(it.level))}),
+			var b := Kit.button(Texts.t("ui.sell", {"name": Texts.spell_name(it.id), "n": Spells.sell_price(str(it.id), int(it.level))}),
 				func(): _sell(idx), Kit.PANEL, 18)
 			b.custom_minimum_size = Vector2(0, 48)
 			sell_row.add_child(b)
@@ -70,6 +70,8 @@ func refresh() -> void:
 		_bottom_btn(Texts.t("ui.skip_reward", {"n": Config.SKIP_REWARD_COINS}), _leave)
 	elif run.phase in ["shop", "well", "school"]:
 		_bottom_btn(Texts.t("ui.leave"), _leave)
+	elif run.phase == "master_rare":
+		_bottom_btn(Texts.t("ui.cancel"), _leave)
 
 
 func _bottom_btn(t: String, cb: Callable) -> void:
@@ -89,13 +91,19 @@ func _card(i: int, o: Dictionary) -> Control:
 	if o.kind == "door":
 		col = {"facil": Color(0.2, 0.35, 0.25), "normal": Color(0.25, 0.25, 0.35), "dificil": Color(0.4, 0.22, 0.2),
 			"insana": Color(0.45, 0.12, 0.3), "mestre": Color(0.45, 0.35, 0.1)}.get(o.id, col)
+	var rar := offer_rarity(o)
 	for st in ["normal", "hover", "pressed", "disabled"]:
 		var c2: Color = col
 		if st == "hover":
 			c2 = col.lightened(0.12)
 		elif st == "disabled":
 			c2 = col.darkened(0.5)
-		b.add_theme_stylebox_override(st, Kit.box(c2, 16, 14))
+		var sb := Kit.box(c2, 16, 14)
+		if rar != "":
+			# Borda na cor da raridade (docs/RARIDADE.md §2).
+			sb.set_border_width_all(4)
+			sb.border_color = Kit.RARITY_COLORS[rar]
+		b.add_theme_stylebox_override(st, sb)
 	var v := Kit.vbox(8)
 	v.set_anchors_preset(Control.PRESET_FULL_RECT)
 	v.offset_left = 14
@@ -107,6 +115,10 @@ func _card(i: int, o: Dictionary) -> Control:
 	var t := Kit.label(lines[0], 26, Kit.TEXT, true)
 	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(t)
+	if rar != "":
+		var rl := Kit.label(Texts.t("rarity." + rar), 16, Kit.RARITY_COLORS[rar])
+		rl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		v.add_child(rl)
 	var d := Kit.label(lines[1], 18, Kit.MUTED, true)
 	d.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	d.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -122,6 +134,16 @@ func _card(i: int, o: Dictionary) -> Control:
 		b.disabled = true
 	b.pressed.connect(func(): _pick(i))
 	return b
+
+
+## Raridade da magia ou do elemento oferecido ("" se não tem).
+static func offer_rarity(o: Dictionary) -> String:
+	match str(o.kind):
+		"spell", "evolve":
+			return Spells.rarity(o.id)
+		"die", "element":
+			return Elements.rarity(o.id) if o.id != "" else ""
+	return ""
 
 
 func _describe(o: Dictionary) -> Array:
@@ -141,6 +163,12 @@ func _describe(o: Dictionary) -> Array:
 		"evolve":
 			var lvl := int(run.hero.inventory.items[int(o.item)].level) + 1
 			return [Texts.t("offers.evolve", {"name": Texts.spell_name(o.id), "lvl": lvl}), Texts.spell_desc(o.id)]
+		"slots":
+			return [Texts.t("offers.slots"), Texts.t("offers.slots_desc")]
+		"hand":
+			return [Texts.t("offers.hand"), Texts.t("offers.hand_desc", {"n": run.hero.hand_size + 1})]
+		"rare_pick":
+			return [Texts.t("offers.rare_pick"), Texts.t("offers.rare_pick_desc")]
 	return [Texts.t("offers." + o.kind), ""]
 
 

@@ -253,8 +253,13 @@ func _status(f: Fighter) -> String:
 		p.append(Texts.t("ui.riposte", {"n": f.riposte}))
 	if f.immune > 0:
 		p.append(Texts.t("ui.immune"))
-	if not f.marked.is_empty():
+	if not f.marked.is_empty() or not f.keeps.is_empty():
 		p.append(Texts.t("ui.marked"))
+	var fury := Characters.fury(f)
+	if fury > 0:
+		p.append(Texts.t("ui.fury", {"n": fury}))
+	if f.archetype == "vampire" and f.thirst_used > 0:
+		p.append(Texts.t("ui.thirst", {"n": f.thirst_used, "max": Characters.THIRST_CAP}))
 	for m in f.hand_mods:
 		p.append(Texts.t("ui.next_hand", {"mod": Texts.t("ui.mod_" + str(m))}))
 	return " · ".join(p)
@@ -398,6 +403,10 @@ func _refresh_tray() -> void:
 		return
 	if selected >= 0:
 		info.text = Texts.t("ui.die_selected", {"v": sel})
+		var sd := p.die_of(p.hand[selected])
+		if sd and sd.element != "":
+			# Tocar no dado explica o elemento.
+			info.text += "  ·  %s: %s" % [Texts.element_name(sd.element), Texts.element_desc(sd.element)]
 		info.add_theme_color_override("font_color", Kit.ACCENT)
 	elif not used.is_empty():
 		var parts := []
@@ -618,6 +627,24 @@ func _apply_event(ev: Dictionary) -> void:
 			var hit_txt := "−%d" % int(ev.dmg) if int(ev.dmg) > 0 else Texts.t("ui.fx_absorb", {"n": ev.absorbed})
 			_float(s, hit_txt, Kit.DANGER)
 			_note(s, hit_txt)
+		"asbestos":
+			v.hp -= int(ev.n)
+			_float(s, Texts.t("ui.fx_asbestos", {"n": ev.n}), Elements.COLORS.Am)
+			_note(s, Texts.t("ui.fx_asbestos", {"n": ev.n}))
+		"element":
+			_float(s, Texts.t("ui.fx_el_" + str(ev.el), {"v": ev.v}), Elements.COLORS.get(str(ev.el), Kit.TEXT))
+		"burn_up":
+			if str(ev.get("src", "")) == "Na":
+				_float(s, Texts.t("ui.fx_el_Na", {"n": ev.n}), Elements.COLORS.Na)
+		"poison_up":
+			_float(s, Texts.t("ui.fx_el_U", {"n": ev.n}), Elements.COLORS.U)
+		"dead_weight":
+			_float(s, Texts.t("ui.fx_dead_weight", {"n": ev.n}), Elements.COLORS.Pb)
+		"copy":
+			if str(ev.spell) != "":
+				_float(s, Texts.t("ui.fx_copy", {"name": Texts.spell_name(ev.spell)}), Kit.ACCENT)
+		"lead_convert":
+			_float(s, Texts.t("ui.fx_lead"), Elements.COLORS.Pb)
 		"poison", "burn", "idle_dmg":
 			v.hp -= int(ev.n)
 			_float(s, "−%d" % int(ev.n), Color(0.6, 0.9, 0.3) if ev.t == "poison" else Color(1.0, 0.6, 0.2))
@@ -639,7 +666,7 @@ func _apply_event(ev: Dictionary) -> void:
 		"maxhp":
 			v.max += int(ev.n)
 			v.hp += int(ev.n)
-			_float(s, Texts.t("ui.fx_maxhp", {"n": ev.n}), Kit.OK)
+			_float(s, Texts.t("ui.fx_thirst" if ev.get("thirst", false) else "ui.fx_maxhp", {"n": ev.n}), Kit.OK)
 		"dodged":
 			_float(s, Texts.t("ui.fx_dodged"), Kit.SHIELD)
 			_note(s, Texts.t("ui.fx_dodged"))
@@ -724,7 +751,7 @@ func _describe(ev: Dictionary) -> String:
 		"heal":
 			return Texts.t("ev.heal", {"who": w, "n": ev.n})
 		"maxhp":
-			return Texts.t("ev.maxhp", {"who": w, "n": ev.n})
+			return Texts.t("ev.thirst" if ev.get("thirst", false) else "ev.maxhp", {"who": w, "n": ev.n})
 		"poison":
 			return Texts.t("ev.poison", {"who": w, "n": ev.n})
 		"burn":
@@ -732,6 +759,8 @@ func _describe(ev: Dictionary) -> String:
 		"poison_up":
 			return Texts.t("ev.poison_up", {"who": w, "n": ev.n})
 		"burn_up":
+			if str(ev.get("src", "")) == "Na":
+				return Texts.t("ev.burn_up_na", {"who": w, "n": ev.n})
 			return Texts.t("ev.burn_up", {"who": w, "n": ev.n})
 		"dodge_up":
 			return Texts.t("ev.dodge_up", {"who": w})
@@ -775,6 +804,20 @@ func _describe(ev: Dictionary) -> String:
 			return Texts.t("ev.lead_hand")
 		"lead_bag":
 			return Texts.t("ev.lead_bag")
+		"lead_convert":
+			return Texts.t("ev.lead_convert")
+		"asbestos":
+			return Texts.t("ev.asbestos", {"who": w, "n": ev.n})
+		"element":
+			return Texts.t("ev.el_" + str(ev.el), {"who": w, "v": ev.v})
+		"dead_weight":
+			return Texts.t("ev.dead_weight", {"who": w, "n": ev.n})
+		"copy":
+			if str(ev.spell) == "":
+				return Texts.t("ev.copy_none", {"who": w})
+			return Texts.t("ev.copy", {"who": w, "name": Texts.spell_name(ev.spell)})
+		"keep":
+			return Texts.t("ev.keep", {"who": w, "n": ev.n})
 		"turn_limit":
 			return Texts.t("ui.fx_turn_limit")
 	return ""

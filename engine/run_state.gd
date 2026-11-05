@@ -2,8 +2,8 @@ class_name RunState
 extends RefCounted
 ## Uma jornada na torre (docs/SPEC_v3.md §2). A vida do herói persiste entre as lutas.
 ##
-## Fases: start_pick (Erudito), doors, duel, reward, rest, shop, school, well,
-## victory, defeat. As fases de escolha usam `options` e `choose()`.
+## Fases: start_pick (Erudito), doors, duel, reward, master_reward, master_rare, rest,
+## shop, school, well, victory, defeat. As fases de escolha usam `options` e `choose()`.
 
 var character: String = "sorcerer"
 var hero: Fighter
@@ -24,12 +24,10 @@ var last_reward: int = 0
 static func new_run(run_seed: int, char_id := "sorcerer") -> RunState:
 	var r := RunState.new()
 	r.rng.seed = run_seed
-	r.character = char_id
-	r.hero = EnemyFactory.base(char_id)
+	r.character = char_id if Characters.DATA.has(char_id) else "sorcerer"
+	r.hero = EnemyFactory.base(r.character)
 	r.hero.name = Texts.t("ui.you")
 	r.hero.is_player = true
-	r.hero.max_hp = Config.SORCERER_HP if char_id == "sorcerer" else Config.ASSASSIN_HP
-	r.hero.hp = r.hero.max_hp
 	if char_id == "sorcerer":
 		r.phase = "start_pick"
 		var pool := Spells.ERUDITE_CHOICES.duplicate()
@@ -78,6 +76,11 @@ func choose(i: int, target: Dictionary = {}) -> String:
 			return ""
 		"rest":
 			return _enter_stop(o.id)
+		"master_reward":
+			if o.kind == "rare_pick":
+				phase = "master_rare"
+				options = Shop.rare_choices(rng)
+				return ""
 	var err := Shop.check(o, hero, target)
 	if err != "":
 		return err
@@ -89,7 +92,7 @@ func choose(i: int, target: Dictionary = {}) -> String:
 	match phase:
 		"start_pick", "school":
 			_to_doors()
-		"reward":
+		"reward", "master_reward", "master_rare":
 			_advance()
 		"shop":
 			if o.kind == "maxhp":
@@ -105,7 +108,10 @@ func choose(i: int, target: Dictionary = {}) -> String:
 
 ## Sai da Loja, do Poço ou da Escola sem (mais) compras; pula a recompensa (+moedas).
 func leave() -> void:
-	if phase == "reward":
+	if phase == "master_rare":
+		phase = "master_reward"
+		options = Shop.master_reward()
+	elif phase == "reward":
 		coins += Config.SKIP_REWARD_COINS
 		stats.coins += Config.SKIP_REWARD_COINS
 		_advance()
@@ -117,24 +123,25 @@ func sell_spell(item: int) -> bool:
 	if phase != "shop" or item < 0 or item >= hero.inventory.items.size():
 		return false
 	var it: Dictionary = hero.inventory.remove(item)
-	coins += Spells.sell_price(int(it.level))
+	coins += Spells.sell_price(str(it.id), int(it.level))
 	return true
 
 
 func _enter_stop(id: String) -> String:
 	match id:
 		"heal":
-			hero.heal(int(ceil(hero.max_hp * Config.HEAL_STOP_FRACTION)))
+			hero.thirst_used = 0 ## A Sede do Vampiro também vale na parada de Cura.
+			hero.heal_full(int(ceil(hero.max_hp * Config.HEAL_STOP_FRACTION)))
 			_to_doors()
 		"shop":
 			phase = "shop"
-			options = Shop.shop(hero, rng, hp_bought)
+			options = Shop.shop(hero, rng, hp_bought, floor_n)
 		"school":
 			phase = "school"
-			options = Shop.school(hero, rng)
+			options = Shop.school(hero, rng, floor_n)
 		"well":
 			phase = "well"
-			options = Shop.well(rng)
+			options = Shop.well(rng, floor_n, hero)
 	return ""
 
 
@@ -163,8 +170,12 @@ func finish_duel() -> void:
 	if floor_n >= Config.LAST_FLOOR:
 		phase = "victory"
 		return
+	if is_master_floor():
+		phase = "master_reward"
+		options = Shop.master_reward()
+		return
 	phase = "reward"
-	options = Shop.reward(hero, rng)
+	options = Shop.reward(hero, rng, floor_n, door)
 
 
 func _advance() -> void:

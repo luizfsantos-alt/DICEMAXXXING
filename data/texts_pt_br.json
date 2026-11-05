@@ -253,6 +253,30 @@
   "concentrar": [
    "Concentrar Força",
    "Dois dados iguais. Bloqueio igual à soma; os dois se fundem num dado que entra na sua próxima mão valendo a soma."
+  ],
+  "dardo": [
+   "Dardo Arcano",
+   "Um dado par. Dano igual ao valor + 2."
+  ],
+  "obra": [
+   "Obra-Prima",
+   "Três dados iguais. Dano igual à soma ×2."
+  ],
+  "mordida": [
+   "Mordida",
+   "Dano igual ao valor; cura metade (arredonda para cima)."
+  ],
+  "banquete": [
+   "Banquete",
+   "Três dados. Dano igual à soma; cura o menor dos três."
+  ],
+  "machadada": [
+   "Machadada",
+   "Um dado ≥ 4. Dano igual ao valor ×2."
+  ],
+  "cerrar": [
+   "Cerrar os Dentes",
+   "Um dado ≤ 3. Cura igual ao valor ×3. 2× por luta."
   ]
  },
  "elements": {
@@ -262,7 +286,7 @@
   ],
   "Os": [
    "Ósmio",
-   "Âncora: sempre sai na primeira mão de cada luta."
+   "Âncora: sai em toda mão; não pode ser roubado nem arrancado."
   ],
   "U": [
    "Urânio",
@@ -278,7 +302,11 @@
   ],
   "Pb": [
    "Chumbo",
-   "Três faces são 1 fixo; as outras são baixas. Lixo posto pelo inimigo."
+   "Três faces são 1 fixo; as outras são baixas. Lixo posto pelo inimigo (o Metalurgista adora)."
+  ],
+  "Am": [
+   "Amianto",
+   "Fibroso: +3 em todas as faces (4 a 9). Ao ser usado, causa 3 de dano em você."
   ]
  },
  "masters": {
@@ -291,21 +319,67 @@
   "sorcerer": [
    "Feiticeiro",
    "Erudito",
-   "Começa com 1 magia extra, à escolha entre 3."
+   "Começa com 1 magia extra, à escolha entre 3.",
+   "Magias grandes e exigentes."
   ],
   "assassin": [
    "Assassino",
    "Ágil",
-   "Mão de 6 dados."
+   "Mão de 6 dados.",
+   "Técnicas finas que aceitam quase qualquer dado."
+  ],
+  "minimalist": [
+   "Minimalista",
+   "Voto de Pobreza",
+   "Destruir dado no Poço é grátis, e toda recompensa pós-luta tem a opção \"destruir 1 dado\".",
+   "\"Possuo cinco dados. Os outros possuem desculpas.\""
+  ],
+  "metallurgist": [
+   "Metalurgista",
+   "Peso Morto",
+   "Cada Chumbo que sai com 1 puxa mais um dado da bolsa. A Loja e o Poço vendem Chumbo para você.",
+   "\"Chumbo é só ouro que ainda não se esforçou.\""
+  ],
+  "copyist": [
+   "Copista",
+   "Inspiração",
+   "No início de cada luta, copia uma magia aleatória do inimigo que caiba nas suas casas livres, até o fim da luta.",
+   "\"Não é cópia. É homenagem, com melhorias.\""
+  ],
+  "perfectionist": [
+   "Perfeccionista",
+   "Ainda Não Está Bom",
+   "No fim do turno, até 2 dados que sobraram na mão ficam marcados. Você pode ter 2 marcas.",
+   "\"Ainda não está bom. Vai ficar.\""
+  ],
+  "vampire": [
+   "Vampiro",
+   "Sede",
+   "A cura que passaria da vida máxima vira vida máxima, para sempre (até 5 por luta). Queima causa o dobro de dano em você.",
+   "\"Não bebo sangue. Recebo homenagens.\""
+  ],
+  "barbarian": [
+   "Bárbaro",
+   "Fúria",
+   "Com metade da vida ou menos, toda magia de dano causa +1 por golpe para cada 10 de vida que você perdeu.",
+   "\"Li um livro uma vez. Depois bati em quem escreveu.\""
   ]
  },
  "archetypes": {
   "sorcerer": "Feiticeiro",
-  "assassin": "Assassino"
+  "assassin": "Assassino",
+  "minimalist": "Minimalista",
+  "metallurgist": "Metalurgista",
+  "copyist": "Copista",
+  "perfectionist": "Perfeccionista",
+  "vampire": "Vampiro",
+  "barbarian": "Bárbaro"
  },
  "variants": {
   "lixeiro": "Lixeiro: põe Chumbo na sua bolsa",
-  "piromante": "Piromante: dados de Sódio"
+  "piromante": "Piromante: dados de Sódio",
+  "fundidor": "Fundidor: no 1º turno, transforma 1 dado comum seu em Chumbo até o fim da luta",
+  "monge": "Monge do Silêncio: só 4 dados, todos Hidrogênio"
  },
  "doors": {
   "facil": "Fácil",
@@ -339,7 +413,13 @@
   "element": "Elemento: {name}",
   "destroy": "Destruir um dado",
   "maxhp": "+5 de vida máxima",
-  "evolve": "Evoluir {name} (nível {lvl})"
+  "evolve": "Evoluir {name} (nível {lvl})",
+  "slots": "+1 coluna no inventário",
+  "slots_desc": "Mais casas para magias, para sempre.",
+  "hand": "+1 dado na mão",
+  "hand_desc": "A sua mão passa a ter {n} dados.",
+  "rare_pick": "Magia Rara",
+  "rare_pick_desc": "Escolha uma entre 3 magias Raras."
  },
  "ui": {
   "title": "DICEMAXXING",
@@ -477,7 +557,23 @@
   "pv_mark": "volta na próxima mão",
   "fx_idle_dmg": "parado −{n}",
   "fx_riposte": "revide!",
-  "fx_immune": "imune!"
+  "fx_immune": "imune!",
+  "pick_master": "Mestre vencido: escolha uma recompensa",
+  "pick_master_rare": "Escolha uma magia Rara",
+  "pick_character": "Nova jornada: escolha o personagem",
+  "char_stats": "Vida {hp} · Mão {hand} · Bolsa {bag}",
+  "char_spells": "Magias: {list}",
+  "copy_tag": "CÓPIA",
+  "fury": "Fúria +{n}",
+  "thirst": "Sede {n}/{max}",
+  "fx_asbestos": "Amianto −{n}",
+  "fx_el_H": "Hidrogênio ×3 = {v}",
+  "fx_el_Hg": "Mercúrio copiou {v}",
+  "fx_el_Na": "Sódio: queima {n}",
+  "fx_el_U": "Urânio: veneno {n}",
+  "fx_dead_weight": "Peso Morto: +{n} dado(s)",
+  "fx_copy": "Copiou {name}",
+  "fx_thirst": "Sede: +{n} vida máx."
  },
  "ev": {
   "hand": "{who} rolou: {v}",
@@ -514,7 +610,17 @@
   "hand_mod_up": "Próxima mão de {who}: {mod}",
   "hand_mod": "{who}: {mod}",
   "recycled": "{who} transforma uma sobra em {n} de bloqueio",
-  "pierce": "(ignora defesas)"
+  "pierce": "(ignora defesas)",
+  "lead_convert": "O Fundidor transforma um dado seu em Chumbo (até o fim da luta)!",
+  "asbestos": "Amianto: {who} perde {n}",
+  "el_H": "Hidrogênio: {who} rola ×3 ({v})",
+  "el_Hg": "Mercúrio: {who} copia o valor {v}",
+  "dead_weight": "Peso Morto: {who} puxa mais {n} dado(s)",
+  "copy": "Inspiração: {who} copia {name} nesta luta",
+  "copy_none": "Inspiração: nada do outro cabe nas casas livres de {who}",
+  "keep": "{who} guarda {n} dado(s) para a próxima mão",
+  "burn_up_na": "Sódio: {who} pega fogo (+{n} de queima)",
+  "thirst": "Sede: {who} ganha +{n} de vida máxima"
  },
  "spell_fx": {
   "faisca": "Dano = valor",
@@ -555,6 +661,17 @@
   "armadura": "Bloqueio = produto ×2",
   "recuo": "Anula o próximo golpe; volta valendo 6",
   "presenca": "Bloqueio = 3 × dados na mão",
-  "concentrar": "Bloqueio = soma; funde num dado"
+  "concentrar": "Bloqueio = soma; funde num dado",
+  "dardo": "Par: dano = valor + 2",
+  "obra": "Trio: dano = soma ×2",
+  "mordida": "Dano = valor; cura metade",
+  "banquete": "Dano = soma; cura o menor",
+  "machadada": "Dano = valor ×2",
+  "cerrar": "Cura = valor ×3"
+ },
+ "rarity": {
+  "common": "Comum",
+  "uncommon": "Incomum",
+  "rare": "Rara"
  }
 }
