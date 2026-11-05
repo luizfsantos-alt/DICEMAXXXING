@@ -14,6 +14,15 @@ func _dmg(ev: Array, side: String) -> int:
 
 
 # ------------------------------------------------------------------ Kits
+func test_ferro_sempre_tira_3():
+	var d := Die.with_element("Fe")
+	for i in 6:
+		assert_eq(d.value(i), 3)
+	assert_eq(EnemyFactory.base("barbarian").bag.filter(func(x): return x.element == "Fe").size(), 2)
+	assert_false("Fe" in Elements.SHOP)
+	assert_eq(Texts.element_name("Fe"), "Ferro")
+
+
 func test_kits_de_todos_os_arquetipos():
 	for id in Characters.ALL:
 		var f := EnemyFactory.base(id)

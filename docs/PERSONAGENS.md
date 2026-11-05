@@ -93,7 +93,7 @@ Para comparar: o **Feiticeiro** tem 90 de vida, mão de 4 e causa uns **6 a 8 de
 | **Copista** | Grade **4×2** (8 casas) | **Inspiração**: no início de cada luta, uma magia aleatória do inimigo que caiba nas suas casas livres é copiada nelas, no mesmo nível, até o fim da luta. | 80 | 4 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
 | **Perfeccionista** | **Moldura 4×3** sem as 2 casas do meio (10 casas) | **Ainda Não Está Bom**: no fim do turno, até 2 dados que sobraram na mão ficam marcados. Você pode ter 2 marcas. | 80 | 4 | 7 comuns + 1 Ósmio | **Dardo Arcano** (nova), **Obra-Prima** (nova) |
 | **Vampiro** | **Caixão 2×4** (2 de largura, 4 de altura) | **Sede**: toda cura que você recebe também dá +1 de vida máxima, para sempre (até 3 por luta). Queima causa o dobro de dano em você. | **65** | 4 | 7 comuns + 1 Sódio | **Mordida** (nova), **Banquete** (nova) |
-| **Bárbaro** | Grade **3×3** (9 casas) | **Fúria**: com metade da vida ou menos, toda magia de dano causa +1 por golpe para cada 10 de vida que você perdeu. | **110** | 4 | 6 comuns + 2 **Amianto** (novo) | **Machadada** (nova), **Cerrar os Dentes** (nova) |
+| **Bárbaro** | Grade **3×3** (9 casas) | **Fúria**: com metade da vida ou menos, toda magia de dano causa +1 por golpe para cada 10 de vida que você perdeu. | **110** | 4 | 6 comuns + 2 **Ferro** (sempre 3) | **Machadada** (nova), **Cerrar os Dentes** (nova) |
 
 ### 1.1 Formatos
 
@@ -162,8 +162,8 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro   Bárbaro
 
 - **Plano:** muita vida (110) e a **Fúria**: ela **só liga com metade da vida ou menos**. Ligada, toda magia de dano causa **+1 por golpe para cada 10 de vida perdida** (vida máxima − vida atual, arredondando para baixo). Com 110 de vida máxima, ela acende em 55 com +5 de uma vez e chega a +9 com 20 de vida. A **Machadada** (nova) pede um dado ≥ 4 e causa dano = valor ×2. O **Cerrar os Dentes** (nova) pede um dado ≤ 3 e cura valor ×3 (2× por luta).
 - **A decisão:** curar tira Fúria. Cada Cerrar os Dentes, cada parada de Cura e cada compra de vida máxima é uma escolha entre ficar vivo e bater forte.
-- **Por que se vira:** a Machadada com o melhor dado alto: ~11 a 13 por turno com a vida acima da metade, ~18 a 22 com a Fúria ligada. Os 2 Amiantos (faces 4 a 9) quase sempre pagam a Machadada, mas cada um usado tira 3 de vida dele: é o caminho para a Fúria. A primeira metade da vida é o tempo de aquecer; a segunda é a fase perigosa, dos dois lados.
-- **Como cresce:** magias de vários golpes multiplicam a Fúria (Corte Duplo ímpar, Exibição de Velocidade, Bis!). Adesivos nos Amiantos para a Machadada (o dano a si mesmo não cresce).
+- **Por que se vira:** a Machadada com o melhor dado alto: ~11 a 13 por turno com a vida acima da metade, ~18 a 22 com a Fúria ligada. Os 2 Ferros (sempre 3) nunca pagam a Machadada, mas pagam o Cerrar os Dentes (cura 9): ele precisa dos dados comuns altos para bater. Antes eram 2 Amiantos, que pagavam a Machadada quase sempre e o deixaram forte demais com a mão de 4. A primeira metade da vida é o tempo de aquecer; a segunda é a fase perigosa, dos dois lados.
+- **Como cresce:** magias de vários golpes multiplicam a Fúria (Corte Duplo ímpar, Exibição de Velocidade, Bis!). Adesivo num Ferro vira um 6 garantido em 1 face; Amianto da Loja para a Machadada (com o dano a si mesmo).
 - **Inventário:** 3×3, quadrado. Cabe quase tudo, inclusive T e Cruz, mas tem só 9 casas.
 - **Ponto fraco:** o dano depende de já ter apanhado, e o começo da jornada (vida cheia) é a fase mais fraca dele. Um inimigo que bate muito forte de uma vez mata antes de a Fúria render. O Espelho do inimigo devolve a Machadada inteira, com a Fúria. A Chave de Braço (metade) derruba os dados ≥ 4.
 - **Combos do catálogo:** Exibição de Velocidade (3 golpes, +Fúria em cada), Corte Duplo, Remendo (cura de emergência), Sacrifício (+5 por magia, soma com a Fúria).
@@ -267,7 +267,7 @@ A sensação procede: **é raro ver um elemento, e quando aparece, a tela não e
 
 ### 5.3 Proposta
 
-1. **Todo personagem começa com elemento.** Minimalista (3 Hidrogênio), Metalurgista (3 Chumbo), Copista (1 Mercúrio), Perfeccionista (1 Ósmio), Vampiro (1 Sódio) e Bárbaro (2 Amianto), já nas fichas. Para os que continuam: **Feiticeiro, 1 Sódio** (combina com a Bola de Fogo); **Assassino, 1 Mercúrio** (a mão de 6 aproveita o maior valor).
+1. **Todo personagem começa com elemento.** Minimalista (3 Hidrogênio), Metalurgista (3 Chumbo), Copista (1 Mercúrio), Perfeccionista (1 Ósmio), Vampiro (1 Sódio) e Bárbaro (2 Ferro, que só tiram 3), já nas fichas. Para os que continuam: **Feiticeiro, 1 Sódio** (combina com a Bola de Fogo); **Assassino, 1 Mercúrio** (a mão de 5 aproveita o maior valor).
 2. **Dado oferecido sempre tem elemento.** Na recompensa e na loja, o "dado comum" sai. Preço na loja: 10 (igual a uma magia).
 3. **Todo inimigo tem pelo menos 1 elemento**, pelo arquétipo (os mesmos da lista acima), a partir do andar 1. Assim o jogador vê o efeito agindo contra ele.
 4. **Tocar e segurar um dado** (na mão, na bolsa ou na mão do inimigo) mostra o nome e o efeito do elemento. No lugar do tooltip.

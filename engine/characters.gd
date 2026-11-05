@@ -40,7 +40,7 @@ const DATA := {
 		"spells": [["mordida", 0, 0, 0, 1], ["banquete", 1, 0, 1, 1]],
 	},
 	"barbarian": {
-		"hp": 110, "grid": Vector2i(3, 3), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Am", "Am"],
+		"hp": 110, "grid": Vector2i(3, 3), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Fe", "Fe"],
 		"spells": [["machadada", 0, 0, 0, 1], ["cerrar", 1, 0, 0, 1]],
 	},
 }

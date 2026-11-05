@@ -3,9 +3,9 @@ extends RefCounted
 ## Elementos e substâncias (docs/SPEC_v3.md §4.1, docs/PERSONAGENS.md §3.2 e §5).
 ## Química é tempero: cada um tem um efeito de uma linha.
 
-const ALL := ["H", "Os", "U", "Na", "Hg", "Pb", "Am", "C"]
-const SHOP := ["H", "Os", "U", "Na", "Hg", "Am", "C"] ## Chumbo só vem dos inimigos (e do Metalurgista).
-## Raridade (docs/RARIDADE.md §4). O Chumbo fica fora: para o Metalurgista, conta como Comum.
+const ALL := ["H", "Os", "U", "Na", "Hg", "Pb", "Am", "C", "Fe"]
+const SHOP := ["H", "Os", "U", "Na", "Hg", "Am", "C"] ## Chumbo só vem dos inimigos (e do Metalurgista); Ferro, só do Bárbaro.
+## Raridade (docs/RARIDADE.md §4). Chumbo e Ferro ficam fora (não são sorteados): contam como Comum.
 const RARITY := {
 	"common": ["Na", "Am", "C"],
 	"uncommon": ["U", "Hg"],
@@ -21,6 +21,7 @@ const COLORS := {
 	"Pb": Color(0.42, 0.42, 0.48),
 	"Am": Color(0.85, 0.82, 0.62),
 	"C": Color(0.24, 0.23, 0.22), ## Grafite.
+	"Fe": Color(0.58, 0.45, 0.4), ## Ferro oxidado.
 }
 const SOLITARY_BAG := 6 ## Hidrogênio: ×3 com bolsa deste tamanho ou menor (a inicial tem 8).
 const SOLITARY_MULT := 3
@@ -42,6 +43,9 @@ static func apply(d: Die, el: String) -> void:
 			# Fibroso: +3 em todas as faces (4 a 9).
 			for i in 6:
 				d.faces[i] = int(d.faces[i]) + ASBESTOS_PLUS
+		"Fe":
+			# Maciço: sempre 3 (as faces podem ser editadas e receber adesivos).
+			d.faces = [3, 3, 3, 3, 3, 3]
 		"Pb":
 			d.faces = [1, 1, 1, 2, 2, 3]
 			d.stickers = [0, 0, 0, 0, 0, 0]

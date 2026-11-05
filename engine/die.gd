@@ -4,7 +4,7 @@ extends RefCounted
 ## e adesivos ×2 (docs/SPEC_v3.md §4).
 
 var faces: Array = [1, 2, 3, 4, 5, 6]
-var element: String = "" ## "", H, Os, U, Pb, Na, Hg, Am, C
+var element: String = "" ## "", H, Os, U, Pb, Na, Hg, Am, C, Fe
 var stickers: Array = [0, 0, 0, 0, 0, 0] ## Adesivos ×2 por face.
 var locked: Array = [false, false, false, false, false, false] ## Faces que não podem ser editadas.
 
