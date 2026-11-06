@@ -888,11 +888,11 @@ func open_enemy_consult() -> Overlay:
 	var e := duel.enemy
 	var o := Overlay.open(self, e.name, "OK", 860)
 	if e.master_id != "":
-		o.add_text(Texts.master_name(e.master_id) + ": " + Texts.master_desc(e.master_id), 20, Kit.ACCENT)
+		o.body.add_child(ElementInfo.rich(Texts.master_name(e.master_id) + ": " + Texts.master_desc(e.master_id), 20, Kit.ACCENT))
 	else:
 		o.add_text(Texts.t("archetypes." + e.archetype), 20, Kit.ACCENT)
 	if e.variant != "":
-		o.add_text(Texts.t("variants." + e.variant), 18, Kit.ACCENT)
+		o.body.add_child(ElementInfo.rich(Texts.t("variants." + e.variant), 18, Kit.ACCENT))
 	o.add_text(Texts.t("ui.consult_hp", {"hp": e.hp, "max": e.max_hp}) + "   " + _status(e), 20)
 	var counts := {}
 	for d in e.bag:
@@ -912,7 +912,7 @@ func open_enemy_consult() -> Overlay:
 		var t := "• %s" % Texts.spell_name(it.id)
 		if int(it.level) > 1:
 			t += " (" + Texts.t("ui.level", {"n": it.level}) + ")"
-		o.add_text(t + ": " + Texts.spell_desc(it.id), 18, Color(0.85, 0.83, 0.89))
+		o.body.add_child(ElementInfo.rich(t + ": " + Texts.spell_desc(it.id), 18, Color(0.85, 0.83, 0.89)))
 	return o
 
 

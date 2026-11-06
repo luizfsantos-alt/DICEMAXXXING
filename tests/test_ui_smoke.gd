@@ -708,3 +708,102 @@ func test_acoes_da_mesma_magia_marcam_o_item():
 	assert_true(DuelScreen._same_item({"of_item": 1}, {"of_item": 1}))
 	assert_false(DuelScreen._same_item({"of_item": 1}, {"of_item": 2}))
 	assert_false(DuelScreen._same_item({"t": "cast"}, {"of_item": 1}))
+
+
+# ================================================================== Decisões na torre
+func _find_all(n: Node, cls, out: Array = []) -> Array:
+	if is_instance_of(n, cls):
+		out.append(n)
+	for c in n.get_children():
+		_find_all(c, cls, out)
+	return out
+
+
+func test_recompensa_sem_titulo_e_com_icone_grande():
+	var run := RunState.new_run(5)
+	run.choose(0)
+	run.phase = "reward"
+	run.options = Shop.reward(run.hero, run.rng)
+	var t := TowerScreen.new().setup(run)
+	add_child_autofree(t)
+	await wait_process_frames(2)
+	assert_false(t.title.visible, "sem \"Recompensa: escolha uma\"")
+	assert_eq(t.cards.get_child_count(), run.options.size())
+	var icon: Button = t.cards.get_child(0).get_child(0)
+	assert_gte(icon.custom_minimum_size.x, 200.0, "o ícone é o elemento principal")
+	assert_true(icon.get_theme_stylebox("normal") is StyleBoxEmpty, "sem retângulo atrás")
+	run.phase = "shop"
+	t.refresh()
+	assert_true(t.title.visible, "a Loja mantém o nome do lugar")
+
+
+func test_nomes_curtos_ate_cinco_palavras():
+	var run := RunState.new_run(5)
+	var t := TowerScreen.new().setup(run)
+	add_child_autofree(t)
+	var opts := []
+	for id in ["facil", "normal", "dificil", "insana", "mestre"]:
+		opts.append({"kind": "door", "id": id})
+	for id in ["shop", "heal", "school", "well"]:
+		opts.append({"kind": "stop", "id": id})
+	for id in Spells.DATA:
+		opts.append({"kind": "spell", "id": id})
+		opts.append({"kind": "evolve", "id": id})
+	for el in Elements.LOOKS:
+		opts.append({"kind": "die", "id": el})
+		opts.append({"kind": "element", "id": el})
+	for k in ["sticker", "destroy", "maxhp", "slots", "hand", "rare_pick"]:
+		opts.append({"kind": k, "id": ""})
+	for o in opts:
+		var s := t.short_name(o)
+		assert_false(s.begins_with("short."), "texto de %s" % o.kind)
+		assert_lte(s.split(" ", false).size(), 5, "'%s' tem até 5 palavras" % s)
+	assert_eq(t.short_name({"kind": "door", "id": "facil"}), Texts.t("doors.facil"), "porta: só o nome")
+
+
+func test_i_abre_detalhes_sem_escolher():
+	var run := RunState.new_run(5)
+	run.choose(0)
+	var t := TowerScreen.new().setup(run)
+	add_child_autofree(t)
+	await wait_process_frames(2)
+	assert_eq(run.phase, "doors")
+	var info_btn: Button = t.cards.get_child(0).get_child(1).get_child(1)
+	var name_label: Label = t.cards.get_child(0).get_child(1).get_child(0)
+	assert_eq(name_label.mouse_filter, Control.MOUSE_FILTER_IGNORE, "o nome não é tocável")
+	info_btn.pressed.emit()
+	await wait_process_frames(1)
+	assert_true(is_instance_valid(t.details) and t.details.is_inside_tree(), "o i abre os detalhes")
+	assert_eq(run.phase, "doors", "ler não escolhe")
+	t.details.close()
+
+
+func test_elementos_citados_viram_link():
+	var s := Texts.master_desc("porteiro")
+	assert_eq(ElementInfo.mentions(s), ["Pb"])
+	assert_string_contains(ElementInfo.linkify(s), "[url=el:Pb]")
+	assert_eq(ElementInfo.mentions("Dano igual ao valor."), [])
+	assert_eq(ElementInfo.mentions("dados de Sódio e Hidrogênio"), ["Na", "H"])
+	assert_eq(ElementInfo.linkify("a [b]"), "a [lb]b]", "colchete do texto não vira BBCode")
+	var host := Control.new()
+	add_child_autofree(host)
+	var o := ElementInfo.open(host, "U")
+	assert_true(o.is_inside_tree(), "o toque explica o elemento")
+
+
+func test_faixa_do_jogador_mostra_bolsa_vida_e_moedas():
+	var run := RunState.new_run(5)
+	run.choose(0)
+	run.hero.bag[0].element = "H"
+	run.hero.bag[1].element = "H"
+	run.coins = 17
+	var t := TowerScreen.new().setup(run)
+	add_child_autofree(t)
+	await wait_process_frames(2)
+	var c := PlayerStrip.counts(run.hero.bag)
+	assert_eq(c[0], ["H", 2], "elementos primeiro")
+	assert_eq(c[c.size() - 1], ["", run.hero.bag.size() - 2], "comuns por último")
+	assert_eq(t.strip.coins_label.text, "17")
+	assert_eq(t.strip.hp_label.text, "%d/%d" % [run.hero.hp, run.hero.max_hp])
+	assert_eq(t.strip.chips.get_child_count(), c.size())
+	assert_string_contains(t.strip.bag_button.text, str(run.hero.bag.size()))

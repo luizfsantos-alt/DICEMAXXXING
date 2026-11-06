@@ -237,7 +237,7 @@ func _update_glow() -> void:
 		for m: StandardMaterial3D in g.mats:
 			m.emission_energy_multiplier = base * p
 		if _halos[i] != null:
-			var a := clampf(base / 2.2, 0.25, 1.0) * p
+			var a := clampf(base, 0.25, 1.0) * p
 			var hm: StandardMaterial3D = (_halos[i].mesh as QuadMesh).material
 			hm.albedo_color = Color(1, 1, 1, clampf(a, 0.0, 1.0))
 
