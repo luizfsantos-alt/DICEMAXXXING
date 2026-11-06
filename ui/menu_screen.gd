@@ -25,7 +25,7 @@ func setup() -> MenuScreen:
 	var v := Kit.vbox(16)
 	v.custom_minimum_size = Vector2(1100, 0)
 	cc.add_child(v)
-	# Logo do título à esquerda; subtítulo, aviso de versão e Continuar à direita.
+	# Logo do título à esquerda; aviso de versão e Continuar à direita.
 	# Sem a arte do título, volta ao dado com chapéu e o nome em texto.
 	var head := Kit.hbox(28)
 	head.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -45,8 +45,6 @@ func setup() -> MenuScreen:
 	header = tv
 	if title_art == null:
 		tv.add_child(Kit.label(Texts.t("ui.title"), 64, Kit.ACCENT))
-	var sub := Kit.label(Texts.t("ui.subtitle"), 26, Kit.TEXT)
-	tv.add_child(sub)
 	var c := Kit.button(Texts.t("ui.continue"), func(): continue_run.emit(), Kit.PANEL_HI, 28)
 	c.custom_minimum_size = Vector2(0, 64)
 	c.disabled = not SaveGame.exists()
