@@ -455,3 +455,49 @@ func test_magia_de_varios_dados_pela_metade_fica_incompleta():
 	assert_eq(c.incomplete_items(f), [1], "Corte com um dado só")
 	assert_true(c.place(f, 1, 2))
 	assert_eq(c.incomplete_items(f), [], "Corte completo")
+
+
+func test_eventos_do_duelo_levam_os_status_do_momento():
+	var a := H.fighter("a", ["esquiva"], 40, true)
+	var b := H.fighter("b", ["faisca"])
+	Resolver.watch = [a, b]
+	H.hand(a, [2])
+	var ev := H.cast(a, b, {"esquiva": [0]})
+	H.hand(b, [6])
+	ev.append_array(H.cast(b, a, {"faisca": [0]}))
+	Resolver.watch = []
+	var up: Dictionary = ev.filter(func(e): return e.t == "dodge_up")[0]
+	assert_true(up.st.player.dodge, "esquiva guardada no momento em que é criada")
+	var used: Dictionary = ev.filter(func(e): return e.t == "dodged")[0]
+	assert_false(used.st.player.dodge, "e gasta quando anula o golpe")
+	assert_false(a.dodge)
+	assert_false(H.cast(a, b, {}).any(func(e): return e.has("st")), "fora do duelo, sem anotação")
+
+
+func test_queima_anotada_ja_descontada():
+	var a := H.fighter("a", [])
+	a.burn = 2
+	Resolver.watch = [a]
+	var ev := []
+	Resolver.start_turn(a, ev)
+	Resolver.watch = []
+	assert_eq(ev[0].n, 2)
+	assert_eq(ev[0].st.enemy.burn, 1, "o ícone já mostra a queima que sobra")
+
+
+func test_texto_da_magia_por_nivel():
+	assert_eq(Texts.spell_fx("escudo", 1), "Bloqueio = valor ×3")
+	assert_eq(Texts.spell_fx("escudo", 2), "Bloqueio = valor ×4,5")
+	assert_eq(Texts.spell_fx("escudo", 3), "Bloqueio = valor ×6")
+	assert_eq(Texts.spell_fx("faisca", 2), "Dano = valor ×1,5")
+	assert_eq(Texts.spell_fx("bola", 3), "Soma ×4 e queima 3")
+	assert_eq(Texts.spell_fx("sacrificio", 2), "Destrói o dado; +8 de dano nas magias desta luta", "constante arredondada como no jogo")
+	assert_eq(Texts.spell_fx("banquete", 2), "Dano = soma ×1,5; cura o menor ×1,5")
+	assert_eq(Texts.spell_fx("espelho", 3), Texts.spell_fx("espelho", 1), "o que não escala não muda")
+	for id in Spells.DATA:
+		for lvl in [1, 2, 3]:
+			assert_false("{" in Texts.spell_fx(id, lvl), "%s nível %d sem marcador sobrando" % [id, lvl])
+	# Toda magia cujo efeito o motor multiplica pelo nível tem o texto por nível.
+	var fixed := ["dodge", "mirror", "debuff", "spawn_copy", "recycle"]
+	for id in Spells.DATA:
+		assert_eq(Texts.scales_with_level(id), not str(Spells.get_def(id).fx) in fixed, id)

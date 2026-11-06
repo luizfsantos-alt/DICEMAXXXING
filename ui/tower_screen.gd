@@ -303,7 +303,7 @@ func _describe(o: Dictionary) -> Array:
 			return [Texts.t("offers.element", {"name": Texts.element_name(o.id)}), Texts.element_desc(o.id)]
 		"evolve":
 			var lvl := int(run.hero.inventory.items[int(o.item)].level) + 1
-			return [Texts.t("offers.evolve", {"name": Texts.spell_name(o.id), "lvl": lvl}), Texts.spell_desc(o.id)]
+			return [Texts.t("offers.evolve", {"name": Texts.spell_name(o.id), "lvl": lvl}), evolve_text(o.id, lvl)]
 		"slots":
 			return [Texts.t("offers.slots"), Texts.t("offers.slots_desc")]
 		"hand":
@@ -311,6 +311,16 @@ func _describe(o: Dictionary) -> Array:
 		"rare_pick":
 			return [Texts.t("offers.rare_pick"), Texts.t("offers.rare_pick_desc")]
 	return [Texts.t("offers." + o.kind), ""]
+
+
+## Escola: como a magia fica no nível "lvl", comparada com o nível atual.
+static func evolve_text(id: String, lvl: int) -> String:
+	if not Texts.scales_with_level(id):
+		return Texts.spell_desc(id) + "\n" + Texts.t("ui.level_same")
+	return "\n".join(PackedStringArray([
+		Texts.t("ui.evolve_now", {"n": lvl - 1, "fx": Texts.spell_fx(id, lvl - 1)}),
+		Texts.t("ui.evolve_next", {"n": lvl, "fx": Texts.spell_fx(id, lvl)}),
+	]))
 
 
 func _pick(i: int) -> void:

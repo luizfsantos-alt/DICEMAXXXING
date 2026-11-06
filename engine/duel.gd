@@ -20,14 +20,16 @@ func setup(p: Fighter, e: Fighter, duel_seed: int) -> void:
 		f.reset_fight_state()
 	rng.seed = duel_seed
 	turn_events = []
+	Resolver.watch = [p, e]
 	Resolver.inspire(p, e, rng, turn_events)
 	Resolver.inspire(e, p, rng, turn_events)
 	_begin_player_turn(turn_events)
+	Resolver.watch = []
 
 
 func _begin_player_turn(ev: Array) -> void:
 	turn += 1
-	ev.append({"t": "turn", "side": "player", "n": turn})
+	Resolver.push(ev, {"t": "turn", "side": "player", "n": turn})
 	Resolver.start_turn(player, ev)
 	if _check(ev):
 		return
@@ -36,7 +38,15 @@ func _begin_player_turn(ev: Array) -> void:
 
 ## Resolve o turno do jogador, joga o turno inteiro do inimigo e prepara o
 ## próximo turno do jogador. Retorna {events, enemy_choice} ou {error}.
+## Cada evento leva "st": os status dos dois lados naquele instante.
 func submit(choice: TurnChoice) -> Dictionary:
+	Resolver.watch = [player, enemy]
+	var rep := _submit(choice)
+	Resolver.watch = []
+	return rep
+
+
+func _submit(choice: TurnChoice) -> Dictionary:
 	if state != "choosing":
 		return {"error": "luta encerrada"}
 	var err := choice.validate(player)
@@ -53,7 +63,7 @@ func submit(choice: TurnChoice) -> Dictionary:
 	# Turno do inimigo.
 	var hp_p := player.hp
 	turn += 1
-	ev.append({"t": "turn", "side": "enemy", "n": turn})
+	Resolver.push(ev, {"t": "turn", "side": "enemy", "n": turn})
 	Resolver.start_turn(enemy, ev)
 	if not _check(ev):
 		Resolver.draw_and_roll(enemy, player, rng, ev)
@@ -79,7 +89,7 @@ func _check(ev: Array) -> bool:
 		state = "won"
 	else:
 		return false
-	ev.append({"t": "end", "side": "player", "won": state == "won"})
+	Resolver.push(ev, {"t": "end", "side": "player", "won": state == "won"})
 	_cleanup()
 	return true
 
@@ -94,7 +104,7 @@ func _limit(ev: Array) -> bool:
 	if turn < Config.TURN_LIMIT:
 		return false
 	state = "lost"
-	ev.append({"t": "turn_limit", "side": "player"})
+	Resolver.push(ev, {"t": "turn_limit", "side": "player"})
 	_cleanup()
 	return true
 

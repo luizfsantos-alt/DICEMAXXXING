@@ -51,7 +51,10 @@ static func open(parent: Control, inv: Inventory, on_done: Callable = Callable()
 		if int(it.level) > 1:
 			nm += "  " + Texts.t("ui.level", {"n": it.level})
 		d_name.text = nm
-		ElementInfo.set_text(d_desc, Texts.spell_desc(it.id))
+		var desc := Texts.spell_desc(it.id)
+		if int(it.level) > 1 and Texts.scales_with_level(it.id):
+			desc += "\n" + Texts.t("ui.level_fx", {"n": it.level, "fx": Texts.spell_fx(it.id, int(it.level))})
+		ElementInfo.set_text(d_desc, desc)
 		d_meta.text = Texts.t("ui.piece_meta", {"n": Spells.shape(it.id).size(), "pos": inv.order().find(item) + 1})
 	show.call(new_item)
 

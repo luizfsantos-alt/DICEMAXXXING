@@ -40,7 +40,7 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	name_label = Kit.label(Texts.spell_name(id), 20 if compact else 24, Kit.TEXT)
 	tag_label = Kit.label("", 14, Kit.ACCENT)
-	fx_label = Kit.label(spell_fx(id), 15 if compact else 17, Color(0.85, 0.83, 0.89), true)
+	fx_label = Kit.label(spell_fx(id, int(f.inventory.items[i].level)), 15 if compact else 17, Color(0.85, 0.83, 0.89), true)
 	preview = Kit.label("", 19, Kit.TEXT, true)
 	icon_rect = TextureRect.new()
 	icon_rect.texture = icon(Spells.icon_key(id))
@@ -119,9 +119,8 @@ static func icon(key: String) -> Texture2D:
 	return _icons[key]
 
 
-static func spell_fx(spell: String) -> String:
-	var s := Texts.t("spell_fx." + spell)
-	return s if s != "spell_fx." + spell else Texts.spell_desc(spell)
+static func spell_fx(spell: String, level := 1) -> String:
+	return Texts.spell_fx(spell, level)
 
 
 func used() -> bool:
@@ -182,6 +181,7 @@ func _req_text(placed: Array, k: int) -> String:
 func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top := false, heats: Array = []) -> void:
 	var is_used := used()
 	var lvl := int(fighter.inventory.items[item].level)
+	fx_label.text = spell_fx(id, lvl) ## O efeito acompanha o nível (evoluir muda o texto).
 	var tags := []
 	if bool(fighter.inventory.items[item].get("temp", false)):
 		tags.append(Texts.t("ui.copy_tag"))

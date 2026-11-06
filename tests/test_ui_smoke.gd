@@ -845,3 +845,48 @@ func test_golpe_grande_treme_a_tela_e_volta_ao_lugar():
 	assert_eq(d.content.position, base, "volta ao lugar")
 	assert_eq(d.content.rotation, 0.0)
 	d.fast = true
+
+
+func test_status_aparecem_quando_a_acao_acontece():
+	var run := _run_at_duel(12)
+	var d := _duel_in_frame(run)
+	await wait_process_frames(2)
+	var p := run.duel.player
+	var e := run.duel.enemy
+	var snap := func(): return {"player": p.status_state(), "enemy": e.status_state()}
+	# Estado final do turno: veneno no inimigo e esquiva já gasta.
+	p.dodge = true
+	var up := {"t": "dodge_up", "side": "player", "st": snap.call()}
+	p.dodge = false
+	var cast := {"t": "cast", "side": "player", "spell": "faisca", "item": 0, "dice": [], "values": [1], "st": snap.call()}
+	e.poison = 3
+	d._animate([cast], false)
+	await wait_process_frames(1)
+	assert_null(_icon(d, "enemy", "poison"), "o veneno só aparece quando chega")
+	await d._animate([up], false)
+	assert_not_null(_icon(d, "player", "dodge"), "esquiva guardada tem ícone")
+	var turn := {"t": "turn", "side": "player", "n": 3, "st": up.st}
+	await d._animate([turn], false)
+	assert_null(_icon(d, "player", "dodge"), "some no começo do seu turno")
+	d._sync_shown()
+	assert_not_null(_icon(d, "enemy", "poison"), "no fim, o estado real")
+
+
+func test_cartao_mostra_o_efeito_do_nivel():
+	var run := _run_at_duel(12)
+	var d := _duel_in_frame(run)
+	await wait_process_frames(2)
+	var c: SpellCard = d.cards[0]
+	var it: Dictionary = run.hero.inventory.items[c.item]
+	assert_eq(c.fx_label.text, Texts.spell_fx(c.id, 1))
+	it.level = 3
+	c.refresh([], [], -1)
+	assert_eq(c.fx_label.text, Texts.spell_fx(c.id, 3), "evoluir atualiza o texto")
+	it.level = 1
+
+
+func test_escola_mostra_como_a_magia_fica():
+	var txt := TowerScreen.evolve_text("escudo", 2)
+	assert_string_contains(txt, "Bloqueio = valor ×3")
+	assert_string_contains(txt, "Bloqueio = valor ×4,5")
+	assert_string_contains(TowerScreen.evolve_text("espelho", 2), Texts.t("ui.level_same"))

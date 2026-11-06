@@ -342,6 +342,18 @@ func to_dict() -> Dictionary:
 	}
 
 
+## Estado dos status deste lado (o que os ícones mostram), sem a vida e a bolsa.
+## O motor guarda uma cópia em cada evento ("st") para a interface mostrar cada ícone
+## no momento em que a ação acontece.
+func status_state() -> Dictionary:
+	return {
+		"block": block, "poison": poison, "burn": burn, "mirror": mirror, "dodge": dodge,
+		"riposte": riposte, "immune": immune, "kept": (0 if marked.is_empty() else 1) + keeps.size(),
+		"fury": Characters.fury(self), "archetype": archetype, "thirst_used": thirst_used,
+		"hand_mods": hand_mods.duplicate(),
+	}
+
+
 static func from_dict(d: Dictionary) -> Fighter:
 	var f := Fighter.new()
 	f.name = str(d.get("name", ""))
