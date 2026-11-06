@@ -61,6 +61,9 @@ var dragging := -1 ## Dado da mão sendo arrastado.
 var _drag_end_frame := -100
 var skip := false
 var shown := {} ## side -> {hp, max, block}
+## side -> Fighter.status_state() exibido: segue o "st" de cada evento animado, então
+## cada ícone aparece (e some) quando a ação que o causa acontece.
+var status_view := {}
 var history: Array = [] ## Linhas do histórico (bbcode).
 var summary: Array = [] ## Resumo do turno do inimigo.
 var active_side := "player" ## De quem é a vez (o palco e os dados seguem).
@@ -388,35 +391,34 @@ func _update_stage() -> void:
 
 # ================================================================== Status
 ## Efeitos ativos de um lado, na ordem dos ícones: [{id, n, name, desc}].
-## O bloqueio vem de fora (o valor exibido durante a animação).
-static func statuses(f: Fighter, block: int) -> Array:
+## "st" é um Fighter.status_state() (o atual ou o anotado num evento).
+static func statuses(st: Dictionary) -> Array:
 	var out := []
-	if block > 0:
-		out.append(_st("block", block))
-	if f.poison > 0:
-		out.append(_st("poison", f.poison))
-	if f.burn > 0:
-		out.append(_st("burn", f.burn))
-	if f.mirror:
+	if int(st.block) > 0:
+		out.append(_st("block", int(st.block)))
+	if int(st.poison) > 0:
+		out.append(_st("poison", int(st.poison)))
+	if int(st.burn) > 0:
+		out.append(_st("burn", int(st.burn)))
+	if st.mirror:
 		out.append(_st("mirror", 1))
-	if f.dodge:
+	if st.dodge:
 		out.append(_st("dodge", 1))
-	if f.riposte > 0:
-		out.append(_st("riposte", f.riposte))
-	if f.immune > 0:
-		out.append(_st("immune", f.immune))
-	var kept := (0 if f.marked.is_empty() else 1) + f.keeps.size()
-	if kept > 0:
-		out.append(_st("marked", kept))
-	var fury := Characters.fury(f)
-	if fury > 0:
-		out.append(_st("fury", fury))
-	if f.archetype == "vampire" and f.thirst_used > 0:
-		var t := _st("thirst", f.thirst_used)
-		t.desc += " " + Texts.t("ui.thirst", {"n": f.thirst_used, "max": Characters.THIRST_CAP})
+	if int(st.riposte) > 0:
+		out.append(_st("riposte", int(st.riposte)))
+	if int(st.immune) > 0:
+		out.append(_st("immune", int(st.immune)))
+	if int(st.kept) > 0:
+		out.append(_st("marked", int(st.kept)))
+	if int(st.fury) > 0:
+		out.append(_st("fury", int(st.fury)))
+	var thirst := int(st.thirst_used)
+	if st.archetype == "vampire" and thirst > 0:
+		var t := _st("thirst", thirst)
+		t.desc += " " + Texts.t("ui.thirst", {"n": thirst, "max": Characters.THIRST_CAP})
 		out.append(t)
 	var mods := {}
-	for m in f.hand_mods:
+	for m in st.hand_mods:
 		mods[str(m)] = int(mods.get(str(m), 0)) + 1
 	for m in mods:
 		out.append({"id": "mod_" + m, "n": mods[m],
@@ -431,7 +433,7 @@ static func _st(id: String, n: int) -> Dictionary:
 func _refresh_status() -> void:
 	for f in [duel.player, duel.enemy]:
 		var s := Resolver.side(f)
-		var lst := statuses(f, int(shown[s].block))
+		var lst := statuses(status_view[s])
 		if lst == status_shown[s]:
 			continue
 		status_shown[s] = lst
@@ -476,6 +478,7 @@ func _hide_tip() -> void:
 func _sync_shown() -> void:
 	for f in [duel.player, duel.enemy]:
 		shown[Resolver.side(f)] = {"hp": f.hp, "max": f.max_hp, "block": f.block}
+		status_view[Resolver.side(f)] = f.status_state()
 	_refresh_bars()
 
 
@@ -492,7 +495,7 @@ func _refresh_bars() -> void:
 ## Texto corrido dos efeitos (ficha do inimigo).
 func _status(f: Fighter) -> String:
 	var p := []
-	for st in statuses(f, f.block):
+	for st in statuses(f.status_state()):
 		p.append(st.name if st.id in ["mirror", "dodge", "immune", "marked"] or str(st.id).begins_with("mod_") else "%s %d" % [st.name, st.n])
 	return " · ".join(p)
 
@@ -966,7 +969,9 @@ func _submit() -> void:
 		info.text = str(rep.error)
 		_start_player_phase()
 		return
-	await _animate(rep.events)
+	# Entre o turno do inimigo e o começo do seu, a tela não pula para o estado final:
+	# vida e status seguem os eventos até o fim.
+	await _animate(rep.events, duel.state != "choosing")
 	if duel.state == "choosing":
 		await _animate(duel.turn_events)
 	SaveGame.save(run)
@@ -985,7 +990,7 @@ func _wait(t: float) -> void:
 		left -= get_process_delta_time()
 
 
-func _animate(events: Array) -> void:
+func _animate(events: Array, sync := true) -> void:
 	for i in events.size():
 		var ev: Dictionary = events[i]
 		chained = i > 0 and _same_item(events[i - 1], ev)
@@ -994,7 +999,8 @@ func _animate(events: Array) -> void:
 		var next_chained := i + 1 < events.size() and _same_item(ev, events[i + 1])
 		await _wait(CHAIN_DELAY if next_chained else _delay(ev))
 	chained = false
-	_sync_shown()
+	if sync:
+		_sync_shown()
 
 
 ## "b" é mais uma ação da mesma magia que "a". Só os efeitos levam "of_item" (o
@@ -1019,8 +1025,18 @@ func _delay(ev: Dictionary) -> float:
 func _apply_event(ev: Dictionary) -> void:
 	var s: String = str(ev.side)
 	var v: Dictionary = shown.get(s, {})
+	if ev.has("st"):
+		for k in ev.st:
+			status_view[k] = ev.st[k].duplicate()
 	match str(ev.t):
 		"turn":
+			# Começo do turno: as proteções de quem joga somem (Resolver.start_turn).
+			if status_view.has(s):
+				var sv: Dictionary = status_view[s]
+				sv.block = 0
+				sv.mirror = false
+				sv.dodge = false
+				sv.riposte = 0
 			fx_src = null
 			fx_bounce = null
 			banner.text = Texts.t("ui.your_turn") if s == "player" else Texts.t("ui.enemy_turn")
@@ -1193,7 +1209,8 @@ func _refresh_shown_only() -> void:
 ## Textos seguidos no mesmo lado empilham para não se cobrirem.
 ## Explosão de partículas no ponto at (camada de efeitos): faíscas do Sódio (sparks)
 ## ou poeira do Amianto. Some sozinha.
-func _burst(at: Variant, col: Color, sparks: bool) -> void:
+## "speed" acelera as partículas (velocidade e gravidade, mesma trajetória em menos tempo).
+func _burst(at: Variant, col: Color, sparks: bool, speed := 1.0) -> void:
 	if fast or skip or at == null or not is_inside_tree():
 		return
 	var pt := CPUParticles2D.new()
@@ -1203,9 +1220,9 @@ func _burst(at: Variant, col: Color, sparks: bool) -> void:
 	pt.amount = 28 if sparks else 40
 	pt.lifetime = 0.6 if sparks else 1.1
 	pt.spread = 180.0
-	pt.gravity = Vector2(0, 260) if sparks else Vector2(0, -25)
-	pt.initial_velocity_min = 180.0 if sparks else 30.0
-	pt.initial_velocity_max = 340.0 if sparks else 90.0
+	pt.gravity = (Vector2(0, 260) if sparks else Vector2(0, -25)) * speed * speed
+	pt.initial_velocity_min = (180.0 if sparks else 30.0) * speed
+	pt.initial_velocity_max = (340.0 if sparks else 90.0) * speed
 	pt.scale_amount_min = 2.0 if sparks else 3.0
 	pt.scale_amount_max = 4.0 if sparks else 7.0
 	var ramp := Gradient.new()
@@ -1295,8 +1312,8 @@ func _impact(s: String, t: int) -> void:
 	tw.tween_property(flash, "color:a", 0.0, 0.45 if big else 0.3).set_ease(Tween.EASE_OUT)
 	if big:
 		var at := _portrait_point(s)
-		_burst(at, Color(1.0, 0.55, 0.2), true)
-		_burst(at, Color(0.55, 0.12, 0.1), false)
+		_burst(at, Color(1.0, 0.55, 0.2), true, ScreenShake.STRENGTH)
+		_burst(at, Color(0.55, 0.12, 0.1), false, ScreenShake.STRENGTH)
 
 
 ## Centro de um controle na camada de efeitos.

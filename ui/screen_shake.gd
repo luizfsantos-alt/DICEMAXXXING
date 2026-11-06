@@ -6,14 +6,17 @@ extends Node
 ## Move os controles de "targets" (o fundo fica parado, então nada vaza pelas bordas)
 ## e devolve tudo à posição original no fim.
 
-## Faixas: [fração mínima da vida máxima, amplitude (px), duração (s), giro máximo (graus)].
+## Faixas: [fração mínima da vida máxima, amplitude base (px), duração (s), giro base (graus)].
 const TIERS := [
-	[0.10, 4.0, 0.18, 0.0],
-	[0.25, 8.0, 0.26, 0.0],
-	[0.50, 14.0, 0.36, 0.4],
-	[0.80, 22.0, 0.48, 0.8],
-	[1.00, 34.0, 0.70, 1.5],
+	[0.10, 4.0, 0.22, 0.0],
+	[0.25, 8.0, 0.30, 0.3],
+	[0.50, 14.0, 0.42, 0.5],
+	[0.80, 22.0, 0.56, 0.9],
+	[1.00, 34.0, 0.80, 1.5],
 ]
+## Força geral: multiplica a amplitude e o giro de todas as faixas. Os estilhaços do
+## impacto aceleram na mesma proporção (DuelScreen._impact).
+const STRENGTH := 1.75
 const FREQ := 32.0 ## Trocas de direção por segundo (mais lento que um quadro: não vira chiado).
 
 var targets: Array = [] ## Controles que tremem juntos.
@@ -55,10 +58,10 @@ func start(t: int) -> void:
 		return
 	var row: Array = TIERS[t - 1]
 	level = t
-	_amp = row[1]
+	_amp = row[1] * STRENGTH
 	_time = row[2]
 	_left = _time
-	_rot = deg_to_rad(row[3])
+	_rot = deg_to_rad(row[3] * STRENGTH)
 	_step = 0.0
 	_from = Vector2.ZERO
 	_to = _random_dir()

@@ -79,6 +79,8 @@ func _spawn(f: Fighter, item: int) -> void:
 		else:
 			var sd := f.die_of(src)
 			e.temp = sd.copy() if sd else Die.basic()
+			# Imitação evoluída: as cópias valem mais (×1,5 no nível 2, ×2 no 3).
+			e.value = Config.scale(v, int(f.inventory.items[item].level))
 		out.append(f.hand.size())
 		f.hand.append(e)
 	spawned[item] = out

@@ -613,7 +613,10 @@
   "enemy_dice": "DADOS DO INIMIGO",
   "strip_floor": "Andar {n}/{max}",
   "strip_bag": "Bolsa {n}",
-  "choose": "Escolher"
+  "choose": "Escolher",
+  "level_fx": "Nv {n}: {fx}",
+  "evolve_now": "Agora (nível {n}): {fx}",
+  "evolve_next": "Nível {n}: {fx}"
  },
  "ev": {
   "hand": "{who} rolou: {v}",
@@ -710,6 +713,66 @@
   "banquete": "Dano = soma; cura o menor",
   "machadada": "Dano = valor ×2",
   "cerrar": "Cura = valor ×3"
+ },
+ "spell_fx_lv": {
+  "faisca": "Dano = valor ×{1}",
+  "escudo": "Bloqueio = valor ×{3}",
+  "bola": "Soma ×{2} e queima 3",
+  "meteoro": "Dano = (soma + 10) ×{1}",
+  "sacrificio": "Destrói o dado; +{=5} de dano nas magias desta luta",
+  "remendo": "Cura = valor ×{1}",
+  "transfusao": "+valor ×{1} na vida máxima, para sempre",
+  "estocada": "Dano = (valor + 1) ×{1}",
+  "corte": "Soma ×{1}; se os 2 forem ímpares, golpeia de novo",
+  "sombras": "Dano = valor ×{1}; ignora defesas",
+  "bis": "Rola de novo e soma; repete na face máxima; total ×{1}",
+  "plagio": "Rouba 1 adesivo ×2; dano = valor novo ×{1}",
+  "expectativa": "Valor ×{2}; dados parados dele dão 2 de dano",
+  "matematica": "Dano = produto ×{1}",
+  "pose": "Bloqueio = valor ×{1}; volta igual",
+  "imune": "Bloqueio ×{2}; anula o próximo efeito negativo",
+  "forca": "Dano = valor ×{1}; parte em 2 metades",
+  "fisica": "Dano = maior × menor ×{1}",
+  "arrancar": "Dano = valor ×{1}; tira o dado mais forte dele",
+  "velocidade": "Um golpe por dado, valor ×{2}",
+  "peso": "Dano = {4} × cada 1 na mão",
+  "impulso": "Dano = valor ×{1}; volta com +2",
+  "anatomia": "Soma ×{2}; face máxima dele vira 1",
+  "foto": "Dano = maior × {4}",
+  "revide": "Bloqueio ×{2}; revida o valor ×{1}",
+  "rasteira": "Bloqueio ×{2}; ele tira 1 dado a menos",
+  "suor": "Remove efeitos negativos; bloqueio = valor ×{1}",
+  "armadura": "Bloqueio = produto ×{2}",
+  "presenca": "Bloqueio = {3} × dados na mão",
+  "concentrar": "Bloqueio = soma ×{1}; funde num dado",
+  "dardo": "Par: dano = (valor + 2) ×{1}",
+  "obra": "Trio: dano = soma ×{2}",
+  "mordida": "Dano = valor ×{1}; cura metade",
+  "banquete": "Dano = soma ×{1}; cura o menor ×{1}",
+  "machadada": "Dano = valor ×{2}",
+  "cerrar": "Cura = valor ×{3}",
+  "espelho": "Reflete o próximo golpe ×{1}",
+  "esquiva": "Anula o próximo golpe; vira bloqueio ×{-1}",
+  "esquiva_mais": "Anula o próximo golpe; vira bloqueio ×{-1}",
+  "recuo": "Anula o próximo golpe (vira bloqueio ×{-1}); volta valendo 6",
+  "imitacao": "Devolve 2 cópias do dado, valendo ×{1}",
+  "improviso": "Sobras viram bloqueio ×{1}",
+  "roubar_cena": [
+   "Rouba o maior dado da próxima mão dele; dano = valor",
+   "Rouba o maior dado da próxima mão dele; dano = valor ×2"
+  ],
+  "meia_verdade": [
+   "Pares dele viram 1; dano = valor",
+   "Pares dele viram 1; dano = valor ×2"
+  ],
+  "interrupcao": [
+   "Ele tira 2 dados a menos; dano = soma",
+   "Ele tira 2 dados a menos; dano = soma ×2"
+  ],
+  "chave": [
+   "Dados dele valem metade; dano = valor",
+   "Dados dele valem metade; dano = valor ×2"
+  ]
  },
  "rarity": {
   "common": "Comum",

@@ -455,3 +455,117 @@ func test_magia_de_varios_dados_pela_metade_fica_incompleta():
 	assert_eq(c.incomplete_items(f), [1], "Corte com um dado só")
 	assert_true(c.place(f, 1, 2))
 	assert_eq(c.incomplete_items(f), [], "Corte completo")
+
+
+func test_eventos_do_duelo_levam_os_status_do_momento():
+	var a := H.fighter("a", ["esquiva"], 40, true)
+	var b := H.fighter("b", ["faisca"])
+	Resolver.watch = [a, b]
+	H.hand(a, [2])
+	var ev := H.cast(a, b, {"esquiva": [0]})
+	H.hand(b, [6])
+	ev.append_array(H.cast(b, a, {"faisca": [0]}))
+	Resolver.watch = []
+	var up: Dictionary = ev.filter(func(e): return e.t == "dodge_up")[0]
+	assert_true(up.st.player.dodge, "esquiva guardada no momento em que é criada")
+	var used: Dictionary = ev.filter(func(e): return e.t == "dodged")[0]
+	assert_false(used.st.player.dodge, "e gasta quando anula o golpe")
+	assert_false(a.dodge)
+	assert_false(H.cast(a, b, {}).any(func(e): return e.has("st")), "fora do duelo, sem anotação")
+
+
+func test_queima_anotada_ja_descontada():
+	var a := H.fighter("a", [])
+	a.burn = 2
+	Resolver.watch = [a]
+	var ev := []
+	Resolver.start_turn(a, ev)
+	Resolver.watch = []
+	assert_eq(ev[0].n, 2)
+	assert_eq(ev[0].st.enemy.burn, 1, "o ícone já mostra a queima que sobra")
+
+
+func test_texto_da_magia_por_nivel():
+	assert_eq(Texts.spell_fx("escudo", 1), "Bloqueio = valor ×3")
+	assert_eq(Texts.spell_fx("escudo", 2), "Bloqueio = valor ×4,5")
+	assert_eq(Texts.spell_fx("escudo", 3), "Bloqueio = valor ×6")
+	assert_eq(Texts.spell_fx("faisca", 2), "Dano = valor ×1,5")
+	assert_eq(Texts.spell_fx("bola", 3), "Soma ×4 e queima 3")
+	assert_eq(Texts.spell_fx("sacrificio", 2), "Destrói o dado; +8 de dano nas magias desta luta", "constante arredondada como no jogo")
+	assert_eq(Texts.spell_fx("banquete", 2), "Dano = soma ×1,5; cura o menor ×1,5")
+	assert_eq(Texts.spell_fx("espelho", 2), "Reflete o próximo golpe ×1,5")
+	assert_eq(Texts.spell_fx("esquiva", 2), "Anula o próximo golpe; vira bloqueio ×0,5")
+	assert_eq(Texts.spell_fx("esquiva", 3), "Anula o próximo golpe; vira bloqueio ×1")
+	assert_eq(Texts.spell_fx("chave", 3), "Dados dele valem metade; dano = valor ×2")
+	for id in Spells.DATA:
+		for lvl in [1, 2, 3]:
+			assert_false("{" in Texts.spell_fx(id, lvl), "%s nível %d sem marcador sobrando" % [id, lvl])
+	# Toda magia melhora com o nível, e o texto diz como.
+	for id in Spells.DATA:
+		assert_true(Texts.scales_with_level(id), id)
+		assert_ne(Texts.spell_fx(id, 2), Texts.spell_fx(id, 1), id)
+		assert_ne(Texts.spell_fx(id, 3), Texts.spell_fx(id, 2), id)
+
+
+# ------------------------------------------------------------ Ganho por nível das magias sem número
+func _lv(f: Fighter, id: String, lvl: int) -> void:
+	f.inventory.items[H.item(f, id)].level = lvl
+
+
+func test_espelho_evoluido_devolve_mais():
+	var a := H.fighter("a", ["faisca"])
+	var b := H.fighter("b", ["espelho"])
+	_lv(b, "espelho", 3)
+	H.hand(b, [1])
+	H.cast(b, a, {"espelho": [0]})
+	H.hand(a, [6])
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(b.hp, 40)
+	assert_eq(a.hp, 28, "devolve o dobro no nível 3")
+
+
+func test_esquiva_evoluida_vira_bloqueio():
+	for c in [[1, 0], [2, 3], [3, 6]]:
+		var a := H.fighter("a", ["faisca"])
+		var b := H.fighter("b", ["esquiva"])
+		_lv(b, "esquiva", c[0])
+		H.hand(b, [2])
+		H.cast(b, a, {"esquiva": [0]})
+		H.hand(a, [6])
+		H.cast(a, b, {"faisca": [0]})
+		assert_eq(b.hp, 40, "nível %d anula" % c[0])
+		assert_eq(b.block, c[1], "nível %d: bloqueio do golpe anulado" % c[0])
+	var f := H.fighter("f", ["esquiva"])
+	_lv(f, "esquiva", 3)
+	H.hand(f, [2])
+	H.cast(f, H.fighter("x", []), {"esquiva": [0]})
+	Resolver.start_turn(f, [])
+	assert_eq(f.dodge_lvl, 1, "o nível some com a esquiva")
+
+
+func test_mexidas_evoluidas_causam_dano():
+	for c in [[1, 40], [2, 37], [3, 34]]:
+		var a := H.fighter("a", ["chave"])
+		var b := H.fighter("b", [])
+		_lv(a, "chave", c[0])
+		H.hand(a, [3])
+		H.cast(a, b, {"chave": [0]})
+		assert_eq(b.hp, c[1], "Chave nível %d" % c[0])
+		assert_true("halve" in b.hand_mods, "a mexida continua")
+
+
+func test_improviso_evoluido_rende_mais_bloqueio():
+	var a := H.fighter("a", ["improviso"])
+	_lv(a, "improviso", 2)
+	H.hand(a, [1, 4, 5])
+	H.cast(a, H.fighter("b", []), {"improviso": [0]})
+	assert_eq(a.block, Config.scale(4, 2) + Config.scale(5, 2), "sobras ×1,5")
+
+
+func test_imitacao_evoluida_copias_valem_mais():
+	var a := H.fighter("a", ["imitacao"])
+	_lv(a, "imitacao", 3)
+	H.hand(a, [4])
+	var c := TurnChoice.new()
+	assert_true(c.place(a, H.item(a, "imitacao"), 0))
+	assert_eq(a.hand_values(), [4, 8, 8], "cópias valem o dobro no nível 3")

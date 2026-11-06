@@ -230,7 +230,12 @@ Todas as magias estão em `engine/spells.gd` (dados), `engine/resolver.gd` (efei
 - **Arrancar das Mãos** escolhe entre os dados que estão na bolsa ou no descarte do inimigo (a mão dele está vazia no seu turno).
 - **Plágio** não rouba de Ósmio e não cola em face de Chumbo nem em dado marcado.
 - **Efeitos negativos** que Imune a Críticas anula: queima (Bola de Fogo, Sódio), mexidas na próxima mão, Arrancar das Mãos, Plágio, o Chumbo do Porteiro e o do Lixeiro. **Suor de Campeão** remove veneno, queima e as mexidas pendentes; não devolve dados arrancados nem adesivos roubados.
-- **Improviso Brilhante**: o bloqueio das sobras não cresce com o nível da magia.
+- **Nível (Escola)**: o efeito vezes 1 / 1,5 / 2 nos níveis 1 / 2 / 3 (arredondado para cima). As magias sem número também crescem:
+  - **Espelho** devolve o golpe ×1,5 / ×2.
+  - **Esquivas** (e o Recuo) transformam o golpe anulado em bloqueio: metade no nível 2, todo no 3.
+  - **Improviso Brilhante**: o bloqueio das sobras ×1,5 / ×2.
+  - **Imitação Barata**: as cópias valem ×1,5 / ×2.
+  - **Mexidas** (Roubar a Cena, Meia Verdade, Interrupção Rude, Chave de Braço) também causam dano = valor no nível 2 e valor ×2 no 3.
 - **Revide Elegante**: vale enquanto houver bloqueio no começo do golpe; o revide não é refletido nem revidado.
 - **Hélio** ainda não existe no jogo; quando entrar, os efeitos acima devem pular dados de Hélio.
 - **Loja e Escola** oferecem todas as magias ao jogador. **Inimigos** só compram do próprio grupo (Feiticeiro ou Assassino) e as de "qualquer".
