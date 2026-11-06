@@ -161,10 +161,6 @@ static func art_path(o: Dictionary) -> String:
 			return "res://assets/tower/door_%s.png" % o.id
 		"stop":
 			return "res://assets/tower/stop_%s.png" % o.id
-		"maxhp":
-			# Até ter arte própria, usa o ícone de efeito Vida máxima dos cartões de magia.
-			var own := "res://assets/icons/offer/maxhp.png"
-			return own if ResourceLoader.exists(own) else "res://assets/icons/fx/maxhp.png"
 	return "res://assets/icons/offer/%s.png" % o.kind
 
 

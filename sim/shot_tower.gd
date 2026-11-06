@@ -1,5 +1,5 @@
 extends SceneTree
-## Captura de tela da torre: portas, Mestre, paradas, Loja e Poço com as ilustrações dos cartões
+## Captura de tela da torre: portas, Mestre, paradas, Loja, Poço e recompensa do Mestre com as ilustrações dos cartões
 ## (uso manual: precisa de vídeo). godot -s res://sim/shot_tower.gd -- --out=/caminho
 var out := "user://"
 
@@ -40,4 +40,5 @@ func _run() -> void:
 	rng.seed = 3
 	await _shot(t, "shop", "shop", Shop.shop(run.hero, rng, 0, 3))
 	await _shot(t, "well", "well", Shop.well(rng, 3, run.hero))
+	await _shot(t, "master_reward", "master_reward", Shop.master_reward())
 	quit()

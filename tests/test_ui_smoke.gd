@@ -587,9 +587,15 @@ func test_cartoes_da_torre_tem_ilustracao():
 		assert_not_null(TowerScreen.art({"kind": "door", "id": id}), "porta " + id)
 	for id in ["shop", "heal", "school", "well"]:
 		assert_not_null(TowerScreen.art({"kind": "stop", "id": id}), "parada " + id)
-	for k in ["spell", "die", "element", "sticker", "maxhp"]:
+	for k in ["spell", "die", "element", "sticker", "maxhp", "evolve", "destroy", "slots", "hand", "rare_pick"]:
 		assert_not_null(TowerScreen.art({"kind": k, "id": ""}), "oferta " + k)
-	assert_eq(TowerScreen.art_path({"kind": "maxhp"}), "res://assets/icons/fx/maxhp.png", "vida máxima usa o ícone de efeito até ter o seu")
+	# Toda oferta que a torre gera tem ilustração.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var run := RunState.new_run(7)
+	var all: Array = Shop.shop(run.hero, rng, 0, 3) + Shop.well(rng, 3, run.hero) + Shop.master_reward() + Shop.rest_stops(rng)
+	for o in all:
+		assert_not_null(TowerScreen.art(o), "arte de %s %s" % [o.kind, o.id])
 
 
 func test_moldura_e_fonte_dos_numeros_existem():

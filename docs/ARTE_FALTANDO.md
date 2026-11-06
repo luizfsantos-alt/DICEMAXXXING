@@ -15,7 +15,7 @@ toda jornada, **C** detalhe/polimento.
 | Fundo da tela de luta (e reflexo dos dados 3D) | `assets/backgrounds/tavern.jpg` |
 | Ícones de status (os 11): bloqueio, veneno, queima, espelho, esquiva, revide, imune, dado guardado, fúria, sede, próxima mão | `assets/icons/status/<id>.png` (64×64) |
 | Ícones de efeito nos cartões de magia: dano, cura, vida máxima, dreno, truque de dados, sacrifício, limpeza (bloqueio, esquiva, espelho, revide, imune e mexida na mão usam os de status) | `assets/icons/fx/<id>.png` (64×64); `Spells.icon_key` escolhe |
-| Torre: portas (Fácil, Normal, Difícil, Insana, Mestre), paradas (Loja, Cura, Escola, Poço) e ofertas magia, dado novo, elemento e adesivo ×2 | `assets/tower/door_<id>.png`, `stop_<id>.png` (128×128); `assets/icons/offer/<kind>.png` (64×64) |
+| Torre: portas (Fácil, Normal, Difícil, Insana, Mestre), paradas (Loja, Cura, Escola, Poço), todas as ofertas e as 3 recompensas do Mestre | `assets/tower/door_<id>.png`, `stop_<id>.png` (128×128); `assets/icons/offer/<kind>.png` (64×64) |
 | Fonte dos números sobre as fotos | `assets/fonts/Bungee-Regular.ttf` |
 | Dados 3D e 2D | gerados em código de propósito (`ui/dice_3d.gd`, `ui/die_face.gd`, `docs/DADOS_VISUAL.md`); não precisam de arquivo |
 
@@ -42,16 +42,13 @@ Quando o Minimalista tiver foto, as genéricas deixam de ser usadas e podem sair
 | Cartões de escolha de personagem | só texto e borda na cor do arquétipo; **sem foto/ilustração** |
 | Fundo | cor lisa (`Kit.BG`) |
 
-## 3. Torre: ofertas que faltam (`ui/tower_screen.gd`) — prioridade C
+## 3. Torre (`ui/tower_screen.gd`) — prioridade C
 
-Portas, paradas e as ofertas magia, dado novo, elemento e adesivo ×2 já têm ilustração no topo do
-cartão (`TowerScreen.art_path`); quem não tem arquivo fica só com cor e texto.
+Todos os cartões (portas, paradas, ofertas e recompensas do Mestre) já têm ilustração no topo
+(`TowerScreen.art_path`).
 
-| Falta | Arquivo |
+| Falta | Hoje |
 |---|---|
-| Ofertas: evoluir magia (`evolve`), destruir dado (`destroy`) | `assets/icons/offer/<kind>.png` |
-| Vida máxima (`maxhp`) | opcional: hoje usa o ícone de efeito `assets/icons/fx/maxhp.png` |
-| Recompensa do Mestre: +casas (`slots`), +1 dado na mão (`hand`), magia rara (`rare_pick`) | `assets/icons/offer/<kind>.png` |
 | Fundo da tela | cor lisa |
 
 ## 4. Tela de luta (`ui/duel_screen.gd` e componentes) — prioridade A
@@ -89,5 +86,4 @@ cartão (`TowerScreen.art_path`); quem não tem arquivo fica só com cor e texto
 1. Fotos do Minimalista.
 2. Retrato nos cartões do menu (as fotos já existem; é só código).
 3. Moeda.
-4. Ícones que faltam na torre (evoluir, destruir, recompensas do Mestre).
-5. Fundos do menu, torre e fim de jornada; tema de painéis/botões; som.
+4. Fundos do menu, torre e fim de jornada; tema de painéis/botões; som.
