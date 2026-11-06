@@ -22,7 +22,7 @@ Tela em paisagem.
   vermelha, `frame_player.png` verde). Sem a arte, `ui/portrait.gd` desenha uma silhueta.
 - Fundo da tela de batalha: `assets/backgrounds/tavern.jpg` (cobre a tela, escurecido; painéis
   translúcidos por cima).
-- Ícones de status: `assets/icons/status/<id>.png` (64×64); quem ainda não tem arte mostra a sigla colorida.
+- Ícones de status: `assets/icons/status/<id>.png` (64×64), os 11 com arte; sem o arquivo, mostra a sigla colorida.
 - Números sobre as fotos na fonte Bungee (`assets/fonts/`, licença SIL OFL) com contorno preto.
 - Efeitos das magias (`ui/spell_bolt.gd`): cada efeito voa do cartão da magia até a foto do alvo, em
   verde para cura, vermelho para dano e azul para os outros efeitos; ao chegar, a foto pisca na cor

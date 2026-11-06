@@ -556,16 +556,17 @@ func test_mestre_e_variantes_tem_foto_propria():
 
 
 func test_icones_de_status_com_arte_e_placeholder():
-	for id in ["block", "poison", "burn", "mirror", "dodge", "riposte", "immune"]:
+	for id in StatusIcon.STYLE:
 		var ic := StatusIcon.new().setup({"id": id, "n": 3})
 		assert_not_null(ic.art, "ícone com arte: " + id)
 		ic.free()
-	# Sem arte ainda: fica a sigla (placeholder).
-	var ph := StatusIcon.new().setup({"id": "fury", "n": 2})
-	assert_null(ph.art, "fúria ainda sem arte")
+	# Sem arquivo: fica a sigla (placeholder).
+	var ph := StatusIcon.new().setup({"id": "inexistente", "n": 2})
+	assert_null(ph.art, "id sem arte cai na sigla")
 	ph.free()
 	var mod := StatusIcon.new().setup({"id": "mod_minus1", "n": 1})
 	assert_eq(mod._key(), "hand_mod", "mexidas na mão usam o mesmo ícone")
+	assert_not_null(mod.art, "mexida na mão tem arte")
 	mod.free()
 
 

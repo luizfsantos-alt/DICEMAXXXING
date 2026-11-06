@@ -8,7 +8,7 @@ signal held(icon: StatusIcon, on: bool)
 ## Arte em assets/icons/status/<id>.png (64×64, fundo recortado); sem ela, a sigla
 ## colorida de STYLE fica como placeholder.
 const ICON_DIR := "res://assets/icons/status/"
-## id -> [sigla, cor]. Placeholders até haver arte.
+## id -> [sigla, cor]. A sigla só aparece se faltar a arte; a cor é a do prompt do ícone.
 const STYLE := {
 	"block": ["BL", Color(0.4, 0.7, 1.0)],
 	"poison": ["VE", Color(0.55, 0.85, 0.3)],
