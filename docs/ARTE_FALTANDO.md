@@ -11,7 +11,7 @@ toda jornada, **C** detalhe/polimento.
 | Fotos dos 8 arquétipos (3 variações cada): Feiticeiro, Assassino, Minimalista, Metalurgista, Copista, Perfeccionista, Vampiro e Bárbaro | `assets/portraits/<arquétipo>_1..3.png` |
 | Fotos do Mestre e das variantes (1 cada): Porteiro de Chumbo, Lixeiro, Piromante, Fundidor, Monge do Silêncio | `assets/portraits/<id>_1.png` |
 | Molduras das fotos (ferro; filete verde no jogador, vermelho no inimigo) | `assets/portraits/frame_player.png`, `frame_enemy.png` |
-| Logo (dado com chapéu de mago) e ícone do app | `assets/logo.png`, `assets/icon.png` |
+| Logo do título no menu; logo antigo (dado com chapéu de mago) e ícone do app | `assets/title_logo.png`, `assets/logo.png`, `assets/icon.png` |
 | Fundos: luta (e reflexo dos dados 3D), menu, torre, vitória e derrota | `assets/backgrounds/tavern.jpg`, `menu.jpg`, `tower.jpg`, `victory.jpg`, `defeat.jpg` (`Kit.background`) |
 | Moeda (faixa da luta e preços da torre) | `assets/icons/coin.png` (`Kit.coin`) |
 | Interface 9-slice: painel, botão, moldura da barra de vida, moldura do cartão de magia por raridade | `assets/ui/panel.png`, `button.png`, `hp_frame.png`, `card_<raridade>.png` (`Kit.nine`, bordas em `Kit.NINE`) |

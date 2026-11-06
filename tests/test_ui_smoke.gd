@@ -620,6 +620,17 @@ func test_texturas_da_interface_e_fundos_existem():
 	bd.free()
 
 
+func test_menu_usa_logo_do_titulo():
+	assert_not_null(Kit.tex(MenuScreen.TITLE_LOGO), "logo do título existe")
+	var m := MenuScreen.new().setup()
+	var found := false
+	for n in m.find_children("*", "TextureRect", true, false):
+		if (n as TextureRect).texture == Kit.tex(MenuScreen.TITLE_LOGO):
+			found = true
+	assert_true(found, "menu mostra o logo do título")
+	m.free()
+
+
 func test_moldura_e_fonte_dos_numeros_existem():
 	for p in Portrait.FRAMES.values():
 		assert_true(ResourceLoader.exists(Portrait.ART_DIR + p), "moldura: " + p)

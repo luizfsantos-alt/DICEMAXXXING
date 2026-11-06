@@ -34,6 +34,7 @@ Tela em paisagem.
   verde para cura, vermelho para dano e azul para os outros efeitos; ao chegar, a foto pisca na cor
   (e treme no dano) e o número sobe sobre ela (+X verde, −X vermelho). Veneno, queima e efeitos do
   fim do turno aparecem direto no alvo, sem viagem.
+- Logo do título no menu: `assets/title_logo.png` (sem ele, o menu volta ao dado com chapéu e ao nome em texto).
 - Logo: `assets/logo.png` (dado com chapéu de mago, fundo recortado); ícone do app: `assets/icon.png` (o mesmo dado sobre fundo ameixa).
 - Arte a fazer, com prompts de gerador: [`docs/PAUTA_ARTE.html`](docs/PAUTA_ARTE.html). Geradores não fazem
   transparência; os prompts pedem fundo magenta/verde chapado e `tools/recortar_fundo.py` recorta (também limpa o

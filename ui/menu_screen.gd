@@ -6,6 +6,8 @@ extends Control
 signal new_run(char_id: String)
 
 const LOGO := "res://assets/logo.png"
+const TITLE_LOGO := "res://assets/title_logo.png" ## Logo com o nome (640×479, fundo recortado).
+const TITLE_H := 250.0
 const BACKGROUND := "res://assets/backgrounds/menu.jpg"
 signal continue_run
 
@@ -23,29 +25,32 @@ func setup() -> MenuScreen:
 	var v := Kit.vbox(16)
 	v.custom_minimum_size = Vector2(1100, 0)
 	cc.add_child(v)
-	# Logo ao lado do título.
-	var head := Kit.hbox(20)
+	# Logo do título à esquerda; subtítulo, aviso de versão e Continuar à direita.
+	# Sem a arte do título, volta ao dado com chapéu e o nome em texto.
+	var head := Kit.hbox(28)
 	head.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.add_child(head)
+	var title_art := Kit.tex(TITLE_LOGO)
 	var logo := TextureRect.new()
-	logo.texture = load(LOGO)
-	logo.custom_minimum_size = Vector2(140, 140)
+	logo.texture = title_art if title_art else load(LOGO)
+	logo.custom_minimum_size = Vector2(TITLE_H * 640.0 / 479.0, TITLE_H) if title_art else Vector2(140, 140)
 	logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	logo.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	logo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	head.add_child(logo)
-	var tv := Kit.vbox(2)
+	var tv := Kit.vbox(12)
 	tv.alignment = BoxContainer.ALIGNMENT_CENTER
+	tv.custom_minimum_size = Vector2(520, 0)
 	head.add_child(tv)
 	header = tv
-	var t := Kit.label(Texts.t("ui.title"), 64, Kit.ACCENT)
-	tv.add_child(t)
-	var sub := Kit.label(Texts.t("ui.subtitle"), 22, Kit.MUTED)
+	if title_art == null:
+		tv.add_child(Kit.label(Texts.t("ui.title"), 64, Kit.ACCENT))
+	var sub := Kit.label(Texts.t("ui.subtitle"), 26, Kit.TEXT)
 	tv.add_child(sub)
 	var c := Kit.button(Texts.t("ui.continue"), func(): continue_run.emit(), Kit.PANEL_HI, 28)
 	c.custom_minimum_size = Vector2(0, 64)
 	c.disabled = not SaveGame.exists()
-	v.add_child(c)
+	tv.add_child(c)
 	var nt := Kit.label(Texts.t("ui.pick_character"), 26, Kit.TEXT)
 	nt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(nt)
