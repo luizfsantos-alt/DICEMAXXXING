@@ -807,3 +807,41 @@ func test_faixa_do_jogador_mostra_bolsa_vida_e_moedas():
 	assert_eq(t.strip.hp_label.text, "%d/%d" % [run.hero.hp, run.hero.max_hp])
 	assert_eq(t.strip.chips.get_child_count(), c.size())
 	assert_string_contains(t.strip.bag_button.text, str(run.hero.bag.size()))
+
+
+func test_tremida_da_tela_por_faixa_de_dano():
+	assert_eq(ScreenShake.tier(0, 40), 0)
+	assert_eq(ScreenShake.tier(3, 40), 0, "abaixo de 10%: só a foto treme")
+	assert_eq(ScreenShake.tier(4, 40), 1, "10%")
+	assert_eq(ScreenShake.tier(10, 40), 2, "25%")
+	assert_eq(ScreenShake.tier(19, 40), 2)
+	assert_eq(ScreenShake.tier(20, 40), 3, "50%")
+	assert_eq(ScreenShake.tier(32, 40), 4, "80%")
+	assert_eq(ScreenShake.tier(40, 40), 5, "100%: quase uma explosão")
+	assert_eq(ScreenShake.tier(99, 40), 5, "acima de 100% não passa da maior")
+	var amps := ScreenShake.TIERS.map(func(r): return r[1])
+	for k in range(1, amps.size()):
+		assert_gt(amps[k], amps[k - 1], "cada faixa treme mais")
+
+
+func test_golpe_grande_treme_a_tela_e_volta_ao_lugar():
+	var run := _run_at_duel(77)
+	var d := DuelScreen.new().setup(run)
+	d.fast = true
+	add_child_autofree(d)
+	await wait_process_frames(2)
+	var base := d.content.position
+	d.fast = false
+	await d._effect("enemy", "−3", "dmg", null, 0)
+	assert_eq(d.last_shake, 0, "golpe pequeno não treme a tela")
+	await d._effect("enemy", "−99", "dmg", null, 5)
+	assert_eq(d.last_shake, 5)
+	assert_gt(d.flash.color.a, 0.0, "clarão no golpe enorme")
+	await wait_process_frames(3)
+	assert_ne(d.content.position, base, "a tela está tremendo")
+	d.shaker.start(1)
+	assert_eq(d.shaker.level, 5, "tremida mais fraca não corta a mais forte")
+	await wait_seconds(0.9)
+	assert_eq(d.content.position, base, "volta ao lugar")
+	assert_eq(d.content.rotation, 0.0)
+	d.fast = true

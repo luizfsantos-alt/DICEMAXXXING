@@ -103,6 +103,10 @@ var fx_src = null ## Ponto (camada de efeitos) de onde saem os efeitos: o cartã
 var fx_bounce = null ## Golpe devolvido (Espelho, Revide): sai da foto de quem devolveu.
 var bolts := 0 ## Efeitos disparados (testes).
 var chained := false ## A ação atual vem da mesma magia que a anterior.
+var content: Control ## Tudo menos o fundo (é o que treme no impacto).
+var shaker: ScreenShake
+var flash: ColorRect ## Clarão dos golpes enormes.
+var last_shake := 0 ## Faixa da última tremida (testes).
 
 
 func setup(r: RunState) -> DuelScreen:
@@ -127,6 +131,7 @@ func _build() -> void:
 	m.add_child(root)
 	m.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(m)
+	content = m
 	root.add_child(_build_fighters())
 	root.add_child(_build_stage())
 	root.add_child(_build_dice())
@@ -135,6 +140,13 @@ func _build() -> void:
 	fx_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	fx_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(fx_layer)
+	flash = ColorRect.new()
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+	flash.color = Color(1, 1, 1, 0)
+	add_child(flash)
+	shaker = ScreenShake.new().setup([content, fx_layer])
+	add_child(shaker)
 	_build_tip()
 	# Durante a resolução, tocar no palco ou nos dados acelera. A coluna dos personagens
 	# fica de fora: dá para segurar a foto do inimigo e os ícones a qualquer momento.
@@ -1070,12 +1082,12 @@ func _apply_event(ev: Dictionary) -> void:
 			var hit_txt := "−%d" % int(ev.dmg) if int(ev.dmg) > 0 else Texts.t("ui.fx_absorb", {"n": ev.absorbed})
 			var from = fx_bounce if ev.get("reflected", false) and fx_bounce != null else fx_src
 			fx_bounce = null
-			await _effect(s, hit_txt, "dmg" if int(ev.dmg) > 0 else "fx", from)
+			await _effect(s, hit_txt, "dmg" if int(ev.dmg) > 0 else "fx", from, ScreenShake.tier(int(ev.dmg), int(v.max)))
 			_note(s, hit_txt)
 		"asbestos":
 			_burst(fx_src, Elements.look("Am").body, false)
 			v.hp -= int(ev.n)
-			await _effect(s, Texts.t("ui.fx_asbestos", {"n": ev.n}), "dmg")
+			await _effect(s, Texts.t("ui.fx_asbestos", {"n": ev.n}), "dmg", "src", ScreenShake.tier(int(ev.n), int(v.max)))
 			_note(s, Texts.t("ui.fx_asbestos", {"n": ev.n}))
 		"element":
 			_float(s, Texts.t("ui.fx_el_" + str(ev.el), {"v": ev.v}), Elements.COLORS.get(str(ev.el), Kit.TEXT))
@@ -1098,7 +1110,7 @@ func _apply_event(ev: Dictionary) -> void:
 		"poison", "burn", "idle_dmg":
 			# Começo ou fim do turno: o dano acontece no próprio alvo, sem viagem.
 			v.hp -= int(ev.n)
-			await _effect(s, "−%d" % int(ev.n), "dmg", null)
+			await _effect(s, "−%d" % int(ev.n), "dmg", null, ScreenShake.tier(int(ev.n), int(v.max)))
 			_note(s, Texts.t("ui.fx_" + str(ev.t), {"n": ev.n}))
 		"riposte":
 			await _effect(s, Texts.t("ui.fx_riposte"), "fx", null)
@@ -1250,7 +1262,8 @@ func _float(s: String, text: String, col: Color) -> void:
 ## Um efeito chega em "s": voa de "from" (por padrão, o cartão da última magia) até a
 ## foto do alvo na cor do tipo ("heal", "dmg", "fx") e então mostra o texto e a reação.
 ## Sem origem (veneno, queima, fim do turno) ou acelerando, só o texto e a reação.
-func _effect(s: String, text: String, kind: String, from: Variant = "src") -> void:
+## "shake" é a faixa da tremida da tela no impacto (ScreenShake.tier; 0 = nenhuma).
+func _effect(s: String, text: String, kind: String, from: Variant = "src", shake := 0) -> void:
 	if from is String:
 		from = fx_src
 	var col: Color = FX_COLORS[kind]
@@ -1264,6 +1277,26 @@ func _effect(s: String, text: String, kind: String, from: Variant = "src") -> vo
 	_float(s, text, col)
 	var ph: Portrait = player_photo if s == "player" else enemy_photo
 	ph.react(col, kind == "dmg")
+	_impact(s, shake)
+
+
+## Impacto de um golpe: a tela treme conforme a faixa; nas duas maiores, um clarão
+## vermelho e, a partir de 100% da vida, quase uma explosão (clarão branco e estilhaços).
+func _impact(s: String, t: int) -> void:
+	if t <= 0 or fast or not is_inside_tree():
+		return
+	last_shake = t
+	shaker.start(t)
+	if t < 4:
+		return
+	var big := t >= 5
+	flash.color = Color(1.0, 0.95, 0.85, 0.55) if big else Color(1.0, 0.2, 0.15, 0.28)
+	var tw := flash.create_tween()
+	tw.tween_property(flash, "color:a", 0.0, 0.45 if big else 0.3).set_ease(Tween.EASE_OUT)
+	if big:
+		var at := _portrait_point(s)
+		_burst(at, Color(1.0, 0.55, 0.2), true)
+		_burst(at, Color(0.55, 0.12, 0.1), false)
 
 
 ## Centro de um controle na camada de efeitos.
