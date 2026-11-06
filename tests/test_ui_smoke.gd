@@ -582,6 +582,16 @@ func test_cartao_de_magia_tem_icone_do_efeito():
 	assert_eq(Spells.icon_key("chave"), "status/hand_mod")
 
 
+func test_cartoes_da_torre_tem_ilustracao():
+	for id in ["facil", "normal", "dificil", "insana", "mestre"]:
+		assert_not_null(TowerScreen.art({"kind": "door", "id": id}), "porta " + id)
+	for id in ["shop", "heal", "school", "well"]:
+		assert_not_null(TowerScreen.art({"kind": "stop", "id": id}), "parada " + id)
+	for k in ["spell", "die", "element", "sticker", "maxhp"]:
+		assert_not_null(TowerScreen.art({"kind": k, "id": ""}), "oferta " + k)
+	assert_eq(TowerScreen.art_path({"kind": "maxhp"}), "res://assets/icons/fx/maxhp.png", "vida máxima usa o ícone de efeito até ter o seu")
+
+
 func test_moldura_e_fonte_dos_numeros_existem():
 	for p in Portrait.FRAMES.values():
 		assert_true(ResourceLoader.exists(Portrait.ART_DIR + p), "moldura: " + p)
