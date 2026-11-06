@@ -1,42 +1,50 @@
 class_name TowerScreen
 extends Control
 ## Tela da torre fora das lutas: portas, recompensa, parada, Loja, Escola, Poço e
-## a escolha inicial do Erudito. Cada opção é um cartão; algumas pedem um dado ou face.
+## a escolha inicial do Erudito. Cada opção é um ícone grande com o nome curto embaixo e
+## um "i" para os detalhes; algumas pedem um dado ou face.
 
 signal finished
 
-## Ilustração do topo do cartão: cena 128×128 em assets/tower/ (portas e paradas) ou ícone
-## 64×64 em assets/icons/offer/ (ofertas). Sem arquivo, o cartão fica só com cor e texto.
-const SCENE_PX := 128
-const ICON_PX := 64
+## Ilustração da opção: cena 128×128 em assets/tower/ (portas e paradas) ou ícone 64×64 em
+## assets/icons/offer/ (ofertas), mostrada grande. Sem arquivo, um disco com a inicial.
 const BACKGROUND := "res://assets/backgrounds/tower.jpg"
 static var _art := {} ## caminho -> Texture2D ou null (não existe)
 
 var run: RunState
-var hud: Label
+var strip: PlayerStrip
 var title: Label
 var cards: HBoxContainer
 var info: Label
 var bottom: HBoxContainer
 var sell_row: HBoxContainer
 var organizer: Overlay ## Aberto após ganhar uma magia (testes).
+var details: Overlay ## Janela de detalhes aberta pelo "i" (testes).
+
+## Lado do ícone de cada opção: o elemento principal do cartão. Encolhe com muitas opções.
+const ICON_MAX := 240
+const ROW_W := 1200
+const CARD_GAP := 36
+## Fases cujo título é o nome do lugar (as outras não têm título: as opções falam por si).
+const PLACE_TITLES := {"shop": "stops.shop.0", "school": "stops.school.0", "well": "stops.well.0"}
 
 
 func setup(r: RunState) -> TowerScreen:
 	run = r
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	var root := Kit.vbox(16)
+	var root := Kit.vbox(12)
 	var m := Kit.margin(root, 20)
 	m.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(m)
-	hud = Kit.label("", 22, Kit.MUTED)
-	root.add_child(hud)
-	title = Kit.label("", 36, Kit.ACCENT)
+	strip = PlayerStrip.new()
+	root.add_child(strip)
+	title = Kit.label("", 32, Kit.ACCENT)
 	root.add_child(title)
 	var mid := CenterContainer.new()
 	mid.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(mid)
-	cards = Kit.hbox(16)
+	cards = Kit.hbox(CARD_GAP)
+	cards.alignment = BoxContainer.ALIGNMENT_CENTER
 	mid.add_child(cards)
 	info = Kit.label("", 22, Kit.DANGER)
 	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -53,14 +61,13 @@ func setup(r: RunState) -> TowerScreen:
 
 func refresh() -> void:
 	var h := run.hero
-	hud.text = Texts.t("ui.hud", {"n": run.floor_n, "max": Config.LAST_FLOOR, "coins": run.coins, "hp": h.hp, "maxhp": h.max_hp})
-	title.text = Texts.t({
-		"start_pick": "ui.pick_start", "doors": "ui.pick_door", "reward": "ui.pick_reward",
-		"master_reward": "ui.pick_master", "master_rare": "ui.pick_master_rare", "rest": "ui.pick_rest", "shop": "stops.shop.0", "school": "stops.school.0", "well": "stops.well.0",
-	}.get(run.phase, "ui.title"))
+	strip.refresh(run, self)
+	title.text = Texts.t(PLACE_TITLES[run.phase]) if PLACE_TITLES.has(run.phase) else ""
+	title.visible = title.text != ""
 	Kit.clear(cards)
+	var px := icon_px(run.options.size())
 	for i in run.options.size():
-		cards.add_child(_card(i, run.options[i]))
+		cards.add_child(_card(i, run.options[i], px))
 	Kit.clear(sell_row)
 	if run.phase == "shop" and not h.inventory.items.is_empty():
 		sell_row.add_child(Kit.label(Texts.t("ui.sell_title"), 20, Kit.MUTED))
@@ -88,75 +95,169 @@ func _bottom_btn(t: String, cb: Callable) -> void:
 	bottom.add_child(b)
 
 
-func _card(i: int, o: Dictionary) -> Control:
-	var lines := _describe(o)
+## Lado do ícone para n opções lado a lado na largura da tela.
+static func icon_px(n: int) -> int:
+	return mini(ICON_MAX, (ROW_W - CARD_GAP * maxi(0, n - 1)) / maxi(1, n))
+
+
+## Por que a opção não pode ser escolhida agora ("" se pode).
+func _blocked(o: Dictionary, price: int) -> String:
+	if o.kind == "spell" and not run.hero.inventory.fits(o.id):
+		return Texts.t("ui.fits_no")
+	if price > run.coins:
+		return Texts.t("ui.not_enough")
+	return ""
+
+
+## Cartão sem moldura: o ícone grande (é ele que escolhe), o nome curto com o "i" dos
+## detalhes ao lado (o nome não reage ao toque) e o preço.
+func _card(i: int, o: Dictionary, px: int) -> Control:
 	var price := Shop.price_of(o, run.hero, {}, run.destroys_used)
+	var blocked := _blocked(o, price)
+	var v := Kit.vbox(6)
+	v.custom_minimum_size = Vector2(px, 0)
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(260, 300)
-	b.clip_text = true
+	b.custom_minimum_size = Vector2(px, px)
 	b.focus_mode = Control.FOCUS_NONE
-	var col := Kit.PANEL_HI
-	if o.kind == "door":
-		col = {"facil": Color(0.2, 0.35, 0.25), "normal": Color(0.25, 0.25, 0.35), "dificil": Color(0.4, 0.22, 0.2),
-			"insana": Color(0.45, 0.12, 0.3), "mestre": Color(0.45, 0.35, 0.1)}.get(o.id, col)
+	b.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	for st in ["normal", "hover", "pressed", "disabled", "focus"]:
+		b.add_theme_stylebox_override(st, StyleBoxEmpty.new())
+	var img := _icon(o)
+	b.add_child(img)
+	b.disabled = blocked != ""
+	if b.disabled:
+		img.modulate = Color(0.45, 0.45, 0.5)
+	else:
+		b.mouse_entered.connect(func(): img.modulate = Color(1.2, 1.2, 1.2))
+		b.mouse_exited.connect(func(): img.modulate = Color.WHITE)
+		b.button_down.connect(func(): img.modulate = Color(0.8, 0.8, 0.8))
+		b.button_up.connect(func(): img.modulate = Color.WHITE)
+	b.pressed.connect(func(): _pick(i))
+	v.add_child(b)
+	var row := Kit.hbox(8)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	var rar := offer_rarity(o)
-	for st in ["normal", "hover", "pressed", "disabled"]:
-		var c2: Color = col
-		if st == "hover":
-			c2 = col.lightened(0.12)
-		elif st == "disabled":
-			c2 = col.darkened(0.5)
-		var sb := Kit.box(c2, 16, 14)
-		if rar != "":
-			# Borda na cor da raridade (docs/RARIDADE.md §2).
-			sb.set_border_width_all(4)
-			sb.border_color = Kit.RARITY_COLORS[rar]
-		b.add_theme_stylebox_override(st, sb)
-	var v := Kit.vbox(8)
-	v.set_anchors_preset(Control.PRESET_FULL_RECT)
-	v.offset_left = 14
-	v.offset_right = -14
-	v.offset_top = 14
-	v.offset_bottom = -14
-	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	b.add_child(v)
+	var col: Color = Kit.TEXT if rar in ["", "common"] else Kit.RARITY_COLORS[rar]
+	var name := Kit.label(short_name(o), 24, col, true)
+	name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name.custom_minimum_size = Vector2(px - 56, 0)
+	name.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_outline(name)
+	row.add_child(name)
+	row.add_child(_info_btn(func(): open_details(i)))
+	v.add_child(row)
+	if blocked != "":
+		var bl := Kit.label(blocked, 20, Kit.DANGER)
+		bl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_outline(bl)
+		v.add_child(bl)
+	elif not (run.phase in ["doors", "rest"]):
+		var p: Control
+		if price == 0:
+			p = Kit.label(Texts.t("ui.free"), 22, Kit.ACCENT)
+		else:
+			p = Kit.price_tag(Texts.t("ui.price", {"n": price}))
+			(p as HBoxContainer).alignment = BoxContainer.ALIGNMENT_CENTER
+		if p is Label:
+			p.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		for l in [p] + p.get_children():
+			if l is Label:
+				_outline(l)
+		v.add_child(p)
+	return v
+
+
+## Contorno escuro: o texto fica solto sobre o fundo da torre.
+static func _outline(l: Label) -> void:
+	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	l.add_theme_constant_override("outline_size", 6)
+
+
+## Ilustração cobrindo o botão; sem arte, um disco com a inicial do nome.
+func _icon(o: Dictionary) -> Control:
 	var tex := art(o)
 	if tex:
-		var px := SCENE_PX if str(o.kind) in ["door", "stop"] else ICON_PX
-		b.custom_minimum_size.y += px + 8 # o cartão cresce com a arte; o texto continua cabendo
 		var img := TextureRect.new()
 		img.texture = tex
-		img.custom_minimum_size = Vector2(0, px)
+		img.set_anchors_preset(Control.PRESET_FULL_RECT)
 		img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		img.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		img.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		v.add_child(img)
-	var t := Kit.label(lines[0], 26, Kit.TEXT, true)
-	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	v.add_child(t)
-	if rar != "":
-		var rl := Kit.label(Texts.t("rarity." + rar), 16, Kit.RARITY_COLORS[rar])
-		rl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		v.add_child(rl)
-	var d := Kit.label(lines[1], 18, Kit.MUTED, true)
-	d.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	d.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	v.add_child(d)
-	if not (run.phase in ["doors", "rest"]):
-		if price == 0:
-			var p := Kit.label(Texts.t("ui.free"), 22, Kit.ACCENT)
-			p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			v.add_child(p)
-		else:
-			v.add_child(Kit.price_tag(Texts.t("ui.price", {"n": price})))
-	if o.kind == "spell" and not run.hero.inventory.fits(o.id):
-		b.disabled = true
-		d.text += "\n\n" + Texts.t("ui.no_room")
-	elif price > run.coins:
-		b.disabled = true
-	b.pressed.connect(func(): _pick(i))
+		return img
+	var c := Control.new()
+	c.set_anchors_preset(Control.PRESET_FULL_RECT)
+	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var letter := short_name(o).left(1)
+	c.draw.connect(func():
+		var r := minf(c.size.x, c.size.y) * 0.42
+		c.draw_circle(c.size * 0.5, r, Kit.PANEL_HI)
+		var fs := int(r)
+		c.draw_string(ThemeDB.fallback_font, Vector2(0, c.size.y * 0.5 + fs * 0.35), letter,
+			HORIZONTAL_ALIGNMENT_CENTER, c.size.x, fs, Kit.TEXT))
+	return c
+
+
+## Botão redondo "i": abre os detalhes da opção sem escolhê-la.
+static func _info_btn(cb: Callable) -> Button:
+	var b := Button.new()
+	b.text = "i"
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(44, 44)
+	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	b.add_theme_font_size_override("font_size", 24)
+	for st in ["normal", "hover", "pressed"]:
+		var sb := Kit.box(Kit.PANEL_HI.lightened(0.15 if st == "hover" else 0.0), 22, 0)
+		sb.set_border_width_all(2)
+		sb.border_color = Kit.MUTED
+		b.add_theme_stylebox_override(st, sb)
+	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	b.add_theme_color_override("font_color", Kit.TEXT)
+	b.pressed.connect(cb)
 	return b
+
+
+## Detalhes da opção: nome completo, raridade, descrição (elementos tocáveis) e o
+## botão de escolher, para quem decidiu lendo.
+func open_details(i: int) -> Overlay:
+	var o: Dictionary = run.options[i]
+	var lines := _describe(o)
+	var price := Shop.price_of(o, run.hero, {}, run.destroys_used)
+	var blocked := _blocked(o, price)
+	details = Overlay.open(self, lines[0], Texts.t("ui.cancel") if blocked == "" else "OK", 640)
+	var rar := offer_rarity(o)
+	if rar != "":
+		details.add_text(Texts.t("rarity." + rar), 16, Kit.RARITY_COLORS[rar])
+	if str(lines[1]) != "":
+		details.body.add_child(ElementInfo.rich(lines[1], 22, Kit.TEXT))
+	if blocked != "":
+		details.add_text(blocked, 20, Kit.DANGER)
+	else:
+		var d := details
+		var ch := Kit.button(Texts.t("ui.choose"), func():
+			d.close()
+			_pick(i), Kit.PANEL_HI, 24)
+		ch.custom_minimum_size = Vector2(220, 60)
+		details.footer.add_child(ch)
+	return details
+
+
+## Nome curto embaixo do ícone (até 5 palavras): o que a pessoa ganha. Portas: só o nome.
+func short_name(o: Dictionary) -> String:
+	match str(o.kind):
+		"door":
+			return Texts.t("doors." + o.id)
+		"stop":
+			return Texts.t("stops.%s.0" % o.id)
+		"spell":
+			return Texts.spell_name(o.id)
+		"die":
+			return Texts.t("short.die", {"name": Texts.element_name(o.id)}) if o.id != "" else Texts.t("short.die_plain")
+		"element":
+			return Texts.t("short.element", {"name": Texts.element_name(o.id)})
+		"evolve":
+			return Texts.t("short.evolve", {"name": Texts.spell_name(o.id)})
+	return Texts.t("short." + o.kind)
 
 
 ## Caminho da ilustração da opção (existindo ou não).
@@ -190,7 +291,7 @@ func _describe(o: Dictionary) -> Array:
 	match str(o.kind):
 		"door":
 			if o.id == "mestre":
-				return [Texts.master_name("porteiro"), Texts.master_desc("porteiro")]
+				return [Texts.t("doors.mestre"), Texts.master_name("porteiro") + ": " + Texts.master_desc("porteiro")]
 			return [Texts.t("ui.door", {"d": Texts.t("doors." + o.id)}), Texts.t("ui.door_info", {"d": Texts.t("doors." + o.id), "c": o.get("coins", 0)})]
 		"stop":
 			return [Texts.t("stops.%s.0" % o.id), Texts.t("stops.%s.1" % o.id)]

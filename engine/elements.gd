@@ -22,18 +22,18 @@ const LOOKS := {
 	"": {"body": Color("#efe6d2"), "body2": Color("#fbf6ea"), "ink": Color("#2a2230"), "accent": Color("#efe6d2"),
 		"finish": "marfim", "rough": 0.5, "metal": 0.0, "coat": 0.3, "alpha": 1.0, "rim": 0.0,
 		"glow": "", "emission": Color.BLACK, "energy": 0.0},
-	"H": {"body": Color("#9a63f0"), "body2": Color("#f0d0ff"), "ink": Color("#ffffff"), "accent": Color("#d9a6ff"),
-		"finish": "vidro", "rough": 0.12, "metal": 0.0, "coat": 1.0, "alpha": 0.9, "rim": 0.5,
-		"glow": "pips", "emission": Color("#e07bff"), "energy": 0.6},
+	"H": {"body": Color("#5b2fb0"), "body2": Color("#8f62dc"), "ink": Color("#ffffff"), "accent": Color("#d9a6ff"),
+		"finish": "vidro", "rough": 0.12, "metal": 0.0, "coat": 1.0, "alpha": 0.95, "rim": 0.25,
+		"glow": "pips", "emission": Color("#d58cff"), "energy": 0.2},
 	"Os": {"body": Color("#2f3d63"), "body2": Color("#6d84c4"), "ink": Color("#cfd8f0"), "accent": Color("#8fa8ff"),
 		"finish": "espelho", "rough": 0.16, "metal": 0.8, "coat": 0.0, "alpha": 1.0, "rim": 0.3,
 		"glow": "", "emission": Color.BLACK, "energy": 0.0},
-	"U": {"body": Color("#5fcf2a"), "body2": Color("#d4ff9a"), "ink": Color("#0f2a06"), "accent": Color("#8cf259"),
+	"U": {"body": Color("#5fcf2a"), "body2": Color("#93e25f"), "ink": Color("#0f2a06"), "accent": Color("#8cf259"),
 		"finish": "vidro", "rough": 0.25, "metal": 0.0, "coat": 0.6, "alpha": 0.95, "rim": 0.3,
-		"glow": "body", "emission": Color("#7cff3a"), "energy": 0.45},
+		"glow": "body", "emission": Color("#7cff3a"), "energy": 0.15},
 	"Na": {"body": Color("#e8780f"), "body2": Color("#ffb35c"), "ink": Color("#3a1600"), "accent": Color("#ff9e4d"),
 		"finish": "ceroso", "rough": 0.55, "metal": 0.0, "coat": 0.0, "alpha": 1.0, "rim": 0.6,
-		"glow": "rim", "emission": Color("#ff6a00"), "energy": 0.8},
+		"glow": "rim", "emission": Color("#ff6a00"), "energy": 0.5},
 	"Hg": {"body": Color("#dfe5ee"), "body2": Color("#ffffff"), "ink": Color("#1a1f2a"), "accent": Color("#d1d6e6"),
 		"finish": "espelho", "rough": 0.14, "metal": 0.7, "coat": 0.4, "alpha": 1.0, "rim": 0.2,
 		"glow": "", "emission": Color.BLACK, "energy": 0.0},
@@ -51,7 +51,8 @@ const LOOKS := {
 		"glow": "", "emission": Color.BLACK, "energy": 0.0},
 }
 ## Energia máxima do brilho com o estado ativo (heat = 1).
-const ENERGY_ACTIVE := {"H": 2.2, "U": 1.4, "Na": 1.6, "C": 1.8}
+## Contidos de propósito: forte demais, o brilho estoura e o valor deixa de ser lido.
+const ENERGY_ACTIVE := {"H": 0.7, "U": 0.5, "Na": 1.0, "C": 0.9}
 ## Cor do elemento em texto e rótulos (o accent de LOOKS: legível sobre o fundo escuro).
 const COLORS := {
 	"": Color("#efe6d2"),

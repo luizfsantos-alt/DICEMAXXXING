@@ -15,7 +15,7 @@ A tabela fica em `Elements.LOOKS` (`engine/elements.gd`). `Elements.COLORS` cont
 | Dado | Corpo | Tinta | Texto | Acabamento | Brilho |
 |---|---|---|---|---|---|
 | Comum | `#efe6d2` | `#2a2230` | `#efe6d2` | marfim (rugosidade 0,5, clearcoat 0,3) | — |
-| Hidrogênio | `#9a63f0` | `#ffffff` | `#d9a6ff` | vidro (rugosidade 0,12, alfa 0,9, clearcoat 1, rim) | pontinhos `#e07bff` |
+| Hidrogênio | `#5b2fb0` | `#ffffff` | `#d9a6ff` | vidro (rugosidade 0,12, alfa 0,95, clearcoat 1, rim) | pontinhos `#d58cff` |
 | Ósmio | `#2f3d63` | `#cfd8f0` | `#8fa8ff` | espelho (metal 0,8, rugosidade 0,16) | — |
 | Urânio | `#5fcf2a` | `#0f2a06` | `#8cf259` | vidro (rugosidade 0,25, clearcoat 0,6) | corpo `#7cff3a` |
 | Sódio | `#e8780f` | `#3a1600` | `#ff9e4d` | ceroso (rugosidade 0,55, rim) | arestas `#ff6a00` |

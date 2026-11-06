@@ -27,8 +27,13 @@ Tela em paisagem.
 - Ícones de status: `assets/icons/status/<id>.png` (64×64), os 11 com arte; sem o arquivo, mostra a sigla colorida.
 - Cartões de magia: ícone do tipo de efeito ao lado do nome (`assets/icons/fx/`, ou o de status quando o
   efeito é o mesmo; `Spells.icon_key`).
-- Torre: ilustração no topo dos cartões de porta, parada e oferta (`assets/tower/`, `assets/icons/offer/`;
-  `TowerScreen.art_path`). Captura manual: `sim/shot_tower.gd`.
+- Torre: cada porta, parada e oferta é a ilustração grande (`assets/tower/`, `assets/icons/offer/`;
+  `TowerScreen.art_path`), sem moldura, que escolhe ao toque. Embaixo, o nome curto (até 5 palavras,
+  `short` nos textos; portas só o nome) e um "i" com os detalhes; o nome não reage ao toque.
+  No topo, a faixa do jogador (`ui/player_strip.gd`): vida, moedas e a bolsa por elemento.
+  Captura manual: `sim/shot_tower.gd`.
+- Elementos citados em textos (detalhes das ofertas, grimório, ficha do inimigo) viram links na
+  cor do elemento; o toque abre o que ele faz (`ui/element_info.gd`).
 - Números sobre as fotos na fonte Bungee (`assets/fonts/`, licença SIL OFL) com contorno preto.
 - Efeitos das magias (`ui/spell_bolt.gd`): cada efeito voa do cartão da magia até a foto do alvo, em
   verde para cura, vermelho para dano e azul para os outros efeitos; ao chegar, a foto pisca na cor

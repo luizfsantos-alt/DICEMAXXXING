@@ -35,7 +35,7 @@ static func open(parent: Control, inv: Inventory, on_done: Callable = Callable()
 	var dv := Kit.vbox(8)
 	detail.add_child(dv)
 	var d_name := Kit.label("", 30, Kit.TEXT, true)
-	var d_desc := Kit.label("", 20, Color(0.85, 0.83, 0.89), true)
+	var d_desc: RichTextLabel = ElementInfo.rich("", 20, Color(0.85, 0.83, 0.89)) ## Elementos citados: tocáveis.
 	var d_meta := Kit.label("", 17, Kit.MUTED, true)
 	dv.add_child(d_name)
 	dv.add_child(d_desc)
@@ -43,7 +43,7 @@ static func open(parent: Control, inv: Inventory, on_done: Callable = Callable()
 	var show := func(item: int):
 		if item < 0 or item >= inv.items.size():
 			d_name.text = Texts.t("ui.pick_piece")
-			d_desc.text = ""
+			ElementInfo.set_text(d_desc, "")
 			d_meta.text = ""
 			return
 		var it: Dictionary = inv.items[item]
@@ -51,7 +51,7 @@ static func open(parent: Control, inv: Inventory, on_done: Callable = Callable()
 		if int(it.level) > 1:
 			nm += "  " + Texts.t("ui.level", {"n": it.level})
 		d_name.text = nm
-		d_desc.text = Texts.spell_desc(it.id)
+		ElementInfo.set_text(d_desc, Texts.spell_desc(it.id))
 		d_meta.text = Texts.t("ui.piece_meta", {"n": Spells.shape(it.id).size(), "pos": inv.order().find(item) + 1})
 	show.call(new_item)
 

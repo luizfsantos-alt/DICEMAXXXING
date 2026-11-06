@@ -610,7 +610,10 @@
   "enemy_sheet": "Ficha",
   "read_only": "segurando: só leitura",
   "your_hand": "SUA MÃO",
-  "enemy_dice": "DADOS DO INIMIGO"
+  "enemy_dice": "DADOS DO INIMIGO",
+  "strip_floor": "Andar {n}/{max}",
+  "strip_bag": "Bolsa {n}",
+  "choose": "Escolher"
  },
  "ev": {
   "hand": "{who} rolou: {v}",
@@ -758,5 +761,17 @@
    "Próxima mão",
    "Uma mexida do adversário que vale na próxima mão deste lado."
   ]
+ },
+ "short": {
+  "die": "Dado de {name}",
+  "die_plain": "Dado comum",
+  "element": "Elemento {name}",
+  "sticker": "Adesivo ×2",
+  "destroy": "Destruir um dado",
+  "maxhp": "+5 de vida máxima",
+  "evolve": "Evoluir {name}",
+  "slots": "+1 coluna de magias",
+  "hand": "+1 dado na mão",
+  "rare_pick": "Magia Rara"
  }
 }
