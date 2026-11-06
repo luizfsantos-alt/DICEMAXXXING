@@ -1193,7 +1193,8 @@ func _refresh_shown_only() -> void:
 ## Textos seguidos no mesmo lado empilham para não se cobrirem.
 ## Explosão de partículas no ponto at (camada de efeitos): faíscas do Sódio (sparks)
 ## ou poeira do Amianto. Some sozinha.
-func _burst(at: Variant, col: Color, sparks: bool) -> void:
+## "speed" acelera as partículas (velocidade e gravidade, mesma trajetória em menos tempo).
+func _burst(at: Variant, col: Color, sparks: bool, speed := 1.0) -> void:
 	if fast or skip or at == null or not is_inside_tree():
 		return
 	var pt := CPUParticles2D.new()
@@ -1203,9 +1204,9 @@ func _burst(at: Variant, col: Color, sparks: bool) -> void:
 	pt.amount = 28 if sparks else 40
 	pt.lifetime = 0.6 if sparks else 1.1
 	pt.spread = 180.0
-	pt.gravity = Vector2(0, 260) if sparks else Vector2(0, -25)
-	pt.initial_velocity_min = 180.0 if sparks else 30.0
-	pt.initial_velocity_max = 340.0 if sparks else 90.0
+	pt.gravity = (Vector2(0, 260) if sparks else Vector2(0, -25)) * speed * speed
+	pt.initial_velocity_min = (180.0 if sparks else 30.0) * speed
+	pt.initial_velocity_max = (340.0 if sparks else 90.0) * speed
 	pt.scale_amount_min = 2.0 if sparks else 3.0
 	pt.scale_amount_max = 4.0 if sparks else 7.0
 	var ramp := Gradient.new()
@@ -1295,8 +1296,8 @@ func _impact(s: String, t: int) -> void:
 	tw.tween_property(flash, "color:a", 0.0, 0.45 if big else 0.3).set_ease(Tween.EASE_OUT)
 	if big:
 		var at := _portrait_point(s)
-		_burst(at, Color(1.0, 0.55, 0.2), true)
-		_burst(at, Color(0.55, 0.12, 0.1), false)
+		_burst(at, Color(1.0, 0.55, 0.2), true, ScreenShake.STRENGTH)
+		_burst(at, Color(0.55, 0.12, 0.1), false, ScreenShake.STRENGTH)
 
 
 ## Centro de um controle na camada de efeitos.

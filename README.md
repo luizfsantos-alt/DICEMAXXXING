@@ -56,6 +56,7 @@ godot --headless -s addons/gut/gut_cmdln.gd -gexit                 # testes
 godot --headless -s res://sim/check.gd                              # scripts sem erro
 godot --headless -s res://sim/simulate.gd -- --runs=1000 --door=normal --char=all --spells   # simulação
 xvfb-run godot -s res://sim/shot_duel.gd -- --out=/tmp   # capturas: menu e rolagem 3D (precisa de vídeo)
+xvfb-run godot --fixed-fps 30 -s res://sim/shot_shake.gd -- --out=/tmp   # quadros da tremida em cada faixa de dano
 ```
 
 ## APK
