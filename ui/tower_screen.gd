@@ -315,8 +315,6 @@ func _describe(o: Dictionary) -> Array:
 
 ## Escola: como a magia fica no nível "lvl", comparada com o nível atual.
 static func evolve_text(id: String, lvl: int) -> String:
-	if not Texts.scales_with_level(id):
-		return Texts.spell_desc(id) + "\n" + Texts.t("ui.level_same")
 	return "\n".join(PackedStringArray([
 		Texts.t("ui.evolve_now", {"n": lvl - 1, "fx": Texts.spell_fx(id, lvl - 1)}),
 		Texts.t("ui.evolve_next", {"n": lvl, "fx": Texts.spell_fx(id, lvl)}),

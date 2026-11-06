@@ -889,4 +889,4 @@ func test_escola_mostra_como_a_magia_fica():
 	var txt := TowerScreen.evolve_text("escudo", 2)
 	assert_string_contains(txt, "Bloqueio = valor ×3")
 	assert_string_contains(txt, "Bloqueio = valor ×4,5")
-	assert_string_contains(TowerScreen.evolve_text("espelho", 2), Texts.t("ui.level_same"))
+	assert_string_contains(TowerScreen.evolve_text("espelho", 2), "Reflete o próximo golpe ×1,5")

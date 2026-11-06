@@ -297,7 +297,10 @@ static func preview_text(f: Fighter, i: int, values: Array) -> String:
 		"spawn_half":
 			s = Texts.t("ui.pv_dmg", {"n": Config.scale(total, lvl) + bonus}) + " · " + Texts.t("ui.pv_spawn", {"v": Config.ceil_div(total, 2)})
 		"spawn_copy":
-			s = "→ " + Texts.t("ui.pv_spawn", {"v": total})
+			s = "→ " + Texts.t("ui.pv_spawn", {"v": Config.scale(total, lvl)})
+		"debuff":
+			if lvl > 1:
+				s = Texts.t("ui.pv_dmg", {"n": total * (lvl - 1) + bonus})
 		"block":
 			s = Texts.t("ui.pv_block", {"n": Config.scale(total * mult, lvl)})
 		"block_product":

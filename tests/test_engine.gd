@@ -493,11 +493,79 @@ func test_texto_da_magia_por_nivel():
 	assert_eq(Texts.spell_fx("bola", 3), "Soma ×4 e queima 3")
 	assert_eq(Texts.spell_fx("sacrificio", 2), "Destrói o dado; +8 de dano nas magias desta luta", "constante arredondada como no jogo")
 	assert_eq(Texts.spell_fx("banquete", 2), "Dano = soma ×1,5; cura o menor ×1,5")
-	assert_eq(Texts.spell_fx("espelho", 3), Texts.spell_fx("espelho", 1), "o que não escala não muda")
+	assert_eq(Texts.spell_fx("espelho", 2), "Reflete o próximo golpe ×1,5")
+	assert_eq(Texts.spell_fx("esquiva", 2), "Anula o próximo golpe; vira bloqueio ×0,5")
+	assert_eq(Texts.spell_fx("esquiva", 3), "Anula o próximo golpe; vira bloqueio ×1")
+	assert_eq(Texts.spell_fx("chave", 3), "Dados dele valem metade; dano = valor ×2")
 	for id in Spells.DATA:
 		for lvl in [1, 2, 3]:
 			assert_false("{" in Texts.spell_fx(id, lvl), "%s nível %d sem marcador sobrando" % [id, lvl])
-	# Toda magia cujo efeito o motor multiplica pelo nível tem o texto por nível.
-	var fixed := ["dodge", "mirror", "debuff", "spawn_copy", "recycle"]
+	# Toda magia melhora com o nível, e o texto diz como.
 	for id in Spells.DATA:
-		assert_eq(Texts.scales_with_level(id), not str(Spells.get_def(id).fx) in fixed, id)
+		assert_true(Texts.scales_with_level(id), id)
+		assert_ne(Texts.spell_fx(id, 2), Texts.spell_fx(id, 1), id)
+		assert_ne(Texts.spell_fx(id, 3), Texts.spell_fx(id, 2), id)
+
+
+# ------------------------------------------------------------ Ganho por nível das magias sem número
+func _lv(f: Fighter, id: String, lvl: int) -> void:
+	f.inventory.items[H.item(f, id)].level = lvl
+
+
+func test_espelho_evoluido_devolve_mais():
+	var a := H.fighter("a", ["faisca"])
+	var b := H.fighter("b", ["espelho"])
+	_lv(b, "espelho", 3)
+	H.hand(b, [1])
+	H.cast(b, a, {"espelho": [0]})
+	H.hand(a, [6])
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(b.hp, 40)
+	assert_eq(a.hp, 28, "devolve o dobro no nível 3")
+
+
+func test_esquiva_evoluida_vira_bloqueio():
+	for c in [[1, 0], [2, 3], [3, 6]]:
+		var a := H.fighter("a", ["faisca"])
+		var b := H.fighter("b", ["esquiva"])
+		_lv(b, "esquiva", c[0])
+		H.hand(b, [2])
+		H.cast(b, a, {"esquiva": [0]})
+		H.hand(a, [6])
+		H.cast(a, b, {"faisca": [0]})
+		assert_eq(b.hp, 40, "nível %d anula" % c[0])
+		assert_eq(b.block, c[1], "nível %d: bloqueio do golpe anulado" % c[0])
+	var f := H.fighter("f", ["esquiva"])
+	_lv(f, "esquiva", 3)
+	H.hand(f, [2])
+	H.cast(f, H.fighter("x", []), {"esquiva": [0]})
+	Resolver.start_turn(f, [])
+	assert_eq(f.dodge_lvl, 1, "o nível some com a esquiva")
+
+
+func test_mexidas_evoluidas_causam_dano():
+	for c in [[1, 40], [2, 37], [3, 34]]:
+		var a := H.fighter("a", ["chave"])
+		var b := H.fighter("b", [])
+		_lv(a, "chave", c[0])
+		H.hand(a, [3])
+		H.cast(a, b, {"chave": [0]})
+		assert_eq(b.hp, c[1], "Chave nível %d" % c[0])
+		assert_true("halve" in b.hand_mods, "a mexida continua")
+
+
+func test_improviso_evoluido_rende_mais_bloqueio():
+	var a := H.fighter("a", ["improviso"])
+	_lv(a, "improviso", 2)
+	H.hand(a, [1, 4, 5])
+	H.cast(a, H.fighter("b", []), {"improviso": [0]})
+	assert_eq(a.block, Config.scale(4, 2) + Config.scale(5, 2), "sobras ×1,5")
+
+
+func test_imitacao_evoluida_copias_valem_mais():
+	var a := H.fighter("a", ["imitacao"])
+	_lv(a, "imitacao", 3)
+	H.hand(a, [4])
+	var c := TurnChoice.new()
+	assert_true(c.place(a, H.item(a, "imitacao"), 0))
+	assert_eq(a.hand_values(), [4, 8, 8], "cópias valem o dobro no nível 3")

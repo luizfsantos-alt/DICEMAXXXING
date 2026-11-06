@@ -615,7 +615,6 @@
   "strip_bag": "Bolsa {n}",
   "choose": "Escolher",
   "level_fx": "Nv {n}: {fx}",
-  "level_same": "O efeito não muda com o nível.",
   "evolve_now": "Agora (nível {n}): {fx}",
   "evolve_next": "Nível {n}: {fx}"
  },
@@ -751,7 +750,29 @@
   "mordida": "Dano = valor ×{1}; cura metade",
   "banquete": "Dano = soma ×{1}; cura o menor ×{1}",
   "machadada": "Dano = valor ×{2}",
-  "cerrar": "Cura = valor ×{3}"
+  "cerrar": "Cura = valor ×{3}",
+  "espelho": "Reflete o próximo golpe ×{1}",
+  "esquiva": "Anula o próximo golpe; vira bloqueio ×{-1}",
+  "esquiva_mais": "Anula o próximo golpe; vira bloqueio ×{-1}",
+  "recuo": "Anula o próximo golpe (vira bloqueio ×{-1}); volta valendo 6",
+  "imitacao": "Devolve 2 cópias do dado, valendo ×{1}",
+  "improviso": "Sobras viram bloqueio ×{1}",
+  "roubar_cena": [
+   "Rouba o maior dado da próxima mão dele; dano = valor",
+   "Rouba o maior dado da próxima mão dele; dano = valor ×2"
+  ],
+  "meia_verdade": [
+   "Pares dele viram 1; dano = valor",
+   "Pares dele viram 1; dano = valor ×2"
+  ],
+  "interrupcao": [
+   "Ele tira 2 dados a menos; dano = soma",
+   "Ele tira 2 dados a menos; dano = soma ×2"
+  ],
+  "chave": [
+   "Dados dele valem metade; dano = valor",
+   "Dados dele valem metade; dano = valor ×2"
+  ]
  },
  "rarity": {
   "common": "Comum",

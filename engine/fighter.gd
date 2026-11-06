@@ -34,6 +34,10 @@ var turns_taken: int = 0
 var riposte: int = 0 ## Revide Elegante: dano devolvido por golpe enquanto houver bloqueio.
 var immune: int = 0 ## Imune a Críticas: anula os próximos efeitos negativos do inimigo.
 var recycle: bool = false ## Improviso Brilhante: sobras viram bloqueio neste turno.
+## Nível da magia que deu o Espelho, a Esquiva e o Improviso (o ganho vem na hora de usar).
+var mirror_lvl: int = 1
+var dodge_lvl: int = 1
+var recycle_lvl: int = 1
 ## Marca para a próxima mão: {bag, temp (dict de Die, se bag < 0), value, fixed, plus}.
 var marked: Dictionary = {}
 var extra_next: Array = [] ## Dados que entram na próxima mão sem rolar: [{temp, value}].
@@ -87,6 +91,9 @@ func reset_fight_state() -> void:
 	riposte = 0
 	immune = 0
 	recycle = false
+	mirror_lvl = 1
+	dodge_lvl = 1
+	recycle_lvl = 1
 	marked = {}
 	extra_next = []
 	benched = []
@@ -336,6 +343,7 @@ func to_dict() -> Dictionary:
 		"block": block, "mirror": mirror, "dodge": dodge, "poison": poison, "burn": burn,
 		"sacrifice_bonus": sacrifice_bonus, "once_used": once_used, "turns_taken": turns_taken,
 		"riposte": riposte, "immune": immune, "recycle": recycle, "marked": marked,
+		"mirror_lvl": mirror_lvl, "dodge_lvl": dodge_lvl, "recycle_lvl": recycle_lvl,
 		"extra_next": extra_next, "benched": benched, "fight_mods": fight_mods,
 		"hand_mods": hand_mods, "turn_mods": turn_mods, "keeps": keeps, "thirst_used": thirst_used, "dodge_bonus": dodge_bonus,
 		"restore": restore,
@@ -388,6 +396,9 @@ static func from_dict(d: Dictionary) -> Fighter:
 	f.riposte = int(d.get("riposte", 0))
 	f.immune = int(d.get("immune", 0))
 	f.recycle = bool(d.get("recycle", false))
+	f.mirror_lvl = int(d.get("mirror_lvl", 1))
+	f.dodge_lvl = int(d.get("dodge_lvl", 1))
+	f.recycle_lvl = int(d.get("recycle_lvl", 1))
 	var mk: Dictionary = d.get("marked", {})
 	if not mk.is_empty():
 		f.marked = {"bag": int(mk.bag), "temp": mk.get("temp", {}), "value": int(mk.value),

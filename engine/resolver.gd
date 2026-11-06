@@ -31,6 +31,9 @@ static func start_turn(f: Fighter, ev: Array) -> void:
 	f.dodge = false
 	f.riposte = 0
 	f.recycle = false
+	f.mirror_lvl = 1
+	f.dodge_lvl = 1
+	f.recycle_lvl = 1
 	if f.poison > 0:
 		f.hp -= f.poison
 		push(ev, {"t": "poison", "side": side(f), "n": f.poison})
@@ -305,7 +308,7 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 		"spawn_half":
 			hit(foe, f, Config.scale(total, lvl) + dmg_bonus(f), ev)
 		"spawn_copy":
-			pass
+			pass ## As cópias entram na mão na alocação (TurnChoice._spawn), já com o nível.
 		"block":
 			_block(f, Config.scale(total * mult, lvl), ev)
 		"block_product":
@@ -327,14 +330,19 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 			push(ev, {"t": "cleanse", "side": side(f)})
 			_block(f, Config.scale(total, lvl), ev)
 		"recycle":
+			f.recycle_lvl = maxi(f.recycle_lvl if f.recycle else 1, lvl)
 			f.recycle = true
 			push(ev, {"t": "recycle_up", "side": side(f)})
 		"debuff":
-			pass
+			# Do nível 2 em diante a mexida também machuca: dano = valor × (nível − 1).
+			if lvl > 1:
+				hit(foe, f, total * (lvl - 1) + dmg_bonus(f), ev)
 		"dodge":
+			f.dodge_lvl = maxi(f.dodge_lvl if f.dodge else 1, lvl)
 			f.dodge = true
 			push(ev, {"t": "dodge_up", "side": side(f)})
 		"mirror":
+			f.mirror_lvl = maxi(f.mirror_lvl if f.mirror else 1, lvl)
 			f.mirror = true
 			push(ev, {"t": "mirror_up", "side": side(f)})
 		"heal":
@@ -478,11 +486,16 @@ static func hit(target: Fighter, attacker: Fighter, n: int, ev: Array, reflected
 			push(ev, {"t": "dodged", "side": side(target), "n": n})
 			if target.archetype == "assassin":
 				target.dodge_bonus += Characters.AGILE_DICE
+			# Esquiva evoluída: o golpe anulado vira bloqueio (metade no nível 2, todo no 3).
+			var keep := Config.scale(n, target.dodge_lvl) - n
+			if keep > 0:
+				_block(target, keep, ev)
 			return
 		if target.mirror and not reflected:
 			target.mirror = false
 			push(ev, {"t": "mirrored", "side": side(target), "n": n})
-			hit(attacker, target, n, ev, true)
+			# Espelho evoluído devolve o golpe mais forte (×1,5 no nível 2, ×2 no 3).
+			hit(attacker, target, Config.scale(n, target.mirror_lvl), ev, true)
 			return
 	var had_block := target.block > 0
 	var absorbed := 0 if pierce else mini(target.block, n)
@@ -509,8 +522,9 @@ static func end_turn(f: Fighter, used: Array, ev: Array, keep: Array = []) -> vo
 			f.hp -= Spells.IDLE_DMG
 			push(ev, {"t": "idle_dmg", "side": side(f), "n": Spells.IDLE_DMG})
 		if f.recycle:
-			f.block += int(e.value)
-			push(ev, {"t": "block", "side": side(f), "n": int(e.value), "total": f.block, "recycled": true})
+			var rb := Config.scale(int(e.value), f.recycle_lvl)
+			f.block += rb
+			push(ev, {"t": "block", "side": side(f), "n": rb, "total": f.block, "recycled": true})
 			continue
 		if f.die_of(e).element == "U":
 			f.poison += Config.URANIUM_POISON
