@@ -26,6 +26,8 @@ var tag_label: Label
 var fx_label: Label
 var preview: Label
 var icon_rect: TextureRect
+var _hi := Color.TRANSPARENT ## Borda de destaque desenhada por cima da moldura (textura).
+var _hi_w := 0
 var shown_used = null ## Durante a animação: lista de usadas exibida (null = estado real).
 
 
@@ -90,6 +92,7 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 		sp.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		v.add_child(sp)
 		hrow.add_theme_constant_override("separation", 6)
+		hrow.alignment = BoxContainer.ALIGNMENT_CENTER # buracos no meio do cartão
 		v.add_child(hrow)
 		v.add_child(preview)
 	refresh([], [], -1)
@@ -127,11 +130,28 @@ func used() -> bool:
 	return lim > 0 and lst.count(item) >= lim
 
 
-func _style(bg: Color, border: Color, width: int) -> StyleBoxFlat:
+## Fundo do cartão. Com a moldura da raridade (assets/ui/card_<raridade>.png), o fundo é a
+## textura (escurecida se usada/recusada) e a borda de destaque é desenhada por cima.
+func _style(bg: Color, border: Color, width: int) -> StyleBox:
+	var tint := Color(0.6, 0.58, 0.62) if bg.v < CARD.v else Color.WHITE
+	var tex := Kit.nine("card_" + Spells.rarity(id), 12 if compact else 16, tint)
+	if tex:
+		_hi = border if width > 1 else Color.TRANSPARENT
+		_hi_w = width + 1
+		queue_redraw()
+		return tex
 	var sb := Kit.box(bg, 14, 10 if compact else 12)
 	sb.set_border_width_all(width)
 	sb.border_color = border
 	return sb
+
+
+func _draw() -> void:
+	if _hi.a > 0.0:
+		var sb := Kit.box(Color.TRANSPARENT, 10, 0)
+		sb.set_border_width_all(_hi_w)
+		sb.border_color = _hi
+		draw_style_box(sb, Rect2(Vector2(3, 3), size - Vector2(6, 6)))
 
 
 ## Texto no fundo do buraco k.

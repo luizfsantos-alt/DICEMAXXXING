@@ -9,6 +9,7 @@ signal finished
 ## 64×64 em assets/icons/offer/ (ofertas). Sem arquivo, o cartão fica só com cor e texto.
 const SCENE_PX := 128
 const ICON_PX := 64
+const BACKGROUND := "res://assets/backgrounds/tower.jpg"
 static var _art := {} ## caminho -> Texture2D ou null (não existe)
 
 var run: RunState
@@ -45,6 +46,7 @@ func setup(r: RunState) -> TowerScreen:
 	bottom = Kit.hbox(16)
 	bottom.alignment = BoxContainer.ALIGNMENT_CENTER
 	root.add_child(bottom)
+	Kit.background(self, BACKGROUND)
 	refresh()
 	return self
 
@@ -142,9 +144,12 @@ func _card(i: int, o: Dictionary) -> Control:
 	d.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(d)
 	if not (run.phase in ["doors", "rest"]):
-		var p := Kit.label(Texts.t("ui.free") if price == 0 else Texts.t("ui.price", {"n": price}), 22, Kit.ACCENT)
-		p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		v.add_child(p)
+		if price == 0:
+			var p := Kit.label(Texts.t("ui.free"), 22, Kit.ACCENT)
+			p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			v.add_child(p)
+		else:
+			v.add_child(Kit.price_tag(Texts.t("ui.price", {"n": price})))
 	if o.kind == "spell" and not run.hero.inventory.fits(o.id):
 		b.disabled = true
 		d.text += "\n\n" + Texts.t("ui.no_room")

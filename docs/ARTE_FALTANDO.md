@@ -8,11 +8,13 @@ toda jornada, **C** detalhe/polimento.
 
 | Elemento | Arquivo |
 |---|---|
-| Fotos dos 7 arquétipos com arte (3 variações cada): Feiticeiro, Assassino, Metalurgista, Copista, Perfeccionista, Vampiro e Bárbaro | `assets/portraits/<arquétipo>_1..3.png` |
+| Fotos dos 8 arquétipos (3 variações cada): Feiticeiro, Assassino, Minimalista, Metalurgista, Copista, Perfeccionista, Vampiro e Bárbaro | `assets/portraits/<arquétipo>_1..3.png` |
 | Fotos do Mestre e das variantes (1 cada): Porteiro de Chumbo, Lixeiro, Piromante, Fundidor, Monge do Silêncio | `assets/portraits/<id>_1.png` |
 | Molduras das fotos (ferro; filete verde no jogador, vermelho no inimigo) | `assets/portraits/frame_player.png`, `frame_enemy.png` |
 | Logo (dado com chapéu de mago) e ícone do app | `assets/logo.png`, `assets/icon.png` |
-| Fundo da tela de luta (e reflexo dos dados 3D) | `assets/backgrounds/tavern.jpg` |
+| Fundos: luta (e reflexo dos dados 3D), menu, torre, vitória e derrota | `assets/backgrounds/tavern.jpg`, `menu.jpg`, `tower.jpg`, `victory.jpg`, `defeat.jpg` (`Kit.background`) |
+| Moeda (faixa da luta e preços da torre) | `assets/icons/coin.png` (`Kit.coin`) |
+| Interface 9-slice: painel, botão, moldura da barra de vida, moldura do cartão de magia por raridade | `assets/ui/panel.png`, `button.png`, `hp_frame.png`, `card_<raridade>.png` (`Kit.nine`, bordas em `Kit.NINE`) |
 | Ícones de status (os 11): bloqueio, veneno, queima, espelho, esquiva, revide, imune, dado guardado, fúria, sede, próxima mão | `assets/icons/status/<id>.png` (64×64) |
 | Ícones de efeito nos cartões de magia: dano, cura, vida máxima, dreno, truque de dados, sacrifício, limpeza (bloqueio, esquiva, espelho, revide, imune e mexida na mão usam os de status) | `assets/icons/fx/<id>.png` (64×64); `Spells.icon_key` escolhe |
 | Torre: portas (Fácil, Normal, Difícil, Insana, Mestre), paradas (Loja, Cura, Escola, Poço), todas as ofertas e as 3 recompensas do Mestre | `assets/tower/door_<id>.png`, `stop_<id>.png` (128×128); `assets/icons/offer/<kind>.png` (64×64) |
@@ -22,56 +24,22 @@ toda jornada, **C** detalhe/polimento.
 Prompts e andamento item a item: [`docs/PAUTA_ARTE.html`](PAUTA_ARTE.html). Para recortar fundo de
 arte gerada: `tools/recortar_fundo.py`.
 
-## 1. Personagens (fotos) — prioridade A
+## 1. O que ainda é desenhado em código ou só texto
 
-`Portrait.WITH_ART` lista os arquétipos com foto; o resto cai em `generic_1..3.png` (provisórias).
-Para ligar um arquétipo novo: salvar `<id>_1..3.png` em `assets/portraits/` e incluir o id em
-`WITH_ART` (`ui/portrait.gd`). Mestre e variantes não precisam de código: `Portrait.art_path` usa
-`<master_id>_1.png` ou `<variant>_1.png` quando o arquivo existe.
-
-| Falta | Id | Situação |
-|---|---|---|
-| Minimalista (3 variações) | `minimalist` | sem arte (usa genérica); é o último arquétipo |
-
-Quando o Minimalista tiver foto, as genéricas deixam de ser usadas e podem sair.
-
-## 2. Menu inicial (`ui/menu_screen.gd`) — prioridade B
-
-| Elemento | Hoje |
-|---|---|
-| Cartões de escolha de personagem | só texto e borda na cor do arquétipo; **sem foto/ilustração** |
-| Fundo | cor lisa (`Kit.BG`) |
-
-## 3. Torre (`ui/tower_screen.gd`) — prioridade C
-
-Todos os cartões (portas, paradas, ofertas e recompensas do Mestre) já têm ilustração no topo
-(`TowerScreen.art_path`).
-
-| Falta | Hoje |
-|---|---|
-| Fundo da tela | cor lisa |
-
-## 4. Tela de luta (`ui/duel_screen.gd` e componentes) — prioridade A
+A pauta de arte está toda feita. O que sobra é opcional ou é código.
 
 | Elemento | Arquivo | Hoje |
 |---|---|---|
-| Cartões de magia (46 magias) | `ui/spell_card.gd` | ícone pelo tipo de efeito ao lado do nome; sem ilustração por magia (opcional) |
-| Ícone de moeda | `duel_screen.gd` (faixa do rodapé) | dois círculos dourados desenhados |
-| Barra de vida | `ui/hp_bar.gd` | retângulo arredondado liso |
+| Cartões de escolha de personagem no menu | `ui/menu_screen.gd` | só texto e borda na cor do arquétipo; as fotos já existem, falta o código |
+| Cartões da torre | `ui/tower_screen.gd` | ilustração no topo, mas o cartão em si é cor lisa (dá para usar `card_<raridade>.png` nas ofertas de magia) |
+| Ilustração por magia | `ui/spell_card.gd` | só o ícone do tipo de efeito (opcional) |
 | Buracos dos dados | `ui/hole.gd` | desenhados em código (aceitável; arte opcional) |
 | Efeito da magia (bola de luz) | `ui/spell_bolt.gd` | círculos e rastro em código, só cor muda (verde/vermelho/azul) |
-| Painéis e botões | `ui/kit.gd` | `StyleBoxFlat` ("Fábrica de controles placeholder, sem texturas") |
+| Painéis translúcidos da luta e botões coloridos | `ui/duel_screen.gd`, `ui/kit.gd` | `StyleBoxFlat` de propósito (a textura só entra nas cores neutras) |
 | Nome e bolsa sobre as fotos | — | SPEC_v3 §13: "placeholder até haver arte" |
-
-## 5. Grimório, bolsa e fim de jornada — prioridade B/C
-
-| Elemento | Arquivo | Hoje |
-|---|---|---|
 | Peças do grimório | `ui/grimoire_view.gd` | blocos coloridos pelo efeito, com texto |
 | Lista da bolsa | `ui/bag_panel.gd` | botões de texto por face (adesivo e face travada só mudam a cor) |
 | Adesivo ×2 | `bag_panel.gd`, `die_face.gd` | texto "×2"; a arte já existe (`assets/icons/offer/sticker.png`), falta usar na bolsa |
-| Tela de vitória/derrota | `ui/end_screen.gd` | texto em painéis; sem ilustração nem fundo |
-| Janelas (overlay) | `ui/overlay.gd` | painel liso |
 
 ## 6. Fora da arte visual
 
@@ -83,7 +51,7 @@ Todos os cartões (portas, paradas, ofertas e recompensas do Mestre) já têm il
 
 ## Ordem sugerida
 
-1. Fotos do Minimalista.
-2. Retrato nos cartões do menu (as fotos já existem; é só código).
-3. Moeda.
-4. Fundos do menu, torre e fim de jornada; tema de painéis/botões; som.
+1. Retrato nos cartões do menu (as fotos já existem; é só código).
+2. Selo do adesivo na bolsa (arte já existe).
+3. Som.
+4. Fonte da interface.

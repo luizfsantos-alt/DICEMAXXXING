@@ -10,18 +10,20 @@ Tela em paisagem.
 - Ideias futuras: [`docs/ROADMAP.md`](docs/ROADMAP.md) (ex.: builds vencedoras viram inimigos).
 - Histórico: [`docs/SPEC.md`](docs/SPEC.md) (v2, coliseu com equipamentos; substituída).
 - Motor de regras (sem cenas, testável): `engine/`.
-- Interface (placeholders, paisagem): `ui/`. A tela de duelo anima os eventos do motor.
+- Interface (paisagem): `ui/`. A tela de duelo anima os eventos do motor.
 - Dados: as mãos rolam em 3D por cima do palco (`ui/dice_roll_3d.gd`, física própria em
   `ui/dice_physics.gd`, malha e texturas geradas em código em `ui/dice_3d.gd`). Faces de 1 a 6
   com pontinhos, valores maiores com algarismos, tudo em baixo relevo; o 2D segue a mesma regra
   (`ui/die_face.gd`). Tocar na tela pula a rolagem.
-- Fotos dos personagens: `assets/portraits/`, 3 variações por arquétipo (`sorcerer_1..3`, `assassin_1..3`, `metallurgist_1..3`, `copyist_1..3`, `perfectionist_1..3`,
-  `vampire_1..3`, `barbarian_1..3`); quem ainda não tem arte usa as provisórias `generic_1..3`. Mestre e variantes têm foto própria (`porteiro_1`, `lixeiro_1`, `piromante_1`, `fundidor_1`, `monge_1`).
+- Fotos dos personagens: `assets/portraits/`, 3 variações por arquétipo (`sorcerer_1..3`, `assassin_1..3`, `minimalist_1..3`, `metallurgist_1..3`, `copyist_1..3`,
+  `perfectionist_1..3`, `vampire_1..3`, `barbarian_1..3`). Mestre e variantes têm foto própria (`porteiro_1`, `lixeiro_1`, `piromante_1`, `fundidor_1`, `monge_1`).
   A variação é sorteada uma vez por lutador e salva (`Fighter.portrait`), tanto para você quanto
   para o inimigo. A arte preenche a foto e só aparece dentro da moldura (`frame_enemy.png`
   vermelha, `frame_player.png` verde). Sem a arte, `ui/portrait.gd` desenha uma silhueta.
-- Fundo da tela de batalha: `assets/backgrounds/tavern.jpg` (cobre a tela, escurecido; painéis
-  translúcidos por cima).
+- Fundos: `assets/backgrounds/` — `tavern.jpg` na luta, `menu.jpg`, `tower.jpg`, `victory.jpg` e
+  `defeat.jpg` nas outras telas (`Kit.background`: cobre a tela, escurecido; painéis por cima).
+- Interface: painel, botão, moldura da barra de vida e moldura do cartão de magia por raridade em
+  `assets/ui/` (9-slice, `Kit.nine`/`Kit.NINE`); moeda em `assets/icons/coin.png` (`Kit.coin`).
 - Ícones de status: `assets/icons/status/<id>.png` (64×64), os 11 com arte; sem o arquivo, mostra a sigla colorida.
 - Cartões de magia: ícone do tipo de efeito ao lado do nome (`assets/icons/fx/`, ou o de status quando o
   efeito é o mesmo; `Spells.icon_key`).

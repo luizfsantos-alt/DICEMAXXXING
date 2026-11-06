@@ -6,6 +6,7 @@ extends Control
 signal new_run(char_id: String)
 
 const LOGO := "res://assets/logo.png"
+const BACKGROUND := "res://assets/backgrounds/menu.jpg"
 signal continue_run
 
 var picks: Array = [] ## Botões dos personagens (testes).
@@ -54,6 +55,7 @@ func setup() -> MenuScreen:
 	for id in Characters.PLAYABLE:
 		row.add_child(_card(id))
 	add_child(_version_label())
+	Kit.background(self, BACKGROUND)
 	return self
 
 

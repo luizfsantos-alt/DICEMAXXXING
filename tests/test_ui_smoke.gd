@@ -598,6 +598,28 @@ func test_cartoes_da_torre_tem_ilustracao():
 		assert_not_null(TowerScreen.art(o), "arte de %s %s" % [o.kind, o.id])
 
 
+func test_todo_arquetipo_tem_3_fotos():
+	for arch in Portrait.COLORS:
+		for k in Portrait.VARIATIONS:
+			assert_true(ResourceLoader.exists("%s%s_%d.png" % [Portrait.ART_DIR, arch, k + 1]), "foto %s %d" % [arch, k + 1])
+
+
+func test_texturas_da_interface_e_fundos_existem():
+	for name in Kit.NINE:
+		assert_not_null(Kit.nine(name), "9-slice " + name)
+	for bg in ["menu", "tower", "victory", "defeat", "tavern"]:
+		assert_not_null(Kit.tex("res://assets/backgrounds/%s.jpg" % bg), "fundo " + bg)
+	var c := Kit.coin(20)
+	assert_true(c is TextureRect, "moeda com arte")
+	c.free()
+	var b := Kit.button("x", func(): pass)
+	assert_true(b.get_theme_stylebox("normal") is StyleBoxTexture, "botão neutro usa textura")
+	b.free()
+	var bd := Kit.button("x", func(): pass, Kit.DANGER)
+	assert_true(bd.get_theme_stylebox("normal") is StyleBoxFlat, "botão colorido continua liso")
+	bd.free()
+
+
 func test_moldura_e_fonte_dos_numeros_existem():
 	for p in Portrait.FRAMES.values():
 		assert_true(ResourceLoader.exists(Portrait.ART_DIR + p), "moldura: " + p)
