@@ -570,6 +570,18 @@ func test_icones_de_status_com_arte_e_placeholder():
 	mod.free()
 
 
+func test_cartao_de_magia_tem_icone_do_efeito():
+	# Toda magia tem um ícone de tipo de efeito com arte.
+	for id in Spells.DATA:
+		var key := Spells.icon_key(id)
+		assert_not_null(SpellCard.icon(key), "ícone de %s (%s)" % [id, key])
+	assert_eq(Spells.icon_key("faisca"), "fx/dmg")
+	assert_eq(Spells.icon_key("banquete"), "fx/drain")
+	assert_eq(Spells.icon_key("bis"), "fx/dice")
+	assert_eq(Spells.icon_key("escudo"), "status/block")
+	assert_eq(Spells.icon_key("chave"), "status/hand_mod")
+
+
 func test_moldura_e_fonte_dos_numeros_existem():
 	for p in Portrait.FRAMES.values():
 		assert_true(ResourceLoader.exists(Portrait.ART_DIR + p), "moldura: " + p)

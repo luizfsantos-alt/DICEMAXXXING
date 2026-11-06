@@ -1,7 +1,7 @@
 class_name SpellCard
 extends PanelContainer
 ## Magia na luta: cartão de tamanho padrão no palco (o formato só importa no grimório).
-## Nome, efeito curto, uso, um buraco por dado pedido e a prévia do resultado.
+## Ícone do tipo de efeito, nome, efeito curto, uso, um buraco por dado pedido e a prévia do resultado.
 
 signal tapped(item: int)
 
@@ -13,6 +13,8 @@ const FX_COLORS := {
 const CARD := Color(0.114, 0.102, 0.141)
 const CARD_HI := Color(0.149, 0.125, 0.173)
 const LINE := Color(0.227, 0.204, 0.271)
+const ICON_DIR := "res://assets/icons/"
+static var _icons := {} ## chave -> Texture2D ou null (não existe)
 
 var fighter: Fighter
 var item := -1
@@ -23,6 +25,7 @@ var name_label: Label
 var tag_label: Label
 var fx_label: Label
 var preview: Label
+var icon_rect: TextureRect
 var shown_used = null ## Durante a animação: lista de usadas exibida (null = estado real).
 
 
@@ -37,6 +40,14 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 	tag_label = Kit.label("", 14, Kit.ACCENT)
 	fx_label = Kit.label(spell_fx(id), 15 if compact else 17, Color(0.85, 0.83, 0.89), true)
 	preview = Kit.label("", 19, Kit.TEXT, true)
+	icon_rect = TextureRect.new()
+	icon_rect.texture = icon(Spells.icon_key(id))
+	icon_rect.custom_minimum_size = Vector2.ONE * (26 if compact else 32)
+	icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon_rect.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon_rect.visible = icon_rect.texture != null
 	# O cartão tem tamanho padrão no palco (FitGrid): textos longos não o esticam.
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	fx_label.max_lines_visible = 3
@@ -56,6 +67,7 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 		var tv := Kit.vbox(0)
 		tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var head := Kit.hbox(6)
+		head.add_child(icon_rect)
 		head.add_child(name_label)
 		head.add_child(tag_label)
 		tv.add_child(head)
@@ -66,7 +78,12 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 	else:
 		var v := Kit.vbox(4)
 		add_child(v)
-		v.add_child(name_label)
+		var head := Kit.hbox(8)
+		head.alignment = BoxContainer.ALIGNMENT_BEGIN
+		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		head.add_child(icon_rect)
+		head.add_child(name_label)
+		v.add_child(head)
 		v.add_child(fx_label)
 		v.add_child(tag_label)
 		var sp := Control.new()
@@ -89,6 +106,14 @@ func _gui_input(e: InputEvent) -> void:
 	if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT and not e.pressed:
 		tapped.emit(item)
 		accept_event()
+
+
+## Textura do ícone (assets/icons/<chave>.png), ou null se ainda não há arte.
+static func icon(key: String) -> Texture2D:
+	if not _icons.has(key):
+		var path := ICON_DIR + key + ".png"
+		_icons[key] = load(path) if ResourceLoader.exists(path) else null
+	return _icons[key]
 
 
 static func spell_fx(spell: String) -> String:
