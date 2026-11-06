@@ -1,7 +1,7 @@
 class_name Portrait
 extends Control
-## Espaço do personagem. Cada arquétipo com arte tem 3 variações em assets/portraits/
-## (<arquétipo>_1..3.png); quem ainda não tem arte usa as 3 provisórias (generic_1..3.png).
+## Espaço do personagem. Cada arquétipo tem 3 variações em assets/portraits/
+## (<arquétipo>_1..3.png).
 ## A variação é sorteada uma vez e guardada no lutador (Fighter.portrait), então não muda
 ## no meio da run. A arte preenche a foto inteira e só aparece dentro da moldura
 ## (vermelha para o inimigo, verde para você). Sem a arte, desenha uma silhueta na cor do arquétipo.
@@ -13,7 +13,6 @@ const COLORS := {
 	"perfectionist": Color(0.35, 0.7, 0.65), "vampire": Color(0.6, 0.12, 0.2), "barbarian": Color(0.75, 0.45, 0.2),
 }
 const ART_DIR := "res://assets/portraits/"
-const WITH_ART := ["sorcerer", "vampire", "barbarian", "assassin", "metallurgist", "copyist", "perfectionist"] ## O resto usa "generic".
 const VARIATIONS := 3
 const BG := Color(0.0, 0.0, 0.0) ## Igual ao fundo da arte, para emendar.
 const FRAMES := {true: "frame_player.png", false: "frame_enemy.png"}
@@ -40,8 +39,7 @@ static func art_path(f: Fighter) -> String:
 	for special in [f.master_id, f.variant]:
 		if special != "" and ResourceLoader.exists("%s%s_1.png" % [ART_DIR, special]):
 			return "%s%s_1.png" % [ART_DIR, special]
-	var key: String = f.archetype if f.archetype in WITH_ART else "generic"
-	return "%s%s_%d.png" % [ART_DIR, key, f.portrait + 1]
+	return "%s%s_%d.png" % [ART_DIR, f.archetype, f.portrait + 1]
 
 
 func setup(f: Fighter, h: int, is_back := false) -> Portrait:

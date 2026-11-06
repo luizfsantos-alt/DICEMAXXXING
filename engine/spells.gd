@@ -181,6 +181,26 @@ static func color_family(id: String) -> String:
 	return fx
 
 
+## Ícone do tipo de efeito no cartão: caminho relativo a assets/icons/, sem ".png".
+## Bloqueio, esquiva, espelho, revide, imune e mexida na mão reaproveitam os de status.
+static func icon_key(id: String) -> String:
+	var fx := str(get_def(id).get("fx", "dmg"))
+	match fx:
+		"heal", "maxhp", "sacrifice", "cleanse", "drain":
+			return "fx/" + fx
+		"feast":
+			return "fx/drain"
+		"encore", "lever", "spawn_half", "spawn_copy", "steal_sticker", "bench":
+			return "fx/dice"
+		"block", "block_hand", "block_product", "recycle":
+			return "status/block"
+		"dodge", "mirror", "riposte", "immune":
+			return "status/" + fx
+		"debuff":
+			return "status/hand_mod"
+	return "fx/dmg"
+
+
 ## Chave do texto de uso ("1× por luta", "2× por luta") ou "" se não tem limite.
 static func use_key(id: String) -> String:
 	match max_uses(id):

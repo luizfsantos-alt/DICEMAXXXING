@@ -151,20 +151,7 @@ func _build() -> void:
 
 ## Fundo: a taverna cobrindo a tela inteira, escurecida para os painéis e textos lerem bem.
 func _build_background() -> void:
-	if not ResourceLoader.exists(BACKGROUND):
-		return
-	var bg := TextureRect.new()
-	bg.texture = load(BACKGROUND)
-	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(bg)
-	var shade := ColorRect.new()
-	shade.color = Color(0, 0, 0, BACKGROUND_SHADE)
-	shade.set_anchors_preset(Control.PRESET_FULL_RECT)
-	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(shade)
+	Kit.background(self, BACKGROUND, BACKGROUND_SHADE)
 
 
 ## Coluna 1: foto do inimigo + status, as duas barras, sua foto + status, moedas.
@@ -198,13 +185,7 @@ func _build_fighters() -> VBoxContainer:
 	strip.add_theme_stylebox_override("panel", Kit.box(PANEL_BG, 8, 4))
 	var sh := Kit.hbox(8)
 	strip.add_child(sh)
-	var coin := Control.new()
-	coin.custom_minimum_size = Vector2(20, 20)
-	coin.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	coin.draw.connect(func():
-		coin.draw_circle(coin.size * 0.5, 9.0, Kit.ACCENT.darkened(0.25))
-		coin.draw_circle(coin.size * 0.5, 6.0, Kit.ACCENT))
-	sh.add_child(coin)
+	sh.add_child(Kit.coin(20))
 	coins_label = Kit.label("", 17, Kit.ACCENT)
 	sh.add_child(coins_label)
 	col.add_child(strip)

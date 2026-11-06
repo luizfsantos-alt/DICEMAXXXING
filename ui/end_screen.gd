@@ -4,6 +4,8 @@ extends Control
 
 signal finished
 
+const BACKGROUNDS := {true: "res://assets/backgrounds/victory.jpg", false: "res://assets/backgrounds/defeat.jpg"}
+
 
 func setup(r: RunState) -> EndScreen:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -14,6 +16,7 @@ func setup(r: RunState) -> EndScreen:
 	v.custom_minimum_size = Vector2(900, 0)
 	cc.add_child(v)
 	var won := r.phase == "victory"
+	Kit.background(self, BACKGROUNDS[won])
 	var t := Kit.label(Texts.t("ui.victory_title" if won else "ui.defeat_title"), 44, Kit.ACCENT if won else Kit.DANGER, true)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)

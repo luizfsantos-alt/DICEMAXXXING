@@ -10,24 +10,31 @@ Tela em paisagem.
 - Ideias futuras: [`docs/ROADMAP.md`](docs/ROADMAP.md) (ex.: builds vencedoras viram inimigos).
 - Histórico: [`docs/SPEC.md`](docs/SPEC.md) (v2, coliseu com equipamentos; substituída).
 - Motor de regras (sem cenas, testável): `engine/`.
-- Interface (placeholders, paisagem): `ui/`. A tela de duelo anima os eventos do motor.
+- Interface (paisagem): `ui/`. A tela de duelo anima os eventos do motor.
 - Dados: as mãos rolam em 3D por cima do palco (`ui/dice_roll_3d.gd`, física própria em
   `ui/dice_physics.gd`, malha e texturas geradas em código em `ui/dice_3d.gd`). Faces de 1 a 6
   com pontinhos, valores maiores com algarismos, tudo em baixo relevo; o 2D segue a mesma regra
   (`ui/die_face.gd`). Tocar na tela pula a rolagem.
-- Fotos dos personagens: `assets/portraits/`, 3 variações por arquétipo (`sorcerer_1..3`, `assassin_1..3`, `metallurgist_1..3`, `copyist_1..3`, `perfectionist_1..3`,
-  `vampire_1..3`, `barbarian_1..3`); quem ainda não tem arte usa as provisórias `generic_1..3`. Mestre e variantes têm foto própria (`porteiro_1`, `lixeiro_1`, `piromante_1`, `fundidor_1`, `monge_1`).
+- Fotos dos personagens: `assets/portraits/`, 3 variações por arquétipo (`sorcerer_1..3`, `assassin_1..3`, `minimalist_1..3`, `metallurgist_1..3`, `copyist_1..3`,
+  `perfectionist_1..3`, `vampire_1..3`, `barbarian_1..3`). Mestre e variantes têm foto própria (`porteiro_1`, `lixeiro_1`, `piromante_1`, `fundidor_1`, `monge_1`).
   A variação é sorteada uma vez por lutador e salva (`Fighter.portrait`), tanto para você quanto
   para o inimigo. A arte preenche a foto e só aparece dentro da moldura (`frame_enemy.png`
   vermelha, `frame_player.png` verde). Sem a arte, `ui/portrait.gd` desenha uma silhueta.
-- Fundo da tela de batalha: `assets/backgrounds/tavern.jpg` (cobre a tela, escurecido; painéis
-  translúcidos por cima).
-- Ícones de status: `assets/icons/status/<id>.png` (64×64); quem ainda não tem arte mostra a sigla colorida.
+- Fundos: `assets/backgrounds/` — `tavern.jpg` na luta, `menu.jpg`, `tower.jpg`, `victory.jpg` e
+  `defeat.jpg` nas outras telas (`Kit.background`: cobre a tela, escurecido; painéis por cima).
+- Interface: painel, botão, moldura da barra de vida e moldura do cartão de magia por raridade em
+  `assets/ui/` (9-slice, `Kit.nine`/`Kit.NINE`); moeda em `assets/icons/coin.png` (`Kit.coin`).
+- Ícones de status: `assets/icons/status/<id>.png` (64×64), os 11 com arte; sem o arquivo, mostra a sigla colorida.
+- Cartões de magia: ícone do tipo de efeito ao lado do nome (`assets/icons/fx/`, ou o de status quando o
+  efeito é o mesmo; `Spells.icon_key`).
+- Torre: ilustração no topo dos cartões de porta, parada e oferta (`assets/tower/`, `assets/icons/offer/`;
+  `TowerScreen.art_path`). Captura manual: `sim/shot_tower.gd`.
 - Números sobre as fotos na fonte Bungee (`assets/fonts/`, licença SIL OFL) com contorno preto.
 - Efeitos das magias (`ui/spell_bolt.gd`): cada efeito voa do cartão da magia até a foto do alvo, em
   verde para cura, vermelho para dano e azul para os outros efeitos; ao chegar, a foto pisca na cor
   (e treme no dano) e o número sobe sobre ela (+X verde, −X vermelho). Veneno, queima e efeitos do
   fim do turno aparecem direto no alvo, sem viagem.
+- Logo do título no menu: `assets/title_logo.png` (sem ele, o menu volta ao dado com chapéu e ao nome em texto).
 - Logo: `assets/logo.png` (dado com chapéu de mago, fundo recortado); ícone do app: `assets/icon.png` (o mesmo dado sobre fundo ameixa).
 - Arte a fazer, com prompts de gerador: [`docs/PAUTA_ARTE.html`](docs/PAUTA_ARTE.html). Geradores não fazem
   transparência; os prompts pedem fundo magenta/verde chapado e `tools/recortar_fundo.py` recorta (também limpa o

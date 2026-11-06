@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://vby9uja4cxq41"
-path="res://.godot/imported/generic_1.png-c63d4a192d3d9ba316e4cad5114ccf27.ctex"
+uid="uid://1h8quigi1nwc"
+path="res://.godot/imported/stop_heal.png-460837c080d26fde33e4168d732725a2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/portraits/generic_1.png"
-dest_files=["res://.godot/imported/generic_1.png-c63d4a192d3d9ba316e4cad5114ccf27.ctex"]
+source_file="res://assets/tower/stop_heal.png"
+dest_files=["res://.godot/imported/stop_heal.png-460837c080d26fde33e4168d732725a2.ctex"]
 
 [params]
 

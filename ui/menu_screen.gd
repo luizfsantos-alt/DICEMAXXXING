@@ -6,6 +6,9 @@ extends Control
 signal new_run(char_id: String)
 
 const LOGO := "res://assets/logo.png"
+const TITLE_LOGO := "res://assets/title_logo.png" ## Logo com o nome (640×479, fundo recortado).
+const TITLE_H := 375.0
+const BACKGROUND := "res://assets/backgrounds/menu.jpg"
 signal continue_run
 
 var picks: Array = [] ## Botões dos personagens (testes).
@@ -19,54 +22,56 @@ func setup() -> MenuScreen:
 	var cc := CenterContainer.new()
 	cc.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(cc)
-	var v := Kit.vbox(16)
+	var v := Kit.vbox(-6) # os cartões encostam na franja de baixo do logo
 	v.custom_minimum_size = Vector2(1100, 0)
 	cc.add_child(v)
-	# Logo ao lado do título.
-	var head := Kit.hbox(20)
+	# Logo do título à esquerda; Continuar, aviso de versão e "escolha o personagem" à direita.
+	# Sem a arte do título, volta ao dado com chapéu e o nome em texto.
+	var head := Kit.hbox(28)
 	head.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.add_child(head)
+	var title_art := Kit.tex(TITLE_LOGO)
 	var logo := TextureRect.new()
-	logo.texture = load(LOGO)
-	logo.custom_minimum_size = Vector2(140, 140)
+	logo.texture = title_art if title_art else load(LOGO)
+	logo.custom_minimum_size = Vector2(TITLE_H * 640.0 / 479.0, TITLE_H) if title_art else Vector2(140, 140)
 	logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	logo.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	logo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	head.add_child(logo)
-	var tv := Kit.vbox(2)
+	var tv := Kit.vbox(12)
 	tv.alignment = BoxContainer.ALIGNMENT_CENTER
+	tv.custom_minimum_size = Vector2(520, 0)
 	head.add_child(tv)
 	header = tv
-	var t := Kit.label(Texts.t("ui.title"), 64, Kit.ACCENT)
-	tv.add_child(t)
-	var sub := Kit.label(Texts.t("ui.subtitle"), 22, Kit.MUTED)
-	tv.add_child(sub)
+	if title_art == null:
+		tv.add_child(Kit.label(Texts.t("ui.title"), 64, Kit.ACCENT))
 	var c := Kit.button(Texts.t("ui.continue"), func(): continue_run.emit(), Kit.PANEL_HI, 28)
 	c.custom_minimum_size = Vector2(0, 64)
 	c.disabled = not SaveGame.exists()
-	v.add_child(c)
+	tv.add_child(c)
 	var nt := Kit.label(Texts.t("ui.pick_character"), 26, Kit.TEXT)
 	nt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(nt)
+	# Com o logo grande, o convite vai na coluna da direita para os cartões caberem na tela.
+	(tv if title_art else v).add_child(nt)
 	var row := Kit.hbox(16)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.add_child(row)
 	for id in Characters.PLAYABLE:
 		row.add_child(_card(id))
 	add_child(_version_label())
+	Kit.background(self, BACKGROUND)
 	return self
 
 
-## Versão instalada no canto de baixo à direita ("debug" nos APKs de branch), para saber
+## Versão instalada no canto de cima à direita ("debug" nos APKs de branch), para saber
 ## se o aviso de versão nova deveria aparecer.
 func _version_label() -> Label:
 	var txt := version_text(AppVersion.current(), OS.is_debug_build())
 	var l := Kit.label(txt, 16, Kit.MUTED)
 	l.name = "Version"
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	l.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 16)
+	l.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 16)
 	l.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	l.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return l
 
@@ -82,7 +87,7 @@ func _card(id: String) -> Button:
 	var info := Texts.character(id)
 	var c := Characters.get_def(id)
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(350, 330)
+	b.custom_minimum_size = Vector2(350, 320)
 	b.focus_mode = Control.FOCUS_NONE
 	var col := Portrait.COLORS.get(id, Kit.PANEL_HI) as Color
 	for st in ["normal", "hover", "pressed"]:

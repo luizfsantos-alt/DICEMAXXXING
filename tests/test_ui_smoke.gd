@@ -556,17 +556,79 @@ func test_mestre_e_variantes_tem_foto_propria():
 
 
 func test_icones_de_status_com_arte_e_placeholder():
-	for id in ["block", "poison", "burn", "mirror", "dodge", "riposte", "immune"]:
+	for id in StatusIcon.STYLE:
 		var ic := StatusIcon.new().setup({"id": id, "n": 3})
 		assert_not_null(ic.art, "ícone com arte: " + id)
 		ic.free()
-	# Sem arte ainda: fica a sigla (placeholder).
-	var ph := StatusIcon.new().setup({"id": "fury", "n": 2})
-	assert_null(ph.art, "fúria ainda sem arte")
+	# Sem arquivo: fica a sigla (placeholder).
+	var ph := StatusIcon.new().setup({"id": "inexistente", "n": 2})
+	assert_null(ph.art, "id sem arte cai na sigla")
 	ph.free()
 	var mod := StatusIcon.new().setup({"id": "mod_minus1", "n": 1})
 	assert_eq(mod._key(), "hand_mod", "mexidas na mão usam o mesmo ícone")
+	assert_not_null(mod.art, "mexida na mão tem arte")
 	mod.free()
+
+
+func test_cartao_de_magia_tem_icone_do_efeito():
+	# Toda magia tem um ícone de tipo de efeito com arte.
+	for id in Spells.DATA:
+		var key := Spells.icon_key(id)
+		assert_not_null(SpellCard.icon(key), "ícone de %s (%s)" % [id, key])
+	assert_eq(Spells.icon_key("faisca"), "fx/dmg")
+	assert_eq(Spells.icon_key("banquete"), "fx/drain")
+	assert_eq(Spells.icon_key("bis"), "fx/dice")
+	assert_eq(Spells.icon_key("escudo"), "status/block")
+	assert_eq(Spells.icon_key("chave"), "status/hand_mod")
+
+
+func test_cartoes_da_torre_tem_ilustracao():
+	for id in ["facil", "normal", "dificil", "insana", "mestre"]:
+		assert_not_null(TowerScreen.art({"kind": "door", "id": id}), "porta " + id)
+	for id in ["shop", "heal", "school", "well"]:
+		assert_not_null(TowerScreen.art({"kind": "stop", "id": id}), "parada " + id)
+	for k in ["spell", "die", "element", "sticker", "maxhp", "evolve", "destroy", "slots", "hand", "rare_pick"]:
+		assert_not_null(TowerScreen.art({"kind": k, "id": ""}), "oferta " + k)
+	# Toda oferta que a torre gera tem ilustração.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var run := RunState.new_run(7)
+	var all: Array = Shop.shop(run.hero, rng, 0, 3) + Shop.well(rng, 3, run.hero) + Shop.master_reward() + Shop.rest_stops(rng)
+	for o in all:
+		assert_not_null(TowerScreen.art(o), "arte de %s %s" % [o.kind, o.id])
+
+
+func test_todo_arquetipo_tem_3_fotos():
+	for arch in Portrait.COLORS:
+		for k in Portrait.VARIATIONS:
+			assert_true(ResourceLoader.exists("%s%s_%d.png" % [Portrait.ART_DIR, arch, k + 1]), "foto %s %d" % [arch, k + 1])
+
+
+func test_texturas_da_interface_e_fundos_existem():
+	for name in Kit.NINE:
+		assert_not_null(Kit.nine(name), "9-slice " + name)
+	for bg in ["menu", "tower", "victory", "defeat", "tavern"]:
+		assert_not_null(Kit.tex("res://assets/backgrounds/%s.jpg" % bg), "fundo " + bg)
+	var c := Kit.coin(20)
+	assert_true(c is TextureRect, "moeda com arte")
+	c.free()
+	var b := Kit.button("x", func(): pass)
+	assert_true(b.get_theme_stylebox("normal") is StyleBoxTexture, "botão neutro usa textura")
+	b.free()
+	var bd := Kit.button("x", func(): pass, Kit.DANGER)
+	assert_true(bd.get_theme_stylebox("normal") is StyleBoxFlat, "botão colorido continua liso")
+	bd.free()
+
+
+func test_menu_usa_logo_do_titulo():
+	assert_not_null(Kit.tex(MenuScreen.TITLE_LOGO), "logo do título existe")
+	var m := MenuScreen.new().setup()
+	var found := false
+	for n in m.find_children("*", "TextureRect", true, false):
+		if (n as TextureRect).texture == Kit.tex(MenuScreen.TITLE_LOGO):
+			found = true
+	assert_true(found, "menu mostra o logo do título")
+	m.free()
 
 
 func test_moldura_e_fonte_dos_numeros_existem():

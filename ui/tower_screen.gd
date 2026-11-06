@@ -5,6 +5,13 @@ extends Control
 
 signal finished
 
+## Ilustração do topo do cartão: cena 128×128 em assets/tower/ (portas e paradas) ou ícone
+## 64×64 em assets/icons/offer/ (ofertas). Sem arquivo, o cartão fica só com cor e texto.
+const SCENE_PX := 128
+const ICON_PX := 64
+const BACKGROUND := "res://assets/backgrounds/tower.jpg"
+static var _art := {} ## caminho -> Texture2D ou null (não existe)
+
 var run: RunState
 var hud: Label
 var title: Label
@@ -39,6 +46,7 @@ func setup(r: RunState) -> TowerScreen:
 	bottom = Kit.hbox(16)
 	bottom.alignment = BoxContainer.ALIGNMENT_CENTER
 	root.add_child(bottom)
+	Kit.background(self, BACKGROUND)
 	refresh()
 	return self
 
@@ -112,6 +120,18 @@ func _card(i: int, o: Dictionary) -> Control:
 	v.offset_bottom = -14
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	b.add_child(v)
+	var tex := art(o)
+	if tex:
+		var px := SCENE_PX if str(o.kind) in ["door", "stop"] else ICON_PX
+		b.custom_minimum_size.y += px + 8 # o cartão cresce com a arte; o texto continua cabendo
+		var img := TextureRect.new()
+		img.texture = tex
+		img.custom_minimum_size = Vector2(0, px)
+		img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		img.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		v.add_child(img)
 	var t := Kit.label(lines[0], 26, Kit.TEXT, true)
 	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(t)
@@ -124,9 +144,12 @@ func _card(i: int, o: Dictionary) -> Control:
 	d.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(d)
 	if not (run.phase in ["doors", "rest"]):
-		var p := Kit.label(Texts.t("ui.free") if price == 0 else Texts.t("ui.price", {"n": price}), 22, Kit.ACCENT)
-		p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		v.add_child(p)
+		if price == 0:
+			var p := Kit.label(Texts.t("ui.free"), 22, Kit.ACCENT)
+			p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			v.add_child(p)
+		else:
+			v.add_child(Kit.price_tag(Texts.t("ui.price", {"n": price})))
 	if o.kind == "spell" and not run.hero.inventory.fits(o.id):
 		b.disabled = true
 		d.text += "\n\n" + Texts.t("ui.no_room")
@@ -134,6 +157,23 @@ func _card(i: int, o: Dictionary) -> Control:
 		b.disabled = true
 	b.pressed.connect(func(): _pick(i))
 	return b
+
+
+## Caminho da ilustração da opção (existindo ou não).
+static func art_path(o: Dictionary) -> String:
+	match str(o.kind):
+		"door":
+			return "res://assets/tower/door_%s.png" % o.id
+		"stop":
+			return "res://assets/tower/stop_%s.png" % o.id
+	return "res://assets/icons/offer/%s.png" % o.kind
+
+
+static func art(o: Dictionary) -> Texture2D:
+	var path := art_path(o)
+	if not _art.has(path):
+		_art[path] = load(path) if ResourceLoader.exists(path) else null
+	return _art[path]
 
 
 ## Raridade da magia ou do elemento oferecido ("" se não tem).
