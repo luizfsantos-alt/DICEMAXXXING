@@ -7,7 +7,7 @@ signal new_run(char_id: String)
 
 const LOGO := "res://assets/logo.png"
 const TITLE_LOGO := "res://assets/title_logo.png" ## Logo com o nome (640×479, fundo recortado).
-const TITLE_H := 250.0
+const TITLE_H := 375.0
 const BACKGROUND := "res://assets/backgrounds/menu.jpg"
 signal continue_run
 
@@ -22,10 +22,10 @@ func setup() -> MenuScreen:
 	var cc := CenterContainer.new()
 	cc.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(cc)
-	var v := Kit.vbox(16)
+	var v := Kit.vbox(-6) # os cartões encostam na franja de baixo do logo
 	v.custom_minimum_size = Vector2(1100, 0)
 	cc.add_child(v)
-	# Logo do título à esquerda; aviso de versão e Continuar à direita.
+	# Logo do título à esquerda; Continuar, aviso de versão e "escolha o personagem" à direita.
 	# Sem a arte do título, volta ao dado com chapéu e o nome em texto.
 	var head := Kit.hbox(28)
 	head.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -51,7 +51,8 @@ func setup() -> MenuScreen:
 	tv.add_child(c)
 	var nt := Kit.label(Texts.t("ui.pick_character"), 26, Kit.TEXT)
 	nt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(nt)
+	# Com o logo grande, o convite vai na coluna da direita para os cartões caberem na tela.
+	(tv if title_art else v).add_child(nt)
 	var row := Kit.hbox(16)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.add_child(row)
@@ -62,16 +63,15 @@ func setup() -> MenuScreen:
 	return self
 
 
-## Versão instalada no canto de baixo à direita ("debug" nos APKs de branch), para saber
+## Versão instalada no canto de cima à direita ("debug" nos APKs de branch), para saber
 ## se o aviso de versão nova deveria aparecer.
 func _version_label() -> Label:
 	var txt := version_text(AppVersion.current(), OS.is_debug_build())
 	var l := Kit.label(txt, 16, Kit.MUTED)
 	l.name = "Version"
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	l.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 16)
+	l.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 16)
 	l.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	l.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return l
 
@@ -87,7 +87,7 @@ func _card(id: String) -> Button:
 	var info := Texts.character(id)
 	var c := Characters.get_def(id)
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(350, 330)
+	b.custom_minimum_size = Vector2(350, 320)
 	b.focus_mode = Control.FOCUS_NONE
 	var col := Portrait.COLORS.get(id, Kit.PANEL_HI) as Color
 	for st in ["normal", "hover", "pressed"]:
