@@ -163,6 +163,44 @@ func test_fim_de_jornada():
 	assert_true(e.get_child_count() > 0)
 
 
+func test_fim_mostra_quem_venceu_e_titulo():
+	var run := RunState.new_run(5)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 2
+	run.nemesis = EnemyFactory.create(4, "normal", rng)
+	run.phase = "defeat"
+	var back := RunState.from_dict(run.to_dict())
+	assert_eq(back.nemesis.name, run.nemesis.name, "o vencedor vai no save")
+	var e := EndScreen.new().setup(run)
+	add_child_autofree(e)
+	await wait_process_frames(2)
+	assert_not_null(e.quote_label, "fala do vencedor")
+	assert_true(e.quote_label.text.begins_with("“"))
+	assert_not_null(e.honor_label, "título póstumo")
+	var e2 := EndScreen.new().setup(run)
+	add_child_autofree(e2)
+	assert_eq(e2.quote_label.text, e.quote_label.text, "a fala não muda ao reabrir")
+
+
+func test_bolsa_desenha_os_dados():
+	var run := RunState.new_run(5)
+	run.hero.bag[0].element = "Na"
+	run.hero.bag[0].stickers[5] = 1
+	var host := Control.new()
+	add_child_autofree(host)
+	var o := BagPanel.open(host, run.hero.bag)
+	await wait_process_frames(1)
+	var icons := []
+	var stack: Array = [o]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if n is DieIcon:
+			icons.append(n)
+		stack.append_array(n.get_children())
+	assert_eq(icons.size(), run.hero.bag.size() * 6, "uma face desenhada por face")
+	assert_true(icons.any(func(i): return i.element == "Na" and i.stickers == 1), "selo ×2 no dado de Sódio")
+
+
 func test_cartoes_buracos_previa_e_historico():
 	var run := _run_at_duel(12)
 	var p := run.duel.player

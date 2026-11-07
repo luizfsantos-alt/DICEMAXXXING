@@ -36,7 +36,7 @@ static func open(parent: Control, inv: Inventory, on_done: Callable = Callable()
 	detail.add_child(dv)
 	var d_name := Kit.label("", 30, Kit.TEXT, true)
 	var d_desc: RichTextLabel = ElementInfo.rich("", 20, Color(0.85, 0.83, 0.89)) ## Elementos citados: tocáveis.
-	var d_meta := Kit.label("", 17, Kit.MUTED, true)
+	var d_meta := Kit.label("", 18, Kit.MUTED, true)
 	dv.add_child(d_name)
 	dv.add_child(d_desc)
 	dv.add_child(d_meta)

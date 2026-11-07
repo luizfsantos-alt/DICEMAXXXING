@@ -123,6 +123,8 @@ func _on_new_run(char_id: String) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	run = RunState.new_run(rng.randi(), char_id)
+	if current is MenuScreen:
+		run.hero.portrait = int((current as MenuScreen).portraits.get(char_id, -1))
 	SaveGame.save(run)
 	show_phase()
 

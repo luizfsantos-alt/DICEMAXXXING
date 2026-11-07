@@ -47,9 +47,9 @@ func refresh(run: RunState, host: Control) -> void:
 	coins_label = Kit.label(str(run.coins), 34, Kit.ACCENT)
 	coin_box.add_child(coins_label)
 	add_child(coin_box)
-	var bag_box := Kit.hbox(6)
+	var bag_box := Kit.hbox(2)
 	bag_button = Kit.button(Texts.t("ui.strip_bag", {"n": h.bag.size()}), func(): BagPanel.open(host, h.bag), Kit.PANEL, 22)
-	bag_button.custom_minimum_size = Vector2(0, 44)
+	bag_button.custom_minimum_size = Vector2(0, Kit.TOUCH_MIN)
 	bag_box.add_child(bag_button)
 	chips = Kit.hbox(6)
 	for c in counts(h.bag):
@@ -58,23 +58,28 @@ func refresh(run: RunState, host: Control) -> void:
 	add_child(bag_box)
 
 
-## Quadradinho na cor do dado com o símbolo e a quantidade ("H 2"; o comum, só o número).
+## Um dado pequeno do elemento (como na luta) e a quantidade ("×2"). Tocar explica o
+## elemento; o comum abre a bolsa.
 static func _chip(el: String, n: int, host: Control, bag: Array) -> Button:
-	var l := Elements.look(el)
 	var b := Button.new()
 	b.focus_mode = Control.FOCUS_NONE
-	b.text = ("%s %d" % [el, n]) if el != "" else str(n)
-	b.add_theme_font_size_override("font_size", 20)
-	b.custom_minimum_size = Vector2(52, 44)
-	var body: Color = l.body
+	b.tooltip_text = Texts.element_name(el)
+	b.custom_minimum_size = Vector2(96, Kit.TOUCH_MIN)
 	for st in ["normal", "hover", "pressed", "disabled"]:
-		var sb := Kit.box(body.lightened(0.12) if st == "hover" else body, 8, 6)
-		sb.set_border_width_all(2)
-		sb.border_color = body.darkened(0.4)
-		b.add_theme_stylebox_override(st, sb)
+		b.add_theme_stylebox_override(st, Kit.box(Color(1, 1, 1, 0.08) if st == "hover" else Color(0, 0, 0, 0), 10, 0))
 	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	for k in ["font_color", "font_hover_color", "font_pressed_color"]:
-		b.add_theme_color_override(k, l.ink)
+	var h := Kit.hbox(4)
+	h.set_anchors_preset(Control.PRESET_FULL_RECT)
+	h.alignment = BoxContainer.ALIGNMENT_CENTER
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(h)
+	h.add_child(DieIcon.new().setup(6, el, 46))
+	var l := Kit.label("×%d" % n, 24, Elements.COLORS.get(el, Kit.TEXT))
+	l.add_theme_font_override("font", Kit.num_font())
+	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	l.add_theme_constant_override("outline_size", 5)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.add_child(l)
 	if el != "":
 		b.pressed.connect(func(): ElementInfo.open(host, el))
 	else:

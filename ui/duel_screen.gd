@@ -181,7 +181,7 @@ func _build_fighters() -> VBoxContainer:
 	enemy_photo.mouse_filter = Control.MOUSE_FILTER_STOP
 	enemy_photo.gui_input.connect(_on_enemy_photo_input)
 	enemy_name = _photo_label(enemy_photo, e.name, 18, Kit.TEXT, true)
-	enemy_sub = _photo_label(enemy_photo, "", 13, Kit.MUTED, false)
+	enemy_sub = _photo_label(enemy_photo, "", 16, Kit.MUTED, false)
 
 	var bv := Kit.vbox(4)
 	for s in ["enemy", "player"]:
@@ -193,7 +193,7 @@ func _build_fighters() -> VBoxContainer:
 
 	col.add_child(_photo_row(p, true))
 	_photo_label(player_photo, Texts.t("ui.you") + " · " + Texts.t("archetypes." + p.archetype), 18, Kit.TEXT, true)
-	player_sub = _photo_label(player_photo, "", 13, Kit.MUTED, false)
+	player_sub = _photo_label(player_photo, "", 16, Kit.MUTED, false)
 
 	# Moedas: faixa fina no rodapé.
 	var strip := PanelContainer.new()
@@ -201,7 +201,7 @@ func _build_fighters() -> VBoxContainer:
 	var sh := Kit.hbox(8)
 	strip.add_child(sh)
 	sh.add_child(Kit.coin(20))
-	coins_label = Kit.label("", 17, Kit.ACCENT)
+	coins_label = Kit.label("", 18, Kit.ACCENT)
 	sh.add_child(coins_label)
 	col.add_child(strip)
 	return col
@@ -252,8 +252,18 @@ func _photo_label(photo: Control, text: String, fs: int, col: Color, head: bool)
 func _build_stage() -> VBoxContainer:
 	var col := Kit.vbox(8)
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	stage_title = Kit.label("", 15, Kit.MUTED)
-	col.add_child(stage_title)
+	# Cabeçalho do palco: de quem são as magias e, à direita, Histórico e Ficha do inimigo.
+	var head := Kit.hbox(10)
+	col.add_child(head)
+	stage_title = Kit.label("", 18, Kit.MUTED)
+	stage_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stage_title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	stage_title.clip_text = true
+	head.add_child(stage_title)
+	for k in [["ui.history", open_history], ["ui.enemy_sheet", open_enemy_consult]]:
+		var hb := Kit.button(Texts.t(k[0]), k[1], Kit.PANEL, 20)
+		hb.custom_minimum_size = Vector2(150, Kit.TOUCH_MIN)
+		head.add_child(hb)
 	var stage := PanelContainer.new()
 	stage.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	stage.add_theme_stylebox_override("panel", Kit.box(PANEL_BG, 18, 10))
@@ -279,36 +289,30 @@ func _build_stage() -> VBoxContainer:
 		enemy_grid.add_child(c)
 		enemy_cards.append(c)
 
-	# Rodapé: banner e dica, resumo, histórico/ficha e "Terminar turno".
-	var foot := Kit.hbox(10)
-	foot.custom_minimum_size = Vector2(0, 88)
+	# Rodapé: banner e andar à esquerda; dica e resumo no meio; "Terminar turno".
+	var foot := Kit.hbox(14)
+	foot.custom_minimum_size = Vector2(0, 92)
 	col.add_child(foot)
-	var bv := Kit.vbox(2)
-	bv.custom_minimum_size = Vector2(170, 0)
+	var bv := Kit.vbox(0)
+	bv.custom_minimum_size = Vector2(180, 0)
 	bv.alignment = BoxContainer.ALIGNMENT_CENTER
-	banner = Kit.label("", 26, Kit.ACCENT, true)
+	banner = Kit.title("", 30, Kit.ACCENT, 5)
+	banner.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	bv.add_child(banner)
-	hint = Kit.label(Texts.t("ui.hint_place"), 14, Kit.MUTED, true)
-	bv.add_child(hint)
-	hud = Kit.label("", 13, Kit.MUTED, true)
+	hud = Kit.label("", 17, Kit.MUTED, true)
 	bv.add_child(hud)
 	foot.add_child(bv)
-	info = Kit.label("", 16, Kit.TEXT, true)
-	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	info.max_lines_visible = 4
-	foot.add_child(info)
-	var btns := Kit.vbox(6)
-	btns.alignment = BoxContainer.ALIGNMENT_CENTER
-	var hb := Kit.button(Texts.t("ui.history"), open_history, Kit.PANEL, 16)
-	hb.custom_minimum_size = Vector2(124, 40)
-	btns.add_child(hb)
-	var sb := Kit.button(Texts.t("ui.enemy_sheet"), open_enemy_consult, Kit.PANEL, 16)
-	sb.custom_minimum_size = Vector2(124, 40)
-	btns.add_child(sb)
-	foot.add_child(btns)
-	end_btn = Kit.button(Texts.t("ui.end_turn"), _on_end_turn, Kit.ACCENT.darkened(0.45), 22)
-	end_btn.custom_minimum_size = Vector2(180, 84)
+	var iv := Kit.vbox(2)
+	iv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	iv.alignment = BoxContainer.ALIGNMENT_CENTER
+	hint = Kit.label(Texts.t("ui.hint_place"), 18, Kit.MUTED, true)
+	iv.add_child(hint)
+	info = Kit.label("", 18, Kit.TEXT, true)
+	info.max_lines_visible = 3
+	iv.add_child(info)
+	foot.add_child(iv)
+	end_btn = Kit.primary_button(Texts.t("ui.end_turn"), _on_end_turn, 26)
+	end_btn.custom_minimum_size = Vector2(210, 84)
 	end_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	foot.add_child(end_btn)
 	return col
@@ -321,7 +325,7 @@ func _build_dice() -> PanelContainer:
 	pc.add_theme_stylebox_override("panel", Kit.box(PANEL_BG, 14, 6))
 	var v := Kit.vbox(6)
 	pc.add_child(v)
-	dice_title = Kit.label("", 13, Kit.MUTED, true)
+	dice_title = Kit.label("", 16, Kit.MUTED, true)
 	dice_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(dice_title)
 	tray = FitGrid.new().setup(Vector2(DIE, DIE), 8)
@@ -737,8 +741,8 @@ func _refresh_tray() -> void:
 		info.text = Texts.t("ui.this_turn", {"list": " · ".join(parts)}) if not parts.is_empty() else Texts.t("ui.incomplete")
 		info.add_theme_color_override("font_color", Kit.TEXT)
 	elif summary.is_empty():
-		info.text = Texts.t("ui.back_to_bag")
-		info.add_theme_color_override("font_color", Kit.MUTED)
+		# A dica do rodapé já diz que os dados sem magia voltam para a bolsa.
+		info.text = ""
 
 
 # ================================================================== Interação

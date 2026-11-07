@@ -19,6 +19,7 @@ var duel: Duel
 var rng := RandomNumberGenerator.new()
 var stats := {"wins": 0, "dealt": 0, "taken": 0, "coins": 0}
 var last_reward: int = 0
+var nemesis: Fighter ## Quem venceu o herói (tela final); null enquanto ele vive.
 
 
 static func new_run(run_seed: int, char_id := "sorcerer") -> RunState:
@@ -159,6 +160,8 @@ func finish_duel() -> void:
 	stats.taken += duel.taken
 	hero = duel.player
 	var won := duel.state == "won"
+	if not won:
+		nemesis = duel.enemy
 	duel = null
 	if not won:
 		phase = "defeat"
@@ -199,6 +202,7 @@ func to_dict() -> Dictionary:
 		"stats": stats, "last_reward": last_reward,
 		"seed": str(rng.seed), "rng_state": str(rng.state),
 		"duel": duel.to_dict() if duel else {},
+		"nemesis": nemesis.to_dict() if nemesis else {},
 	}
 
 
@@ -230,6 +234,9 @@ static func from_dict(d: Dictionary) -> RunState:
 	r.last_reward = int(d.get("last_reward", 0))
 	r.rng.seed = int(str(d.get("seed", "0")))
 	r.rng.state = int(str(d.get("rng_state", "0")))
+	var nd: Dictionary = d.get("nemesis", {})
+	if not nd.is_empty():
+		r.nemesis = Fighter.from_dict(nd)
 	var dd: Dictionary = d.get("duel", {})
 	if not dd.is_empty():
 		r.duel = Duel.from_dict(dd)

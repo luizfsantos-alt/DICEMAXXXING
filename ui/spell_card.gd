@@ -39,8 +39,9 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	name_label = Kit.label(Texts.spell_name(id), 20 if compact else 24, Kit.TEXT)
-	tag_label = Kit.label("", 14, Kit.ACCENT)
-	fx_label = Kit.label(spell_fx(id, int(f.inventory.items[i].level)), 15 if compact else 17, Color(0.85, 0.83, 0.89), true)
+	name_label.add_theme_font_override("font", Kit.title_font())
+	tag_label = Kit.label("", 16, Kit.ACCENT)
+	fx_label = Kit.label(spell_fx(id, int(f.inventory.items[i].level)), 16 if compact else 19, Color(0.85, 0.83, 0.89), true)
 	preview = Kit.label("", 19, Kit.TEXT, true)
 	icon_rect = TextureRect.new()
 	icon_rect.texture = icon(Spells.icon_key(id))

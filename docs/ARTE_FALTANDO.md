@@ -18,7 +18,7 @@ toda jornada, **C** detalhe/polimento.
 | Ícones de status (os 11): bloqueio, veneno, queima, espelho, esquiva, revide, imune, dado guardado, fúria, sede, próxima mão | `assets/icons/status/<id>.png` (64×64) |
 | Ícones de efeito nos cartões de magia: dano, cura, vida máxima, dreno, truque de dados, sacrifício, limpeza (bloqueio, esquiva, espelho, revide, imune e mexida na mão usam os de status) | `assets/icons/fx/<id>.png` (64×64); `Spells.icon_key` escolhe |
 | Torre: portas (Fácil, Normal, Difícil, Insana, Mestre), paradas (Loja, Cura, Escola, Poço), todas as ofertas e as 3 recompensas do Mestre | `assets/tower/door_<id>.png`, `stop_<id>.png` (128×128); `assets/icons/offer/<kind>.png` (64×64) |
-| Fonte dos números sobre as fotos | `assets/fonts/Bungee-Regular.ttf` |
+| Fontes: números (vida, dano, contagens) e títulos | `assets/fonts/Bungee-Regular.ttf`, `assets/fonts/PixelifySans.ttf` (`Kit.num_font`, `Kit.title_font`, `Kit.title`) |
 | Dados 3D e 2D | gerados em código de propósito (`ui/dice_3d.gd`, `ui/die_face.gd`, `docs/DADOS_VISUAL.md`); não precisam de arquivo |
 
 Prompts e andamento item a item: [`docs/PAUTA_ARTE.html`](PAUTA_ARTE.html). Para recortar fundo de
@@ -37,21 +37,18 @@ A pauta de arte está toda feita. O que sobra é opcional ou é código.
 | Efeito da magia (bola de luz) | `ui/spell_bolt.gd` | círculos e rastro em código, só cor muda (verde/vermelho/azul) |
 | Painéis translúcidos da luta e botões coloridos | `ui/duel_screen.gd`, `ui/kit.gd` | `StyleBoxFlat` de propósito (a textura só entra nas cores neutras) |
 | Nome e bolsa sobre as fotos | — | SPEC_v3 §13: "placeholder até haver arte" |
-| Peças do grimório | `ui/grimoire_view.gd` | blocos coloridos pelo efeito, com texto |
-| Lista da bolsa | `ui/bag_panel.gd` | botões de texto por face (adesivo e face travada só mudam a cor) |
-| Adesivo ×2 | `bag_panel.gd`, `die_face.gd` | texto "×2"; a arte já existe (`assets/icons/offer/sticker.png`), falta usar na bolsa |
+| Peças do grimório | `ui/grimoire_view.gd` | forma única por peça (sem emendas), cor do efeito, borda da raridade e ícone do efeito; sem textura própria |
 
 ## 6. Fora da arte visual
 
 - **Som:** não há nenhum áudio no projeto (nem música nem efeitos).
-- **Fonte da interface:** tudo fora dos números das fotos usa a fonte padrão do Godot
-  (`ThemeDB.fallback_font`); só a Bungee foi adicionada.
+- **Fonte da interface:** títulos na Pixelify Sans (a partir de 20 px; menor que isso ela
+  embaralha letras) e corpo na fonte padrão do Godot.
 - **Extras dos dados não feitos** (`docs/DADOS_VISUAL.md`): superfície ondulando no Mercúrio,
   tranco de câmera no Ósmio, rebite nas faces travadas do Chumbo, linha de luz entre Carbonos.
 
 ## Ordem sugerida
 
-1. Retrato nos cartões do menu (as fotos já existem; é só código).
-2. Selo do adesivo na bolsa (arte já existe).
-3. Som.
-4. Fonte da interface.
+1. Som.
+2. Detalhe de vaidade nos retratos (medalha, diploma, broche): o tema "duelo de egos" (`docs/TOM.md`) ainda está só nos textos.
+3. Recompensa do Mestre "+1 dado na mão": a arte da mão termina num corte reto.
