@@ -44,8 +44,12 @@ func _draw() -> void:
 	if _frame:
 		draw_style_box(_frame, r)
 	var font := ThemeDB.fallback_font
-	var fs := 24
-	var y := size.y / 2.0 + fs * 0.35
-	draw_string(font, Vector2(0, y), "%d / %d" % [maxi(0, hp), max_hp], HORIZONTAL_ALIGNMENT_CENTER, size.x, fs, Kit.TEXT)
+	# Números na Bungee, a mesma fonte do dano que sobe sobre as fotos, com contorno.
+	var nf := Kit.num_font()
+	var fs := clampi(int(size.y * 0.58), 14, 22)
+	var y := size.y / 2.0 + fs * 0.38
+	var txt := "%d / %d" % [maxi(0, hp), max_hp]
+	draw_string_outline(nf, Vector2(0, y), txt, HORIZONTAL_ALIGNMENT_CENTER, size.x, fs, 5, Color(0, 0, 0, 0.85))
+	draw_string(nf, Vector2(0, y), txt, HORIZONTAL_ALIGNMENT_CENTER, size.x, fs, Kit.TEXT)
 	if shield > 0:
 		draw_string(font, Vector2(0, y - 2), Texts.t("ui.block", {"n": shield}) + "  ", HORIZONTAL_ALIGNMENT_RIGHT, size.x, 18, Kit.SHIELD.lightened(0.4))

@@ -29,7 +29,7 @@ func _run() -> void:
 	get_root().add_child(t)
 	var doors := []
 	for id in ["facil", "normal", "dificil", "insana"]:
-		doors.append({"kind": "door", "id": id, "price": 0, "needs": "", "coins": 3})
+		doors.append({"kind": "door", "id": id, "price": 0, "needs": "", "coins": RunState.door_coins(id)})
 	await _shot(t, "doors", "doors", doors)
 	await _shot(t, "master", "doors", [{"kind": "door", "id": "mestre", "price": 0, "needs": ""}])
 	var stops := []

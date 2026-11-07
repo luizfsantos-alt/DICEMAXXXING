@@ -103,5 +103,11 @@ static func character(id: String) -> Array:
 	return data().get("characters", {}).get(id, [id, "", ""])
 
 
-static func name_list(kind: String) -> Array:
-	return data().get("names", {}).get(kind, [])
+## Como o lutador aparece: Mestre pelo nome; os outros pela variante ("Piromante") ou
+## pelo arquétipo ("Assassino"). Inimigos comuns não têm nome próprio.
+static func fighter_title(f: Fighter) -> String:
+	if f.master_id != "":
+		return master_name(f.master_id)
+	if f.variant != "":
+		return t("variants." + f.variant).get_slice(":", 0)
+	return t("archetypes." + f.archetype)

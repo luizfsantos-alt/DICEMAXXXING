@@ -7,7 +7,7 @@ signal new_run(char_id: String)
 
 const LOGO := "res://assets/logo.png"
 const TITLE_LOGO := "res://assets/title_logo.png" ## Logo com o nome (640×479, fundo recortado).
-const TITLE_H := 330.0
+const TITLE_H := 300.0
 const BACKGROUND := "res://assets/backgrounds/menu.jpg"
 signal continue_run
 
@@ -15,6 +15,9 @@ var picks: Array = [] ## Botões dos personagens (testes).
 var header: VBoxContainer ## Título e subtítulo; o aviso de versão nova entra embaixo.
 var update_bar: Control ## Aviso de versão nova (null até haver uma).
 var update_url := ""
+## Variação da foto de cada personagem, sorteada ao abrir o menu: é a mesma que vai para a
+## jornada (main.gd copia para o herói), para o rosto escolhido ser o rosto da luta.
+var portraits := {}
 
 
 func setup() -> MenuScreen:
@@ -22,7 +25,7 @@ func setup() -> MenuScreen:
 	var cc := CenterContainer.new()
 	cc.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(cc)
-	var v := Kit.vbox(-6) # os cartões encostam na franja de baixo do logo
+	var v := Kit.vbox(-14) # os cartões encostam na franja de baixo do logo
 	v.custom_minimum_size = Vector2(1100, 0)
 	cc.add_child(v)
 	# Logo do título à esquerda; Continuar, aviso de versão e "escolha o personagem" à direita.
@@ -48,8 +51,11 @@ func setup() -> MenuScreen:
 	var c := Kit.button(Texts.t("ui.continue"), func(): continue_run.emit(), Kit.PANEL_HI, 28)
 	c.custom_minimum_size = Vector2(0, 64)
 	c.disabled = not SaveGame.exists()
+	# Sem jornada salva, o botão não tem o que fazer: some em vez de ficar apagado.
+	c.visible = not c.disabled
 	tv.add_child(c)
-	var nt := Kit.label(Texts.t("ui.pick_character"), 26, Kit.TEXT)
+	var nt := Kit.title(Texts.t("ui.pick_character"), 28, Kit.TEXT)
+	nt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	nt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	# Com o logo grande, o convite vai na coluna da direita para os cartões caberem na tela.
 	(tv if title_art else v).add_child(nt)
@@ -84,8 +90,8 @@ static func version_text(version: String, debug: bool) -> String:
 
 
 ## Cartão compacto do personagem: retrato (variação 1) em cima, nome, passiva e números.
-const CARD := Vector2(232, 360)
-const CARD_PORTRAIT_H := 160
+const CARD := Vector2(232, 404)
+const CARD_PORTRAIT_H := 128
 
 
 func _card(id: String) -> Button:
@@ -111,20 +117,24 @@ func _card(id: String) -> Button:
 	b.add_child(v)
 	var f := Fighter.new()
 	f.archetype = id
-	f.portrait = 0
+	f.portrait = randi() % Portrait.VARIATIONS
+	portraits[id] = f.portrait
 	f.is_player = true
-	v.add_child(Portrait.new().setup(f, CARD_PORTRAIT_H, true))
+	var ph := Portrait.new().setup(f, CARD_PORTRAIT_H, true)
+	ph.set_rosette("bronze", 2) ## Todo herói começa com o prêmio de participação.
+	v.add_child(ph)
 	var spells := []
 	for s in c.spells:
 		spells.append(Texts.spell_name(s[0]))
 	var lines := [
-		[str(info[0]), 22, Kit.ACCENT],
-		["%s: %s" % [info[1], info[2]], 13, Kit.TEXT],
-		[Texts.t("ui.char_stats", {"hp": c.hp, "hand": c.hand, "bag": c.bag_size}), 13, Kit.MUTED],
-		[Texts.t("ui.char_spells", {"list": ", ".join(spells)}), 13, Kit.MUTED],
+		[str(info[0]), 26, Kit.ACCENT],
+		["%s: %s" % [info[1], info[2]], 16, Kit.TEXT],
+		[Texts.t("ui.char_stats", {"hp": c.hp, "hand": c.hand, "bag": c.bag_size}), 15, Kit.MUTED],
+		[Texts.t("ui.char_spells", {"list": ", ".join(spells)}), 15, Kit.MUTED],
 	]
-	for ln in lines:
-		var l := Kit.label(ln[0], ln[1], ln[2], true)
+	for k in lines.size():
+		var ln: Array = lines[k]
+		var l := Kit.title(ln[0], ln[1], ln[2], 0) if k == 0 else Kit.label(ln[0], ln[1], ln[2], true)
 		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		v.add_child(l)
 	b.pressed.connect(func(): new_run.emit(id))
