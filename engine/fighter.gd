@@ -229,6 +229,7 @@ func roll_hand(rng: RandomNumberGenerator, foe_last: Array) -> int:
 	if chain > 0:
 		for e in hand:
 			if die_of(e).element == "C" and not e.get("fixed", false):
+				Resolver.mark_cause(e, "C")
 				e.value = int(e.value) + chain
 	var top := 0
 	for e in hand:
@@ -237,8 +238,9 @@ func roll_hand(rng: RandomNumberGenerator, foe_last: Array) -> int:
 	for v in foe_last:
 		top = maxi(top, int(v))
 	for e in hand:
-		if die_of(e).element == "Hg" and not e.get("fixed", false):
-			e.value = maxi(int(e.value), top)
+		if die_of(e).element == "Hg" and not e.get("fixed", false) and top > int(e.value):
+			Resolver.mark_cause(e, "Hg")
+			e.value = top
 	return pulled
 
 
@@ -251,7 +253,10 @@ func _roll_entry(e: Dictionary, rng: RandomNumberGenerator) -> void:
 	var raw := d.value(e.face)
 	e.top = raw == d.max_value()
 	e.value = raw + int(e.get("plus", 0))
+	e.erase("orig")
+	e.erase("cause")
 	if Elements.solitary(self, d):
+		Resolver.mark_cause(e, "H")
 		e.value *= Elements.solitary_mult
 
 

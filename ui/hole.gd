@@ -22,6 +22,34 @@ var _glows := false ## O dado encaixado brilha (pulsa: redesenha a cada quadro).
 var heat := 0.0 ## Estado do brilho do dado (Elements.heat): 0 repouso, 1 ativo.
 var interactive := true
 var floor_hidden := false ## Só o dado, sem o buraco (dado voando).
+## Dado mexido (docs/SPEC_v3.1.md §8): valor de antes, riscado no alto, e a causa num selo.
+var orig := -1
+var badge := ""
+var badge_color := Color(0.76, 0.65, 1.0)
+
+## Selo curto de cada causa: mexidas do inimigo, Alquimista, elementos e as suas mexidas.
+const BADGES := {
+	"halve": "½", "even_to_one": "1", "top_to_one": "1", "alquimista": "⇄", "porteiro": "Pb",
+	"H": "H", "C": "C", "Hg": "Hg",
+}
+
+
+## Mostra o valor original e a causa (cause: id de magia, mexida do inimigo ou elemento).
+func set_cause(o: int, cause: String) -> void:
+	orig = o if cause != "" and o != value else -1
+	badge = ""
+	if cause == "":
+		queue_redraw()
+		return
+	if BADGES.has(cause):
+		badge = BADGES[cause]
+		badge_color = Elements.COLORS.get(cause, Color(1.0, 0.55, 0.5)) if cause in ["H", "C", "Hg", "porteiro"] else Color(1.0, 0.55, 0.5)
+		if cause == "porteiro":
+			badge_color = Elements.COLORS.Pb
+	else:
+		badge = "✦" ## Uma mexida sua.
+		badge_color = Kit.ACCENT
+	queue_redraw()
 
 
 func setup(px: int, i := -1) -> Hole:
@@ -59,6 +87,8 @@ func _process(_delta: float) -> void:
 
 func clear_die() -> void:
 	has_die = false
+	orig = -1
+	badge = ""
 	raised = false
 	faded = false
 	queue_redraw()
@@ -114,3 +144,25 @@ func _draw() -> void:
 	DieFace.draw(self, d, value, element, 0.6 if faded else 0.0, heat, Time.get_ticks_msec() / 1000.0)
 	if raised:
 		draw_style_box(_sb(Color.TRANSPARENT, int(rad * 0.85) + 2, 4, Kit.ACCENT), d.grow(3))
+	_draw_cause(d, font, s)
+
+
+## Valor de antes riscado (no alto, à esquerda) e o selo da causa (embaixo, à direita).
+func _draw_cause(d: Rect2, font: Font, s: float) -> void:
+	if faded:
+		return
+	var fs := maxi(10, int(s * 0.2))
+	if orig >= 0:
+		var t := str(orig)
+		var w := font.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		var box := Rect2(d.position + Vector2(-2, -2), Vector2(w + 8, fs + 4))
+		draw_style_box(_sb(Color(0, 0, 0, 0.78), 4), box)
+		draw_string(font, box.position + Vector2(4, fs), t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.85, 0.83, 0.89))
+		var y := box.position.y + box.size.y * 0.55
+		draw_line(Vector2(box.position.x + 2, y), Vector2(box.end.x - 2, y), Color(1.0, 0.45, 0.4), 2.0)
+	if badge != "":
+		var w2 := font.get_string_size(badge, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		var bw := maxf(w2 + 8, fs + 6)
+		var b := Rect2(d.end - Vector2(bw - 2, fs + 2), Vector2(bw, fs + 4))
+		draw_style_box(_sb(Color(0, 0, 0, 0.78), int((fs + 4) * 0.5), 1, badge_color), b)
+		draw_string(font, b.position + Vector2(0, fs), badge, HORIZONTAL_ALIGNMENT_CENTER, bw, fs, badge_color)

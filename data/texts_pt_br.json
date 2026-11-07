@@ -679,7 +679,19 @@
   "evolve_next": "Nível {n}: {fx}",
   "fx_alchemy": "Alquimia: {from} → {to}",
   "fx_reactor": "Reator: veneno {n}",
-  "master_heal": "O Mestre caiu: você recupera {n} de vida."
+  "master_heal": "O Mestre caiu: você recupera {n} de vida.",
+  "or": "ou",
+  "pv_chance_up": "chance de subir: {p}%",
+  "pv_chance_better": "chance de melhorar: {p}%",
+  "undo_mod": "Desfazer {name}",
+  "mod_final": "{name} não se desfaz",
+  "cause_line": "{name}: {from} → {to}",
+  "mod_done": "{name}: {from} → {to}",
+  "cause_halve": "Chave de Braço Didática",
+  "cause_even_to_one": "Meia Verdade",
+  "cause_top_to_one": "Lição de Anatomia",
+  "cause_alquimista": "A Alquimista",
+  "cause_porteiro": "Porteiro de Chumbo: Chumbo posto na sua mão"
  },
  "ev": {
   "hand": "{who} rolou: {v}",

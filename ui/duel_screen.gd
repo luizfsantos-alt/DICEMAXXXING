@@ -70,6 +70,8 @@ var active_side := "player" ## De quem é a vez (o palco e os dados seguem).
 var dice_side := "player" ## De quem são os dados na coluna da direita.
 var peeking := false ## Segurando a foto do inimigo.
 var _stage_shown := ""
+var busy := false ## Animação de uma mexida em andamento: o toque espera.
+var undo_btn: Button ## "Desfazer [mexida]" com um dado mexido selecionado.
 
 var hud: Label
 var enemy_name: Label
@@ -292,6 +294,10 @@ func _build_stage() -> VBoxContainer:
 	bv.add_child(hint)
 	hud = Kit.label("", 13, Kit.MUTED, true)
 	bv.add_child(hud)
+	undo_btn = Kit.button("", _on_undo, Kit.PANEL_HI, 15)
+	undo_btn.custom_minimum_size = Vector2(0, 36)
+	undo_btn.visible = false
+	bv.add_child(undo_btn)
 	foot.add_child(bv)
 	info = Kit.label("", 16, Kit.TEXT, true)
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -373,6 +379,10 @@ func _set_active(side: String) -> void:
 
 func _update_stage() -> void:
 	var s := stage_side()
+	# Na ficha (segurando a foto) aparecem todas as magias dele, inclusive as já usadas.
+	if peeking:
+		for c in enemy_cards:
+			c.visible = true
 	player_grid.visible = s == "player"
 	enemy_grid.visible = s == "enemy"
 	if s == "player":
@@ -504,8 +514,11 @@ func _start_player_phase() -> void:
 	phase = "player"
 	for c in cards + enemy_cards:
 		c.shown_used = null
-	choice = TurnChoice.new()
+	# Save no meio do turno: as mexidas ficam na mão e a escolha se remonta a partir dela.
+	choice = TurnChoice.from_hand(duel.player)
+	choice.rng = duel.rng
 	selected = -1
+	busy = false
 	banner.text = Texts.t("ui.your_turn")
 	hint.text = Texts.t("ui.hint_place")
 	catcher.visible = false
@@ -699,15 +712,31 @@ func _refresh_tray() -> void:
 		var hv: Hole = v
 		hv.has_die = not (hv.index in used or hv.index == dragging)
 		hv.caption = ""
-		if hv.index in used:
-			hv.caption = Texts.spell_name(p.inventory.items[_item_of(hv.index)].id)
-		hv.raised = hv.index == selected
 		if hv.index >= 0 and hv.index < p.hand.size():
-			hv.heat = Elements.heat(p, p.die_of(p.hand[hv.index]), not (hv.index in used))
+			var e: Dictionary = p.hand[hv.index]
+			var dd := p.die_of(e)
+			# Mexidas mudam o valor na própria mão.
+			hv.value = int(e.value)
+			hv.element = dd.element if dd else ""
+			hv.set_cause(int(e.get("orig", -1)), str(e.get("cause", "")))
+			if hv.index in used:
+				var it := _item_of(hv.index)
+				if it < 0:
+					it = int(e.get("spent", -1))
+				if it >= 0:
+					hv.caption = Texts.spell_name(p.inventory.items[it].id)
+			hv.heat = Elements.heat(p, dd, not (hv.index in used))
+		hv.raised = hv.index == selected
 		hv.queue_redraw()
 	var sel := int(p.hand[selected].value) if selected >= 0 else -1
 	var sel_top := bool(p.hand[selected].get("top", false)) if selected >= 0 else false
+	var sel_die: Die = p.die_of(p.hand[selected]) if selected >= 0 else null
+	var sel_plus := int(p.hand[selected].get("plus", 0)) if selected >= 0 else 0
 	for c in cards:
+		if phase == "player":
+			# Magia que já resolveu neste turno (mexida, Imitação, Força) ou sem uso
+			# disponível sai do palco (docs/SPEC_v3.1.md §1.9).
+			c.visible = not (choice.mods.has(c.item) or choice.spawned.has(c.item) or c.used())
 		var vals := choice.values_in(p, c.item)
 		var els := []
 		var heats := []
@@ -718,13 +747,24 @@ func _refresh_tray() -> void:
 		var ins := choice.dice_in(c.item)
 		for k in c.holes.size():
 			c.holes[k].index = int(ins[k]) if k < ins.size() else -1
-		c.refresh(vals, els, sel if (dragging >= 0 or not (selected in used)) else -1, choice.tops_in(p, c.item), sel_top, heats)
+		var sel_ok := selected >= 0 and choice.available(p, c.item) and TurnChoice.die_allowed(p, c.item, selected)
+		c.refresh(vals, els, sel if (dragging >= 0 or not (selected in used)) else -1, choice.tops_in(p, c.item), sel_top, heats,
+			sel_ok, sel_die, sel_plus)
+	_refresh_undo()
 	if phase != "player":
 		return
 	# Magia de vários dados pela metade: o botão fica apagado (tocar explica).
 	end_btn.modulate.a = 1.0 if choice.incomplete_items(p).is_empty() else 0.5
 	if selected >= 0:
 		info.text = Texts.t("ui.die_selected", {"v": sel})
+		var se: Dictionary = p.hand[selected]
+		var cause := str(se.get("cause", ""))
+		if cause != "":
+			# Dado mexido: a causa e a conta.
+			info.text += "  ·  " + Texts.t("ui.cause_line", {"name": cause_name(cause), "from": int(se.get("orig", sel)), "to": sel})
+			var mi := int(se.get("mod", -1))
+			if mi >= 0 and choice.mods.has(mi) and bool(choice.mods[mi].random):
+				info.text += "  ·  " + Texts.t("ui.mod_final", {"name": Texts.spell_name(p.inventory.items[mi].id)})
 		var sd := p.die_of(p.hand[selected])
 		if sd and sd.element != "":
 			# Tocar no dado explica o elemento.
@@ -750,16 +790,17 @@ func _just_dragged() -> bool:
 ## Cartão do jogador: recebe dados arrastados; tocar num buraco com dado o solta.
 func _wire_card(c: SpellCard) -> void:
 	c.set_drag_forwarding(Callable(), _can_drop_card.bind(c.item), _drop_card.bind(c.item))
-	for h: Hole in c.holes:
+	for k in c.holes.size():
+		var h: Hole = c.holes[k]
 		h.set_interactive(true)
 		h.tapped.connect(_on_card_hole.bind(c.item))
-		h.set_drag_forwarding(_drag_from.bind(h), _can_drop_card.bind(c.item), _drop_card.bind(c.item))
+		h.set_drag_forwarding(_drag_from.bind(h), _can_drop_card.bind(c.item), _drop_card_slot.bind(c.item, k))
 
 
 ## Começa a arrastar o dado do buraco (da mão ou de uma magia).
 func _drag_from(_at: Vector2, hole: Hole) -> Variant:
 	var p := duel.player
-	if phase != "player" or not hole.has_die or hole.index < 0 or hole.index >= p.hand.size():
+	if phase != "player" or busy or not hole.has_die or hole.index < 0 or hole.index >= p.hand.size():
 		return null
 	var h := hole.index
 	var px := int(maxf(24.0, _visual_px(hole)))
@@ -792,6 +833,17 @@ func _drop_card(_at: Vector2, data: Variant, item: int) -> void:
 	move_die(_drag_die(data), item)
 
 
+## Solto num buraco: o buraco escolhe o lado do Ajuste Fino (0 = +1, 1 = −1).
+func _drop_card_slot(_at: Vector2, data: Variant, item: int, slot: int) -> void:
+	move_die(_drag_die(data), item, _slot_for(item, slot))
+
+
+## Buraco k do cartão como "slot" do motor (só o Ajuste Fino usa).
+func _slot_for(item: int, k: int) -> int:
+	var id: String = duel.player.inventory.items[item].id
+	return k if SpellCard.hole_count(id) != Spells.dice_needed(id) else 0
+
+
 func _can_drop_tray(_at: Vector2, data: Variant) -> bool:
 	return _drag_die(data) >= 0
 
@@ -815,27 +867,28 @@ func _notification(what: int) -> void:
 
 ## Põe o dado h na magia item, tirando-o antes da magia onde estava (se a nova não
 ## aceitar, ele fica onde estava). Retorna false se não aceitar.
-func move_die(h: int, item: int) -> bool:
+func move_die(h: int, item: int, slot := 0) -> bool:
 	var p := duel.player
-	if phase != "player" or h < 0 or h >= p.hand.size() or item < 0:
+	if phase != "player" or busy or h < 0 or h >= p.hand.size() or item < 0:
 		return false
 	if h in choice.dice_in(item):
 		return true
 	if _item_of(h) >= 0:
 		var e: Dictionary = p.hand[h]
-		if not TurnChoice.can_cast(p, item) or not Spells.accepts_partial(p.inventory.items[item].id, choice.values_in(p, item), int(e.value), bool(e.get("top", false))):
+		if not choice.available(p, item) or not TurnChoice.die_allowed(p, item, h, slot) \
+				or not Spells.accepts_partial(p.inventory.items[item].id, choice.values_in(p, item), int(e.value), bool(e.get("top", false))):
 			# Mostra o motivo sem tirar o dado de onde está.
-			var ok := place(h, item)
+			var ok := place(h, item, slot)
 			selected = -1
 			_refresh_tray()
 			return ok
 		choice.remove_die(h, p)
-	return place(h, item)
+	return place(h, item, slot)
 
 
 ## Tocar num buraco de magia: com dado, solta só ele; vazio, vale como tocar na magia.
 func _on_card_hole(hole: Hole, item: int) -> void:
-	if phase != "player" or _just_dragged():
+	if phase != "player" or busy or _just_dragged():
 		return
 	if hole.has_die and hole.index >= 0 and hole.index in choice.dice_in(item):
 		summary = []
@@ -843,13 +896,22 @@ func _on_card_hole(hole: Hole, item: int) -> void:
 		selected = -1
 		_refresh_tray()
 		return
-	_on_card(item)
+	var c := _card_of(cards, item)
+	_on_card(item, _slot_for(item, c.holes.find(hole) if c else 0))
 
 
 func _on_die(v: Hole) -> void:
-	if phase != "player" or _just_dragged():
+	if phase != "player" or busy or _just_dragged():
 		return
 	summary = []
+	var p := duel.player
+	var sp := int(p.hand[v.index].get("spent", -1)) if v.index >= 0 and v.index < p.hand.size() else -1
+	if sp >= 0:
+		# Dado gasto por uma mexida (Sangria, Juntar Cacos): tocar desfaz a mexida.
+		choice.undo_mod(p, sp)
+		selected = -1
+		_refresh_tray()
+		return
 	if v.index in choice.used_dice():
 		choice.remove_die(v.index, duel.player)
 		selected = -1
@@ -858,12 +920,12 @@ func _on_die(v: Hole) -> void:
 	_refresh_tray()
 
 
-func _on_card(item: int) -> void:
-	if phase != "player" or item < 0 or _just_dragged():
+func _on_card(item: int, slot := 0) -> void:
+	if phase != "player" or busy or item < 0 or _just_dragged():
 		return
 	summary = []
 	if selected >= 0:
-		place(selected, item)
+		place(selected, item, slot)
 		return
 	for h in choice.dice_in(item).duplicate():
 		choice.remove_die(h, duel.player)
@@ -871,19 +933,175 @@ func _on_card(item: int) -> void:
 
 
 ## Põe o dado h na magia item. Retorna false se não aceitar.
-func place(h: int, item: int) -> bool:
+func place(h: int, item: int, slot := 0) -> bool:
 	var p := duel.player
+	if busy:
+		return false
 	var id: String = p.inventory.items[item].id
-	if not TurnChoice.can_cast(p, item):
+	if not choice.available(p, item):
 		info.text = Texts.t("ui.spell_used")
 		return false
-	if not choice.place(p, item, h):
+	var before := []
+	for x in choice.dice_in(item):
+		before.append(x)
+	before.append(h)
+	var prev := []
+	for x in before:
+		prev.append(int(p.hand[x].value))
+	if not choice.place(p, item, h, slot):
 		info.text = Texts.t("ui.not_accepted", {"name": Texts.spell_name(id), "req": GrimoireView.req_label(id)})
 		info.add_theme_color_override("font_color", Kit.DANGER.lightened(0.2))
 		return false
 	selected = -1
+	if choice.mods.has(item) or choice.spawned.has(item):
+		_resolve_anim(item, before, prev, slot)
+		return true
 	_refresh_tray()
 	return true
+
+
+## Nome da causa de um dado mexido: magia, elemento, mexida do inimigo ou Mestre.
+static func cause_name(cause: String) -> String:
+	if Spells.DATA.has(cause):
+		return Texts.spell_name(cause)
+	if cause in Elements.ALL:
+		return Texts.element_name(cause)
+	return Texts.t("ui.cause_" + cause)
+
+
+## Mexida (ou Imitação, Força) que acabou de resolver na alocação: o dado voa até o
+## cartão, muda (as aleatórias giram os números), volta para a mão e o cartão sai do
+## palco; os outros se reorganizam (docs/SPEC_v3.1.md §1.9).
+func _resolve_anim(item: int, dice: Array, prev: Array, slot: int) -> void:
+	var p := duel.player
+	var c := _card_of(cards, item)
+	var targets := []
+	var random := false
+	if choice.mods.has(item):
+		var m: Dictionary = choice.mods[item]
+		random = bool(m.random)
+		for q in m.prev:
+			if not bool(q.spent):
+				targets.append(int(q.h))
+		targets.append_array(m.spawn)
+	else:
+		targets = choice.spawned.get(item, []).duplicate()
+	if fast or not is_inside_tree() or c == null:
+		_refresh_tray()
+		return
+	busy = true
+	var two := SpellCard.hole_count(c.id) != Spells.dice_needed(c.id)
+	for k in dice.size():
+		var hk := slot if two else mini(k, c.holes.size() - 1)
+		var tv := _tray_view(int(dice[k]))
+		var el := ""
+		var dd := p.die_of(p.hand[int(dice[k])]) if int(dice[k]) < p.hand.size() else null
+		if dd:
+			el = dd.element
+		if tv:
+			tv.value = int(prev[k])
+			tv.set_cause(-1, "")
+			await _fly(tv, c.holes[hk])
+		c.holes[hk].set_die(int(prev[k]), el)
+	if random:
+		var hk2 := slot if two else 0
+		for _t in 8:
+			c.holes[hk2].set_die(randi_range(1, 6), c.holes[hk2].element)
+			await _wait(0.055)
+	for k in dice.size():
+		var hk := slot if two else mini(k, c.holes.size() - 1)
+		var h := int(dice[k])
+		if h in targets and h < p.hand.size():
+			c.holes[hk].set_die(int(p.hand[h].value), c.holes[hk].element)
+	c.flash()
+	await _wait(0.22)
+	if not is_inside_tree():
+		busy = false
+		return
+	# Volta para a mão (a coluna se refaz com os dados novos).
+	_build_tray()
+	for t in targets:
+		var tv := _tray_view(int(t))
+		if tv:
+			tv.has_die = false
+			tv.queue_redraw()
+	for i in targets.size():
+		var tv := _tray_view(int(targets[i]))
+		var from: Hole = c.holes[mini(i, c.holes.size() - 1)]
+		if two:
+			from = c.holes[slot]
+		if tv == null:
+			continue
+		from.set_die(int(p.hand[int(targets[i])].value), from.element)
+		_fly(from, tv) ## Em paralelo.
+	await _wait(0.34)
+	for c2 in c.holes:
+		c2.clear_die()
+	await _leave_card(c, cards)
+	busy = false
+	_refresh_tray()
+
+
+func _tray_view(h: int) -> Hole:
+	for v in tray_views:
+		if v.index == h:
+			return v
+	return null
+
+
+## O cartão some (esmaece) e os outros deslizam para o lugar novo na grade.
+func _leave_card(c: SpellCard, list: Array) -> void:
+	if fast or skip or not is_inside_tree():
+		c.visible = false
+		return
+	var tw := c.create_tween()
+	tw.tween_property(c, "modulate:a", 0.0, 0.25)
+	await tw.finished
+	if not is_inside_tree():
+		return
+	var olds := {}
+	for x in list:
+		if x.visible and x != c:
+			olds[x] = x.position
+	c.visible = false
+	c.modulate.a = 1.0
+	await get_tree().process_frame
+	for x: Control in olds:
+		var np: Vector2 = x.position
+		x.position = olds[x]
+		var t2: Tween = x.create_tween()
+		t2.tween_property(x, "position", np, 0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	await _wait(0.25)
+
+
+## Dado mexido selecionado: "Desfazer [mexida]" (só as determinísticas).
+func _refresh_undo() -> void:
+	if undo_btn == null:
+		return
+	var it := _undo_item()
+	undo_btn.visible = phase == "player" and it >= 0
+	if it >= 0:
+		undo_btn.text = Texts.t("ui.undo_mod", {"name": Texts.spell_name(duel.player.inventory.items[it].id)})
+
+
+func _undo_item() -> int:
+	var p := duel.player
+	if selected < 0 or selected >= p.hand.size():
+		return -1
+	var it := int(p.hand[selected].get("mod", -1))
+	if it < 0 or not choice.mods.has(it) or bool(choice.mods[it].random):
+		return -1
+	return it
+
+
+func _on_undo() -> void:
+	if phase != "player" or busy:
+		return
+	var it := _undo_item()
+	if it >= 0:
+		choice.undo_mod(duel.player, it)
+	selected = -1
+	_refresh_tray()
 
 
 func open_history() -> Overlay:
@@ -951,7 +1169,7 @@ func can_end_turn() -> bool:
 
 
 func _submit() -> void:
-	if phase != "player" or not can_end_turn():
+	if phase != "player" or busy or not can_end_turn():
 		return
 	end_btn.modulate.a = 1.0
 	phase = "resolve"
@@ -1049,6 +1267,7 @@ func _apply_event(ev: Dictionary) -> void:
 				hint.text = Texts.t("ui.tap_to_skip")
 				for c in enemy_cards:
 					c.refresh([], [], -1)
+					c.visible = not c.used() ## As já gastas não aparecem no palco.
 				for c in cards:
 					c.refresh([], [], -1)
 			else:
@@ -1059,7 +1278,15 @@ func _apply_event(ev: Dictionary) -> void:
 			if s == "enemy":
 				hint.text = Texts.t("ui.enemy_rolling")
 			_fill_tray(ev["values"], ev.get("elements", []), s == "player", ev.get("heat", []))
+			var origs: Array = ev.get("orig", [])
+			var causes: Array = ev.get("cause", [])
+			for k in mini(tray_views.size(), causes.size()):
+				tray_views[k].set_cause(int(origs[k]) if k < origs.size() else -1, str(causes[k]))
 			await _roll_tray(ev)
+		"mod":
+			# As suas já foram animadas na alocação; as do inimigo acontecem agora.
+			if s == "enemy":
+				await _enemy_mod(ev)
 		"cast":
 			var cc := _card_of(cards if s == "player" else enemy_cards, int(ev.item))
 			if cc and cc.shown_used != null:
@@ -1181,6 +1408,61 @@ func _apply_event(ev: Dictionary) -> void:
 		"sacrifice":
 			await _effect(s, Texts.t("ui.fx_sacrifice", {"n": ev.bonus}), "fx")
 	_refresh_shown_only()
+
+
+## Mexida do inimigo: os dados voam até o cartão, mudam e voltam; o cartão sai do palco.
+func _enemy_mod(ev: Dictionary) -> void:
+	var ec := _card_of(enemy_cards, int(ev.item))
+	var dice: Array = ev.dice
+	var from: Array = ev["from"]
+	var to: Array = ev.to
+	summary.append(Texts.spell_name(ev.spell) + " " + " ".join(PackedStringArray(from.map(func(x): return str(x)))) + " → " \
+		+ " ".join(PackedStringArray(to.filter(func(x): return int(x) > 0).map(func(x): return str(x)))))
+	if ec == null:
+		return
+	var two := SpellCard.hole_count(ec.id) != Spells.dice_needed(ec.id)
+	var slot := 1 if two and not to.is_empty() and int(to[0]) < int(from[0]) else 0
+	for k in dice.size():
+		var h := int(dice[k])
+		var hk := slot if two else mini(k, ec.holes.size() - 1)
+		var el := ""
+		if h < tray_views.size():
+			el = tray_views[h].element
+			tray_views[h].value = int(from[k])
+			await _fly(tray_views[h], ec.holes[hk])
+		ec.holes[hk].set_die(int(from[k]), el)
+	if bool(ev.get("random", false)):
+		for _t in 8:
+			ec.holes[slot if two else 0].set_die(randi_range(1, 6), ec.holes[0].element)
+			await _wait(0.055)
+	for k in dice.size():
+		var hk := slot if two else mini(k, ec.holes.size() - 1)
+		if k < to.size() and int(to[k]) > 0:
+			ec.holes[hk].set_die(int(to[k]), ec.holes[hk].element)
+	if not fast:
+		ec.flash()
+	await _wait(0.22)
+	for k in dice.size():
+		var h := int(dice[k])
+		if h >= tray_views.size():
+			continue
+		var tv: Hole = tray_views[h]
+		if k < to.size() and int(to[k]) > 0:
+			tv.set_die(int(to[k]), tv.element)
+			tv.set_cause(int(from[k]), str(ev.spell))
+		else:
+			tv.has_die = false
+			tv.caption = Texts.spell_name(ev.spell)
+			tv.queue_redraw()
+	for j in range(dice.size(), to.size()):
+		var v := Hole.new().set_interactive(false).setup(DIE, tray_views.size())
+		v.set_die(int(to[j]), "")
+		v.set_cause(int(from[0]) if not from.is_empty() else -1, str(ev.spell))
+		tray.add_child(v)
+		tray_views.append(v)
+	for hc in ec.holes:
+		hc.clear_die()
+	await _leave_card(ec, enemy_cards)
 
 
 func _card_of(list: Array, item: int) -> SpellCard:
@@ -1440,6 +1722,10 @@ func _describe(ev: Dictionary) -> String:
 			return Texts.t("ev.keep", {"who": w, "n": ev.n})
 		"turn_limit":
 			return Texts.t("ui.fx_turn_limit")
+		"mod":
+			return Texts.t("ev.mod", {"who": w, "spell": Texts.spell_name(ev.spell),
+				"from": " ".join(PackedStringArray(ev["from"].map(func(x): return str(x)))),
+				"to": " ".join(PackedStringArray(ev.to.filter(func(x): return int(x) > 0).map(func(x): return str(x))))})
 	return ""
 
 
