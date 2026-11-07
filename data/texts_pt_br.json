@@ -467,7 +467,7 @@
   ],
   "heal": [
    "Cura",
-   "Recupera metade da vida máxima."
+   "Recupera 35% da vida máxima."
   ],
   "school": [
    "Escola de Magia",
@@ -516,7 +516,7 @@
   "enemy_turn": "Vez do inimigo",
   "pick_start": "Erudito: escolha uma magia extra",
   "pick_door": "Escolha uma porta",
-  "door_info": "+{c} moedas\n\nO inimigo só aparece quando a porta abre.",
+  "door_info": "+{c} moedas · recompensa: escolha 1 de {n}\n\nInimigo: {foe}. A build dele só aparece quando a porta abre.",
   "door_master": "Mestre de Andar",
   "pick_reward": "Recompensa: escolha uma",
   "skip_reward": "Pular (+{n} moedas)",
@@ -691,7 +691,8 @@
   "cause_even_to_one": "Meia Verdade",
   "cause_top_to_one": "Lição de Anatomia",
   "cause_alquimista": "A Alquimista",
-  "cause_porteiro": "Porteiro de Chumbo: Chumbo posto na sua mão"
+  "cause_porteiro": "Porteiro de Chumbo: Chumbo posto na sua mão",
+  "win_heal": "Vitória: você recupera {n} de vida."
  },
  "ev": {
   "hand": "{who} rolou: {v}",

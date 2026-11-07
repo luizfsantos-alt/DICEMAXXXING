@@ -1740,6 +1740,10 @@ func _show_over() -> void:
 	var heal := mini(duel.player.max_hp - maxi(0, duel.player.hp), int(ceil(duel.player.max_hp * Config.MASTER_HEAL_FRACTION)))
 	if won and run.is_master_floor() and run.floor_n < Config.LAST_FLOOR and heal > 0:
 		msg += "\n" + Texts.t("ui.master_heal", {"n": heal})
+	elif won and not run.is_master_floor() and run.floor_n < Config.LAST_FLOOR:
+		var wh := mini(duel.player.max_hp - maxi(0, duel.player.hp), int(ceil(duel.player.max_hp * Config.WIN_HEAL_FRACTION)))
+		if wh > 0:
+			msg += "\n" + Texts.t("ui.win_heal", {"n": wh})
 	var o := Overlay.open(self, msg, Texts.t("ui.continue_btn"), 520)
 	o.closed.connect(_finish)
 

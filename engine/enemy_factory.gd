@@ -29,11 +29,7 @@ static func create(floor_n: int, door: String, rng: RandomNumberGenerator) -> Fi
 		f.personality = "cauteloso"
 		f.name = Texts.master_name(f.master_id)
 		mult = 1.0
-		if f.master_id == "reator":
-			# Bolsa cheia de Urânio.
-			for d in f.bag:
-				if d.element == "":
-					Elements.apply(d, "U")
+		_master_kit(f)
 	else:
 		f = base(Characters.ALL[rng.randi_range(0, Characters.ALL.size() - 1)])
 		var v: String = VARIANTS.get(f.archetype, "")
@@ -57,12 +53,27 @@ static func create(floor_n: int, door: String, rng: RandomNumberGenerator) -> Fi
 		f.max_hp = int(round(f.max_hp * Config.MINIMALIST_ENEMY_HP_MULT))
 	if is_master(floor_n):
 		f.max_hp = int(round(f.max_hp * Config.MASTER_HP_MULT))
-	var budget := int(round(floor_upgrades(floor_n) * mult))
+	var budget := 0 if is_master(floor_n) else int(round(floor_upgrades(floor_n) * mult))
 	for _k in budget:
 		upgrade(f, rng, floor_n)
 	f.max_hp = maxi(1, int(round(f.max_hp * Config.ENEMY_HP_MULT)))
 	f.hp = f.max_hp
 	return f
+
+
+## Kit fixo do Mestre (Config.MASTER_KITS): bolsa e magias que jogam com a regra dele.
+static func _master_kit(f: Fighter) -> void:
+	var k: Dictionary = Config.MASTER_KITS.get(f.master_id, {})
+	if k.is_empty():
+		return
+	f.bag = []
+	for el in k.bag:
+		f.bag.append(Die.with_element(str(el)))
+	while f.bag.size() < int(k.bag_size):
+		f.bag.append(Die.basic())
+	f.inventory.items = []
+	for sp in k.spells:
+		f.inventory.items.append({"id": sp[0], "level": sp[4], "x": sp[1], "y": sp[2], "rot": sp[3]})
 
 
 ## Vida base do inimigo no andar (antes da porta e dos ajustes).
@@ -129,6 +140,22 @@ static func upgrade(f: Fighter, rng: RandomNumberGenerator, floor_n := 1) -> voi
 
 
 static func _sticker(f: Fighter, rng: RandomNumberGenerator) -> void:
+	# Metade das vezes acumula na face que já tem mais adesivos (os números explodem
+	# também do lado dele; docs/SPEC_v3.1.md §7).
+	if rng.randf() < Config.ENEMY_STICKER_STACK:
+		var best := -1
+		var face := 0
+		for i in f.bag.size():
+			var bd: Die = f.bag[i]
+			for k in 6:
+				if bd.locked[k] or int(bd.stickers[k]) <= 0:
+					continue
+				if best < 0 or int(bd.stickers[k]) > int(f.bag[best].stickers[face]):
+					best = i
+					face = k
+		if best >= 0:
+			f.bag[best].add_sticker(face)
+			return
 	var d: Die = f.bag[rng.randi_range(0, f.bag.size() - 1)]
 	d.add_sticker(rng.randi_range(3, 5)) ## Faces altas, como faria um jogador.
 

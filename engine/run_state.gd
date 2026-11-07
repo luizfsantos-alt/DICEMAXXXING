@@ -19,6 +19,7 @@ var duel: Duel
 var rng := RandomNumberGenerator.new()
 var stats := {"wins": 0, "dealt": 0, "taken": 0, "coins": 0}
 var last_reward: int = 0
+var last_heal: int = 0 ## Vida recuperada na última vitória (a tela mostra).
 
 
 static func new_run(run_seed: int, char_id := "sorcerer") -> RunState:
@@ -44,6 +45,7 @@ func _to_doors() -> void:
 	phase = "doors"
 	if EnemyFactory.is_master(floor_n):
 		options = [{"kind": "door", "id": "mestre", "price": 0, "needs": ""}]
+		_door_enemies()
 		return
 	var pool := ["facil", "normal", "dificil"]
 	Fighter._shuffle(pool, rng)
@@ -54,6 +56,20 @@ func _to_doors() -> void:
 	options = []
 	for id in two:
 		options.append({"kind": "door", "id": id, "price": 0, "needs": "", "coins": door_coins(id)})
+	_door_enemies()
+
+
+## O inimigo de cada porta nasce com as portas (docs/SPEC_v3.1.md §2.1): a porta mostra
+## o arquétipo; a build só aparece na luta.
+func _door_enemies() -> void:
+	for o in options:
+		if str(o.get("kind", "")) != "door" or o.has("enemy"):
+			continue
+		var e := EnemyFactory.create(floor_n, str(o.id) if o.id != "mestre" else "normal", rng)
+		o["enemy"] = e.to_dict()
+		o["arch"] = e.archetype
+		o["variant"] = e.variant
+		o["master"] = e.master_id
 
 
 static func door_coins(id: String) -> int:
@@ -72,7 +88,7 @@ func choose(i: int, target: Dictionary = {}) -> String:
 	match phase:
 		"doors":
 			door = o.id if o.id != "mestre" else "normal"
-			start_duel()
+			start_duel(o.get("enemy", {}))
 			return ""
 		"rest":
 			return _enter_stop(o.id)
@@ -145,10 +161,10 @@ func _enter_stop(id: String) -> String:
 	return ""
 
 
-func start_duel() -> void:
+func start_duel(enemy_d: Dictionary = {}) -> void:
 	phase = "duel"
 	options = []
-	var enemy := EnemyFactory.create(floor_n, door, rng)
+	var enemy := Fighter.from_dict(enemy_d) if not enemy_d.is_empty() else EnemyFactory.create(floor_n, door, rng)
 	duel = Duel.new()
 	duel.setup(hero, enemy, rng.randi())
 
@@ -176,6 +192,8 @@ func finish_duel() -> void:
 		phase = "master_reward"
 		options = Shop.master_reward()
 		return
+	# Vitória comum: recupera um pouco da vida, antes da recompensa (sem a Sede do Vampiro).
+	last_heal = hero.heal(int(ceil(hero.max_hp * Config.WIN_HEAL_FRACTION)))
 	phase = "reward"
 	options = Shop.reward(hero, rng, floor_n, door)
 
@@ -230,6 +248,8 @@ static func from_dict(d: Dictionary) -> RunState:
 	r.last_reward = int(d.get("last_reward", 0))
 	r.rng.seed = int(str(d.get("seed", "0")))
 	r.rng.state = int(str(d.get("rng_state", "0")))
+	if r.phase == "doors":
+		r._door_enemies() ## Save de antes: as portas ganham o inimigo ao carregar.
 	var dd: Dictionary = d.get("duel", {})
 	if not dd.is_empty():
 		r.duel = Duel.from_dict(dd)

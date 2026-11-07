@@ -146,6 +146,13 @@ func _card(i: int, o: Dictionary, px: int) -> Control:
 	row.add_child(name)
 	row.add_child(_info_btn(func(): open_details(i)))
 	v.add_child(row)
+	if str(o.kind) == "door" and door_foe(o) != "":
+		# A porta mostra o arquétipo do inimigo (só o nome; a build aparece na luta).
+		var fl := Kit.label(door_foe(o), 19, Kit.MUTED, true)
+		fl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		fl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_outline(fl)
+		v.add_child(fl)
 	if blocked != "":
 		var bl := Kit.label(blocked, 20, Kit.DANGER)
 		bl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -243,6 +250,19 @@ func open_details(i: int) -> Overlay:
 
 
 ## Nome curto embaixo do ícone (até 5 palavras): o que a pessoa ganha. Portas: só o nome.
+## Nome do inimigo atrás da porta: o arquétipo e, se houver, a variante (só o nome).
+static func door_foe(o: Dictionary) -> String:
+	if str(o.get("master", "")) != "":
+		return Texts.master_name(str(o.master))
+	if str(o.get("arch", "")) == "":
+		return ""
+	var t := Texts.t("archetypes." + str(o.arch))
+	var v := str(o.get("variant", ""))
+	if v != "":
+		t = Texts.t("variants." + v).get_slice(":", 0)
+	return t
+
+
 func short_name(o: Dictionary) -> String:
 	match str(o.kind):
 		"door":
@@ -295,7 +315,8 @@ func _describe(o: Dictionary) -> Array:
 				if mid == "":
 					mid = "porteiro"
 				return [Texts.t("doors.mestre"), Texts.master_name(mid) + ": " + Texts.master_desc(mid)]
-			return [Texts.t("ui.door", {"d": Texts.t("doors." + o.id)}), Texts.t("ui.door_info", {"d": Texts.t("doors." + o.id), "c": o.get("coins", 0)})]
+			return [Texts.t("ui.door", {"d": Texts.t("doors." + o.id)}), Texts.t("ui.door_info", {"d": Texts.t("doors." + o.id),
+				"c": o.get("coins", 0), "n": Config.REWARD_CHOICES.get(str(o.id), 3), "foe": door_foe(o)})]
 		"stop":
 			return [Texts.t("stops.%s.0" % o.id), Texts.t("stops.%s.1" % o.id)]
 		"spell":
