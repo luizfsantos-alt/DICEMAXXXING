@@ -7,7 +7,7 @@ extends RefCounted
 ## bag: elementos dos dados que não são comuns; o resto da bolsa é de dados comuns.
 ## spells: [id, x, y, rot, nível].
 
-const PLAYABLE := ["assassin", "vampire", "barbarian"] ## O Minimalista sai por ora (fraco com a mão menor).
+const PLAYABLE := ["sorcerer", "assassin", "metallurgist", "vampire", "barbarian"] ## O Minimalista sai por ora (fraco com a mão menor).
 const ALL := ["sorcerer", "assassin", "minimalist", "metallurgist", "copyist", "perfectionist", "vampire", "barbarian"]
 
 const DATA := {

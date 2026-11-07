@@ -35,7 +35,8 @@
 ## 2. Torre
 
 - O jogador sobe uma torre andar por andar. **Perder uma luta = fim da jornada.** Empate = derrota do jogador.
-- **Protótipo: 30 andares.**
+- **Masmorra 1: 30 andares** (implementada). Mestre nos andares 10, 20 e 30; vencer o 30 encerra a masmorra.
+- **Atos:** os inimigos crescem mais devagar depois do primeiro Mestre (vida +3 por andar em vez de +5, 0,2 melhoria por andar em vez de 0,4; `Config.LATE_FLOOR`), porque o herói já tem a recompensa do Mestre. Vencer o Mestre do 10 e do 20 recupera 30% da vida máxima (`Config.MASTER_HEAL_FRACTION`) antes da recompensa.
 - **A vida não é restaurada entre as lutas.**
 - **Portas** (antes de cada luta): normalmente **2**, às vezes **3** (a terceira é uma porta "insana", que paga muito). Cada porta mostra **só a dificuldade e a recompensa**; o inimigo e o arquétipo dele ficam ocultos até a luta começar.
 - **Trifurcação sem luta, a cada 3 lutas.** Escolhe-se uma entre:
@@ -58,7 +59,7 @@
 
 Escolhidos no início. O **formato do inventário** é a identidade; cada personagem tem também **uma passiva simples**. As peças podem girar. Os 6 arquétipos novos estão detalhados em `docs/PERSONAGENS.md`; os kits, em `engine/characters.gd`.
 
-**Jogáveis hoje: Assassino, Vampiro e Bárbaro** (`Characters.PLAYABLE`). O Minimalista saiu por ora: com a mão de 4, ficou bem abaixo dos outros. Os outros 5 aparecem como inimigos e já funcionam no motor.
+**Jogáveis hoje: Feiticeiro, Assassino, Metalurgista, Vampiro e Bárbaro** (`Characters.PLAYABLE`). O Minimalista saiu por ora: com a mão de 4, ficou bem abaixo dos outros. Copista e Perfeccionista aparecem como inimigos e já funcionam no motor. Na tela inicial, cada personagem é um cartão compacto com o retrato (variação 1), o nome, a passiva e os números.
 
 | Personagem | Inventário | Passiva | Vida | Mão | Bolsa inicial | Magias iniciais |
 |---|---|---|---|---|---|---|
@@ -196,6 +197,10 @@ Alguns inimigos põem dados-lixo na sua bolsa durante a luta. **Os dados-lixo fi
 | 10 | **Porteiro de Chumbo** | No início de cada turno seu, põe 1 Chumbo na sua mão (só durante a luta). |
 | 20 | **A Alquimista** | No início de cada turno seu, o seu maior dado troca de valor com o menor dado da última mão dela (reaproveita a Corrente da v2). |
 | 30 | **O Reator** | Bolsa cheia de Urânio. No fim de cada turno, **todo** dado que sobrou na mão envenena quem o rolou (dos dois lados). |
+
+**Implementação** (`Config.MASTERS`): o Porteiro usa o kit do Feiticeiro; a Alquimista, o do Copista; o Reator, o do Bárbaro, com todos os dados comuns trocados por Urânio. Na Alquimista, a troca só acontece se o menor dado dela for menor que o seu maior; Ósmio não troca; Imune a Críticas anula. No Reator, o dado parado que não é Urânio envenena 1 (`Config.REACTOR_POISON`); o Urânio parado envenena como sempre. Recompensa do Mestre (+casas, +1 dado na mão ou uma Rara entre 3) depois do 10 e do 20.
+
+**Simulador** (bot, porta normal, 1000 jornadas, Bárbaro): vencem o andar 10 ~13%, o 20 ~2% e o 30 ~0,2%. A chance de passar de cada andar fica parecida nos três atos (~80%); o Reator é a luta mais difícil.
 
 ---
 

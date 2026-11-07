@@ -30,7 +30,7 @@ A pauta de arte está toda feita. O que sobra é opcional ou é código.
 
 | Elemento | Arquivo | Hoje |
 |---|---|---|
-| Cartões de escolha de personagem no menu | `ui/menu_screen.gd` | só texto e borda na cor do arquétipo; as fotos já existem, falta o código |
+| Fotos da Alquimista (andar 20) e do Reator (andar 30) | `assets/portraits/alquimista_1.png`, `reator_1.png` | sem a arte, usam a foto do arquétipo (Copista e Bárbaro) |
 | Cartões da torre | `ui/tower_screen.gd` | ilustração no topo, mas o cartão em si é cor lisa (dá para usar `card_<raridade>.png` nas ofertas de magia) |
 | Ilustração por magia | `ui/spell_card.gd` | só o ícone do tipo de efeito (opcional) |
 | Buracos dos dados | `ui/hole.gd` | desenhados em código (aceitável; arte opcional) |

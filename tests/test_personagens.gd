@@ -77,12 +77,13 @@ func test_kits_de_todos_os_arquetipos():
 		assert_true(els.size() >= 1, "%s começa com pelo menos 1 elemento" % id)
 
 
-func test_jogaveis_sao_os_tres_menos_complexos():
-	assert_eq(Characters.PLAYABLE, ["assassin", "vampire", "barbarian"])
+func test_jogaveis():
+	assert_eq(Characters.PLAYABLE, ["sorcerer", "assassin", "metallurgist", "vampire", "barbarian"])
 	for id in Characters.PLAYABLE:
 		var run := RunState.new_run(7, id)
 		assert_eq(run.character, id)
-		assert_eq(run.phase, "doors", "%s vai direto para as portas" % id)
+		# O Feiticeiro (Erudito) escolhe a magia extra antes das portas.
+		assert_eq(run.phase, "start_pick" if id == "sorcerer" else "doors", "%s começa a jornada" % id)
 		assert_eq(run.hero.max_hp, Characters.max_hp(id))
 		assert_true(run.hero.is_player)
 

@@ -11,18 +11,29 @@ const VARIANTS := {
 
 
 static func is_master(floor_n: int) -> bool:
-	return floor_n in Config.MASTER_FLOORS
+	return Config.MASTERS.has(floor_n)
+
+
+## Id do Mestre do andar ("" se o andar não tem Mestre).
+static func master_of(floor_n: int) -> String:
+	return str(Config.MASTERS[floor_n][0]) if is_master(floor_n) else ""
 
 
 static func create(floor_n: int, door: String, rng: RandomNumberGenerator) -> Fighter:
 	var mult: float = Config.DOORS.get(door, Config.DOORS.normal)[0]
 	var f: Fighter
 	if is_master(floor_n):
-		f = base("sorcerer")
-		f.master_id = "porteiro"
+		var m: Array = Config.MASTERS[floor_n]
+		f = base(str(m[1]))
+		f.master_id = str(m[0])
 		f.personality = "cauteloso"
-		f.name = Texts.master_name("porteiro")
+		f.name = Texts.master_name(f.master_id)
 		mult = 1.0
+		if f.master_id == "reator":
+			# Bolsa cheia de Urânio.
+			for d in f.bag:
+				if d.element == "":
+					Elements.apply(d, "U")
 	else:
 		f = base(Characters.ALL[rng.randi_range(0, Characters.ALL.size() - 1)])
 		var v: String = VARIANTS.get(f.archetype, "")
@@ -41,17 +52,31 @@ static func create(floor_n: int, door: String, rng: RandomNumberGenerator) -> Fi
 			f.bag = []
 			for _i in 4:
 				f.bag.append(Die.with_element("H"))
-	f.max_hp = int(round((Config.ENEMY_HP_BASE + Config.ENEMY_HP_PER_FLOOR * (floor_n - 1)) * mult))
+	f.max_hp = int(round(floor_hp(floor_n) * mult))
 	if f.archetype == "minimalist":
 		f.max_hp = int(round(f.max_hp * Config.MINIMALIST_ENEMY_HP_MULT))
 	if is_master(floor_n):
 		f.max_hp = int(round(f.max_hp * Config.MASTER_HP_MULT))
-	var budget := int(round((floor_n - 1) * mult * Config.ENEMY_UPGRADES_PER_FLOOR))
+	var budget := int(round(floor_upgrades(floor_n) * mult))
 	for _k in budget:
 		upgrade(f, rng, floor_n)
 	f.max_hp = maxi(1, int(round(f.max_hp * Config.ENEMY_HP_MULT)))
 	f.hp = f.max_hp
 	return f
+
+
+## Vida base do inimigo no andar (antes da porta e dos ajustes).
+static func floor_hp(floor_n: int) -> float:
+	var early := mini(floor_n, Config.LATE_FLOOR) - 1
+	var late := maxi(0, floor_n - Config.LATE_FLOOR)
+	return Config.ENEMY_HP_BASE + Config.ENEMY_HP_PER_FLOOR * early + Config.ENEMY_HP_PER_FLOOR_LATE * late
+
+
+## Orçamento de melhorias do inimigo no andar (antes da porta).
+static func floor_upgrades(floor_n: int) -> float:
+	var early := mini(floor_n, Config.LATE_FLOOR) - 1
+	var late := maxi(0, floor_n - Config.LATE_FLOOR)
+	return Config.ENEMY_UPGRADES_PER_FLOOR * early + Config.ENEMY_UPGRADES_PER_FLOOR_LATE * late
 
 
 ## Lutador com o kit inicial do arquétipo (o mesmo do jogador).

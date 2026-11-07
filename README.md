@@ -5,7 +5,8 @@ Tela em paisagem.
 
 - Regras: [`docs/SPEC_v3.md`](docs/SPEC_v3.md) (v3, fonte da verdade). A fatia vertical (seção 12) está implementada.
 - Magias: [`docs/CATALOGO_MAGIAS.md`](docs/CATALOGO_MAGIAS.md) (catálogo único e princípios de design). Propostas anteriores, com o feedback, em `docs/MAGIAS_DICE_FUCKERY.md` e `docs/MAGIAS_FISICAS.md`.
-- Personagens: [`docs/PERSONAGENS.md`](docs/PERSONAGENS.md). Jogáveis: Assassino, Vampiro e Bárbaro.
+- Personagens: [`docs/PERSONAGENS.md`](docs/PERSONAGENS.md). Jogáveis: Feiticeiro, Assassino, Metalurgista, Vampiro e Bárbaro (cartões com o retrato na tela inicial).
+- Masmorra 1: 30 andares, com Mestre nos andares 10 (Porteiro de Chumbo), 20 (A Alquimista) e 30 (O Reator); ver `docs/SPEC_v3.md` §2 e §8.3.
 - Raridade de magias e dados: [`docs/RARIDADE.md`](docs/RARIDADE.md).
 - Ideias futuras: [`docs/ROADMAP.md`](docs/ROADMAP.md) (ex.: builds vencedoras viram inimigos).
 - Histórico: [`docs/SPEC.md`](docs/SPEC.md) (v2, coliseu com equipamentos; substituída).

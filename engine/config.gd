@@ -2,9 +2,11 @@ class_name Config
 extends RefCounted
 ## Valores ajustáveis do jogo (docs/SPEC_v3.md). Todos são iniciais: o simulador ajusta.
 
-# Torre (fatia vertical: 10 andares, Mestre no 10).
-const LAST_FLOOR := 10
-const MASTER_FLOORS := [10]
+# Torre: masmorra 1, 30 andares, Mestre nos andares 10, 20 e 30.
+const LAST_FLOOR := 30
+## Mestre de cada andar: [id, arquétipo]. A recompensa do Mestre vem depois do 10 e do 20.
+const MASTERS := {10: ["porteiro", "sorcerer"], 20: ["alquimista", "copyist"], 30: ["reator", "barbarian"]}
+const MASTER_FLOORS := [10, 20, 30]
 const REST_EVERY := 3 ## Trifurcação sem luta depois de cada 3 lutas.
 const INSANE_DOOR_CHANCE := 0.25
 
@@ -37,11 +39,18 @@ const ENEMY_HP_BASE := 31
 const ENEMY_HP_PER_FLOOR := 5
 const ENEMY_HP_MULT := 0.9 ## Compensa a mão de 4 (lutas mais longas desgastam o herói).
 const MASTER_HP_MULT := 1.6
+const MASTER_COINS := 20
+const REACTOR_POISON := 1 ## O Reator: cada dado parado no fim do turno envenena quem o rolou.
 const MINIMALIST_ENEMY_HP_MULT := 0.8 ## Compensa o Hidrogênio.
 const MONK_FLOOR := 5 ## Monge do Silêncio: a partir deste andar.
 const VARIANT_CHANCE := 0.2
 const RARE_ENEMY_FLOOR := 4 ## Nada Raro nos inimigos antes deste andar.
 const ENEMY_UPGRADES_PER_FLOOR := 0.4 ## Melhorias do inimigo por andar (orçamento).
+## Depois do primeiro Mestre, os inimigos crescem mais devagar (o herói já tem a recompensa dele).
+const LATE_FLOOR := 10
+const ENEMY_HP_PER_FLOOR_LATE := 3
+const ENEMY_UPGRADES_PER_FLOOR_LATE := 0.2
+const MASTER_HEAL_FRACTION := 0.3 ## Vencer um Mestre recupera esta fração da vida máxima.
 
 # Economia.
 const SKIP_REWARD_COINS := 3

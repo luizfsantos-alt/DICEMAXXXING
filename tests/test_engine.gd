@@ -345,37 +345,81 @@ func test_vida_persiste_entre_lutas():
 	assert_eq(run.hero.hp, 33)
 
 
-func test_parada_a_cada_3_lutas_e_mestre_no_10():
+func test_masmorra_1_paradas_e_mestres_no_10_20_30():
 	var run := RunState.new_run(3)
 	run.choose(0)
-	for n in range(1, Config.LAST_FLOOR):
+	var masters := []
+	for n in range(1, Config.LAST_FLOOR + 1):
+		assert_eq(run.floor_n, n)
 		assert_eq(run.phase, "doors", "andar %d" % n)
+		if EnemyFactory.is_master(n):
+			assert_eq(run.options.size(), 1, "só a porta do Mestre no andar %d" % n)
 		run.choose(0)
+		if run.duel.enemy.master_id != "":
+			masters.append(run.duel.enemy.master_id)
 		run.duel.state = "won"
 		run.finish_duel()
-		run.leave()
+		if n == Config.LAST_FLOOR:
+			break
+		if EnemyFactory.is_master(n):
+			assert_eq(run.phase, "master_reward", "recompensa do Mestre no andar %d" % n)
+			run.choose(1) # +1 dado na mão
+		else:
+			run.leave()
 		if n % Config.REST_EVERY == 0:
 			assert_eq(run.phase, "rest")
 			run.choose(run.options.map(func(o): return o.id).find("heal"))
 			if run.phase == "rest":
 				run.choose(0)
-				run.leave()
-	assert_eq(run.floor_n, Config.LAST_FLOOR)
-	assert_eq(run.options.size(), 1)
-	run.choose(0)
-	assert_eq(run.duel.enemy.master_id, "porteiro")
-	run.duel.state = "won"
-	run.finish_duel()
+			run.leave()
+	assert_eq(masters, ["porteiro", "alquimista", "reator"])
 	assert_eq(run.phase, "victory")
+	assert_eq(run.hero.hand_size, Config.HAND_SIZE + 2, "duas recompensas de Mestre (andares 10 e 20)")
 
 
 func test_porteiro_poe_chumbo_na_mao():
 	var run := RunState.new_run(3)
-	run.floor_n = Config.LAST_FLOOR
+	run.floor_n = 10
 	run.start_duel()
 	var leads := run.duel.player.hand.filter(func(e): return run.duel.player.die_of(e).element == "Pb")
 	assert_eq(leads.size(), 1)
 	assert_eq(run.duel.player.hand.size(), Config.HAND_SIZE + 1)
+
+
+func test_alquimista_troca_o_maior_pelo_menor_dela():
+	var p := H.fighter("p", ["faisca"], 40, true)
+	var e := EnemyFactory.create(20, "normal", H.rng(4))
+	assert_eq(e.master_id, "alquimista")
+	e.last_hand = [5, 2, 4]
+	p.hand = []
+	for v in [3, 6, 1]:
+		var en := p._entry(p.hand.size())
+		en.value = v
+		p.hand.append(en)
+	var ev := []
+	Resolver.alchemy(p, e, ev)
+	assert_eq(p.hand_values(), [3, 2, 1])
+	assert_eq(e.last_hand, [5, 6, 4])
+	assert_eq(ev.filter(func(x): return x.t == "alchemy").size(), 1)
+	# Sem mão anterior dela, nada muda.
+	e.last_hand = []
+	Resolver.alchemy(p, e, [])
+	assert_eq(p.hand_values(), [3, 2, 1])
+
+
+func test_reator_bolsa_de_uranio_e_dado_parado_envenena():
+	var run := RunState.new_run(3, "assassin")
+	run.floor_n = Config.LAST_FLOOR
+	run.start_duel()
+	var e := run.duel.enemy
+	assert_eq(e.master_id, "reator")
+	assert_true(e.bag.all(func(d): return d.element == "U" or d.element == "Fe"), "bolsa de Urânio (e o Ferro do Bárbaro)")
+	assert_true(run.duel.reactor())
+	var p := run.duel.player
+	var n := p.hand.filter(func(x): return p.die_of(x).element != "U").size()
+	var before := p.poison
+	Resolver.end_turn(p, [], [], [], true)
+	assert_eq(p.poison - before, n * Config.REACTOR_POISON)
 
 
 func test_lixeiro_poe_chumbo_na_bolsa_e_fica():

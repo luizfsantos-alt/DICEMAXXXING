@@ -325,6 +325,14 @@
   "porteiro": [
    "Porteiro de Chumbo",
    "Mestre do andar 10. No início de cada turno seu, põe 1 Chumbo na sua mão."
+  ],
+  "alquimista": [
+   "A Alquimista",
+   "Mestre do andar 20. No início de cada turno seu, o seu maior dado troca de valor com o menor dado da última mão dela."
+  ],
+  "reator": [
+   "O Reator",
+   "Mestre do andar 30. Bolsa cheia de Urânio. No fim de cada turno, todo dado que sobrou na mão envenena quem o rolou (dos dois lados)."
   ]
  },
  "characters": {
@@ -491,7 +499,7 @@
   "won_duel": "Vitória! +{coins} moedas.",
   "lost_duel": "Derrota.",
   "continue_btn": "Continuar",
-  "victory_title": "VOCÊ VENCEU A FATIA VERTICAL",
+  "victory_title": "VOCÊ VENCEU A MASMORRA 1",
   "defeat_title": "PERDEU, MORREU",
   "stats": "Andar alcançado: {floor}\nLutas vencidas: {wins}\nDano causado: {dealt}\nDano recebido: {taken}\nMoedas ganhas: {coins}",
   "build": "Build final",
@@ -616,7 +624,10 @@
   "choose": "Escolher",
   "level_fx": "Nv {n}: {fx}",
   "evolve_now": "Agora (nível {n}): {fx}",
-  "evolve_next": "Nível {n}: {fx}"
+  "evolve_next": "Nível {n}: {fx}",
+  "fx_alchemy": "Alquimia: {from} → {to}",
+  "fx_reactor": "Reator: veneno {n}",
+  "master_heal": "O Mestre caiu: você recupera {n} de vida."
  },
  "ev": {
   "hand": "{who} rolou: {v}",
@@ -664,7 +675,9 @@
   "copy_none": "Inspiração: nada do outro cabe nas casas livres de {who}",
   "keep": "{who} guarda {n} dado(s) para a próxima mão",
   "burn_up_na": "Sódio: {who} pega fogo (+{n} de queima)",
-  "thirst": "Sede: {who} ganha +{n} de vida máxima"
+  "thirst": "Sede: {who} ganha +{n} de vida máxima",
+  "alchemy": "A Alquimista troca o seu {from} por um {to}.",
+  "poison_reactor": "Reator: dado parado, {who} envenenado (+{n})"
  },
  "spell_fx": {
   "faisca": "Dano = valor",

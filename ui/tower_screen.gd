@@ -291,7 +291,10 @@ func _describe(o: Dictionary) -> Array:
 	match str(o.kind):
 		"door":
 			if o.id == "mestre":
-				return [Texts.t("doors.mestre"), Texts.master_name("porteiro") + ": " + Texts.master_desc("porteiro")]
+				var mid := EnemyFactory.master_of(run.floor_n) if run else ""
+				if mid == "":
+					mid = "porteiro"
+				return [Texts.t("doors.mestre"), Texts.master_name(mid) + ": " + Texts.master_desc(mid)]
 			return [Texts.t("ui.door", {"d": Texts.t("doors." + o.id)}), Texts.t("ui.door_info", {"d": Texts.t("doors." + o.id), "c": o.get("coins", 0)})]
 		"stop":
 			return [Texts.t("stops.%s.0" % o.id), Texts.t("stops.%s.1" % o.id)]
