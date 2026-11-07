@@ -157,11 +157,15 @@ func test_arranjo_inicial_e_valido_e_todas_as_magias_cabem():
 
 
 func test_kit_inicial_sem_defesa():
-	assert_eq(EnemyFactory.base("sorcerer").inventory.ids(), ["faisca", "bola"])
-	assert_eq(EnemyFactory.base("assassin").inventory.ids(), ["estocada", "corte", "esquiva_mais"])
+	# Cada jogável começa com uma mexida (docs/SPEC_v3.1.md §1.8).
+	var mex := {"sorcerer": "segunda", "assassin": "ajuste", "barbarian": "pico", "vampire": "sangria", "metallurgist": "virar"}
+	for arch in mex:
+		assert_true(mex[arch] in EnemyFactory.base(arch).inventory.ids(), arch)
+	assert_eq(EnemyFactory.base("sorcerer").inventory.ids(), ["faisca", "bola", "segunda"])
+	assert_eq(EnemyFactory.base("assassin").inventory.ids(), ["estocada", "corte", "esquiva_mais", "ajuste"])
 	var run := RunState.new_run(3)
 	run.choose(0) ## Erudito
-	assert_eq(run.hero.inventory.items.size(), 3, "Feiticeiro: 2 + a escolha do Erudito")
+	assert_eq(run.hero.inventory.items.size(), 4, "Feiticeiro: 2 + Segunda Chance + a escolha do Erudito")
 	assert_false("escudo" in run.hero.inventory.ids())
 	assert_true("escudo" in Spells.ids_of_rarity("common"), "Escudo segue nas ofertas (Comum)")
 

@@ -243,6 +243,30 @@ static func cast_all(f: Fighter, foe: Fighter, choice: TurnChoice, ev: Array, rn
 		rng = RandomNumberGenerator.new()
 		rng.seed = 1
 	var used := []
+	# Mexidas: já resolveram na alocação; aqui contam o uso, anotam o evento e o Lapidar
+	# edita a face para sempre (docs/SPEC_v3.1.md §1).
+	for item in choice.mod_items(f):
+		var it: Dictionary = f.inventory.items[item]
+		var m: Dictionary = choice.mods[item]
+		if Spells.is_once(str(it.id)):
+			f.once_used.append(item)
+		var from := []
+		var to := []
+		for p in m.prev:
+			from.append(int(p.value))
+			to.append(int(f.hand[int(p.h)].value) if not bool(p.spent) and int(p.h) < f.hand.size() else 0)
+		for h in m.spawn:
+			if int(h) < f.hand.size():
+				to.append(int(f.hand[int(h)].value))
+		if not m.polish.is_empty():
+			var pb := int(m.polish.bag)
+			if pb >= 0 and pb < f.bag.size():
+				var d: Die = f.bag[pb]
+				d.faces[int(m.polish.face)] = int(m.polish.value)
+				d.stickers[int(m.polish.face)] = 0
+		push(ev, {"t": "mod", "side": side(f), "spell": str(it.id), "item": item, "dice": m.dice.duplicate(),
+			"from": from, "to": to, "random": bool(m.random)})
+	used.append_array(choice.spent_dice())
 	for item in choice.ready_items(f):
 		if f.hp <= 0 or foe.hp <= 0:
 			break

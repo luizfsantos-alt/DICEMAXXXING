@@ -207,7 +207,7 @@ func test_copista_copia_magia_que_cabe():
 	du.setup(c, foe, 5)
 	var temps := c.inventory.items.filter(func(it): return it.get("temp", false))
 	assert_eq(temps.size(), 1, "uma cópia")
-	assert_true(str(temps[0].id) in ["faisca", "bola"])
+	assert_true(str(temps[0].id) in ["faisca", "bola", "segunda"])
 	c.end_fight_cleanup()
 	assert_eq(c.inventory.items.size(), 2, "a cópia some no fim da luta")
 
@@ -332,9 +332,9 @@ func test_aviso_do_carbono_em_cadeia():
 func test_todas_as_magias_tem_raridade():
 	for id in Spells.DATA:
 		assert_true(Spells.rarity(id) in Config.RARITIES, id)
-	assert_eq(Spells.ids_of_rarity("common").size(), 16)
-	assert_eq(Spells.ids_of_rarity("uncommon").size(), 20)
-	assert_eq(Spells.ids_of_rarity("rare").size(), 9)
+	assert_eq(Spells.ids_of_rarity("common").size(), 23, "16 + 7 mexidas")
+	assert_eq(Spells.ids_of_rarity("uncommon").size(), 24, "20 + 4 mexidas")
+	assert_eq(Spells.ids_of_rarity("rare").size(), 11, "9 + 2 mexidas")
 	assert_eq(Elements.rarity("Os"), "rare")
 	assert_eq(Elements.rarity("Am"), "common")
 
