@@ -50,5 +50,4 @@ A pauta de arte está toda feita. O que sobra é opcional ou é código.
 ## Ordem sugerida
 
 1. Som.
-2. Detalhe de vaidade nos retratos (medalha, diploma, broche): o tema "duelo de egos" (`docs/TOM.md`) ainda está só nos textos.
-3. Recompensa do Mestre "+1 dado na mão": a arte da mão termina num corte reto.
+2. Retratos com vaidade no próprio desenho (medalha, diploma, broche), para quando houver gerador: hoje a vaidade é a roseta na moldura (`assets/ui/rosette_*.png`).

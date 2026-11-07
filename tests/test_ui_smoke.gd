@@ -170,7 +170,8 @@ func test_fim_mostra_quem_venceu_e_titulo():
 	run.nemesis = EnemyFactory.create(4, "normal", rng)
 	run.phase = "defeat"
 	var back := RunState.from_dict(run.to_dict())
-	assert_eq(back.nemesis.name, run.nemesis.name, "o vencedor vai no save")
+	assert_eq(back.nemesis.archetype, run.nemesis.archetype, "o vencedor vai no save")
+	assert_eq(run.nemesis.name, "", "inimigo comum não tem nome")
 	var e := EndScreen.new().setup(run)
 	add_child_autofree(e)
 	await wait_process_frames(2)
@@ -933,3 +934,24 @@ func test_escola_mostra_como_a_magia_fica():
 	assert_string_contains(txt, "Bloqueio = valor ×3")
 	assert_string_contains(txt, "Bloqueio = valor ×4,5")
 	assert_string_contains(TowerScreen.evolve_text("espelho", 2), "Reflete o próximo golpe ×1,5")
+
+
+func test_so_mestres_tem_nome_e_rosetas():
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 9
+	var e := EnemyFactory.create(3, "normal", rng)
+	assert_eq(e.name, "", "inimigo comum sem nome")
+	assert_eq(Texts.fighter_title(e), Texts.fighter_title(e).get_slice(":", 0))
+	assert_ne(Texts.fighter_title(e), "", "aparece pelo arquétipo ou variante")
+	var m := EnemyFactory.create(10, "normal", rng)
+	assert_eq(m.name, Texts.master_name(m.master_id), "Mestre mantém o nome")
+	assert_eq(Texts.fighter_title(m), m.name)
+	assert_eq(Portrait.enemy_metal(m, "facil"), "gold", "Mestre: ouro")
+	assert_eq(Portrait.enemy_metal(e, "facil"), "bronze")
+	assert_eq(Portrait.enemy_metal(e, "normal"), "silver")
+	assert_eq(Portrait.enemy_metal(e, "insana"), "gold")
+	assert_eq(Portrait.hero_metal(10), "bronze")
+	assert_eq(Portrait.hero_metal(11), "silver")
+	assert_eq(Portrait.hero_metal(21), "gold")
+	for metal in ["bronze", "silver", "gold"]:
+		assert_not_null(Kit.tex(Portrait.ROSETTE_DIR % metal), "roseta " + metal)

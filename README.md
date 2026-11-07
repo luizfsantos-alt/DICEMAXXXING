@@ -40,6 +40,11 @@ Tela em paisagem.
   pelo menos 16–18 px e alvos de toque de 64 px (`Kit.FONT_MIN`, `Kit.TOUCH_MIN`).
 - Dados fora da luta (bolsa, faixa da torre, selo das ofertas de dado e elemento, build final) são desenhados
   como na luta (`ui/die_icon.gd`, sobre `DieFace`), com o selo do adesivo e o cadeado da face travada.
+- Rosetas de prêmio na moldura dos retratos (`assets/ui/rosette_<metal>.png`, desenhadas por
+  `tools/desenhar_roseta.py`): no inimigo, a porta (bronze Fácil, prata Normal, ouro Difícil/Insana/Mestre);
+  no herói, o progresso (bronze até o andar 10, prata até o 20, ouro depois). Só os Mestres têm nome;
+  inimigos comuns aparecem pelo arquétipo ou variante (`Texts.fighter_title`).
+- A mão da recompensa "+1 dado na mão" sai de uma manga (`tools/manga_da_mao.py` editou o pulso cortado).
 - Fim da jornada (`ui/end_screen.gd`): na derrota, quem venceu (`RunState.nemesis`, foto, nome e uma fala),
   o andar e um título póstumo; na vitória, o herói com o título conferido. Textos em `end` no JSON.
 - Efeitos das magias (`ui/spell_bolt.gd`): cada efeito voa do cartão da magia até a foto do alvo, em

@@ -21,13 +21,16 @@ O humor vem de **gente poderosa se levando a sério demais**: títulos inventado
 
 | Lugar | Exemplo |
 |---|---|
-| Nome de inimigo (título + nome + epíteto) | "Gênio Incompreendido Hermenegildo da Plateia Paga" |
+| Inimigo comum | **Sem nome próprio**: aparece pelo arquétipo ou pela variante ("Assassino", "Piromante"), `Texts.fighter_title` |
+| Mestre de Andar | Nome próprio ("Porteiro de Chumbo", "A Alquimista", "O Reator") |
+| Roseta de prêmio na moldura do retrato | Bronze, prata ou ouro (`Portrait.enemy_metal`, `Portrait.hero_metal`): todo mago pendura um prêmio no próprio retrato |
+| Fim da jornada (`end` no JSON) | Fala de quem venceu, título póstumo ou conferido ("Talento Não Comprovado") |
 | Nome de magia nova | Plágio, Ego Inflado, Taxa de Humildade, Diploma Cassado |
 | Mestres de Andar (futuro) | ex.: o Reitor, a Ex-Orientadora, o Autor do Livro-Texto |
 
 ## Já feito
 
-- `data/texts_pt_br.json`, `names`: títulos, nomes e epítetos trocados. Os nomes próprios são antigos e pomposos (Aldebrando, Hildegarda, Escolástica), metade masculinos e metade femininos.
+- Nomes gerados para inimigos comuns (título + nome + epíteto): **removidos**. Só os Mestres têm nome.
 - As 20 magias propostas foram renomeadas. As falas foram escritas, mas **não aparecem na luta** (decisão do feedback); o tom fica nos nomes.
 
 ## Ainda não mexido (manter ou revisar depois)

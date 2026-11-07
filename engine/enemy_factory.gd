@@ -40,7 +40,7 @@ static func create(floor_n: int, door: String, rng: RandomNumberGenerator) -> Fi
 		if v != "" and rng.randf() < Config.VARIANT_CHANCE and (v != "monge" or floor_n >= Config.MONK_FLOOR):
 			f.variant = v
 		f.personality = EnemyAI.PERSONALITIES[rng.randi_range(0, EnemyAI.PERSONALITIES.size() - 1)]
-		f.name = random_name(rng)
+		f.name = "" ## Só os Mestres têm nome (Texts.fighter_title).
 	match f.variant:
 		"piromante":
 			var n := 0
@@ -131,20 +131,3 @@ static func upgrade(f: Fighter, rng: RandomNumberGenerator, floor_n := 1) -> voi
 static func _sticker(f: Fighter, rng: RandomNumberGenerator) -> void:
 	var d: Die = f.bag[rng.randi_range(0, f.bag.size() - 1)]
 	d.add_sticker(rng.randi_range(3, 5)) ## Faces altas, como faria um jogador.
-
-
-static func random_name(rng: RandomNumberGenerator) -> String:
-	var titles := Texts.name_list("titles")
-	var first := Texts.name_list("first")
-	var epithets := Texts.name_list("epithets")
-	if first.is_empty():
-		return "Inimigo"
-	var parts := []
-	if not titles.is_empty() and rng.randf() < 0.5:
-		parts.append(titles[rng.randi_range(0, titles.size() - 1)])
-	parts.append(first[rng.randi_range(0, first.size() - 1)])
-	var n := " ".join(parts)
-	if not epithets.is_empty():
-		var e: String = epithets[rng.randi_range(0, epithets.size() - 1)]
-		n += (", " if e.begins_with("o ") else " ") + e
-	return n

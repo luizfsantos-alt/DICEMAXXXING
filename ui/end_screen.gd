@@ -52,8 +52,9 @@ func _hero_panel(r: RunState, rng: RandomNumberGenerator) -> Control:
 	p.add_child(pv)
 	var who: Fighter = r.hero if (won or r.nemesis == null) else r.nemesis
 	var photo := Portrait.new().setup(who, PHOTO_H, who.is_player)
+	photo.set_rosette(Portrait.hero_metal(r.floor_n) if who.is_player else Portrait.enemy_metal(who, r.door), 4)
 	pv.add_child(photo)
-	var name := Texts.t("ui.you") if who.is_player else who.name
+	var name := Texts.t("ui.you") if who.is_player else Texts.fighter_title(who)
 	var head := Texts.t("end.victory_by" if won else "end.defeat_by", {"name": name})
 	var hl := Kit.title(head, 24, Kit.TEXT, 0)
 	hl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

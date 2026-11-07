@@ -120,7 +120,9 @@ func _card(id: String) -> Button:
 	f.portrait = randi() % Portrait.VARIATIONS
 	portraits[id] = f.portrait
 	f.is_player = true
-	v.add_child(Portrait.new().setup(f, CARD_PORTRAIT_H, true))
+	var ph := Portrait.new().setup(f, CARD_PORTRAIT_H, true)
+	ph.set_rosette("bronze", 2) ## Todo herói começa com o prêmio de participação.
+	v.add_child(ph)
 	var spells := []
 	for s in c.spells:
 		spells.append(Texts.spell_name(s[0]))

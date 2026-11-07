@@ -42,6 +42,43 @@ static func art_path(f: Fighter) -> String:
 	return "%s%s_%d.png" % [ART_DIR, f.archetype, f.portrait + 1]
 
 
+## Roseta de prêmio presa no canto da moldura (assets/ui/rosette_<metal>.png, pixel art de
+## tools/desenhar_roseta.py): a vaidade do tema. O metal diz algo: no inimigo, a porta
+## (bronze na Fácil, prata na Normal, ouro na Difícil, na Insana e no Mestre); no herói,
+## o progresso (bronze até o andar 10, prata até o 20, ouro depois).
+const ROSETTE_DIR := "res://assets/ui/rosette_%s.png"
+var rosette: TextureRect
+
+
+static func enemy_metal(f: Fighter, door: String) -> String:
+	if f.master_id != "" or door in ["dificil", "insana"]:
+		return "gold"
+	return "bronze" if door == "facil" else "silver"
+
+
+static func hero_metal(floor_n: int) -> String:
+	return "bronze" if floor_n <= 10 else ("silver" if floor_n <= 20 else "gold")
+
+
+## Pendura a roseta (metal "" tira). scale: pixels da tela por pixel da arte.
+func set_rosette(metal: String, scale := 3) -> void:
+	if rosette:
+		rosette.queue_free()
+		rosette = null
+	var t := Kit.tex(ROSETTE_DIR % metal) if metal != "" else null
+	if t == null:
+		return
+	rosette = TextureRect.new()
+	rosette.texture = t
+	rosette.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	rosette.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	rosette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rosette.size = t.get_size() * scale
+	rosette.position = Vector2(INSET + 4, INSET + 2)
+	rosette.rotation_degrees = -8.0
+	add_child(rosette)
+
+
 func setup(f: Fighter, h: int, is_back := false) -> Portrait:
 	archetype = f.archetype
 	back = is_back

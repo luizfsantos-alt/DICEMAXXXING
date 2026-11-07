@@ -27,6 +27,8 @@ const DIE := 92 ## Buraco da mão (tamanho padrão; a coluna encolhe se não cou
 const HOLE := 50 ## Buraco no cartão de magia.
 const CARD := Vector2(240, 236) ## Cartão de magia no tamanho padrão.
 const STATUS_PX := 40
+const ROSETTE_SCALE := 2 ## Roseta no canto da foto (pixels da tela por pixel da arte).
+const ROSETTE_ROOM := 46 ## O nome sobre a foto começa depois da roseta.
 const LEFT := 300 ## Coluna dos personagens.
 const DICE_W := 116 ## Coluna dos dados.
 const MARGIN := 14
@@ -180,7 +182,11 @@ func _build_fighters() -> VBoxContainer:
 	col.add_child(erow)
 	enemy_photo.mouse_filter = Control.MOUSE_FILTER_STOP
 	enemy_photo.gui_input.connect(_on_enemy_photo_input)
-	enemy_name = _photo_label(enemy_photo, e.name, 18, Kit.TEXT, true)
+	# Só os Mestres têm nome; o inimigo comum é o arquétipo (na linha de baixo).
+	enemy_name = _photo_label(enemy_photo, Texts.master_name(e.master_id) if e.master_id != "" else "", 20, Kit.TEXT, true)
+	enemy_name.visible = enemy_name.text != ""
+	enemy_photo.set_rosette(Portrait.enemy_metal(e, run.door), ROSETTE_SCALE)
+	enemy_name.offset_left = ROSETTE_ROOM
 	enemy_sub = _photo_label(enemy_photo, "", 16, Kit.MUTED, false)
 
 	var bv := Kit.vbox(4)
@@ -192,7 +198,9 @@ func _build_fighters() -> VBoxContainer:
 	col.add_child(bv)
 
 	col.add_child(_photo_row(p, true))
-	_photo_label(player_photo, Texts.t("ui.you") + " · " + Texts.t("archetypes." + p.archetype), 18, Kit.TEXT, true)
+	player_photo.set_rosette(Portrait.hero_metal(run.floor_n), ROSETTE_SCALE)
+	var you := _photo_label(player_photo, Texts.t("ui.you") + " · " + Texts.t("archetypes." + p.archetype), 18, Kit.TEXT, true)
+	you.offset_left = ROSETTE_ROOM
 	player_sub = _photo_label(player_photo, "", 16, Kit.MUTED, false)
 
 	# Moedas: faixa fina no rodapé.
@@ -491,7 +499,7 @@ func _refresh_bars() -> void:
 	hud.text = Texts.t("ui.hud_floor", {"n": run.floor_n, "max": Config.LAST_FLOOR, "t": duel.turn})
 	coins_label.text = str(run.coins)
 	var e := duel.enemy
-	var arch := Texts.master_name(e.master_id) if e.master_id != "" else Texts.t("archetypes." + e.archetype)
+	var arch := Texts.t("archetypes." + e.archetype) if e.master_id != "" else Texts.fighter_title(e)
 	enemy_sub.text = Texts.t("ui.enemy_sub", {"arch": arch, "n": e.bag.size()})
 	player_sub.text = Texts.t("ui.bag_line", {"n": duel.player.bag.size(), "d": duel.player.discard.size()})
 
@@ -905,7 +913,7 @@ func open_history() -> Overlay:
 
 func open_enemy_consult() -> Overlay:
 	var e := duel.enemy
-	var o := Overlay.open(self, e.name, "OK", 860)
+	var o := Overlay.open(self, Texts.fighter_title(e), "OK", 860)
 	if e.master_id != "":
 		o.body.add_child(ElementInfo.rich(Texts.master_name(e.master_id) + ": " + Texts.master_desc(e.master_id), 20, Kit.ACCENT))
 	else:
