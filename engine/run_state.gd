@@ -20,6 +20,7 @@ var rng := RandomNumberGenerator.new()
 var stats := {"wins": 0, "dealt": 0, "taken": 0, "coins": 0}
 var last_reward: int = 0
 var last_heal: int = 0 ## Vida recuperada na última vitória (a tela mostra).
+var tlog: Dictionary = {} ## Registro da jornada para a telemetria (engine/telemetry.gd).
 
 
 static func new_run(run_seed: int, char_id := "sorcerer") -> RunState:
@@ -29,6 +30,7 @@ static func new_run(run_seed: int, char_id := "sorcerer") -> RunState:
 	r.hero = EnemyFactory.base(r.character)
 	r.hero.name = Texts.t("ui.you")
 	r.hero.is_player = true
+	r.tlog = Telemetry.start(r.character, run_seed)
 	if char_id == "sorcerer":
 		r.phase = "start_pick"
 		var pool := Spells.ERUDITE_CHOICES.duplicate()
@@ -87,10 +89,17 @@ func choose(i: int, target: Dictionary = {}) -> String:
 	var o: Dictionary = options[i]
 	match phase:
 		"doors":
+			var fe := Telemetry.floor_entry(tlog, floor_n)
+			fe.doors = options.map(func(x): return {"id": str(x.id), "arch": str(x.get("master", "")) if str(x.get("master", "")) != "" else str(x.get("variant", "")) if str(x.get("variant", "")) != "" else str(x.get("arch", ""))})
+			fe.door = str(o.id)
+			fe.hp_before = hero.hp
 			door = o.id if o.id != "mestre" else "normal"
 			start_duel(o.get("enemy", {}))
 			return ""
 		"rest":
+			var fr := Telemetry.floor_entry(tlog, floor_n)
+			fr.stop_options = options.map(func(x): return str(x.id))
+			fr.stop_pick = str(o.id)
 			return _enter_stop(o.id)
 		"master_reward":
 			if o.kind == "rare_pick":
@@ -105,6 +114,7 @@ func choose(i: int, target: Dictionary = {}) -> String:
 		return "ui.not_enough"
 	coins -= price
 	Shop.apply(o, hero, target)
+	_log_pick(o)
 	match phase:
 		"start_pick", "school":
 			_to_doors()
@@ -122,12 +132,28 @@ func choose(i: int, target: Dictionary = {}) -> String:
 	return ""
 
 
+## Telemetria: o que foi escolhido na recompensa ou comprado (Loja, Poço, Escola).
+func _log_pick(o: Dictionary) -> void:
+	if tlog.is_empty():
+		return
+	var fe := Telemetry.floor_entry(tlog, floor_n)
+	if phase in ["reward", "master_reward", "master_rare"]:
+		fe.reward_options = options.map(func(x): return Telemetry.offer_key(x))
+		fe.reward_pick = Telemetry.offer_key(o)
+	else:
+		fe.buys.append(phase + ":" + Telemetry.offer_key(o))
+
+
 ## Sai da Loja, do Poço ou da Escola sem (mais) compras; pula a recompensa (+moedas).
 func leave() -> void:
 	if phase == "master_rare":
 		phase = "master_reward"
 		options = Shop.master_reward()
 	elif phase == "reward":
+		if not tlog.is_empty():
+			var fe := Telemetry.floor_entry(tlog, floor_n)
+			fe.reward_options = options.map(func(x): return Telemetry.offer_key(x))
+			fe.reward_pick = "skip"
 		coins += Config.SKIP_REWARD_COINS
 		stats.coins += Config.SKIP_REWARD_COINS
 		_advance()
@@ -175,9 +201,16 @@ func finish_duel() -> void:
 	stats.taken += duel.taken
 	hero = duel.player
 	var won := duel.state == "won"
+	var fe := Telemetry.floor_entry(tlog, floor_n)
+	fe.turns = duel.turn
+	fe.mods = duel.mods_used.duplicate()
+	fe.hp_after = maxi(0, hero.hp)
+	var foe := duel.enemy
 	duel = null
 	if not won:
 		phase = "defeat"
+		_end_log("defeat", {"kind": foe.master_id if foe.master_id != "" else (foe.variant if foe.variant != "" else foe.archetype),
+			"hp": foe.hp, "max": foe.max_hp, "turn": fe.turns})
 		return
 	stats.wins += 1
 	last_reward = door_coins(door) if not is_master_floor() else Config.MASTER_COINS
@@ -185,6 +218,7 @@ func finish_duel() -> void:
 	stats.coins += last_reward
 	if floor_n >= Config.LAST_FLOOR:
 		phase = "victory"
+		_end_log("victory", {})
 		return
 	if is_master_floor():
 		if Config.MASTER_HEAL_FRACTION > 0.0:
@@ -194,8 +228,17 @@ func finish_duel() -> void:
 		return
 	# Vitória comum: recupera um pouco da vida, antes da recompensa (sem a Sede do Vampiro).
 	last_heal = hero.heal(int(ceil(hero.max_hp * Config.WIN_HEAL_FRACTION)))
+	fe.hp_after = hero.hp
 	phase = "reward"
 	options = Shop.reward(hero, rng, floor_n, door)
+
+
+func _end_log(result: String, cause: Dictionary) -> void:
+	tlog.result = result
+	tlog.floor = floor_n
+	tlog.cause = cause
+	tlog.coins = stats.coins
+	Telemetry.finish(tlog)
 
 
 func _advance() -> void:
@@ -217,6 +260,7 @@ func to_dict() -> Dictionary:
 		"stats": stats, "last_reward": last_reward,
 		"seed": str(rng.seed), "rng_state": str(rng.state),
 		"duel": duel.to_dict() if duel else {},
+		"tlog": tlog,
 	}
 
 
@@ -246,6 +290,7 @@ static func from_dict(d: Dictionary) -> RunState:
 	for k in r.stats:
 		r.stats[k] = int(st.get(k, 0))
 	r.last_reward = int(d.get("last_reward", 0))
+	r.tlog = Telemetry.normalize(d.get("tlog", {}))
 	r.rng.seed = int(str(d.get("seed", "0")))
 	r.rng.state = int(str(d.get("rng_state", "0")))
 	if r.phase == "doors":

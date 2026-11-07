@@ -59,8 +59,25 @@ func setup() -> MenuScreen:
 	for id in Characters.PLAYABLE:
 		row.add_child(_card(id))
 	add_child(_version_label())
+	add_child(_telemetry_button())
 	Kit.background(self, BACKGROUND)
 	return self
+
+
+## Canto de baixo à esquerda: copia as jornadas gravadas (telemetria local, JSON) para a
+## área de transferência, para mandar depois de jogar (docs/SPEC_v3.1.md §5.2).
+func _telemetry_button() -> Button:
+	var n := Telemetry.load_all().size()
+	var b := Kit.button(Texts.t("ui.copy_runs", {"n": n}), func(): pass, Kit.PANEL, 14)
+	b.name = "CopyRuns"
+	b.custom_minimum_size = Vector2(0, 40)
+	b.disabled = n == 0
+	b.pressed.connect(func():
+		DisplayServer.clipboard_set(Telemetry.export_text())
+		b.text = Texts.t("ui.copied_runs"))
+	b.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 12)
+	b.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	return b
 
 
 ## Versão instalada no canto de cima à direita ("debug" nos APKs de branch), para saber

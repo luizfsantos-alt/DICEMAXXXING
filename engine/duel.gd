@@ -11,6 +11,7 @@ var state: String = "choosing" ## choosing, won, lost
 var turn_events: Array = [] ## Início do turno do jogador (não salvo).
 var dealt: int = 0
 var taken: int = 0
+var mods_used := {} ## Mexidas do jogador nesta luta: id -> vezes (telemetria).
 
 
 func setup(p: Fighter, e: Fighter, duel_seed: int) -> void:
@@ -53,6 +54,9 @@ func _submit(choice: TurnChoice) -> Dictionary:
 	if err != "":
 		return {"error": err}
 	var ev := []
+	for item in choice.mod_items(player):
+		var mid := str(player.inventory.items[item].id)
+		mods_used[mid] = int(mods_used.get(mid, 0)) + 1
 	var hp_e := enemy.hp
 	var used := Resolver.cast_all(player, enemy, choice, ev, rng)
 	dealt += maxi(0, hp_e - enemy.hp)
@@ -118,7 +122,7 @@ func to_dict() -> Dictionary:
 	return {
 		"player": player.to_dict(), "enemy": enemy.to_dict(), "turn": turn,
 		"seed": str(rng.seed), "rng_state": str(rng.state), "state": state,
-		"dealt": dealt, "taken": taken,
+		"dealt": dealt, "taken": taken, "mods_used": mods_used,
 	}
 
 
@@ -132,4 +136,5 @@ static func from_dict(d: Dictionary) -> Duel:
 	du.state = str(d.get("state", "choosing"))
 	du.dealt = int(d.get("dealt", 0))
 	du.taken = int(d.get("taken", 0))
+	du.mods_used = d.get("mods_used", {})
 	return du

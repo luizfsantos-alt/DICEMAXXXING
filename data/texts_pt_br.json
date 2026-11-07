@@ -692,7 +692,9 @@
   "cause_top_to_one": "Lição de Anatomia",
   "cause_alquimista": "A Alquimista",
   "cause_porteiro": "Porteiro de Chumbo: Chumbo posto na sua mão",
-  "win_heal": "Vitória: você recupera {n} de vida."
+  "win_heal": "Vitória: você recupera {n} de vida.",
+  "copy_runs": "Copiar dados das jornadas ({n})",
+  "copied_runs": "Copiado!"
  },
  "ev": {
   "hand": "{who} rolou: {v}",
