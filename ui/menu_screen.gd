@@ -6,7 +6,7 @@ extends Control
 signal new_run(char_id: String)
 
 const LOGO := "res://assets/logo.png"
-const TITLE_LOGO := "res://assets/title_logo.png" ## Logo com o nome (640×479, fundo recortado).
+const TITLE_LOGO := "res://assets/title_logo.png" ## Logo com o nome (665×479, fundo recortado).
 const TITLE_H := 330.0
 const BACKGROUND := "res://assets/backgrounds/menu.jpg"
 signal continue_run
@@ -33,7 +33,7 @@ func setup() -> MenuScreen:
 	var title_art := Kit.tex(TITLE_LOGO)
 	var logo := TextureRect.new()
 	logo.texture = title_art if title_art else load(LOGO)
-	logo.custom_minimum_size = Vector2(TITLE_H * 640.0 / 479.0, TITLE_H) if title_art else Vector2(140, 140)
+	logo.custom_minimum_size = Vector2(TITLE_H * title_art.get_width() / title_art.get_height(), TITLE_H) if title_art else Vector2(140, 140)
 	logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	logo.mouse_filter = Control.MOUSE_FILTER_IGNORE

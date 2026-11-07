@@ -1,6 +1,6 @@
 # DICEMAXXING — Spec v3.1: mexidas, portas, desgaste, Mestres e bot
 
-> **Status: proposta para aprovação (Portão 3).** Altera a `docs/SPEC_v3.md` e o `docs/CATALOGO_MAGIAS.md`. Saiu da crítica de mecânicas de novembro de 2026. Depois de implementada, o conteúdo entra nos dois documentos e este arquivo vira histórico. Números marcados com *(inicial)* passam pelo simulador.
+> **Status: aprovada (Portão 3), a implementar.** Altera a `docs/SPEC_v3.md` e o `docs/CATALOGO_MAGIAS.md`. Saiu da crítica de mecânicas de novembro de 2026. Depois de implementada, o conteúdo entra nos dois documentos e este arquivo vira histórico. Números marcados com *(inicial)* passam pelo simulador.
 
 ---
 
@@ -125,7 +125,7 @@ Pedido do autor: **quando uma magia resolve antes da fase de ataque, ela sai da 
 - Vale para toda magia que resolve na alocação: as 13 mexidas, **Imitação Barata** e **Força Desnecessária**.
 - **Sequência:** o dado voa até o buraco → animação da mexida (rolagem 3D para as aleatórias; o número troca, com um brilho, nas determinísticas) → o dado volta voando para a coluna da mão com o valor novo → o cartão some (encolhe e esmaece, ~0,25 s) → o palco reorganiza os cartões que sobraram (a grade recalcula e eles podem voltar a crescer até o tamanho padrão), com animação de ~0,25 s, sem tirar os dados já encaixados.
 - **Desfazer** (só determinísticas, Imitação e Força): tocar no dado mexido mostra "desfazer [nome da magia]"; o cartão volta ao palco no lugar dele.
-- **Mexida sem uso disponível** (1× por luta já usada) não aparece no palco nos turnos seguintes.
+- **Magia sem uso disponível** não aparece no palco nos turnos seguintes. Vale para **toda** magia "1× por luta" (e a 2ª da "2× por luta") já gasta, não só para as mexidas; hoje elas aparecem como "usada".
 - **Turno do inimigo:** a mesma sequência para as mexidas dele, antes das outras magias. O cartão sai do palco.
 - **Ficha do inimigo** (segurar a foto) e **grimório**: mostram todas as magias, inclusive as mexidas; as já usadas aparecem como "usada".
 - O histórico registra cada mexida: "Segunda Chance: 2 → 5".
@@ -165,10 +165,10 @@ Pedido do autor: **quando uma magia resolve antes da fase de ataque, ela sai da 
 ### 2.1 A porta mostra o inimigo
 
 - O inimigo de cada porta é **gerado quando as portas aparecem** (não mais ao entrar na luta) e salvo com as opções.
-- Cada porta mostra: a dificuldade, as moedas, a recompensa (§2.2) e o **arquétipo do inimigo** (nome do arquétipo e, se houver, a variante: "Assassino", "Lixeiro"), com o retrato do arquétipo.
+- Cada porta mostra: a dificuldade, as moedas, a recompensa (§2.2) e o **nome do arquétipo do inimigo** (e, se houver, a variante: "Assassino", "Lixeiro"). Só o nome, sem retrato.
 - Não mostra a build (magias, bolsa, vida). A ficha completa continua só na luta.
 - O "i" da porta explica o arquétipo em uma linha (a passiva e o estilo).
-- **Mestre:** a porta única mostra o nome e o retrato do Mestre.
+- **Mestre:** a porta única mostra o nome do Mestre.
 - **Save antigo** na fase de portas, sem inimigo salvo: gera os inimigos ao carregar.
 
 ### 2.2 Prêmios das portas *(inicial)*
@@ -303,11 +303,13 @@ No fim da implementação:
 
 ---
 
-## 11. Questões em aberto
+## 11. Decisões do Portão 3
 
-1. **Total de mexidas.** Interpretei "8 mexidas" como 8 **além** das 5 iniciais (13 no total). Se a ideia era 8 no total, corto 5 das novas (sugestão de corte: Inflar, Polarizar, Nivelar, Escada e Eco).
-2. **Sair da tela para todas as magias.** O pedido vale para quem resolve antes da fase de ataque. As magias "1× por luta" já usadas também deveriam sumir do palco nos turnos seguintes (hoje aparecem como "usada")?
-3. **Mexidas aleatórias definitivas.** Tudo é reversível até "Terminar turno", menos Segunda Chance e Tudo ou Nada (para não ver o resultado e desfazer). De acordo?
-4. **Ajuste Fino com dois buracos (+1 / −1).** Alternativa: um buraco só e dois botões que aparecem depois de soltar o dado.
-5. **Porta com retrato do arquétipo** ou só o nome?
-6. **Mexidas nos inimigos não jogáveis** (Copista, Perfeccionista, Minimalista): ficam sem mexida inicial por ora?
+| Questão | Decisão |
+|---|---|
+| Total de mexidas | **13**: as 5 iniciais e 8 novas |
+| Magias já usadas no palco | Somem nos turnos seguintes, para **todas** as magias, não só as mexidas (§1.9) |
+| Mexidas aleatórias | **Definitivas** (Segunda Chance e Tudo ou Nada); as determinísticas desfazem |
+| Ajuste Fino | **Dois buracos**, "+1" e "−1" |
+| Porta | **Só o nome** do arquétipo, sem retrato |
+| Copista, Perfeccionista e Minimalista | **Sem mexida inicial** por ora |
