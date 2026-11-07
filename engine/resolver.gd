@@ -75,6 +75,7 @@ static func draw_and_roll(f: Fighter, foe: Fighter, rng: RandomNumberGenerator, 
 		push(ev, {"t": "hand_mod", "side": side(f), "mod": "plus%d" % mini(bonus, 3)})
 	if f.is_player and foe.master_id == "porteiro" and negative(f, ev):
 		f.add_temp(Elements.lead())
+		f.hand.back()["cause"] = "porteiro"
 		push(ev, {"t": "lead_hand", "side": side(f)})
 	var pulled := f.roll_hand(rng, foe.last_hand)
 	if pulled > 0:
@@ -85,14 +86,26 @@ static func draw_and_roll(f: Fighter, foe: Fighter, rng: RandomNumberGenerator, 
 		alchemy(f, foe, ev)
 	var info := hand_dice(f)
 	push(ev, {"t": "hand", "side": side(f), "values": f.hand_values(), "elements": info.elements,
-		"faces": info.faces, "face": info.face, "fixed": info.fixed, "heat": info.heat})
+		"faces": info.faces, "face": info.face, "fixed": info.fixed, "heat": info.heat,
+		"orig": info.orig, "cause": info.cause})
+
+
+## O valor do dado da mão vai mudar por "cause" (mexida do inimigo, Alquimista, elemento):
+## guarda o valor de antes para a tela mostrar riscado (docs/SPEC_v3.1.md §8).
+static func mark_cause(e: Dictionary, cause: String) -> void:
+	if not e.has("orig"):
+		e["orig"] = int(e.value)
+	e["cause"] = cause
 
 
 ## Dados da mão para a interface (rolagem 3D): elemento, as seis faces de cada dado, a
-## face que saiu, se estava marcado (não rolou) e o estado do brilho (Elements.heat).
+## face que saiu, se estava marcado (não rolou), o estado do brilho (Elements.heat) e,
+## quando algo mudou o valor, o original e a causa.
 static func hand_dice(f: Fighter) -> Dictionary:
-	var out := {"elements": [], "faces": [], "face": [], "fixed": [], "heat": []}
+	var out := {"elements": [], "faces": [], "face": [], "fixed": [], "heat": [], "orig": [], "cause": []}
 	for e in f.hand:
+		out.orig.append(int(e.get("orig", -1)))
+		out.cause.append(str(e.get("cause", "")))
 		var d := f.die_of(e)
 		out.elements.append(d.element)
 		out.heat.append(Elements.heat(f, d))
@@ -127,6 +140,7 @@ static func alchemy(f: Fighter, foe: Fighter, ev: Array) -> void:
 	var theirs := int(foe.last_hand[low])
 	if theirs >= mine or not negative(f, ev):
 		return
+	mark_cause(f.hand[best], "alquimista")
 	f.hand[best].value = theirs
 	f.hand[best].top = false
 	foe.last_hand[low] = mine
@@ -157,16 +171,21 @@ static func apply_hand_mods(f: Fighter, foe: Fighter, ev: Array) -> void:
 			"top_to_one":
 				for e in f.hand:
 					if e.get("top", false):
+						mark_cause(e, m)
 						e.value = 1
 						e.top = false
 			"even_to_one":
 				for e in f.hand:
 					if int(e.value) % 2 == 0:
+						mark_cause(e, m)
 						e.value = 1
 						e.top = false
 			"halve":
 				for e in f.hand:
-					e.value = maxi(1, int(floor(int(e.value) / 2.0)))
+					var hv := maxi(1, int(floor(int(e.value) / 2.0)))
+					if hv != int(e.value):
+						mark_cause(e, m)
+					e.value = hv
 					e.top = false
 			"steal_top":
 				var best := -1
@@ -243,6 +262,30 @@ static func cast_all(f: Fighter, foe: Fighter, choice: TurnChoice, ev: Array, rn
 		rng = RandomNumberGenerator.new()
 		rng.seed = 1
 	var used := []
+	# Mexidas: já resolveram na alocação; aqui contam o uso, anotam o evento e o Lapidar
+	# edita a face para sempre (docs/SPEC_v3.1.md §1).
+	for item in choice.mod_items(f):
+		var it: Dictionary = f.inventory.items[item]
+		var m: Dictionary = choice.mods[item]
+		if Spells.is_once(str(it.id)):
+			f.once_used.append(item)
+		var from := []
+		var to := []
+		for p in m.prev:
+			from.append(int(p.value))
+			to.append(int(f.hand[int(p.h)].value) if not bool(p.spent) and int(p.h) < f.hand.size() else 0)
+		for h in m.spawn:
+			if int(h) < f.hand.size():
+				to.append(int(f.hand[int(h)].value))
+		if not m.polish.is_empty():
+			var pb := int(m.polish.bag)
+			if pb >= 0 and pb < f.bag.size():
+				var d: Die = f.bag[pb]
+				d.faces[int(m.polish.face)] = int(m.polish.value)
+				d.stickers[int(m.polish.face)] = 0
+		push(ev, {"t": "mod", "side": side(f), "spell": str(it.id), "item": item, "dice": m.dice.duplicate(),
+			"from": from, "to": to, "random": bool(m.random)})
+	used.append_array(choice.spent_dice())
 	for item in choice.ready_items(f):
 		if f.hp <= 0 or foe.hp <= 0:
 			break

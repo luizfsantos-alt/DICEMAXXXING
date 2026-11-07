@@ -34,8 +34,9 @@ func test_agil_do_assassino_ganha_dado_ao_esquivar():
 	assert_eq(s.hand.size(), s.hand_size, "o bônus vale só uma mão")
 
 
-func test_esquiva_melhorada_sem_limite_e_fora_das_ofertas():
-	assert_false(Spells.is_once("esquiva_mais"))
+func test_esquiva_melhorada_duas_vezes_e_fora_das_ofertas():
+	# 2× por luta desde a calibração com o Ajuste Fino (docs/SPEC_v3.1.md §12).
+	assert_eq(Spells.max_uses("esquiva_mais"), 2)
 	for r in Config.RARITIES:
 		assert_false("esquiva_mais" in Spells.ids_of_rarity(r))
 
@@ -207,7 +208,7 @@ func test_copista_copia_magia_que_cabe():
 	du.setup(c, foe, 5)
 	var temps := c.inventory.items.filter(func(it): return it.get("temp", false))
 	assert_eq(temps.size(), 1, "uma cópia")
-	assert_true(str(temps[0].id) in ["faisca", "bola"])
+	assert_true(str(temps[0].id) in ["faisca", "bola", "segunda"])
 	c.end_fight_cleanup()
 	assert_eq(c.inventory.items.size(), 2, "a cópia some no fim da luta")
 
@@ -332,9 +333,9 @@ func test_aviso_do_carbono_em_cadeia():
 func test_todas_as_magias_tem_raridade():
 	for id in Spells.DATA:
 		assert_true(Spells.rarity(id) in Config.RARITIES, id)
-	assert_eq(Spells.ids_of_rarity("common").size(), 16)
-	assert_eq(Spells.ids_of_rarity("uncommon").size(), 20)
-	assert_eq(Spells.ids_of_rarity("rare").size(), 9)
+	assert_eq(Spells.ids_of_rarity("common").size(), 23, "16 + 7 mexidas")
+	assert_eq(Spells.ids_of_rarity("uncommon").size(), 24, "20 + 4 mexidas")
+	assert_eq(Spells.ids_of_rarity("rare").size(), 11, "9 + 2 mexidas")
 	assert_eq(Elements.rarity("Os"), "rare")
 	assert_eq(Elements.rarity("Am"), "common")
 

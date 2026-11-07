@@ -51,6 +51,10 @@ var thirst_used: int = 0 ## Vampiro: vida máxima já ganha nesta luta com a Sed
 ## Dados trocados só nesta luta (Fundidor): [{bag, die}] com o dado original.
 var restore: Array = []
 var turn_mods: Array = [] ## Mexidas valendo neste turno.
+## Campos opcionais de um dado da mão (docs/SPEC_v3.1.md §1 e §8): "mod" (mexida que o
+## mudou), "spent" (mexida que o gastou), "orig" e "orig_top" (antes da mudança) e "cause"
+## (id da magia, mexida do inimigo ou elemento que mudou o valor).
+const HAND_EXTRA := ["mod", "spent", "orig", "orig_top", "cause"]
 
 
 func die_of(entry: Dictionary) -> Die:
@@ -225,6 +229,7 @@ func roll_hand(rng: RandomNumberGenerator, foe_last: Array) -> int:
 	if chain > 0:
 		for e in hand:
 			if die_of(e).element == "C" and not e.get("fixed", false):
+				Resolver.mark_cause(e, "C")
 				e.value = int(e.value) + chain
 	var top := 0
 	for e in hand:
@@ -233,8 +238,9 @@ func roll_hand(rng: RandomNumberGenerator, foe_last: Array) -> int:
 	for v in foe_last:
 		top = maxi(top, int(v))
 	for e in hand:
-		if die_of(e).element == "Hg" and not e.get("fixed", false):
-			e.value = maxi(int(e.value), top)
+		if die_of(e).element == "Hg" and not e.get("fixed", false) and top > int(e.value):
+			Resolver.mark_cause(e, "Hg")
+			e.value = top
 	return pulled
 
 
@@ -247,7 +253,10 @@ func _roll_entry(e: Dictionary, rng: RandomNumberGenerator) -> void:
 	var raw := d.value(e.face)
 	e.top = raw == d.max_value()
 	e.value = raw + int(e.get("plus", 0))
+	e.erase("orig")
+	e.erase("cause")
 	if Elements.solitary(self, d):
+		Resolver.mark_cause(e, "H")
 		e.value *= Elements.solitary_mult
 
 
@@ -333,8 +342,12 @@ func to_dict() -> Dictionary:
 		bag_d.append(d.to_dict())
 	var hand_d := []
 	for e in hand:
-		hand_d.append({"bag": e.bag, "temp": e.temp.to_dict() if e.temp else {}, "face": e.face, "value": e.value,
-			"top": e.get("top", false), "fixed": e.get("fixed", false), "plus": e.get("plus", 0), "spawn": e.get("spawn", -1)})
+		var hd := {"bag": e.bag, "temp": e.temp.to_dict() if e.temp else {}, "face": e.face, "value": e.value,
+			"top": e.get("top", false), "fixed": e.get("fixed", false), "plus": e.get("plus", 0), "spawn": e.get("spawn", -1)}
+		for k in HAND_EXTRA:
+			if e.has(k):
+				hd[k] = e[k]
+		hand_d.append(hd)
 	return {
 		"name": name, "is_player": is_player, "archetype": archetype, "variant": variant,
 		"master_id": master_id, "personality": personality, "portrait": portrait, "max_hp": max_hp, "hp": hp,
@@ -384,6 +397,10 @@ static func from_dict(d: Dictionary) -> Fighter:
 		f.hand.append({"bag": int(e.bag), "temp": Die.from_dict(t) if not t.is_empty() else null,
 			"face": int(e.face), "value": int(e.value), "top": bool(e.get("top", false)),
 			"fixed": bool(e.get("fixed", false)), "plus": int(e.get("plus", 0)), "spawn": int(e.get("spawn", -1))})
+		var he: Dictionary = f.hand.back()
+		for k in HAND_EXTRA:
+			if e.has(k):
+				he[k] = bool(e[k]) if k == "orig_top" else (str(e[k]) if k == "cause" else int(e[k]))
 	f.last_hand = Die._ints(d.get("last_hand", []))
 	f.block = int(d.get("block", 0))
 	f.mirror = bool(d.get("mirror", false))

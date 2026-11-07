@@ -183,6 +183,58 @@
   "cerrar": [
    "Cerrar os Dentes",
    "Um dado ≤ 3. Cura igual ao valor ×3. 2× por luta."
+  ],
+  "segunda": [
+   "Segunda Chance",
+   "Um dado que rola. Rola de novo e fica com o maior dos dois valores. Mexida: o dado volta à mão para outra magia."
+  ],
+  "ajuste": [
+   "Ajuste Fino",
+   "Um dado, num dos dois buracos: +1 ou −1 no valor (mínimo 1). Mexida: o dado volta à mão para outra magia."
+  ],
+  "pico": [
+   "Pico",
+   "Um dado. Ele vai para a sua face máxima (com adesivos). Mexida: o dado volta à mão para outra magia."
+  ],
+  "sangria": [
+   "Sangria",
+   "Um dado ≥ 3. Ele se divide em 3 partes iguais (7 → 3, 2, 2), que voltam à mão para outras magias."
+  ],
+  "virar": [
+   "Virar",
+   "Um dado ≤ 6. Mostra a face oposta: vale 7 menos o valor (1 vira 6). Mexida: o dado volta à mão."
+  ],
+  "nivelar": [
+   "Nivelar",
+   "Dois dados. Os dois viram a média deles, arredondada para cima (2 e 6 → 4 e 4). Voltam à mão."
+  ],
+  "polarizar": [
+   "Polarizar",
+   "Um dado. Até 3 vira 1; de 4 para cima vira 6. Mexida: o dado volta à mão para outra magia."
+  ],
+  "eco": [
+   "Eco",
+   "Dois dados. O segundo vira igual ao primeiro. Os dois voltam à mão para outras magias."
+  ],
+  "inflar": [
+   "Inflar",
+   "Um dado ≤ 3. Ele vale o dobro. Mexida: o dado volta à mão para outra magia."
+  ],
+  "juntar": [
+   "Juntar Cacos",
+   "Dois dados. Eles se fundem: volta à mão um dado só, valendo a soma (o segundo é gasto)."
+  ],
+  "escada": [
+   "Escada",
+   "Três dados. Viram uma sequência a partir do menor (2, 6, 6 → 2, 3, 4) e voltam à mão."
+  ],
+  "tudo_nada": [
+   "Tudo ou Nada",
+   "Um dado que rola. Rola de novo e fica com o novo valor ×2, seja qual for. Não se desfaz."
+  ],
+  "lapidar": [
+   "Lapidar",
+   "Um 1 de um dado da bolsa. A face que saiu vira 6 para sempre, e o dado volta à mão valendo 6."
   ]
  },
  "elements": {
@@ -247,7 +299,7 @@
   "assassin": [
    "Assassino",
    "Ágil",
-   "Cada golpe que você esquiva dá +1 dado na sua próxima mão. Começa com a Esquiva Melhorada (sem limite por luta).",
+   "Cada golpe que você esquiva dá +1 dado na sua próxima mão. Começa com a Esquiva Melhorada (2× por luta) e o Ajuste Fino.",
    "Técnicas finas que aceitam quase qualquer dado."
   ],
   "minimalist": [
@@ -317,7 +369,7 @@
   ],
   "heal": [
    "Cura",
-   "Recupera metade da vida máxima."
+   "Recupera 35% da vida máxima."
   ],
   "school": [
    "Escola de Magia",
@@ -366,7 +418,7 @@
   "enemy_turn": "Vez do inimigo",
   "pick_start": "Erudito: escolha uma magia extra",
   "pick_door": "Escolha uma porta",
-  "door_info": "+{c} moedas\n\nO inimigo só aparece quando a porta abre.",
+  "door_info": "+{c} moedas · recompensa: escolha 1 de {n}\n\nInimigo: {foe}. A build dele só aparece quando a porta abre.",
   "door_master": "Mestre de Andar",
   "pick_reward": "Recompensa: escolha uma",
   "skip_reward": "Pular (+{n} moedas)",
@@ -530,6 +582,21 @@
   "fx_alchemy": "Alquimia: {from} → {to}",
   "fx_reactor": "Reator: veneno {n}",
   "master_heal": "O Mestre caiu: você recupera {n} de vida.",
+  "or": "ou",
+  "pv_chance_up": "chance de subir: {p}%",
+  "pv_chance_better": "chance de melhorar: {p}%",
+  "undo_mod": "Desfazer {name}",
+  "mod_final": "{name} não se desfaz",
+  "cause_line": "{name}: {from} → {to}",
+  "mod_done": "{name}: {from} → {to}",
+  "cause_halve": "Chave de Braço Didática",
+  "cause_even_to_one": "Meia Verdade",
+  "cause_top_to_one": "Lição de Anatomia",
+  "cause_alquimista": "A Alquimista",
+  "cause_porteiro": "Porteiro de Chumbo: Chumbo posto na sua mão",
+  "win_heal": "Vitória: você recupera {n} de vida.",
+  "copy_runs": "Copiar dados das jornadas ({n})",
+  "copied_runs": "Copiado!",
   "door_reward": "+{n} moedas"
  },
  "ev": {
@@ -580,7 +647,8 @@
   "burn_up_na": "Sódio: {who} pega fogo (+{n} de queima)",
   "thirst": "Sede: {who} ganha +{n} de vida máxima",
   "alchemy": "A Alquimista troca o seu {from} por um {to}.",
-  "poison_reactor": "Reator: dado parado, {who} envenenado (+{n})"
+  "poison_reactor": "Reator: dado parado, {who} envenenado (+{n})",
+  "mod": "{who} usa {spell}: {from} → {to}"
  },
  "spell_fx": {
   "faisca": "Dano = valor",
@@ -628,7 +696,20 @@
   "mordida": "Dano = valor; cura metade",
   "banquete": "Dano = soma; cura o menor",
   "machadada": "Dano = valor ×2",
-  "cerrar": "Cura = valor ×3"
+  "cerrar": "Cura = valor ×3",
+  "segunda": "Rola de novo, fica o maior",
+  "ajuste": "+1 ou −1 no dado",
+  "pico": "Dado vai à face máxima",
+  "sangria": "Divide em 3 partes",
+  "virar": "Vira a face oposta (7 − valor)",
+  "nivelar": "Os dois viram a média",
+  "polarizar": "≤ 3 vira 1; ≥ 4 vira 6",
+  "eco": "O 2º vira igual ao 1º",
+  "inflar": "Dado vale o dobro",
+  "juntar": "Funde dois dados: a soma",
+  "escada": "Sequência a partir do menor",
+  "tudo_nada": "Rola de novo: novo valor ×2",
+  "lapidar": "A face 1 vira 6 para sempre"
  },
  "spell_fx_lv": {
   "faisca": "Dano = valor ×{1}",
@@ -688,6 +769,58 @@
   "chave": [
    "Dados dele valem metade; dano = valor",
    "Dados dele valem metade; dano = valor ×2"
+  ],
+  "segunda": [
+   "Rola de novo, fica o maior, +1",
+   "Rola de novo, fica o maior, +2"
+  ],
+  "ajuste": [
+   "+2 ou −2 no dado",
+   "+3 ou −3 no dado"
+  ],
+  "pico": [
+   "Dado vai à face máxima, +1",
+   "Dado vai à face máxima, +2"
+  ],
+  "sangria": [
+   "Divide em 3 partes, +1 em cada",
+   "Divide em 3 partes, +2 em cada"
+  ],
+  "virar": [
+   "Vira a face oposta, +1",
+   "Vira a face oposta, +2"
+  ],
+  "nivelar": [
+   "Os dois viram a média, +1",
+   "Os dois viram a média, +2"
+  ],
+  "polarizar": [
+   "≤ 3 vira 2; ≥ 4 vira 7",
+   "≤ 3 vira 3; ≥ 4 vira 8"
+  ],
+  "eco": [
+   "O 2º vira igual ao 1º, +1 nos dois",
+   "O 2º vira igual ao 1º, +2 nos dois"
+  ],
+  "inflar": [
+   "Dado vale o dobro, +1",
+   "Dado vale o dobro, +2"
+  ],
+  "juntar": [
+   "Funde dois dados: a soma +1",
+   "Funde dois dados: a soma +2"
+  ],
+  "escada": [
+   "Sequência a partir do menor, +1",
+   "Sequência a partir do menor, +2"
+  ],
+  "tudo_nada": [
+   "Rola de novo: novo valor ×3",
+   "Rola de novo: novo valor ×4"
+  ],
+  "lapidar": [
+   "A face 1 vira 7 para sempre",
+   "A face 1 vira 8 para sempre"
   ]
  },
  "rarity": {

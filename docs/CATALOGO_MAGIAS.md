@@ -2,7 +2,7 @@
 
 > **Status: fonte da verdade e implementado.** Junta as magias da `docs/SPEC_v3.md` §5 com as aprovadas nas duas rodadas de proposta (`docs/MAGIAS_DICE_FUCKERY.md` e `docs/MAGIAS_FISICAS.md`, que passam a ser histórico), já com os ajustes do feedback. **Todas as 39 magias estão no jogo** (`engine/spells.gd`, ids na seção 9), mais 6 dos personagens novos (seção 10). Cada magia tem uma raridade (`docs/RARIDADE.md`). Números *(iniciais)*, a passar pelo simulador.
 
-**45 magias** (39 + 6 dos personagens, seção 10). As 39 originais: 21 ofensivas e 18 defensivas. Vêm 12 da base, 11 da rodada 1 e 16 da rodada 2. 31 são retas e cabem no cinto do Assassino.
+**58 magias** (39 + 6 dos personagens, seção 10, + 13 mexidas, seção 11). As 39 originais: 21 ofensivas e 18 defensivas. Vêm 12 da base, 11 da rodada 1 e 16 da rodada 2. 31 são retas e cabem no cinto do Assassino.
 
 ---
 
@@ -41,6 +41,8 @@ Nada é permanente, salvo quando o cartão diz "para sempre" (Sacrifício, Trans
 ### 2.2 Dados devolvidos para a mão
 
 Imitação Barata e Força Desnecessária devolvem dados à bandeja **na hora em que o dado entra no buraco**. Os dados devolvidos são temporários e podem alimentar outras magias **neste turno**. Tirar o dado do buraco recolhe os devolvidos e solta as magias que eles alimentavam. No fim do turno, eles somem.
+
+**Cópias não alimentam Imitação, Sacrifício nem Transfusão** (spec v3.1 §6). Isso acaba com a corrente de Imitações (6 → 12 → 24 → 48…), o Sacrifício sem perder dado e a vida máxima infinita. As cópias continuam servindo para qualquer outra magia (Bola de Fogo, Matemática Superior…). Valem também para as partes da Sangria (seção 11).
 
 ### 2.3 Marca para a próxima mão
 
@@ -257,3 +259,40 @@ Vieram de `docs/PERSONAGENS.md`. Todas entram na Loja, na Escola e nas recompens
 
 - **Exigência nova "trio"**: 3 dados iguais; os buracos mostram "=" entre eles.
 - A cura cresce com o nível, como o dano. A Fúria do Bárbaro e o Sacrifício somam em cada golpe.
+
+
+---
+
+## 11. Mexidas (implementadas)
+
+Saíram da crítica de mecânicas (spec `docs/SPEC_v3.1.md` §1, hoje histórico). Uma **mexida** não age no inimigo: muda o valor dos seus dados **na alocação**, quando o buraco fica completo, e devolve o dado à mão para outra magia neste turno. O cartão sai do palco assim que resolve.
+
+**Regras:**
+- Um dado recebe **no máximo uma mexida por turno**; dados devolvidos (cópias, metades, partes da Sangria) contam como mexidos.
+- **Mexer não é usar o dado:** Sódio e Amianto só reagem quando o dado é gasto numa magia que não é mexida; o Urânio mexido que fica parado envenena.
+- **Rolar de novo** usa as faces do dado (com adesivos) e os efeitos de rolagem (Hidrogênio, Carbono, +2 do Impulso); o Mercúrio fica com a face, sem copiar.
+- Dado que não rola (marcado, guardado, recebido) só aceita mexidas determinísticas.
+- **Desfazer:** as determinísticas se desfazem até "Terminar turno" (tocar no dado mexido → "Desfazer"); as **aleatórias** (Segunda Chance, Tudo ou Nada) **são definitivas**.
+- **Nível (Escola):** +1 / +2 no valor de cada dado devolvido. Exceções: Ajuste Fino ganha passo ±2 / ±3; Tudo ou Nada multiplica por 3 / 4; Lapidar faz a face virar 7 / 8.
+- Os inimigos usam mexidas com as mesmas regras (busca gulosa; as aleatórias pela média das 6 faces).
+- O dado mudado por qualquer coisa que não seja a rolagem mostra **o valor original riscado** e o **selo da causa** (também as mexidas do inimigo, a Alquimista, o Mercúrio, o Carbono e o Hidrogênio).
+
+| id | Mexida | Formato | Grupo | Pede | Efeito | Uso | Raridade |
+|---|---|---|---|---|---|---|---|
+| `segunda` | **Segunda Chance** | 1×1 | Feiticeiro | dado que rola | Rola de novo e fica com o maior. | sempre | Comum |
+| `ajuste` | **Ajuste Fino** | 1×1 | Assassino | qualquer dado | Dois buracos: +1 ou −1 (mínimo 1). | sempre | Comum |
+| `pico` | **Pico** | 1×1 | qualquer | qualquer dado | O dado vai à face máxima (com adesivos). | 1× por luta | Comum |
+| `sangria` | **Sangria** | 1×1 | qualquer | dado ≥ 3 | Divide em 3 partes iguais (7 → 3, 2, 2); o original é gasto. | sempre | Comum |
+| `virar` | **Virar** | 1×1 | qualquer | dado ≤ 6 | 7 − valor (o Chumbo 1 vira 6). | sempre | Comum |
+| `nivelar` | **Nivelar** | 2×1 | Assassino | 2 dados | Os dois viram a média, para cima. | sempre | Comum |
+| `polarizar` | **Polarizar** | 1×1 | Assassino | qualquer dado | ≤ 3 vira 1; ≥ 4 vira 6. | sempre | Comum |
+| `eco` | **Eco** | 2×1 | Assassino | 2 dados | O 2º vira igual ao 1º. | sempre | Incomum |
+| `inflar` | **Inflar** | 1×1 | Feiticeiro | dado ≤ 3 | Vale o dobro. | sempre | Incomum |
+| `juntar` | **Juntar Cacos** | 2×1 | Assassino | 2 dados | Volta um dado com a soma; o 2º é gasto. | sempre | Incomum |
+| `escada` | **Escada** | L (3) | Feiticeiro | 3 dados | Sequência a partir do menor (2, 6, 6 → 2, 3, 4). | sempre | Incomum |
+| `tudo_nada` | **Tudo ou Nada** | 1×2 | Feiticeiro | dado que rola | Rola de novo: novo valor ×2, seja qual for. | sempre | Rara |
+| `lapidar` | **Lapidar** | 3×1 | qualquer | um 1 (dado da bolsa, face não travada) | A face vira 6 para sempre; o dado volta valendo 6. | 1× por luta | Rara |
+
+**Mexidas iniciais:** Feiticeiro (Segunda Chance), Assassino (Ajuste Fino), Bárbaro (Pico), Vampiro (Sangria), Metalurgista (Virar). Copista, Perfeccionista e Minimalista ficam sem.
+
+Implementação: `engine/spells.gd` (dados), `engine/turn_choice.gd` (resolução na alocação e desfazer), `engine/resolver.gd` (uso, Lapidar e evento `mod`), `engine/enemy_ai.gd` (busca), `ui/duel_screen.gd` e `ui/spell_card.gd` (animação, cartão saindo do palco, dois buracos do Ajuste Fino). Testes em `tests/test_mexidas.gd`.

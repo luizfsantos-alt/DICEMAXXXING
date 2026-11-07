@@ -6,6 +6,16 @@ extends RefCounted
 const LAST_FLOOR := 30
 ## Mestre de cada andar: [id, arquétipo]. A recompensa do Mestre vem depois do 10 e do 20.
 const MASTERS := {10: ["porteiro", "sorcerer"], 20: ["alquimista", "copyist"], 30: ["reator", "barbarian"]}
+## Kit fixo de cada Mestre (docs/SPEC_v3.1.md §4): elementos da bolsa (o resto é comum)
+## e magias [id, x, y, rot, nível], no inventário do arquétipo dele. Sem orçamento aleatório.
+const MASTER_KITS := {
+	"porteiro": {"bag": ["Pb", "Pb", "Pb"], "bag_size": 8,
+		"spells": [["peso", 0, 0, 0, 2], ["escudo", 1, 0, 0, 1], ["interrupcao", 2, 0, 0, 1], ["faisca", 0, 1, 0, 2]]},
+	"alquimista": {"bag": ["Hg", "Hg", "Hg", "Hg"], "bag_size": 8,
+		"spells": [["imitacao", 0, 0, 0, 1], ["bola", 2, 0, 0, 2], ["faisca", 0, 1, 0, 2]]},
+	"reator": {"bag": ["U", "U", "U", "U", "U", "U", "U", "U"], "bag_size": 8,
+		"spells": [["expectativa", 0, 0, 0, 1], ["machadada", 0, 1, 0, 3], ["mordida", 2, 1, 0, 2], ["suor", 1, 2, 0, 1]]},
+}
 const MASTER_FLOORS := [10, 20, 30]
 const REST_EVERY := 3 ## Trifurcação sem luta depois de cada 3 lutas.
 const INSANE_DOOR_CHANCE := 0.25
@@ -24,21 +34,24 @@ const SACRIFICE_BONUS := 5
 const URANIUM_POISON := 2
 const SODIUM_BURN := 2
 const ASBESTOS_DMG := 3 ## Amianto: dano em quem usa.
-const HEAL_STOP_FRACTION := 0.5
+const HEAL_STOP_FRACTION := 0.35
+const WIN_HEAL_FRACTION := 0.1 ## Vitória fora dos Mestres recupera esta fração da vida máxima (sem a Sede).
 
 # Portas: [id, multiplicador do orçamento do inimigo, moedas].
 const DOORS := {
-	"facil": [0.8, 4],
-	"normal": [1.0, 6],
-	"dificil": [1.3, 9],
-	"insana": [1.7, 15],
+	"facil": [0.8, 3],
+	"normal": [1.0, 7],
+	"dificil": [1.3, 12],
+	"insana": [1.7, 20],
 }
+## Opções da recompensa pós-luta por porta (docs/SPEC_v3.1.md §2.2).
+const REWARD_CHOICES := {"facil": 2, "normal": 3, "dificil": 3, "insana": 4}
 
 # Inimigos.
 const ENEMY_HP_BASE := 31
 const ENEMY_HP_PER_FLOOR := 5
-const ENEMY_HP_MULT := 0.9 ## Compensa a mão de 4 (lutas mais longas desgastam o herói).
-const MASTER_HP_MULT := 1.6
+const ENEMY_HP_MULT := 1.035 ## Calibrado com o bot novo e as mexidas (spec v3.1 §10): era 0,9.
+const MASTER_HP_MULT := 2.6 ## Calibrado: o Mestre é a luta mais difícil do ato.
 const MASTER_COINS := 20
 const REACTOR_POISON := 1 ## O Reator: cada dado parado no fim do turno envenena quem o rolou.
 const MINIMALIST_ENEMY_HP_MULT := 0.8 ## Compensa o Hidrogênio.
@@ -49,7 +62,8 @@ const ENEMY_UPGRADES_PER_FLOOR := 0.4 ## Melhorias do inimigo por andar (orçame
 ## Depois do primeiro Mestre, os inimigos crescem mais devagar (o herói já tem a recompensa dele).
 const LATE_FLOOR := 10
 const ENEMY_HP_PER_FLOOR_LATE := 3
-const ENEMY_UPGRADES_PER_FLOOR_LATE := 0.2
+const ENEMY_UPGRADES_PER_FLOOR_LATE := 0.35
+const ENEMY_STICKER_STACK := 0.5 ## Chance do adesivo do inimigo ir na face que já tem mais adesivos.
 const MASTER_HEAL_FRACTION := 0.3 ## Vencer um Mestre recupera esta fração da vida máxima.
 
 # Economia.

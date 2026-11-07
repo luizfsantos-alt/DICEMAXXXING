@@ -37,14 +37,15 @@
 - O jogador sobe uma torre andar por andar. **Perder uma luta = fim da jornada.** Empate = derrota do jogador.
 - **Masmorra 1: 30 andares** (implementada). Mestre nos andares 10, 20 e 30; vencer o 30 encerra a masmorra.
 - **Atos:** os inimigos crescem mais devagar depois do primeiro Mestre (vida +3 por andar em vez de +5, 0,2 melhoria por andar em vez de 0,4; `Config.LATE_FLOOR`), porque o herói já tem a recompensa do Mestre. Vencer o Mestre do 10 e do 20 recupera 30% da vida máxima (`Config.MASTER_HEAL_FRACTION`) antes da recompensa.
-- **A vida não é restaurada entre as lutas.**
-- **Portas** (antes de cada luta): normalmente **2**, às vezes **3** (a terceira é uma porta "insana", que paga muito). Cada porta mostra **só a dificuldade e a recompensa**; o inimigo e o arquétipo dele ficam ocultos até a luta começar.
+- **A vida persiste entre as lutas.** Cada vitória fora dos Mestres recupera **10%** da vida máxima (`Config.WIN_HEAL_FRACTION`, sem a Sede do Vampiro); a Cura da parada recupera **35%**.
+- **Portas** (antes de cada luta): normalmente **2**, às vezes **3** (a terceira é uma porta "insana", que paga muito). Cada porta mostra a dificuldade, a recompensa e o **nome do arquétipo do inimigo** (e a variante); a build dele só aparece na luta. O inimigo nasce com as portas (`RunState._door_enemies`).
+- **Prêmio das portas** (`Config.DOORS`, `Config.REWARD_CHOICES`): Fácil 3 moedas e recompensa 1 de 2; Normal 7 e 1 de 3; Difícil 12, 1 de 3 com a faixa de raridade acima; Insana 20, 1 de 4 com uma Rara garantida.
 - **Trifurcação sem luta, a cada 3 lutas.** Escolhe-se uma entre:
   - **Loja**: magias, dados, vida máxima.
-  - **Cura**: recupera vida (*inicial: 50% da vida máxima*).
+  - **Cura**: recupera 35% da vida máxima.
   - **Escola de Magia**: aprender uma magia ou **evoluir** uma conhecida.
   - **Poço de Modificação**: aplicar elemento, adesivo ×2, editar face, destruir dado.
-- **Recompensa pós-luta:** escolher 1 entre 3 (dado, modificação, magia simples ou vida máxima), ou pular e levar moedas.
+- **Recompensa pós-luta:** escolher 1 entre 2, 3 ou 4 conforme a porta (dado, adesivo, magia ou vida máxima), ou pular e levar moedas.
 - **Mestre de Andar** nos andares 10, 20 e 30 (seção 8.3). A recompensa é escolher uma: **+casas no inventário** ou **+1 dado na mão**.
 
 ### 2.1 Escala e vida
@@ -63,17 +64,18 @@ Escolhidos no início. O **formato do inventário** é a identidade; cada person
 
 | Personagem | Inventário | Passiva | Vida | Mão | Bolsa inicial | Magias iniciais |
 |---|---|---|---|---|---|---|
-| **Feiticeiro** | Grade **4×3** | **Erudito**: começa com 1 magia extra, à escolha entre 3. | 90 | 4 | 7 comuns + 1 Sódio | Faísca, Bola de Fogo (+1 do Erudito) |
-| **Assassino** | Cinto **6×1** | **Ágil**: cada golpe que ele esquiva dá +1 dado na próxima mão. | 85 | 4 | 7 comuns + 1 Mercúrio | Estocada, Corte Duplo, Esquiva Melhorada (um 2; sem limite por luta) |
+| **Feiticeiro** | Grade **4×3** | **Erudito**: começa com 1 magia extra, à escolha entre 3. | 90 | 4 | 7 comuns + 1 Sódio | Faísca, Bola de Fogo, Segunda Chance (+1 do Erudito) |
+| **Assassino** | Cinto **6×1** | **Ágil**: cada golpe que ele esquiva dá +1 dado na próxima mão. | 85 | 4 | 7 comuns + 1 Mercúrio | Estocada, Corte Duplo, Esquiva Melhorada (um 2; 2× por luta), Ajuste Fino |
 | **Minimalista** | Grade **3×2** | **Voto de Pobreza**: destruir no Poço é grátis; a recompensa tem a opção "destruir 1 dado". | 70 | 3 | 2 comuns + 3 Hidrogênio | Faísca, Dardo Arcano |
-| **Metalurgista** | Esteira **5×2** | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado. Loja e Poço vendem Chumbo. | 100 | 4 | 5 comuns + 3 Chumbo | Levantar Peso (nv 2), Estocada |
+| **Metalurgista** | Esteira **5×2** | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado. Loja e Poço vendem Chumbo. | 100 | 4 | 5 comuns + 3 Chumbo | Levantar Peso (nv 2), Estocada, Virar |
 | **Copista** | Grade **4×2** | **Inspiração**: no início da luta, copia uma magia aleatória do inimigo que caiba nas casas livres. | 80 | 4 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
 | **Perfeccionista** | **Moldura 4×3** sem o meio | **Ainda Não Está Bom**: guarda até 2 sobras no fim do turno; pode ter 2 marcas. | 80 | 4 | 7 comuns + 1 Ósmio | Dardo Arcano, Obra-Prima |
-| **Vampiro** | **Caixão 2×4** | **Sede**: toda cura dá +1 de vida máxima (até 3 por luta). Queima em dobro. | 70 | 4 | 7 comuns + 1 Sódio | Mordida, Banquete |
-| **Bárbaro** | Grade **3×3** | **Fúria**: com metade da vida ou menos, +1 por golpe a cada 10 de vida perdida. | 90 | 4 | 6 comuns + 2 Ferro | Machadada, Cerrar os Dentes |
+| **Vampiro** | **Caixão 2×4** | **Sede**: toda cura dá +1 de vida máxima (até 3 por luta). Queima em dobro. | 70 | 4 | 7 comuns + 1 Sódio | Mordida, Banquete, Sangria |
+| **Bárbaro** | Grade **3×3** | **Fúria**: com metade da vida ou menos, +1 por golpe a cada 10 de vida perdida. | 90 | 4 | 6 comuns + 2 Ferro | Machadada, Cerrar os Dentes, Pico |
 
 - **Feiticeiro**: magias grandes e exigentes (pares, sequências), efeitos fortes, várias de uso único por luta.
 - **Assassino**: técnicas finas que aceitam quase qualquer dado; força na quantidade e na esquiva.
+- **Cada jogável começa com uma mexida** (magia que muda os próprios dados na alocação; `docs/CATALOGO_MAGIAS.md` §11): é ela que dá decisão às primeiras lutas, que continuam curtas.
 - **Ninguém começa com defesa** (jogador e inimigos): Escudo Arcano e Esquiva vêm da loja, da escola, das recompensas e das melhorias do inimigo, como qualquer magia.
 - A loja é a mesma para todos, mas peças 2×2 ou em L não cabem num cinto.
 - **Todo personagem começa com um elemento** (`docs/PERSONAGENS.md` §5).
@@ -93,7 +95,7 @@ Escolhidos no início. O **formato do inventário** é a identidade; cada person
 
 ### 4.1 Elementos
 
-Cada dado pode ter **um** elemento, além de qualquer número de adesivos. O efeito vem de uma característica real, escrito em uma linha.
+Cada dado pode ter **um** elemento, além de qualquer número de adesivos. O efeito vem de uma característica real, escrito em uma linha. **No jogo hoje:** Hidrogênio, Carbono, Ósmio, Amianto, Urânio, Chumbo, Sódio, Mercúrio e Ferro. **Futuros** (ainda não implementados): Nitrogênio, Oganessônio, Ouro, Hélio e Vidro.
 
 | Elemento | Efeito |
 |---|---|
@@ -194,13 +196,13 @@ Alguns inimigos põem dados-lixo na sua bolsa durante a luta. **Os dados-lixo fi
 
 | Andar | Mestre | Regra |
 |---|---|---|
-| 10 | **Porteiro de Chumbo** | No início de cada turno seu, põe 1 Chumbo na sua mão (só durante a luta). |
-| 20 | **A Alquimista** | No início de cada turno seu, o seu maior dado troca de valor com o menor dado da última mão dela (reaproveita a Corrente da v2). |
-| 30 | **O Reator** | Bolsa cheia de Urânio. No fim de cada turno, **todo** dado que sobrou na mão envenena quem o rolou (dos dois lados). |
+| 10 | **Porteiro de Chumbo** | No início de cada turno seu, põe 1 Chumbo na sua mão (só durante a luta). Kit: 5 comuns + 3 Chumbo; Levantar Peso (2), Escudo Arcano, Interrupção Rude, Faísca (2). |
+| 20 | **A Alquimista** | No início de cada turno seu, o seu maior dado troca de valor com o menor dado da última mão dela (reaproveita a Corrente da v2). Kit: 4 comuns + 4 Mercúrio; Imitação Barata, Bola de Fogo (2), Faísca (2) e a cópia da Inspiração. |
+| 30 | **O Reator** | Bolsa cheia de Urânio. No fim de cada turno, **todo** dado que sobrou na mão envenena quem o rolou (dos dois lados). Kit: 8 Urânio; Machadada (3), Expectativa Tóxica, Mordida (2), Suor de Campeão. |
 
-**Implementação** (`Config.MASTERS`): o Porteiro usa o kit do Feiticeiro; a Alquimista, o do Copista; o Reator, o do Bárbaro, com todos os dados comuns trocados por Urânio. Na Alquimista, a troca só acontece se o menor dado dela for menor que o seu maior; Ósmio não troca; Imune a Críticas anula. No Reator, o dado parado que não é Urânio envenena 1 (`Config.REACTOR_POISON`); o Urânio parado envenena como sempre. Recompensa do Mestre (+casas, +1 dado na mão ou uma Rara entre 3) depois do 10 e do 20.
+**Implementação** (`Config.MASTERS`, `Config.MASTER_KITS`): o Porteiro usa o inventário do Feiticeiro; a Alquimista, o do Copista; o Reator, o do Bárbaro. Cada um tem **kit fixo** (bolsa, magias e níveis da tabela acima), sem orçamento aleatório, e vida ×2,6 (`Config.MASTER_HP_MULT`). Na Alquimista, a troca só acontece se o menor dado dela for menor que o seu maior; Ósmio não troca; Imune a Críticas anula. No Reator, o dado parado que não é Urânio envenena 1 (`Config.REACTOR_POISON`); o Urânio parado envenena como sempre. Recompensa do Mestre (+casas, +1 dado na mão ou uma Rara entre 3) depois do 10 e do 20.
 
-**Simulador** (bot, porta normal, 1000 jornadas, Bárbaro): vencem o andar 10 ~13%, o 20 ~2% e o 30 ~0,2%. A chance de passar de cada andar fica parecida nos três atos (~80%); o Reator é a luta mais difícil.
+**Simulador** (spec v3.1, bot novo, 500 jornadas por personagem): ver o fim de `docs/SPEC_v3.1.md`. O Mestre é a luta mais difícil de cada ato.
 
 ---
 
@@ -228,11 +230,13 @@ Alguns inimigos põem dados-lixo na sua bolsa durante a luta. **Os dados-lixo fi
 
 ## 11. Próximo passo
 
-Jogar a fatia vertical e decidir o que ajustar antes de investir em conteúdo.
+Playtest com a telemetria ligada (menu → "Copiar dados das jornadas") para comparar o humano com o bot e ajustar os números marcados como iniciais.
 
 ---
 
-## 12. Fatia vertical (implementada)
+## 12. Histórico: fatia vertical
+
+> O texto abaixo descreve a primeira fatia (10 andares, só o Feiticeiro). Hoje a masmorra tem 30 andares e cinco jogáveis (§2, §3); os números do simulador são de antes da spec v3.1.
 
 **Escopo:** só o Feiticeiro jogável; inimigos Feiticeiro e Assassino (com as variantes Lixeiro e Piromante); 6 elementos (Hidrogênio, Ósmio, Urânio, Sódio, Mercúrio e Chumbo); 11 magias (as 10 da seção 5, menos Golpe nas Sombras, mais as 3 do Assassino); 10 andares com portas, trifurcação a cada 3 lutas e o Porteiro de Chumbo no andar 10. Vencer o andar 10 encerra a jornada.
 

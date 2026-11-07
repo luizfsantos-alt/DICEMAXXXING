@@ -57,7 +57,7 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 	preview.max_lines_visible = 2
 	var hrow := Kit.hbox(6)
 	hrow.alignment = BoxContainer.ALIGNMENT_BEGIN
-	var n := Spells.dice_needed(id)
+	var n := hole_count(id)
 	for k in n:
 		if k > 0:
 			hrow.add_child(_joiner())
@@ -100,8 +100,16 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 	return self
 
 
+## Buracos no cartão: um por dado pedido; o Ajuste Fino tem dois (+1 e −1), para um dado só.
+static func hole_count(spell: String) -> int:
+	return 2 if str(Spells.get_def(spell).get("mod", "")) == "nudge" else Spells.dice_needed(spell)
+
+
 func _joiner() -> Label:
-	var j := Kit.label("=" if str(Spells.get_def(id).req) in ["pair", "trio"] else "›", 20, Hole.REQ_COLOR)
+	var t := "=" if str(Spells.get_def(id).req) in ["pair", "trio"] else "›"
+	if hole_count(id) != Spells.dice_needed(id):
+		t = Texts.t("ui.or")
+	var j := Kit.label(t, 20 if t.length() < 2 else 15, Hole.REQ_COLOR)
 	j.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	return j
 
@@ -157,6 +165,11 @@ func _draw() -> void:
 ## Texto no fundo do buraco k.
 func _req_text(placed: Array, k: int) -> String:
 	var d := Spells.get_def(id)
+	match str(d.get("mod", "")):
+		"nudge":
+			return "+1" if k == 0 else "−1"
+		"echo", "fuse":
+			return "%dº" % (k + 1)
 	match str(d.req):
 		"max", "max_n":
 			return "≤ %d" % int(d.v)
@@ -179,7 +192,10 @@ func _req_text(placed: Array, k: int) -> String:
 
 ## values: dados postos (valores); sel: valor do dado selecionado (-1 = nenhum).
 ## tops: face mais alta, por dado posto; sel_top: o dado selecionado está na face mais alta.
-func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top := false, heats: Array = []) -> void:
+## sel_ok: o dado selecionado passa nas regras fora do valor (mexido, cópia); sel_die e
+## sel_plus: o dado selecionado, para a prévia das mexidas (chance de subir).
+func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top := false, heats: Array = [],
+		sel_ok := true, sel_die: Die = null, sel_plus := 0) -> void:
 	var is_used := used()
 	var lvl := int(fighter.inventory.items[item].level)
 	fx_label.text = spell_fx(id, lvl) ## O efeito acompanha o nível (evoluir muda o texto).
@@ -194,7 +210,8 @@ func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top
 		tags.append(Texts.t(Spells.use_key(id)).to_upper())
 	tag_label.text = "  ".join(tags)
 	tag_label.add_theme_color_override("font_color", Kit.MUTED if is_used else Kit.ACCENT)
-	var accepts := sel >= 0 and not is_used and Spells.accepts_partial(id, values, sel, sel_top)
+	var accepts := sel >= 0 and sel_ok and not is_used and Spells.accepts_partial(id, values, sel, sel_top)
+	var two := hole_count(id) != Spells.dice_needed(id) ## Ajuste Fino: os dois buracos acendem.
 	for k in holes.size():
 		var h: Hole = holes[k]
 		if k < values.size():
@@ -202,7 +219,7 @@ func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top
 		else:
 			h.clear_die()
 		h.req = _req_text(values, k)
-		h.lit = accepts and k == values.size()
+		h.lit = accepts and (k == values.size() or two) and not (two and k == 1 and sel <= 1)
 		h.queue_redraw()
 	var col: Color = FX_COLORS.get(Spells.color_family(id), Kit.TEXT)
 	var ready := Spells.complete(id, values, tops)
@@ -226,6 +243,70 @@ func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top
 	if ready and not compact:
 		preview.text = preview_text(fighter, item, values)
 		preview.add_theme_color_override("font_color", col.lightened(0.15))
+	elif accepts and not compact and Spells.is_mod(id):
+		var all := values.duplicate()
+		all.append(sel)
+		preview.text = mod_preview(fighter, item, all, sel_die, sel_plus)
+		preview.add_theme_color_override("font_color", Kit.ACCENT)
+
+
+## Prévia da mexida com estes valores (o último é o dado selecionado): o resultado nas
+## determinísticas ("→ 6", "→ 2 · 2 · 2") e a chance nas aleatórias (docs/SPEC_v3.1.md §1.5).
+static func mod_preview(f: Fighter, i: int, values: Array, sel_die: Die = null, sel_plus := 0) -> String:
+	var it: Dictionary = f.inventory.items[i]
+	var d := Spells.get_def(str(it.id))
+	var lvl := int(it.level)
+	var b := lvl - 1
+	if values.is_empty():
+		return ""
+	var v := int(values.back())
+	match str(d.get("mod", "")):
+		"reroll_max", "gamble":
+			if sel_die == null:
+				return ""
+			var good := 0
+			for k in 6:
+				var fv := sel_die.value(k) + sel_plus
+				if str(d.mod) == "gamble":
+					fv *= lvl + 1
+				if fv > v:
+					good += 1
+			var key := "ui.pv_chance_up" if str(d.mod) == "reroll_max" else "ui.pv_chance_better"
+			return Texts.t(key, {"p": int(round(100.0 * good / 6.0))})
+		"nudge":
+			return "→ %d / %d" % [v + 1 + b, maxi(1, v - 1 - b)]
+		"top":
+			return "→ %d" % ((sel_die.max_value() if sel_die else v) + b)
+		"split3":
+			@warning_ignore("integer_division")
+			var q := v / 3
+			var parts := []
+			for k in 3:
+				parts.append(str(q + (1 if k < v % 3 else 0) + b))
+			return "→ " + " · ".join(PackedStringArray(parts))
+		"flip":
+			return "→ %d" % (7 - v + b)
+		"polar":
+			return "→ %d" % ((1 if v <= 3 else 6) + b)
+		"double":
+			return "→ %d" % (v * 2 + b)
+		"polish":
+			return "→ %d" % (5 + lvl)
+		"avg":
+			if values.size() == 2:
+				var a := Config.ceil_div(int(values[0]) + int(values[1]), 2) + b
+				return "→ %d · %d" % [a, a]
+		"echo":
+			if values.size() == 2:
+				return "→ %d · %d" % [int(values[0]) + b, int(values[0]) + b]
+		"fuse":
+			if values.size() == 2:
+				return "→ %d" % (int(values[0]) + int(values[1]) + b)
+		"stairs":
+			if values.size() == 3:
+				var lo := int(values.min())
+				return "→ %d · %d · %d" % [lo + b, lo + 1 + b, lo + 2 + b]
+	return ""
 
 
 ## Mostra os dados que o inimigo usou (resolução).

@@ -24,6 +24,9 @@ extends RefCounted
 ## riposte, immune, cleanse, recycle, debuff (só "hand_mod"), dodge, mirror, heal,
 ## maxhp, sacrifice, drain (dano = valor, cura metade), feast (dano = soma, cura o
 ## menor). "heal" usa "mult".
+## mod: mexida (docs/SPEC_v3.1.md §1): resolve na alocação, quando o buraco fica completo
+## (TurnChoice), e devolve o dado mexido à mão. "mod" diz qual: reroll_max, nudge, top,
+## split3, flip, avg, polar, echo, double, fuse, stairs, gamble, polish.
 ## Opcionais: "hand_mod" (mexe na próxima mão do inimigo) e "mark" (marca o dado
 ## para a sua próxima mão: same, six, sum, plus2).
 ##
@@ -58,7 +61,7 @@ const DATA := {
 	"estocada": {"shape": S1, "req": "any", "n": 1, "fx": "dmg", "plus": 1, "use": "always", "pool": "assassin", "rarity": "common"},
 	"esquiva": {"shape": S1, "req": "max", "v": 2, "fx": "dodge", "use": "once", "pool": "assassin", "rarity": "common"},
 	## Só no kit inicial do Assassino (não aparece em ofertas nem nos inimigos que compram).
-	"esquiva_mais": {"shape": S1, "req": "exact", "v": 2, "fx": "dodge", "use": "always", "pool": "assassin", "rarity": "uncommon", "start_only": true},
+	"esquiva_mais": {"shape": S1, "req": "exact", "v": 2, "fx": "dodge", "use": "twice", "pool": "assassin", "rarity": "uncommon", "start_only": true},
 	"corte": {"shape": S_H2, "req": "any", "n": 2, "fx": "dmg", "odd_twice": true, "use": "always", "pool": "assassin", "rarity": "common"},
 	"sombras": {"shape": S_H3, "req": "exact", "v": 6, "fx": "dmg", "pierce": true, "use": "once", "pool": "assassin", "rarity": "uncommon"},
 	# Rodada 1 (Feiticeiro).
@@ -97,7 +100,25 @@ const DATA := {
 	"banquete": {"shape": S_H3, "req": "any", "n": 3, "fx": "feast", "use": "always", "pool": "vampire", "rarity": "uncommon"},
 	"machadada": {"shape": S_V2, "req": "min", "v": 4, "fx": "dmg", "mult": 2, "use": "always", "pool": "barbarian", "rarity": "common"},
 	"cerrar": {"shape": S1, "req": "max", "v": 3, "fx": "heal", "mult": 3, "use": "twice", "pool": "barbarian", "rarity": "common"},
+	# Mexidas (docs/SPEC_v3.1.md §1.3): mudam os próprios dados na alocação.
+	"segunda": {"shape": S1, "req": "any", "n": 1, "fx": "mod", "mod": "reroll_max", "random": true, "use": "always", "pool": "sorcerer", "rarity": "common"},
+	"ajuste": {"shape": S1, "req": "any", "n": 1, "fx": "mod", "mod": "nudge", "use": "always", "pool": "assassin", "rarity": "common"},
+	"pico": {"shape": S1, "req": "any", "n": 1, "fx": "mod", "mod": "top", "use": "once", "pool": "any", "rarity": "common"},
+	"sangria": {"shape": S1, "req": "min", "v": 3, "fx": "mod", "mod": "split3", "use": "always", "pool": "any", "rarity": "common"},
+	"virar": {"shape": S1, "req": "max", "v": 6, "fx": "mod", "mod": "flip", "use": "always", "pool": "any", "rarity": "common"},
+	"nivelar": {"shape": S_H2, "req": "any", "n": 2, "fx": "mod", "mod": "avg", "use": "always", "pool": "assassin", "rarity": "common"},
+	"polarizar": {"shape": S1, "req": "any", "n": 1, "fx": "mod", "mod": "polar", "use": "always", "pool": "assassin", "rarity": "common"},
+	"eco": {"shape": S_H2, "req": "any", "n": 2, "fx": "mod", "mod": "echo", "use": "always", "pool": "assassin", "rarity": "uncommon"},
+	"inflar": {"shape": S1, "req": "max", "v": 3, "fx": "mod", "mod": "double", "use": "always", "pool": "sorcerer", "rarity": "uncommon"},
+	"juntar": {"shape": S_H2, "req": "any", "n": 2, "fx": "mod", "mod": "fuse", "use": "always", "pool": "assassin", "rarity": "uncommon"},
+	"escada": {"shape": S_L3, "req": "any", "n": 3, "fx": "mod", "mod": "stairs", "use": "always", "pool": "sorcerer", "rarity": "uncommon"},
+	"tudo_nada": {"shape": S_V2, "req": "any", "n": 1, "fx": "mod", "mod": "gamble", "random": true, "use": "always", "pool": "sorcerer", "rarity": "rare"},
+	"lapidar": {"shape": S_H3, "req": "exact", "v": 1, "fx": "mod", "mod": "polish", "use": "once", "pool": "any", "rarity": "rare"},
 }
+
+## Dados devolvidos (Imitação, Força Desnecessária, Sangria) não entram nestas magias
+## (docs/SPEC_v3.1.md §6): sem corrente de cópias, Sacrifício grátis nem vida máxima infinita.
+const NO_COPIES := ["imitacao", "sacrificio", "transfusao"]
 
 ## Mexidas na próxima mão do inimigo (Resolver.apply_hand_mods).
 const HAND_MODS := ["steal_top", "idle_dmg", "even_to_one", "minus2", "minus1", "halve", "top_to_one"]
@@ -110,6 +131,21 @@ const ERUDITE_CHOICES := ["espelho", "remendo", "sacrificio", "transfusao", "met
 
 static func get_def(id: String) -> Dictionary:
 	return DATA.get(id, {})
+
+
+## Mexida: resolve na alocação e devolve o dado mexido (docs/SPEC_v3.1.md §1).
+static func is_mod(id: String) -> bool:
+	return str(get_def(id).get("fx", "")) == "mod"
+
+
+## Mexida aleatória (rola o dado de novo): definitiva, não se desfaz.
+static func is_random_mod(id: String) -> bool:
+	return is_mod(id) and bool(get_def(id).get("random", false))
+
+
+## Magias que resolvem na alocação (as mexidas, Imitação e Força): o cartão sai do palco.
+static func resolves_early(id: String) -> bool:
+	return is_mod(id) or str(get_def(id).get("fx", "")) in ["spawn_copy", "spawn_half"]
 
 
 static func dice_needed(id: String) -> int:
@@ -178,6 +214,8 @@ static func color_family(id: String) -> String:
 			return "heal"
 		"spawn_copy":
 			return "sacrifice"
+		"mod":
+			return "mod"
 	return fx
 
 
@@ -190,7 +228,7 @@ static func icon_key(id: String) -> String:
 			return "fx/" + fx
 		"feast":
 			return "fx/drain"
-		"encore", "lever", "spawn_half", "spawn_copy", "steal_sticker", "bench":
+		"encore", "lever", "spawn_half", "spawn_copy", "steal_sticker", "bench", "mod":
 			return "fx/dice"
 		"block", "block_hand", "block_product", "recycle":
 			return "status/block"

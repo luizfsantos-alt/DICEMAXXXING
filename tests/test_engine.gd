@@ -157,11 +157,15 @@ func test_arranjo_inicial_e_valido_e_todas_as_magias_cabem():
 
 
 func test_kit_inicial_sem_defesa():
-	assert_eq(EnemyFactory.base("sorcerer").inventory.ids(), ["faisca", "bola"])
-	assert_eq(EnemyFactory.base("assassin").inventory.ids(), ["estocada", "corte", "esquiva_mais"])
+	# Cada jogável começa com uma mexida (docs/SPEC_v3.1.md §1.8).
+	var mex := {"sorcerer": "segunda", "assassin": "ajuste", "barbarian": "pico", "vampire": "sangria", "metallurgist": "virar"}
+	for arch in mex:
+		assert_true(mex[arch] in EnemyFactory.base(arch).inventory.ids(), arch)
+	assert_eq(EnemyFactory.base("sorcerer").inventory.ids(), ["faisca", "bola", "segunda"])
+	assert_eq(EnemyFactory.base("assassin").inventory.ids(), ["estocada", "corte", "esquiva_mais", "ajuste"])
 	var run := RunState.new_run(3)
 	run.choose(0) ## Erudito
-	assert_eq(run.hero.inventory.items.size(), 3, "Feiticeiro: 2 + a escolha do Erudito")
+	assert_eq(run.hero.inventory.items.size(), 4, "Feiticeiro: 2 + Segunda Chance + a escolha do Erudito")
 	assert_false("escudo" in run.hero.inventory.ids())
 	assert_true("escudo" in Spells.ids_of_rarity("common"), "Escudo segue nas ofertas (Comum)")
 
@@ -342,7 +346,9 @@ func test_vida_persiste_entre_lutas():
 	run.duel.state = "won"
 	run.finish_duel()
 	assert_eq(run.phase, "reward")
-	assert_eq(run.hero.hp, 33)
+	var heal := int(ceil(run.hero.max_hp * Config.WIN_HEAL_FRACTION))
+	assert_eq(run.hero.hp, 33 + heal, "a vida persiste; a vitória recupera 10%")
+	assert_eq(run.last_heal, heal)
 
 
 func test_masmorra_1_paradas_e_mestres_no_10_20_30():
@@ -613,3 +619,79 @@ func test_imitacao_evoluida_copias_valem_mais():
 	var c := TurnChoice.new()
 	assert_true(c.place(a, H.item(a, "imitacao"), 0))
 	assert_eq(a.hand_values(), [4, 8, 8], "cópias valem o dobro no nível 3")
+
+
+# ------------------------------------------------------------ Spec v3.1: portas, desgaste e Mestres
+func test_porta_mostra_o_inimigo_que_vai_lutar():
+	var run := RunState.new_run(11, "barbarian")
+	assert_eq(run.phase, "doors")
+	for o in run.options:
+		assert_true(o.has("enemy") and str(o.arch) != "", "cada porta tem o inimigo")
+	var want: Dictionary = run.options[0].enemy
+	run.choose(0)
+	assert_eq(run.duel.enemy.archetype, str(want.archetype), "o inimigo da porta é o da luta")
+	assert_eq(run.duel.enemy.name, str(want.name))
+
+
+func test_save_antigo_na_porta_ganha_inimigo():
+	var run := RunState.new_run(12, "barbarian")
+	var d := run.to_dict()
+	for o in d.options:
+		o.erase("enemy")
+		o.erase("arch")
+	var back := RunState.from_dict(JSON.parse_string(JSON.stringify(d)))
+	for o in back.options:
+		assert_true(o.has("enemy"))
+	back.choose(0)
+	assert_eq(back.phase, "duel")
+
+
+func test_recompensa_tem_opcoes_pela_porta():
+	var h := EnemyFactory.base("barbarian")
+	assert_eq(Shop.reward(h, H.rng(), 3, "facil").size(), 2)
+	assert_eq(Shop.reward(h, H.rng(), 3, "normal").size(), 3)
+	assert_eq(Shop.reward(h, H.rng(), 3, "dificil").size(), 3)
+	var ins := Shop.reward(h, H.rng(), 3, "insana")
+	assert_eq(ins.size(), 4)
+	assert_true(ins.any(func(o): return o.kind == "spell" and Spells.rarity(o.id) == "rare"))
+	assert_true(RunState.door_coins("dificil") > RunState.door_coins("normal"))
+
+
+func test_cura_da_parada_e_do_mestre():
+	var run := RunState.new_run(13, "barbarian")
+	run.hero.hp = 10
+	run.phase = "rest"
+	run._enter_stop("heal")
+	assert_eq(run.hero.hp, 10 + int(ceil(run.hero.max_hp * Config.HEAL_STOP_FRACTION)))
+
+
+func test_mestres_tem_kit_fixo_que_cabe():
+	for fl in Config.MASTER_FLOORS:
+		var e := EnemyFactory.create(fl, "normal", H.rng(fl))
+		var kit: Dictionary = Config.MASTER_KITS[e.master_id]
+		assert_eq(e.inventory.ids().size(), kit.spells.size(), e.master_id)
+		var occ := 0
+		for it in e.inventory.items:
+			occ += Spells.shape(it.id, int(it.rot)).size()
+			for c in e.inventory.cells_of(it):
+				assert_true(e.inventory.is_cell(c), "%s: %s dentro do inventário" % [e.master_id, it.id])
+		assert_eq(e.inventory.occupied().size(), occ, "%s sem sobreposição" % e.master_id)
+		var e2 := EnemyFactory.create(fl, "normal", H.rng(fl + 100))
+		assert_eq(e2.inventory.ids(), e.inventory.ids(), "kit fixo, sem sorteio")
+	var reator := EnemyFactory.create(30, "normal", H.rng())
+	assert_true(reator.bag.all(func(d): return d.element == "U"), "Reator: bolsa de Urânio")
+	var alq := EnemyFactory.create(20, "normal", H.rng())
+	assert_eq(alq.bag.filter(func(d): return d.element == "Hg").size(), 4)
+
+
+func test_adesivo_do_inimigo_pode_acumular():
+	var f := EnemyFactory.base("sorcerer")
+	f.bag[0].add_sticker(5)
+	var stacked := false
+	for s in 20:
+		var g := EnemyFactory.base("sorcerer")
+		g.bag[0].add_sticker(5)
+		EnemyFactory._sticker(g, H.rng(s))
+		if int(g.bag[0].stickers[5]) == 2:
+			stacked = true
+	assert_true(stacked)

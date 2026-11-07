@@ -78,14 +78,14 @@ static func element_offer(el: String) -> Dictionary:
 
 
 # ------------------------------------------------------------------ Ofertas
-## Recompensa pós-luta: 3 entre magia, dado, adesivo e vida máxima. A porta difícil
+## Recompensa pós-luta: 2 a 4 (pela porta) entre magia, dado, adesivo e vida máxima. A porta difícil
 ## sorteia uma faixa acima; a insana garante uma magia Rara. Minimalista: + destruir.
 static func reward(hero: Fighter, rng: RandomNumberGenerator, floor_n := 1, door := "normal") -> Array:
 	var b := band(floor_n) + (1 if door == "dificil" else 0)
 	var kinds := ["spell", "die", "sticker", "maxhp"]
 	Fighter._shuffle(kinds, rng)
 	var out := []
-	for k in kinds.slice(0, 3):
+	for k in kinds.slice(0, int(Config.REWARD_CHOICES.get(door, 3))):
 		out.append(_make(k, rng, b))
 	if door == "insana" and not out.any(func(o): return o.kind == "spell" and Spells.rarity(o.id) == "rare"):
 		out[0] = spell_offer(pick_spell(rng, b, Callable(), "", "rare"), false)

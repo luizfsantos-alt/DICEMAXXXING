@@ -5,7 +5,7 @@ extends RefCounted
 ## os mesmos dados.
 ##
 ## bag: elementos dos dados que não são comuns; o resto da bolsa é de dados comuns.
-## spells: [id, x, y, rot, nível].
+## spells: [id, x, y, rot, nível]. Cada jogável começa com uma mexida (docs/SPEC_v3.1.md §1.8).
 
 const PLAYABLE := ["sorcerer", "assassin", "metallurgist", "vampire", "barbarian"] ## O Minimalista sai por ora (fraco com a mão menor).
 const ALL := ["sorcerer", "assassin", "minimalist", "metallurgist", "copyist", "perfectionist", "vampire", "barbarian"]
@@ -13,11 +13,11 @@ const ALL := ["sorcerer", "assassin", "minimalist", "metallurgist", "copyist", "
 const DATA := {
 	"sorcerer": {
 		"hp": 90, "grid": Vector2i(4, 3), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Na"],
-		"spells": [["faisca", 3, 0, 0, 1], ["bola", 0, 0, 0, 1]],
+		"spells": [["faisca", 3, 0, 0, 1], ["bola", 0, 0, 0, 1], ["segunda", 3, 1, 0, 1]],
 	},
 	"assassin": {
 		"hp": 85, "grid": Vector2i(6, 1), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Hg"],
-		"spells": [["estocada", 0, 0, 0, 1], ["corte", 1, 0, 0, 1], ["esquiva_mais", 3, 0, 0, 1]],
+		"spells": [["estocada", 0, 0, 0, 1], ["corte", 1, 0, 0, 1], ["esquiva_mais", 3, 0, 0, 1], ["ajuste", 4, 0, 0, 1]],
 	},
 	"minimalist": {
 		"hp": 70, "grid": Vector2i(3, 2), "blocked": [], "hand": 3, "bag_size": 5, "bag": ["H", "H", "H"],
@@ -25,7 +25,7 @@ const DATA := {
 	},
 	"metallurgist": {
 		"hp": 100, "grid": Vector2i(5, 2), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Pb", "Pb", "Pb"],
-		"spells": [["peso", 0, 0, 0, 2], ["estocada", 1, 0, 0, 1]],
+		"spells": [["peso", 0, 0, 0, 2], ["estocada", 1, 0, 0, 1], ["virar", 2, 0, 0, 1]],
 	},
 	"copyist": {
 		"hp": 80, "grid": Vector2i(4, 2), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Hg"],
@@ -37,11 +37,11 @@ const DATA := {
 	},
 	"vampire": {
 		"hp": 70, "grid": Vector2i(2, 4), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Na"],
-		"spells": [["mordida", 0, 0, 0, 1], ["banquete", 1, 0, 1, 1]],
+		"spells": [["mordida", 0, 0, 0, 1], ["banquete", 1, 0, 1, 1], ["sangria", 0, 1, 0, 1]],
 	},
 	"barbarian": {
 		"hp": 90, "grid": Vector2i(3, 3), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Fe", "Fe"],
-		"spells": [["machadada", 0, 0, 0, 1], ["cerrar", 1, 0, 0, 1]],
+		"spells": [["machadada", 0, 0, 0, 1], ["cerrar", 1, 0, 0, 1], ["pico", 2, 0, 0, 1]],
 	},
 }
 

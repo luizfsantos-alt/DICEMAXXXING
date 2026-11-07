@@ -13,6 +13,7 @@ var exit_dialog: Overlay
 
 
 func _ready() -> void:
+	Telemetry.enabled = true ## Só o jogo grava as jornadas (testes e simulador não).
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	var bg := ColorRect.new()
 	bg.color = Kit.BG

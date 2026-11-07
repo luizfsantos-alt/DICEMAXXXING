@@ -7,9 +7,12 @@ extends SceneTree
 ## pega a primeira recompensa que couber e, nas paradas, prefere Cura com pouca vida.
 ## Experimentos (não mudam o jogo): --hand=-1 soma à mão de todos (jogador e inimigos,
 ## mínimo 2); --h-mult=2 e --h-bag=6 trocam o multiplicador e a bolsa máxima do Hidrogênio.
-## --enemy-hp=0.85 multiplica a vida dos inimigos; --hero-hp=70 troca a vida inicial do herói.
+## --enemy-hp=0.85 multiplica a vida dos inimigos; --master-hp=1.2 só a dos Mestres; --hero-hp=70 troca a vida inicial do herói.
 ## --agile-stack: o +1 dado do Ágil (Assassino) acumula até o fim da luta.
 ## --report imprime vitórias por elemento na bolsa e derrotas por tipo de inimigo.
+## --bot=new (padrão) usa o bot de sim/bot.gd (docs/SPEC_v3.1.md §5.1): porta pela vida,
+## recompensa pela pontuação, Escola na magia mais usada. --bot=old é o de antes (porta
+## pedida por --door, primeira recompensa que couber).
 
 
 var offered := {}
@@ -19,6 +22,8 @@ var hand_delta := 0
 var report := false
 var enemy_hp := 1.0
 var hero_hp := 0
+var bot_kind := "new"
+var master_hp := 1.0
 
 
 func _init() -> void:
@@ -33,6 +38,8 @@ func _init() -> void:
 			chars = Characters.ALL if c == "all" else [c]
 		elif a == "--spells":
 			spell_report = true
+		elif a.begins_with("--bot="):
+			bot_kind = a.split("=")[1]
 		elif a == "--report":
 			report = true
 		elif a == "--agile-stack":
@@ -40,6 +47,8 @@ func _init() -> void:
 			print("Experimento: Ágil acumula até o fim da luta")
 		elif a.begins_with("--enemy-hp="):
 			enemy_hp = float(a.split("=")[1])
+		elif a.begins_with("--master-hp="):
+			master_hp = float(a.split("=")[1])
 		elif a.begins_with("--hero-hp="):
 			hero_hp = int(a.split("=")[1])
 		elif a.begins_with("--hand="):
@@ -73,8 +82,16 @@ func _simulate(char_id: String, runs: int, seed0: int, door_pref: String) -> voi
 	var hp_after := {}
 	var el_runs := {} ## Elemento na bolsa em alguma luta -> [jornadas, vitórias].
 	var foe_stats := {} ## Tipo de inimigo -> [lutas, derrotas].
+	var early_turns := 0 ## Meios-turnos das lutas dos andares 1 a 3.
+	var early_duels := 0
+	var pos_stats := [[0, 0], [0, 0], [0, 0]] ## Posição no bloco (1ª, 2ª, 3ª luta depois da parada) -> [lutas, vitórias].
+	var p_turns := 0 ## Turnos do jogador.
+	var mod_turns := 0 ## Turnos do jogador com alguma mexida.
+	var spell_fights := {} ## Magia -> [lutas em que estava no grimório, lutas em que foi usada].
+	var doors_taken := {}
 	for i in runs:
 		var run := RunState.new_run(seed0 + i, char_id)
+		var bot := SimBot.new()
 		run.hero.hand_size = maxi(2, run.hero.hand_size + hand_delta)
 		if hero_hp > 0:
 			run.hero.max_hp = hero_hp
@@ -90,8 +107,9 @@ func _simulate(char_id: String, runs: int, seed0: int, door_pref: String) -> voi
 					run.duel.player.personality = "cauteloso"
 					var foe := run.duel.enemy
 					foe.hand_size = maxi(2, foe.hand_size + hand_delta)
-					if enemy_hp != 1.0:
-						foe.max_hp = maxi(1, int(round(foe.max_hp * enemy_hp)))
+					var fm := enemy_hp * (master_hp if foe.master_id != "" else 1.0)
+					if fm != 1.0:
+						foe.max_hp = maxi(1, int(round(foe.max_hp * fm)))
 						foe.hp = foe.max_hp
 					var kind := foe.master_id if foe.master_id != "" else (foe.variant if foe.variant != "" else foe.archetype)
 					if not (kind in ["minimalist", "monge"]) and foe.bag.any(func(d): return Elements.solitary(foe, d)):
@@ -101,10 +119,37 @@ func _simulate(char_id: String, runs: int, seed0: int, door_pref: String) -> voi
 							els["H ligado"] = true
 						elif d.element != "":
 							els[d.element] = true
+					var used_here := {}
 					while run.duel.state == "choosing":
-						run.duel.submit(EnemyAI.choose(run.duel.player, run.duel.enemy, bot_rng))
+						var rep := run.duel.submit(EnemyAI.choose(run.duel.player, run.duel.enemy, bot_rng))
+						var evs: Array = rep.get("events", [])
+						bot.note_events(evs)
+						p_turns += 1
+						var had_mod := false
+						for e in evs:
+							if str(e.get("side", "")) != "player":
+								continue
+							if str(e.get("t", "")) == "mod":
+								had_mod = true
+							if str(e.get("t", "")) in ["cast", "mod"]:
+								used_here[str(e.get("spell", ""))] = true
+						if had_mod:
+							mod_turns += 1
+					for id in run.hero.inventory.ids():
+						var sf: Array = spell_fights.get(id, [0, 0])
+						sf[0] += 1
+						if used_here.has(id):
+							sf[1] += 1
+						spell_fights[id] = sf
 					turns_total += run.duel.turn
 					duels_total += 1
+					if run.floor_n <= 3:
+						early_turns += run.duel.turn
+						early_duels += 1
+					var pos := (run.floor_n - 1) % 3
+					pos_stats[pos][0] += 1
+					if run.duel.state == "won":
+						pos_stats[pos][1] += 1
 					var fs: Array = foe_stats.get(kind, [0, 0])
 					fs[0] += 1
 					if run.duel.state != "won":
@@ -116,9 +161,14 @@ func _simulate(char_id: String, runs: int, seed0: int, door_pref: String) -> voi
 						hp_after[k] = hp_after.get(k, 0) + float(run.hero.hp) / run.hero.max_hp
 				"doors":
 					var pick := 0
-					for j in run.options.size():
-						if run.options[j].id == door_pref:
-							pick = j
+					if bot_kind == "new":
+						pick = bot.pick_door(run)
+					else:
+						for j in run.options.size():
+							if run.options[j].id == door_pref:
+								pick = j
+					var did := str(run.options[pick].id)
+					doors_taken[did] = doors_taken.get(did, 0) + 1
 					run.choose(pick)
 				"rest":
 					var pick := 0
@@ -126,9 +176,12 @@ func _simulate(char_id: String, runs: int, seed0: int, door_pref: String) -> voi
 					for j in run.options.size():
 						if (low and run.options[j].id == "heal") or (not low and run.options[j].id == "school"):
 							pick = j
-					run.choose(pick)
+					run.choose(bot.pick_stop(run) if bot_kind == "new" else pick)
 				_:
-					_take_something(run)
+					if bot_kind == "new":
+						bot.shop_phase(run)
+					else:
+						_take_something(run)
 		if run.phase == "victory":
 			for id in run.hero.inventory.ids():
 				won_with[id] = won_with.get(id, 0) + 1
@@ -143,13 +196,26 @@ func _simulate(char_id: String, runs: int, seed0: int, door_pref: String) -> voi
 			if run.phase == "victory":
 				er[1] += 1
 			el_runs[el] = er
-	print("Personagem: %s · Porta: %s · Jornadas: %d" % [char_id, door_pref, runs])
-	print("Turnos médios por luta (dois lados): %.2f" % (float(turns_total) / maxi(1, duels_total)))
+	print("Personagem: %s · Bot: %s · Porta: %s · Jornadas: %d" % [char_id, bot_kind, door_pref if bot_kind == "old" else "pela vida", runs])
+	print("Turnos médios por luta (dois lados): %.2f · andares 1–3: %.2f" % [float(turns_total) / maxi(1, duels_total), float(early_turns) / maxi(1, early_duels)])
+	print("Turnos do jogador com mexida: %.0f%%" % (100.0 * mod_turns / maxi(1, p_turns)))
+	print("Vitória por posição no bloco (1ª/2ª/3ª luta depois da parada): %.1f%% · %.1f%% · %.1f%%" % [
+		100.0 * pos_stats[0][1] / maxi(1, pos_stats[0][0]), 100.0 * pos_stats[1][1] / maxi(1, pos_stats[1][0]),
+		100.0 * pos_stats[2][1] / maxi(1, pos_stats[2][0])])
+	var dk := doors_taken.keys()
+	dk.sort()
+	print("Portas escolhidas: " + ", ".join(dk.map(func(k): return "%s %d" % [k, doors_taken[k]])))
 	for f in range(1, Config.LAST_FLOOR + 1):
 		var w: int = reached.get(f, 0)
 		print("Venceu o andar %2d: %5.1f%%   vida média depois: %3.0f%%" % [f, 100.0 * w / runs, 100.0 * hp_after.get(f, 0.0) / maxi(1, w)])
 	if not report:
 		return
+	print("Magia: lutas no grimório · usada em % delas")
+	var sk := spell_fights.keys()
+	sk.sort()
+	for id in sk:
+		var sf: Array = spell_fights[id]
+		print("  %-12s %6d · %5.1f%%" % [id, sf[0], 100.0 * sf[1] / maxi(1, sf[0])])
 	print("Elemento na bolsa (em alguma luta): jornadas · venceram o andar %d" % Config.LAST_FLOOR)
 	var keys := el_runs.keys()
 	keys.sort()

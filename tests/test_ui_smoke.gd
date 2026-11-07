@@ -936,6 +936,116 @@ func test_escola_mostra_como_a_magia_fica():
 	assert_string_contains(TowerScreen.evolve_text("espelho", 2), "Reflete o próximo golpe ×1,5")
 
 
+# ------------------------------------------------------------ Mexidas (docs/SPEC_v3.1.md §1.9)
+func _duel_with(spells: Array, values: Array) -> DuelScreen:
+	var run := _run_at_duel(77)
+	var p := run.duel.player
+	p.inventory = Inventory.make(4, 3)
+	for id in spells:
+		p.inventory.add(id)
+	p.hand = []
+	for i in values.size():
+		p.hand.append({"bag": i, "temp": null, "face": 0, "value": int(values[i]), "top": false, "fixed": false, "plus": 0, "spawn": -1})
+	var d := DuelScreen.new().setup(run)
+	d.fast = true
+	add_child_autofree(d)
+	return d
+
+
+func test_mexida_sai_do_palco_e_muda_o_dado():
+	var d := await _mexida_screen(["faisca", "virar"], [2, 5])
+	var p := d.duel.player
+	var vi := p.inventory.ids().find("virar")
+	var card := d._card_of(d.cards, vi)
+	assert_true(card.visible)
+	d._on_die(d.tray_views[0])
+	d._on_card(vi)
+	assert_eq(int(p.hand[0].value), 5, "2 virou 5")
+	assert_false(card.visible, "o cartão saiu do palco")
+	assert_eq(d.tray_views[0].value, 5, "a coluna mostra o valor novo")
+	assert_eq(d.tray_views[0].orig, 2, "o original riscado")
+	assert_true(d.tray_views[0].has_die, "o dado voltou para a mão")
+	# Desfazer volta o valor e o cartão.
+	d._on_die(d.tray_views[0])
+	assert_true(d.undo_btn.visible)
+	d._on_undo()
+	assert_eq(int(p.hand[0].value), 2)
+	assert_true(card.visible, "o cartão voltou")
+
+
+func _mexida_screen(spells: Array, values: Array) -> DuelScreen:
+	var d := _duel_with(spells, values)
+	await wait_process_frames(2)
+	return d
+
+
+func test_ajuste_fino_buraco_do_menos():
+	var d := await _mexida_screen(["ajuste"], [4, 1])
+	var p := d.duel.player
+	var card := d._card_of(d.cards, 0)
+	assert_eq(card.holes.size(), 2, "dois buracos")
+	d._on_die(d.tray_views[0])
+	d._on_card_hole(card.holes[1], 0)
+	assert_eq(int(p.hand[0].value), 3, "−1")
+
+
+func test_aleatoria_nao_mostra_desfazer():
+	var d := await _mexida_screen(["segunda", "faisca"], [1, 3])
+	d._on_die(d.tray_views[0])
+	d._on_card(0)
+	d._on_die(d.tray_views[0])
+	assert_false(d.undo_btn.visible, "Segunda Chance é definitiva")
+	assert_true("não se desfaz" in d.info.text)
+
+
+func test_sangria_aumenta_a_coluna_e_tocar_no_original_desfaz():
+	var d := await _mexida_screen(["sangria"], [7, 2])
+	d._on_die(d.tray_views[0])
+	d._on_card(0)
+	assert_eq(d.tray_views.size(), 5, "3 partes na coluna")
+	assert_false(d.tray_views[0].has_die, "o original foi gasto")
+	d._on_die(d.tray_views[0])
+	assert_eq(d.tray_views.size(), 2, "desfeito")
+
+
+func test_magia_uma_vez_por_luta_usada_some_no_turno_seguinte():
+	var run := _run_at_duel(5)
+	var d := DuelScreen.new().setup(run)
+	d.fast = true
+	add_child_autofree(d)
+	await wait_process_frames(2)
+	var p := run.duel.player
+	var bola := p.inventory.ids().find("bola")
+	p.once_used.append(bola)
+	d._refresh_tray()
+	assert_false(d._card_of(d.cards, bola).visible, "Bola de Fogo já usada não aparece")
+
+
+func test_mexida_do_inimigo_anima_sem_erro():
+	var d := await _mexida_screen(["faisca"], [3])
+	var e := d.duel.enemy
+	e.inventory = Inventory.make(4, 3)
+	e.inventory.add("virar")
+	var c := SpellCard.new().setup(e, 0, DuelScreen.HOLE)
+	d.enemy_grid.add_child(c)
+	d.enemy_cards = [c]
+	d._fill_tray([2, 4], ["", ""], false)
+	await d._apply_event({"t": "mod", "side": "enemy", "spell": "virar", "item": 0, "dice": [0], "from": [2], "to": [5], "random": false})
+	assert_eq(d.tray_views[0].value, 5)
+	assert_false(c.visible, "o cartão dele saiu do palco")
+	assert_true("Virar" in d._describe({"t": "mod", "side": "enemy", "spell": "virar", "from": [2], "to": [5]}))
+
+
+func test_dado_mexido_pelo_inimigo_mostra_a_causa():
+	var d := await _mexida_screen(["faisca"], [3])
+	var p := d.duel.player
+	p.hand[0]["orig"] = 6
+	p.hand[0]["cause"] = "halve"
+	d._refresh_tray()
+	assert_eq(d.tray_views[0].orig, 6)
+	assert_eq(d.tray_views[0].badge, "½")
+	d._on_die(d.tray_views[0])
+	assert_true("Chave de Braço" in d.info.text)
 func test_so_mestres_tem_nome_e_rosetas():
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 9
