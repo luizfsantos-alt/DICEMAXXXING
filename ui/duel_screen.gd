@@ -1114,8 +1114,11 @@ func _apply_event(ev: Dictionary) -> void:
 			else:
 				await _effect(s, Texts.t("ui.fx_burn_up", {"n": ev.n}), "fx")
 		"poison_up":
-			# Urânio parado no fim do turno: sem magia de origem.
-			await _effect(s, Texts.t("ui.fx_el_U", {"n": ev.n}), "fx", null)
+			# Urânio (ou dado parado, com o Reator) no fim do turno: sem magia de origem.
+			var pk := "ui.fx_reactor" if str(ev.get("src", "")) == "reactor" else "ui.fx_el_U"
+			await _effect(s, Texts.t(pk, {"n": ev.n}), "fx", null)
+		"alchemy":
+			_float(s, Texts.t("ui.fx_alchemy", {"from": ev["from"], "to": ev.to}), Kit.ACCENT)
 		"dead_weight":
 			_float(s, Texts.t("ui.fx_dead_weight", {"n": ev.n}), Elements.COLORS.Pb)
 		"copy":
@@ -1370,7 +1373,11 @@ func _describe(ev: Dictionary) -> String:
 		"burn":
 			return Texts.t("ev.burn", {"who": w, "n": ev.n})
 		"poison_up":
+			if str(ev.get("src", "")) == "reactor":
+				return Texts.t("ev.poison_reactor", {"who": w, "n": ev.n})
 			return Texts.t("ev.poison_up", {"who": w, "n": ev.n})
+		"alchemy":
+			return Texts.t("ev.alchemy", {"from": ev["from"], "to": ev.to})
 		"burn_up":
 			if str(ev.get("src", "")) == "Na":
 				return Texts.t("ev.burn_up_na", {"who": w, "n": ev.n})
@@ -1442,8 +1449,12 @@ func _show_over() -> void:
 	catcher.visible = false
 	end_btn.disabled = true
 	var won := duel.state == "won"
-	var coins := RunState.door_coins(run.door) if not run.is_master_floor() else 20
-	var o := Overlay.open(self, Texts.t("ui.won_duel", {"coins": coins}) if won else Texts.t("ui.lost_duel"), Texts.t("ui.continue_btn"), 520)
+	var coins := RunState.door_coins(run.door) if not run.is_master_floor() else Config.MASTER_COINS
+	var msg := Texts.t("ui.won_duel", {"coins": coins}) if won else Texts.t("ui.lost_duel")
+	var heal := mini(duel.player.max_hp - maxi(0, duel.player.hp), int(ceil(duel.player.max_hp * Config.MASTER_HEAL_FRACTION)))
+	if won and run.is_master_floor() and run.floor_n < Config.LAST_FLOOR and heal > 0:
+		msg += "\n" + Texts.t("ui.master_heal", {"n": heal})
+	var o := Overlay.open(self, msg, Texts.t("ui.continue_btn"), 520)
 	o.closed.connect(_finish)
 
 

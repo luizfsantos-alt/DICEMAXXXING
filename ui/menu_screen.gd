@@ -7,7 +7,7 @@ signal new_run(char_id: String)
 
 const LOGO := "res://assets/logo.png"
 const TITLE_LOGO := "res://assets/title_logo.png" ## Logo com o nome (640×479, fundo recortado).
-const TITLE_H := 375.0
+const TITLE_H := 330.0
 const BACKGROUND := "res://assets/backgrounds/menu.jpg"
 signal continue_run
 
@@ -53,7 +53,7 @@ func setup() -> MenuScreen:
 	nt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	# Com o logo grande, o convite vai na coluna da direita para os cartões caberem na tela.
 	(tv if title_art else v).add_child(nt)
-	var row := Kit.hbox(16)
+	var row := Kit.hbox(12)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.add_child(row)
 	for id in Characters.PLAYABLE:
@@ -83,35 +83,45 @@ static func version_text(version: String, debug: bool) -> String:
 	return t + " · debug" if debug else t
 
 
+## Cartão compacto do personagem: retrato (variação 1) em cima, nome, passiva e números.
+const CARD := Vector2(232, 360)
+const CARD_PORTRAIT_H := 160
+
+
 func _card(id: String) -> Button:
 	var info := Texts.character(id)
 	var c := Characters.get_def(id)
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(350, 320)
+	b.custom_minimum_size = CARD
 	b.focus_mode = Control.FOCUS_NONE
+	b.clip_contents = true
 	var col := Portrait.COLORS.get(id, Kit.PANEL_HI) as Color
 	for st in ["normal", "hover", "pressed"]:
-		var sb := Kit.box(Kit.PANEL if st != "hover" else Kit.PANEL_HI, 16, 14)
+		var sb := Kit.box(Kit.PANEL if st != "hover" else Kit.PANEL_HI, 14, 8)
 		sb.set_border_width_all(3)
 		sb.border_color = col
 		b.add_theme_stylebox_override(st, sb)
-	var v := Kit.vbox(6)
+	var v := Kit.vbox(1)
 	v.set_anchors_preset(Control.PRESET_FULL_RECT)
-	v.offset_left = 16
-	v.offset_right = -16
-	v.offset_top = 14
-	v.offset_bottom = -14
+	v.offset_left = 8
+	v.offset_right = -8
+	v.offset_top = 8
+	v.offset_bottom = -8
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	b.add_child(v)
+	var f := Fighter.new()
+	f.archetype = id
+	f.portrait = 0
+	f.is_player = true
+	v.add_child(Portrait.new().setup(f, CARD_PORTRAIT_H, true))
 	var spells := []
 	for s in c.spells:
 		spells.append(Texts.spell_name(s[0]))
 	var lines := [
-		[str(info[0]), 30, Kit.ACCENT],
-		[str(info[3]) if info.size() > 3 else "", 16, Kit.MUTED],
-		["%s: %s" % [info[1], info[2]], 17, Kit.TEXT],
-		[Texts.t("ui.char_stats", {"hp": c.hp, "hand": c.hand, "bag": c.bag_size}), 17, Kit.MUTED],
-		[Texts.t("ui.char_spells", {"list": ", ".join(spells)}), 17, Kit.MUTED],
+		[str(info[0]), 22, Kit.ACCENT],
+		["%s: %s" % [info[1], info[2]], 13, Kit.TEXT],
+		[Texts.t("ui.char_stats", {"hp": c.hp, "hand": c.hand, "bag": c.bag_size}), 13, Kit.MUTED],
+		[Texts.t("ui.char_spells", {"list": ", ".join(spells)}), 13, Kit.MUTED],
 	]
 	for ln in lines:
 		var l := Kit.label(ln[0], ln[1], ln[2], true)

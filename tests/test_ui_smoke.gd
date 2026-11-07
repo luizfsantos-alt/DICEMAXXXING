@@ -224,13 +224,16 @@ func test_inimigo_encaixa_dados_nas_magias_dele():
 	assert_true(d.tray_views[0].interactive, "a bandeja volta a ser a sua mão")
 
 
-func test_menu_oferece_os_tres_jogaveis():
+func test_menu_oferece_os_jogaveis_com_retrato():
 	var main = load("res://ui/main.tscn").instantiate()
 	add_child_autofree(main)
 	await wait_process_frames(2)
 	var m: MenuScreen = main.current
-	assert_eq(m.picks.size(), 3)
-	m.picks[2].pressed.emit()
+	assert_eq(m.picks.size(), Characters.PLAYABLE.size())
+	for b in m.picks:
+		assert_eq(b.find_children("*", "Portrait", true, false).size(), 1, "cartão com retrato")
+		assert_true(b.size.x <= MenuScreen.CARD.x + 1, "cartão compacto")
+	m.picks[Characters.PLAYABLE.find("barbarian")].pressed.emit()
 	await wait_process_frames(2)
 	assert_eq(main.run.character, "barbarian")
 	assert_eq(main.run.phase, "doors")
@@ -240,6 +243,8 @@ func test_menu_oferece_os_tres_jogaveis():
 func test_luta_com_cada_jogavel_pela_interface():
 	for id in Characters.PLAYABLE:
 		var run := RunState.new_run(42, id)
+		if run.phase == "start_pick":
+			run.choose(0) ## Erudito
 		run.choose(0) ## Porta
 		var d := DuelScreen.new().setup(run)
 		d.fast = true

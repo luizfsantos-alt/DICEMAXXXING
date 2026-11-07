@@ -56,7 +56,7 @@ func _submit(choice: TurnChoice) -> Dictionary:
 	var hp_e := enemy.hp
 	var used := Resolver.cast_all(player, enemy, choice, ev, rng)
 	dealt += maxi(0, hp_e - enemy.hp)
-	Resolver.end_turn(player, used, ev, choice.keep)
+	Resolver.end_turn(player, used, ev, choice.keep, reactor())
 	var rep := {"events": ev, "enemy_choice": {}, "enemy_hand": []}
 	if _check(ev) or _limit(ev):
 		return rep
@@ -72,13 +72,18 @@ func _submit(choice: TurnChoice) -> Dictionary:
 		var ec := EnemyAI.choose(enemy, player, rng)
 		rep.enemy_choice = ec.to_dict()
 		var eu := Resolver.cast_all(enemy, player, ec, ev, rng)
-		Resolver.end_turn(enemy, eu, ev, ec.keep)
+		Resolver.end_turn(enemy, eu, ev, ec.keep, reactor())
 	taken += maxi(0, hp_p - player.hp)
 	if _check(ev) or _limit(ev):
 		return rep
 	turn_events = []
 	_begin_player_turn(turn_events)
 	return rep
+
+
+## O Reator: todo dado parado no fim do turno envenena quem o rolou (os dois lados).
+func reactor() -> bool:
+	return enemy.master_id == "reator" or player.master_id == "reator"
 
 
 ## Empate = derrota do jogador.

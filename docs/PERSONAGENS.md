@@ -1,6 +1,6 @@
 # Personagens novos (proposta)
 
-> **Status: implementado** (rodada 6 aprovada). **Jogáveis: Assassino, Vampiro e Bárbaro**; os outros aparecem como inimigos (o Minimalista saiu por ora, seção 8.3). Decisões de implementação e números do simulador na seção 8. São 6 arquétipos novos (os 5 da proposta mais o Bárbaro), além do Feiticeiro e do Assassino, que continuam, jogáveis e usados pelos inimigos, no padrão de `docs/SPEC_v3.md` §3: **formato do inventário**, **uma passiva**, vida, mão, bolsa inicial e magias iniciais. Seguem o tom de `docs/TOM.md` e os princípios de `docs/CATALOGO_MAGIAS.md` §1. Números *(iniciais)*, a passar pelo simulador.
+> **Status: implementado** (rodada 6 aprovada). **Jogáveis: Feiticeiro, Assassino, Metalurgista, Vampiro e Bárbaro**; os outros aparecem como inimigos (o Minimalista saiu por ora, seção 8.3). Decisões de implementação e números do simulador na seção 8. São 6 arquétipos novos (os 5 da proposta mais o Bárbaro), além do Feiticeiro e do Assassino, que continuam, jogáveis e usados pelos inimigos, no padrão de `docs/SPEC_v3.md` §3: **formato do inventário**, **uma passiva**, vida, mão, bolsa inicial e magias iniciais. Seguem o tom de `docs/TOM.md` e os princípios de `docs/CATALOGO_MAGIAS.md` §1. Números *(iniciais)*, a passar pelo simulador.
 
 ---
 
@@ -313,7 +313,7 @@ Código: `engine/characters.gd` (kits e passivas), `engine/resolver.gd` (Fúria,
 
 ### 8.1 Decisões tomadas na implementação (revisar depois de jogar)
 
-- **Jogáveis:** Assassino, Vampiro e Bárbaro, os 3 com passiva automática (nenhuma interação nova na tela). O Minimalista saiu por ora (seção 8.3). Para liberar outro, basta incluir o id em `Characters.PLAYABLE`; o Perfeccionista ainda precisa da tela para escolher os dados guardados.
+- **Jogáveis:** Feiticeiro, Assassino, Metalurgista, Vampiro e Bárbaro (o Feiticeiro escolhe a magia do Erudito antes das portas; os outros têm passiva automática). O Minimalista saiu por ora (seção 8.3). Para liberar outro, basta incluir o id em `Characters.PLAYABLE`; o Perfeccionista ainda precisa da tela para escolher os dados guardados.
 - **Inimigos:** o arquétipo é sorteado entre os 8, com a mesma chance. Variantes (20%): Lixeiro (Assassino), Piromante (Feiticeiro), Fundidor (Metalurgista) e Monge do Silêncio (Minimalista, a partir do andar 5).
 - **Fúria:** calculada em cada golpe, com a vida daquele momento.
 - **Sede:** o limite de 3 volta a zero em cada luta e na parada de Cura.

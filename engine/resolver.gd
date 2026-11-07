@@ -81,6 +81,8 @@ static func draw_and_roll(f: Fighter, foe: Fighter, rng: RandomNumberGenerator, 
 		push(ev, {"t": "dead_weight", "side": side(f), "n": pulled})
 	_announce_elements(f, ev)
 	apply_hand_mods(f, foe, ev)
+	if f.is_player and foe.master_id == "alquimista":
+		alchemy(f, foe, ev)
 	var info := hand_dice(f)
 	push(ev, {"t": "hand", "side": side(f), "values": f.hand_values(), "elements": info.elements,
 		"faces": info.faces, "face": info.face, "fixed": info.fixed, "heat": info.heat})
@@ -101,6 +103,34 @@ static func hand_dice(f: Fighter) -> Dictionary:
 		out.face.append(int(e.face))
 		out.fixed.append(bool(e.get("fixed", false)))
 	return out
+
+
+## A Alquimista: o maior dado da sua mão troca de valor com o menor da última mão dela.
+## Ósmio (âncora) não troca. Sem mão anterior dela (1º turno), nada acontece.
+static func alchemy(f: Fighter, foe: Fighter, ev: Array) -> void:
+	if foe.last_hand.is_empty():
+		return
+	var best := -1
+	for h in f.hand.size():
+		var e: Dictionary = f.hand[h]
+		if f.die_of(e).element == "Os":
+			continue
+		if best < 0 or int(e.value) > int(f.hand[best].value):
+			best = h
+	if best < 0:
+		return
+	var low := 0
+	for k in foe.last_hand.size():
+		if int(foe.last_hand[k]) < int(foe.last_hand[low]):
+			low = k
+	var mine := int(f.hand[best].value)
+	var theirs := int(foe.last_hand[low])
+	if theirs >= mine or not negative(f, ev):
+		return
+	f.hand[best].value = theirs
+	f.hand[best].top = false
+	foe.last_hand[low] = mine
+	push(ev, {"t": "alchemy", "side": side(f), "from": mine, "to": theirs})
 
 
 ## Elementos que mudaram o valor ao rolar (Hidrogênio ×3, Carbono em cadeia, Mercúrio copiou).
@@ -510,7 +540,7 @@ static func hit(target: Fighter, attacker: Fighter, n: int, ev: Array, reflected
 
 ## 5. Fim: dados parados (Expectativa Tóxica, Improviso Brilhante, Urânio); o
 ## Perfeccionista guarda até 2 sobras (keep); a mão vai para o descarte.
-static func end_turn(f: Fighter, used: Array, ev: Array, keep: Array = []) -> void:
+static func end_turn(f: Fighter, used: Array, ev: Array, keep: Array = [], reactor := false) -> void:
 	if f.archetype == "perfectionist":
 		_keep(f, used, keep, ev)
 	var idle := "idle_dmg" in f.turn_mods
@@ -529,6 +559,9 @@ static func end_turn(f: Fighter, used: Array, ev: Array, keep: Array = []) -> vo
 		if f.die_of(e).element == "U":
 			f.poison += Config.URANIUM_POISON
 			push(ev, {"t": "poison_up", "side": side(f), "n": Config.URANIUM_POISON, "total": f.poison})
+		elif reactor:
+			f.poison += Config.REACTOR_POISON
+			push(ev, {"t": "poison_up", "side": side(f), "n": Config.REACTOR_POISON, "total": f.poison, "src": "reactor"})
 	f.turn_mods = []
 	f.discard_hand()
 	f.turns_taken += 1

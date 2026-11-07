@@ -164,13 +164,15 @@ func finish_duel() -> void:
 		phase = "defeat"
 		return
 	stats.wins += 1
-	last_reward = door_coins(door) if not is_master_floor() else 20
+	last_reward = door_coins(door) if not is_master_floor() else Config.MASTER_COINS
 	coins += last_reward
 	stats.coins += last_reward
 	if floor_n >= Config.LAST_FLOOR:
 		phase = "victory"
 		return
 	if is_master_floor():
+		if Config.MASTER_HEAL_FRACTION > 0.0:
+			hero.heal_full(int(ceil(hero.max_hp * Config.MASTER_HEAL_FRACTION)))
 		phase = "master_reward"
 		options = Shop.master_reward()
 		return
