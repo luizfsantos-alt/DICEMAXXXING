@@ -61,7 +61,7 @@ const DATA := {
 	"estocada": {"shape": S1, "req": "any", "n": 1, "fx": "dmg", "plus": 1, "use": "always", "pool": "assassin", "rarity": "common"},
 	"esquiva": {"shape": S1, "req": "max", "v": 2, "fx": "dodge", "use": "once", "pool": "assassin", "rarity": "common"},
 	## Só no kit inicial do Assassino (não aparece em ofertas nem nos inimigos que compram).
-	"esquiva_mais": {"shape": S1, "req": "exact", "v": 2, "fx": "dodge", "use": "always", "pool": "assassin", "rarity": "uncommon", "start_only": true},
+	"esquiva_mais": {"shape": S1, "req": "exact", "v": 2, "fx": "dodge", "use": "twice", "pool": "assassin", "rarity": "uncommon", "start_only": true},
 	"corte": {"shape": S_H2, "req": "any", "n": 2, "fx": "dmg", "odd_twice": true, "use": "always", "pool": "assassin", "rarity": "common"},
 	"sombras": {"shape": S_H3, "req": "exact", "v": 6, "fx": "dmg", "pierce": true, "use": "once", "pool": "assassin", "rarity": "uncommon"},
 	# Rodada 1 (Feiticeiro).

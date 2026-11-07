@@ -34,8 +34,9 @@ func test_agil_do_assassino_ganha_dado_ao_esquivar():
 	assert_eq(s.hand.size(), s.hand_size, "o bônus vale só uma mão")
 
 
-func test_esquiva_melhorada_sem_limite_e_fora_das_ofertas():
-	assert_false(Spells.is_once("esquiva_mais"))
+func test_esquiva_melhorada_duas_vezes_e_fora_das_ofertas():
+	# 2× por luta desde a calibração com o Ajuste Fino (docs/SPEC_v3.1.md §12).
+	assert_eq(Spells.max_uses("esquiva_mais"), 2)
 	for r in Config.RARITIES:
 		assert_false("esquiva_mais" in Spells.ids_of_rarity(r))
 

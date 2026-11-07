@@ -1,6 +1,6 @@
 # DICEMAXXING — Spec v3.1: mexidas, portas, desgaste, Mestres e bot
 
-> **Status: aprovada (Portão 3), a implementar.** Altera a `docs/SPEC_v3.md` e o `docs/CATALOGO_MAGIAS.md`. Saiu da crítica de mecânicas de novembro de 2026. Depois de implementada, o conteúdo entra nos dois documentos e este arquivo vira histórico. Números marcados com *(inicial)* passam pelo simulador.
+> **Status: implementada (histórico).** O conteúdo foi incorporado à `docs/SPEC_v3.md` e ao `docs/CATALOGO_MAGIAS.md` (§2.2 e §11); os resultados da calibração estão no fim deste arquivo. Altera a `docs/SPEC_v3.md` e o `docs/CATALOGO_MAGIAS.md`. Saiu da crítica de mecânicas de novembro de 2026. Depois de implementada, o conteúdo entra nos dois documentos e este arquivo vira histórico. Números marcados com *(inicial)* passam pelo simulador.
 
 ---
 
@@ -313,3 +313,32 @@ No fim da implementação:
 | Ajuste Fino | **Dois buracos**, "+1" e "−1" |
 | Porta | **Só o nome** do arquétipo, sem retrato |
 | Copista, Perfeccionista e Minimalista | **Sem mexida inicial** por ora |
+
+---
+
+## 12. Resultado da implementação e da calibração
+
+**Calibração** (bot novo, 500 jornadas por personagem, semente 1). Números ajustados a partir dos iniciais: `ENEMY_HP_MULT` 0,9 → **1,035** (inimigos ×1,15), `MASTER_HP_MULT` 2,0 → **2,6**. Decidido com o autor durante a implementação: a **Esquiva Melhorada** do Assassino passou de "sem limite" a **2× por luta**, porque com o Ajuste Fino ele acertava o 2 quase todo turno (andar 10: 50% → 33%).
+
+| Personagem | Meios-turnos (andares 1–3) | Turnos com mexida | 1ª / 2ª / 3ª luta do bloco | Andar 10 | Andar 20 | Andar 30 |
+|---|---|---|---|---|---|---|
+| Feiticeiro | 5,05 | 76% | 94 / 91 / 89% | 31,0% | 14,8% | 7,4% |
+| Assassino | 4,52 | 97% | 91 / 92 / 91% | 33,4% | 6,0% | 2,8% |
+| Metalurgista | 5,21 | 80% | 93 / 92 / 86% | 27,2% | 11,6% | 5,4% |
+| Vampiro | 5,63 | 36% | 94 / 93 / 87% | 28,8% | 17,2% | 7,4% |
+| Bárbaro | 5,90 | 43% | 93 / 92 / 92% | 31,8% | 18,4% | 11,8% |
+
+Antes (bot novo, regras antigas): andar 10 entre 16,6% e 25,4%; 3ª luta do bloco até 15 pontos abaixo da 1ª; os Mestres eram mais fáceis que o andar anterior.
+
+**Critérios do §10:**
+- Meios-turnos nos andares 1–3 entre 4 e 6: **ok** (4,5 a 5,9).
+- Andar 10 entre 20% e 35% e diferença ≤ 8 pontos: **ok** (27,2% a 33,4%; 6,2 pontos).
+- 3ª luta do bloco até 12 pontos abaixo da média: **ok** (no máximo 5 pontos).
+- Mestre mais difícil que a média dos 3 andares anteriores: **ok** nos três atos para todos.
+- Mexida inicial em ≥ 60% dos turnos: **ok** para Feiticeiro, Assassino e Metalurgista; **não** para o Vampiro (36%) e o Bárbaro (43%). O Pico é 1× por luta (o teto fica perto de 40%) e a Sangria só compensa quando faltam dados; a IA usa quando vale. Fica para o playtest.
+- Nenhuma mexida nova com uso < 3% ou > 40% das lutas em que está no grimório: nenhuma abaixo de 3%, mas **todas acima de 40%** (Escada 53% a Eco e Polarizar 82%; Lapidar 27%). O critério estava mal calibrado: mexida é barata de usar e entra em quase toda luta em que ajuda. O sinal de mexida dominante passa a ser a taxa de escolha na telemetria.
+
+**Desvios do spec na implementação:**
+- **Ajuste Fino no nível 2/3:** o passo cresce (±2 / ±3) em vez de somar +1/+2 (somar no −1 anularia o efeito).
+- **Causa do dado mexido:** aparece ao **tocar** no dado (o texto da dica), não ao segurar.
+- **Reorganização do palco:** os cartões deslizam para o lugar novo depois que o que saiu some (0,25 s cada).

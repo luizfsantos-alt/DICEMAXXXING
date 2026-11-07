@@ -7,7 +7,7 @@ extends SceneTree
 ## pega a primeira recompensa que couber e, nas paradas, prefere Cura com pouca vida.
 ## Experimentos (não mudam o jogo): --hand=-1 soma à mão de todos (jogador e inimigos,
 ## mínimo 2); --h-mult=2 e --h-bag=6 trocam o multiplicador e a bolsa máxima do Hidrogênio.
-## --enemy-hp=0.85 multiplica a vida dos inimigos; --hero-hp=70 troca a vida inicial do herói.
+## --enemy-hp=0.85 multiplica a vida dos inimigos; --master-hp=1.2 só a dos Mestres; --hero-hp=70 troca a vida inicial do herói.
 ## --agile-stack: o +1 dado do Ágil (Assassino) acumula até o fim da luta.
 ## --report imprime vitórias por elemento na bolsa e derrotas por tipo de inimigo.
 ## --bot=new (padrão) usa o bot de sim/bot.gd (docs/SPEC_v3.1.md §5.1): porta pela vida,
@@ -23,6 +23,7 @@ var report := false
 var enemy_hp := 1.0
 var hero_hp := 0
 var bot_kind := "new"
+var master_hp := 1.0
 
 
 func _init() -> void:
@@ -46,6 +47,8 @@ func _init() -> void:
 			print("Experimento: Ágil acumula até o fim da luta")
 		elif a.begins_with("--enemy-hp="):
 			enemy_hp = float(a.split("=")[1])
+		elif a.begins_with("--master-hp="):
+			master_hp = float(a.split("=")[1])
 		elif a.begins_with("--hero-hp="):
 			hero_hp = int(a.split("=")[1])
 		elif a.begins_with("--hand="):
@@ -104,8 +107,9 @@ func _simulate(char_id: String, runs: int, seed0: int, door_pref: String) -> voi
 					run.duel.player.personality = "cauteloso"
 					var foe := run.duel.enemy
 					foe.hand_size = maxi(2, foe.hand_size + hand_delta)
-					if enemy_hp != 1.0:
-						foe.max_hp = maxi(1, int(round(foe.max_hp * enemy_hp)))
+					var fm := enemy_hp * (master_hp if foe.master_id != "" else 1.0)
+					if fm != 1.0:
+						foe.max_hp = maxi(1, int(round(foe.max_hp * fm)))
 						foe.hp = foe.max_hp
 					var kind := foe.master_id if foe.master_id != "" else (foe.variant if foe.variant != "" else foe.archetype)
 					if not (kind in ["minimalist", "monge"]) and foe.bag.any(func(d): return Elements.solitary(foe, d)):

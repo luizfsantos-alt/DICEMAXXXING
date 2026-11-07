@@ -19,7 +19,7 @@
 
 | Hoje | Com raridade |
 |---|---|
-| Toda magia tem a mesma chance de aparecer (1 em 45). | As simples aparecem muito; as que mudam a jornada aparecem pouco. |
+| Toda magia tem a mesma chance de aparecer (1 em 58). | As simples aparecem muito; as que mudam a jornada aparecem pouco. |
 | Toda magia custa 10 na Loja. | O preço acompanha a força. |
 | Um inimigo do andar 2 pode comprar a Matemática Superior. | As magias raras só aparecem nos inimigos mais altos. |
 | Para enfraquecer uma magia forte, é preciso mexer no efeito. | Há uma alavanca a mais: **subir a raridade** (aparece menos e custa mais), sem mudar a regra. |
@@ -38,7 +38,7 @@
 
 ## 3. Magias
 
-### 3.1 Comuns (16)
+### 3.1 Comuns (23)
 
 | Magia | Por quê |
 |---|---|
@@ -46,8 +46,9 @@
 | Corte Duplo, Levantar Peso, Impulso Calculado, **Machadada**, **Mordida** | Dano direto, um dado ou dois. |
 | Escudo Arcano, Esquiva, Armadura de Músculo, Pose Congelada | Defesa direta. |
 | Remendo, **Cerrar os Dentes**, Imune a Críticas, Suor de Campeão | Cura e limpeza. |
+| **Segunda Chance**, **Ajuste Fino**, **Pico**, **Sangria**, **Virar**, **Nivelar**, **Polarizar** | Mexidas simples nos próprios dados (as cinco primeiras são as iniciais dos jogáveis). |
 
-### 3.2 Incomuns (20)
+### 3.2 Incomuns (24)
 
 | Magia | Por quê |
 |---|---|
@@ -56,8 +57,9 @@
 | Plágio, Roubar a Cena, Arrancar das Mãos | Mexem na bolsa ou na mão do inimigo. |
 | Meia Verdade, Interrupção Rude, Rasteira Humilhante | Enfraquecem a próxima mão do inimigo. |
 | Espelho, Revide Elegante, Recuo Estratégico, Presença Imponente, Concentrar Força, Transfusão | Defesa ou ganho com condição. |
+| **Eco**, **Inflar**, **Juntar Cacos**, **Escada** | Mexidas que fabricam par, dobram ou fundem dados. |
 
-### 3.3 Raras (9)
+### 3.3 Raras (11)
 
 | Magia | Por quê |
 |---|---|
@@ -66,6 +68,8 @@
 | Sacrifício | Mexe na bolsa para sempre e soma em todas as magias. |
 | Improviso Brilhante | Transforma a mão inteira em bloqueio. |
 | Chave de Braço Didática | Corta pela metade a mão inteira do inimigo. |
+| **Tudo ou Nada** | Mexida arriscada: rola de novo e fica com o novo valor ×2. |
+| **Lapidar** | Mexida que edita a face do dado para sempre. |
 
 Os **kits iniciais** ignoram a raridade (o Copista começa com a Imitação Barata, que é Rara).
 

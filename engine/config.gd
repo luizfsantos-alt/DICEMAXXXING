@@ -50,8 +50,8 @@ const REWARD_CHOICES := {"facil": 2, "normal": 3, "dificil": 3, "insana": 4}
 # Inimigos.
 const ENEMY_HP_BASE := 31
 const ENEMY_HP_PER_FLOOR := 5
-const ENEMY_HP_MULT := 0.9 ## Compensa a mão de 4 (lutas mais longas desgastam o herói).
-const MASTER_HP_MULT := 2.0
+const ENEMY_HP_MULT := 1.035 ## Calibrado com o bot novo e as mexidas (spec v3.1 §10): era 0,9.
+const MASTER_HP_MULT := 2.6 ## Calibrado: o Mestre é a luta mais difícil do ato.
 const MASTER_COINS := 20
 const REACTOR_POISON := 1 ## O Reator: cada dado parado no fim do turno envenena quem o rolou.
 const MINIMALIST_ENEMY_HP_MULT := 0.8 ## Compensa o Hidrogênio.

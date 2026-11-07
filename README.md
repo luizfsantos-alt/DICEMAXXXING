@@ -4,7 +4,8 @@ Jogo de dados para Android: suba uma torre com uma bolsa de dados e um grimório
 Tela em paisagem.
 
 - Regras: [`docs/SPEC_v3.md`](docs/SPEC_v3.md) (v3, fonte da verdade). A fatia vertical (seção 12) está implementada.
-- Magias: [`docs/CATALOGO_MAGIAS.md`](docs/CATALOGO_MAGIAS.md) (catálogo único e princípios de design). Propostas anteriores, com o feedback, em `docs/MAGIAS_DICE_FUCKERY.md` e `docs/MAGIAS_FISICAS.md`.
+- Magias: [`docs/CATALOGO_MAGIAS.md`](docs/CATALOGO_MAGIAS.md) (catálogo único e princípios de design; as 13 **mexidas**, magias que mudam os próprios dados, na seção 11).
+- Rodada de crítica de mecânicas (mexidas, portas com o inimigo, cura após vitória, Mestres com kit fixo, bot novo, telemetria): [`docs/SPEC_v3.1.md`](docs/SPEC_v3.1.md) (histórico; já incorporado à SPEC v3 e ao catálogo). Propostas anteriores, com o feedback, em `docs/MAGIAS_DICE_FUCKERY.md` e `docs/MAGIAS_FISICAS.md`.
 - Personagens: [`docs/PERSONAGENS.md`](docs/PERSONAGENS.md). Jogáveis: Feiticeiro, Assassino, Metalurgista, Vampiro e Bárbaro (cartões com o retrato na tela inicial).
 - Masmorra 1: 30 andares, com Mestre nos andares 10 (Porteiro de Chumbo), 20 (A Alquimista) e 30 (O Reator); ver `docs/SPEC_v3.md` §2 e §8.3.
 - Raridade de magias e dados: [`docs/RARIDADE.md`](docs/RARIDADE.md).
@@ -47,7 +48,9 @@ Tela em paisagem.
   quadriculado falso): `python3 tools/recortar_fundo.py gerada.png saida.png --size 64x64`.
 - Textos PT-BR: `data/texts_pt_br.json`. Tom (duelo de egos entre magos): [`docs/TOM.md`](docs/TOM.md).
 - Testes (GUT): `tests/`.
-- Simulador de balanceamento: `sim/simulate.gd`.
+- Simulador de balanceamento: `sim/simulate.gd` (bot novo em `sim/bot.gd`; `--bot=old` é o antigo).
+- Telemetria de playtest: cada jornada encerrada fica no aparelho (`user://jornadas.json`, as últimas 50);
+  o menu tem "Copiar dados das jornadas" e `sim/telemetria.gd -- --file=jornadas.json` resume o arquivo.
 
 ## Rodar
 
@@ -55,9 +58,11 @@ Tela em paisagem.
 godot --headless --import
 godot --headless -s addons/gut/gut_cmdln.gd -gexit                 # testes
 godot --headless -s res://sim/check.gd                              # scripts sem erro
-godot --headless -s res://sim/simulate.gd -- --runs=1000 --door=normal --char=all --spells   # simulação
+godot --headless -s res://sim/simulate.gd -- --runs=500 --char=all --report   # simulação (bot novo)
+godot --headless -s res://sim/telemetria.gd -- --file=jornadas.json   # resumo das jornadas copiadas do jogo
 xvfb-run godot -s res://sim/shot_duel.gd -- --out=/tmp   # capturas: menu e rolagem 3D (precisa de vídeo)
 xvfb-run godot --fixed-fps 30 -s res://sim/shot_shake.gd -- --out=/tmp   # quadros da tremida em cada faixa de dano
+xvfb-run godot -s res://sim/shot_mexidas.gd -- --out=/tmp   # mexida antes e depois (o cartão sai do palco)
 ```
 
 ## APK
