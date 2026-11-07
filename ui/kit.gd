@@ -18,6 +18,15 @@ const RARITY_COLORS := {
 	"common": Color(0.62, 0.62, 0.66), "uncommon": Color(0.35, 0.6, 1.0), "rare": Color(1.0, 0.78, 0.25),
 }
 
+## Tamanhos mínimos (pixels da tela de 1280×720; num celular, 18 px ≈ 1,7 mm).
+const FONT_MIN := 18 ## Corpo de texto.
+const TOUCH_MIN := 64 ## Lado mínimo de um alvo de toque.
+## Fonte dos títulos (Pixelify Sans, SIL OFL: assets/fonts/PixelifySans-OFL.txt), que
+## combina com a pixel art; os números grandes usam a Bungee (assets/fonts/Bungee-OFL.txt).
+const TITLE_FONT := "res://assets/fonts/PixelifySans.ttf"
+const NUM_FONT := "res://assets/fonts/Bungee-Regular.ttf"
+static var _fonts := {}
+
 const UI_DIR := "res://assets/ui/"
 const COIN := "res://assets/icons/coin.png"
 ## Textura -> bordas que não esticam (esq., cima, dir., baixo), em pixels da textura.
@@ -28,6 +37,43 @@ const NINE := {
 ## Fundo de tela -> escurecimento (os painéis e textos ficam por cima).
 const BG_SHADE := 0.55
 static var _tex := {} ## caminho -> Texture2D ou null (não existe)
+
+
+## Fonte carregada uma vez (sem o arquivo, a fonte padrão).
+static func font(path: String) -> Font:
+	if not _fonts.has(path):
+		_fonts[path] = load(path) if ResourceLoader.exists(path) else ThemeDB.fallback_font
+	return _fonts[path]
+
+
+static func title_font() -> Font:
+	var f := font(TITLE_FONT)
+	if f is FontFile and not _fonts.has("title_bold"):
+		# Peso forte da fonte variável.
+		var v := FontVariation.new()
+		v.base_font = f
+		var ts := TextServerManager.get_primary_interface()
+		v.variation_opentype = {ts.name_to_tag("wght"): 650}
+		# Sem ligaduras: o "fi" da fonte vira outro desenho ("final" parecia "Anal").
+		v.opentype_features = {ts.name_to_tag("liga"): 0, ts.name_to_tag("calt"): 0}
+		_fonts["title_bold"] = v
+	return _fonts.get("title_bold", f)
+
+
+static func num_font() -> Font:
+	return font(NUM_FONT)
+
+
+## Título na fonte da pixel art, com contorno escuro (fica legível sobre os fundos).
+## Só para tamanhos de 20 px para cima: menor que isso, a fonte de pixel embaralha
+## letras (o "C" parece "O"); textos pequenos usam a fonte do corpo.
+static func title(text: String, size := 32, color := ACCENT, outline := 6) -> Label:
+	var l := label(text, size, color)
+	l.add_theme_font_override("font", title_font())
+	if outline > 0:
+		l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+		l.add_theme_constant_override("outline_size", outline)
+	return l
 
 
 ## Textura carregada uma vez (null se o arquivo não existe).
@@ -150,6 +196,27 @@ static func button(text: String, cb: Callable, color := PANEL_HI, size := 28) ->
 		b.add_theme_stylebox_override("disabled", box(color.darkened(0.5), 14, 10))
 	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	b.pressed.connect(cb)
+	return b
+
+
+## Botão da ação principal da tela ("Terminar turno"): a mesma moldura dos outros botões,
+## com fundo dourado e texto escuro. Desativado, fica cinza e o texto continua legível.
+static func primary_button(text: String, cb: Callable, size := 28) -> Button:
+	var b := button(text, cb, PANEL_HI, size)
+	# Dourado chapado com borda de bronze: a textura do botão é escura demais para tingir.
+	for st in ["normal", "hover", "pressed", "disabled"]:
+		var fill: Color = {"normal": ACCENT, "hover": ACCENT.lightened(0.12), "pressed": ACCENT.darkened(0.2), "disabled": PANEL_HI}[st]
+		var sb := box(fill, 10, 10)
+		sb.set_border_width_all(3)
+		sb.border_color = Color(0.42, 0.26, 0.08) if st != "disabled" else MUTED.darkened(0.3)
+		sb.shadow_color = Color(0, 0, 0, 0.45)
+		sb.shadow_size = 4
+		sb.shadow_offset = Vector2(0, 3)
+		b.add_theme_stylebox_override(st, sb)
+	b.add_theme_font_override("font", title_font())
+	for k in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		b.add_theme_color_override(k, Color(0.12, 0.07, 0.02))
+	b.add_theme_color_override("font_disabled_color", Color(0.85, 0.83, 0.9))
 	return b
 
 

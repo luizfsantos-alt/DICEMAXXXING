@@ -26,6 +26,7 @@ const ICON_MAX := 240
 const ROW_W := 1200
 const CARD_GAP := 36
 ## Fases cujo título é o nome do lugar (as outras não têm título: as opções falam por si).
+const NAME_H := 62 ## Altura do nome embaixo da ilustração (duas linhas).
 const PLACE_TITLES := {"shop": "stops.shop.0", "school": "stops.school.0", "well": "stops.well.0"}
 
 
@@ -38,7 +39,7 @@ func setup(r: RunState) -> TowerScreen:
 	add_child(m)
 	strip = PlayerStrip.new()
 	root.add_child(strip)
-	title = Kit.label("", 32, Kit.ACCENT)
+	title = Kit.title("", 36, Kit.ACCENT)
 	root.add_child(title)
 	var mid := CenterContainer.new()
 	mid.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -124,6 +125,7 @@ func _card(i: int, o: Dictionary, px: int) -> Control:
 		b.add_theme_stylebox_override(st, StyleBoxEmpty.new())
 	var img := _icon(o)
 	b.add_child(img)
+	_add_element_badge(b, o, px)
 	b.disabled = blocked != ""
 	if b.disabled:
 		img.modulate = Color(0.45, 0.45, 0.5)
@@ -140,7 +142,9 @@ func _card(i: int, o: Dictionary, px: int) -> Control:
 	var col: Color = Kit.TEXT if rar in ["", "common"] else Kit.RARITY_COLORS[rar]
 	var name := Kit.label(short_name(o), 24, col, true)
 	name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name.custom_minimum_size = Vector2(px - 56, 0)
+	name.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	# Sempre a altura de duas linhas: os preços ficam todos na mesma altura.
+	name.custom_minimum_size = Vector2(px - Kit.TOUCH_MIN - 8, NAME_H)
 	name.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_outline(name)
 	row.add_child(name)
@@ -158,7 +162,22 @@ func _card(i: int, o: Dictionary, px: int) -> Control:
 		bl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_outline(bl)
 		v.add_child(bl)
-	elif not (run.phase in ["doors", "rest"]):
+	elif run.phase == "doors":
+		# A porta mostra a recompensa (SPEC §2); a do Mestre, quem espera atrás dela.
+		var sub: Control
+		if o.id == "mestre":
+			var mid := EnemyFactory.master_of(run.floor_n)
+			sub = Kit.label(Texts.master_name(mid if mid != "" else "porteiro"), 20, Kit.DANGER.lightened(0.2), true)
+			(sub as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			_outline(sub)
+		else:
+			sub = Kit.price_tag(Texts.t("ui.door_reward", {"n": int(o.get("coins", 0))}))
+			(sub as HBoxContainer).alignment = BoxContainer.ALIGNMENT_CENTER
+			for l in sub.get_children():
+				if l is Label:
+					_outline(l)
+		v.add_child(sub)
+	elif run.phase != "rest":
 		var p: Control
 		if price == 0:
 			p = Kit.label(Texts.t("ui.free"), 22, Kit.ACCENT)
@@ -205,18 +224,39 @@ func _icon(o: Dictionary) -> Control:
 	return c
 
 
+## Dado ou elemento oferecido: a ilustração genérica ganha a cor do elemento (o dado é
+## pintado) e o próprio dado no canto, como ele vai aparecer na luta.
+func _add_element_badge(b: Control, o: Dictionary, px: int) -> void:
+	if not (str(o.kind) in ["die", "element"]) or str(o.get("id", "")) == "":
+		return
+	var el := str(o.id)
+	if o.kind == "die" and b.get_child_count() > 0 and b.get_child(0) is TextureRect:
+		var body: Color = Elements.look(el).body
+		(b.get_child(0) as TextureRect).self_modulate = body.lightened(0.15)
+	var side := int(px * 0.36)
+	var ic := DieIcon.new().setup(6, el, side)
+	ic.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	ic.offset_left = -side
+	ic.offset_top = -side
+	ic.offset_right = 0
+	ic.offset_bottom = 0
+	b.add_child(ic)
+
+
 ## Botão redondo "i": abre os detalhes da opção sem escolhê-la.
 static func _info_btn(cb: Callable) -> Button:
 	var b := Button.new()
 	b.text = "i"
 	b.focus_mode = Control.FOCUS_NONE
-	b.custom_minimum_size = Vector2(44, 44)
+	b.custom_minimum_size = Vector2(Kit.TOUCH_MIN, Kit.TOUCH_MIN)
 	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	b.add_theme_font_size_override("font_size", 24)
+	b.add_theme_font_size_override("font_size", 30)
+	b.add_theme_font_override("font", Kit.title_font())
 	for st in ["normal", "hover", "pressed"]:
-		var sb := Kit.box(Kit.PANEL_HI.lightened(0.15 if st == "hover" else 0.0), 22, 0)
-		sb.set_border_width_all(2)
-		sb.border_color = Kit.MUTED
+		# Selo de cera dourado: o mesmo dourado das molduras, maior que um dedo.
+		var sb := Kit.box(Kit.PANEL_HI.lightened(0.15 if st == "hover" else 0.0), Kit.TOUCH_MIN / 2, 0)
+		sb.set_border_width_all(3)
+		sb.border_color = Kit.ACCENT.darkened(0.25)
 		b.add_theme_stylebox_override(st, sb)
 	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	b.add_theme_color_override("font_color", Kit.TEXT)

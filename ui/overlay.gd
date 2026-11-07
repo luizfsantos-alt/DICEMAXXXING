@@ -27,7 +27,9 @@ static func open(parent: Control, title: String, close_text := "", min_w := 760)
 	var v := Kit.vbox(10)
 	p.add_child(v)
 	if title != "":
-		v.add_child(Kit.label(title, 28, Kit.ACCENT, true))
+		var tl := Kit.title(title, 30, Kit.ACCENT, 0)
+		tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		v.add_child(tl)
 	o.body = Kit.vbox(8)
 	v.add_child(o.body)
 	o.footer = Kit.hbox(12)

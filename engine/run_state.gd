@@ -21,6 +21,7 @@ var stats := {"wins": 0, "dealt": 0, "taken": 0, "coins": 0}
 var last_reward: int = 0
 var last_heal: int = 0 ## Vida recuperada na última vitória (a tela mostra).
 var tlog: Dictionary = {} ## Registro da jornada para a telemetria (engine/telemetry.gd).
+var nemesis: Fighter ## Quem venceu o herói (tela final); null enquanto ele vive.
 
 
 static func new_run(run_seed: int, char_id := "sorcerer") -> RunState:
@@ -206,6 +207,8 @@ func finish_duel() -> void:
 	fe.mods = duel.mods_used.duplicate()
 	fe.hp_after = maxi(0, hero.hp)
 	var foe := duel.enemy
+	if not won:
+		nemesis = duel.enemy
 	duel = null
 	if not won:
 		phase = "defeat"
@@ -261,6 +264,7 @@ func to_dict() -> Dictionary:
 		"seed": str(rng.seed), "rng_state": str(rng.state),
 		"duel": duel.to_dict() if duel else {},
 		"tlog": tlog,
+		"nemesis": nemesis.to_dict() if nemesis else {},
 	}
 
 
@@ -295,6 +299,9 @@ static func from_dict(d: Dictionary) -> RunState:
 	r.rng.state = int(str(d.get("rng_state", "0")))
 	if r.phase == "doors":
 		r._door_enemies() ## Save de antes: as portas ganham o inimigo ao carregar.
+	var nd: Dictionary = d.get("nemesis", {})
+	if not nd.is_empty():
+		r.nemesis = Fighter.from_dict(nd)
 	var dd: Dictionary = d.get("duel", {})
 	if not dd.is_empty():
 		r.duel = Duel.from_dict(dd)

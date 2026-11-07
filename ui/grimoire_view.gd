@@ -6,9 +6,10 @@ extends Control
 signal cell_tapped(cell: Vector2i, item: int)
 
 const FX_COLORS := {
-	"dmg": Color(0.75, 0.25, 0.25),
+	# Dano escuro e cura clara: além do matiz, a luminosidade separa os dois (daltonismo).
+	"dmg": Color(0.7, 0.2, 0.2),
 	"block": Color(0.25, 0.45, 0.8), "dodge": Color(0.3, 0.6, 0.7), "mirror": Color(0.55, 0.6, 0.75),
-	"heal": Color(0.3, 0.65, 0.35), "maxhp": Color(0.35, 0.7, 0.5), "sacrifice": Color(0.55, 0.3, 0.65),
+	"heal": Color(0.32, 0.72, 0.55), "maxhp": Color(0.4, 0.76, 0.62), "sacrifice": Color(0.55, 0.3, 0.65),
 }
 
 var inv: Inventory
@@ -116,21 +117,53 @@ func _draw() -> void:
 			draw_rect(r, col, false, 3.0)
 
 
+## Peça como uma forma só: cada casa se estende até a vizinha da mesma peça, e só os
+## cantos de fora são arredondados (sem emendas nem pontinhos entre as casas).
+## Luz no alto e sombra embaixo dão o relevo de um bloco.
+func _fill_piece(cells: Array, col: Color) -> void:
+	var m := 3.0
+	for c in cells:
+		var cc: Vector2i = c
+		var o := Vector2(cc) * cell
+		var nl := (cc + Vector2i(-1, 0)) in cells
+		var nr := (cc + Vector2i(1, 0)) in cells
+		var nt := (cc + Vector2i(0, -1)) in cells
+		var nb := (cc + Vector2i(0, 1)) in cells
+		var r := Rect2(o + Vector2(0.0 if nl else m, 0.0 if nt else m),
+			Vector2(cell - (0.0 if nl else m) - (0.0 if nr else m), cell - (0.0 if nt else m) - (0.0 if nb else m)))
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = col
+		sb.anti_aliasing = true
+		var rad := 7
+		sb.corner_radius_top_left = rad if not (nl or nt) else 0
+		sb.corner_radius_top_right = rad if not (nr or nt) else 0
+		sb.corner_radius_bottom_left = rad if not (nl or nb) else 0
+		sb.corner_radius_bottom_right = rad if not (nr or nb) else 0
+		draw_style_box(sb, r)
+		# A faixa segue sem falha para a vizinha do lado (sem marquinha na emenda).
+		var il := 0.0 if nl else 6.0
+		var ir := 0.0 if nr else 6.0
+		if not nt:
+			draw_rect(Rect2(r.position + Vector2(il, 2), Vector2(r.size.x - il - ir, 3)), Color(1, 1, 1, 0.18))
+		if not nb:
+			draw_rect(Rect2(Vector2(r.position.x + il, r.end.y - 5), Vector2(r.size.x - il - ir, 3)), Color(0, 0, 0, 0.22))
+
+
 ## Contorno só nas bordas externas da peça (formatos em L não ganham caixa extra).
-func _outline(cells: Array, col: Color) -> void:
+func _outline(cells: Array, col: Color, width := 4.0) -> void:
 	for c in cells:
 		var cc: Vector2i = c
 		var o := Vector2(cc) * cell
 		var a := 3.0
 		var b := cell - 3.0
 		if not (cc + Vector2i(0, -1)) in cells:
-			draw_line(o + Vector2(a, a), o + Vector2(b, a), col, 4.0)
+			draw_line(o + Vector2(0 if (cc + Vector2i(-1, 0)) in cells else a, a), o + Vector2(cell if (cc + Vector2i(1, 0)) in cells else b, a), col, width)
 		if not (cc + Vector2i(0, 1)) in cells:
-			draw_line(o + Vector2(a, b), o + Vector2(b, b), col, 4.0)
+			draw_line(o + Vector2(0 if (cc + Vector2i(-1, 0)) in cells else a, b), o + Vector2(cell if (cc + Vector2i(1, 0)) in cells else b, b), col, width)
 		if not (cc + Vector2i(-1, 0)) in cells:
-			draw_line(o + Vector2(a, a), o + Vector2(a, b), col, 4.0)
+			draw_line(o + Vector2(a, 0 if (cc + Vector2i(0, -1)) in cells else a), o + Vector2(a, cell if (cc + Vector2i(0, 1)) in cells else b), col, width)
 		if not (cc + Vector2i(1, 0)) in cells:
-			draw_line(o + Vector2(b, a), o + Vector2(b, b), col, 4.0)
+			draw_line(o + Vector2(b, 0 if (cc + Vector2i(0, -1)) in cells else a), o + Vector2(b, cell if (cc + Vector2i(0, 1)) in cells else b), col, width)
 
 
 func _draw_piece(i: int, it: Dictionary, font: Font) -> void:
@@ -151,17 +184,10 @@ func _draw_piece(i: int, it: Dictionary, font: Font) -> void:
 		var cc: Vector2i = c
 		lo = Vector2i(mini(lo.x, cc.x), mini(lo.y, cc.y))
 		hi = Vector2i(maxi(hi.x, cc.x), maxi(hi.y, cc.y))
-		draw_style_box(Kit.box(col, 6, 0), Rect2(Vector2(cc) * cell, Vector2(cell, cell)).grow(-3))
-	# Preenche as emendas entre células vizinhas da mesma peça (e o miolo de blocos 2×2).
-	for c in cells:
-		var cc: Vector2i = c
-		var o := Vector2(cc) * cell
-		if (cc + Vector2i(1, 0)) in cells:
-			draw_rect(Rect2(o + Vector2(cell - 4, 3), Vector2(8, cell - 6)), col)
-		if (cc + Vector2i(0, 1)) in cells:
-			draw_rect(Rect2(o + Vector2(3, cell - 4), Vector2(cell - 6, 8)), col)
-		if (cc + Vector2i(1, 0)) in cells and (cc + Vector2i(0, 1)) in cells and (cc + Vector2i(1, 1)) in cells:
-			draw_rect(Rect2(o + Vector2(cell - 4, cell - 4), Vector2(8, 8)), col)
+	_fill_piece(cells, col)
+	# Borda na cor da raridade (como a moldura dos cartões) e o ícone do efeito: a peça
+	# não depende só da cor para dizer o que faz.
+	_outline(cells, Kit.RARITY_COLORS.get(Spells.rarity(id), Kit.MUTED).darkened(0.15), 3.0)
 	var box := Rect2(Vector2(lo) * cell, Vector2(hi - lo + Vector2i.ONE) * cell)
 	if ready:
 		draw_rect(box.grow(-3), Kit.ACCENT, false, 4.0)
@@ -175,6 +201,18 @@ func _draw_piece(i: int, it: Dictionary, font: Font) -> void:
 		draw_string(font, c + Vector2(-rad, rad * 0.4), str(pos), HORIZONTAL_ALIGNMENT_CENTER, rad * 2, int(rad * 1.1), Kit.TEXT)
 		if i == new_item:
 			draw_string(font, box.position + Vector2(8, box.size.y - 10), Texts.t("ui.new_tag"), HORIZONTAL_ALIGNMENT_LEFT, -1, int(cell * 0.14), Kit.ACCENT)
+	var icon := SpellCard.icon(Spells.icon_key(id))
+	if compact:
+		# Miniatura: só o ícone no meio da peça (três letras do nome não diziam nada).
+		if icon:
+			var side := minf(cell * 0.7, minf(box.size.x, box.size.y) * 0.6)
+			draw_texture_rect(icon, Rect2(box.get_center() - Vector2(side, side) * 0.5, Vector2(side, side)), false,
+				Color(1, 1, 1, 0.45 if used else 1.0))
+			return
+	elif icon:
+		var side := cell * 0.32
+		draw_texture_rect(icon, Rect2(box.position + Vector2(box.size.x - side - 6, box.size.y - side - 6 - (cell * 0.34 if show_order else 0.0)),
+			Vector2(side, side)), false, Color(1, 1, 1, 0.45 if used else 0.95))
 	var anchor: Vector2i = cells[0]
 	for c in cells:
 		var cc: Vector2i = c
@@ -186,20 +224,22 @@ func _draw_piece(i: int, it: Dictionary, font: Font) -> void:
 	while (anchor + Vector2i(run_w, 0)) in cells:
 		run_w += 1
 	var w := cell * run_w - 12.0
-	var fs := maxi(10, int(cell * (0.17 if not compact else 0.22)))
+	var fs := maxi(12, int(cell * (0.19 if not compact else 0.22)))
+	var tfont := Kit.title_font()
 	var name := Texts.spell_name(id)
 	if compact:
 		name = name.left(3)
 	var nfs := fs
-	while nfs > 10 and font.get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1, nfs).x > w:
+	while nfs > 10 and tfont.get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1, nfs).x > w:
 		nfs -= 1
-	draw_string(font, tl + Vector2(0, fs), name, HORIZONTAL_ALIGNMENT_LEFT, w, nfs, Kit.TEXT)
+	draw_string_outline(tfont, tl + Vector2(0, fs), name, HORIZONTAL_ALIGNMENT_LEFT, w, nfs, 4, Color(0, 0, 0, 0.45))
+	draw_string(tfont, tl + Vector2(0, fs), name, HORIZONTAL_ALIGNMENT_LEFT, w, nfs, Kit.TEXT)
 	if compact:
 		return
 	var sub := req_label(id)
 	if int(it.level) > 1:
 		sub += "  " + Texts.t("ui.level", {"n": it.level})
-	draw_string(font, tl + Vector2(0, fs * 2.1), sub, HORIZONTAL_ALIGNMENT_LEFT, w, int(fs * 0.85), Kit.TEXT.darkened(0.15))
+	draw_string(font, tl + Vector2(0, fs * 2.1), sub, HORIZONTAL_ALIGNMENT_LEFT, w, int(fs * 0.85), Kit.TEXT)
 	if used:
 		draw_string(font, tl + Vector2(0, fs * 3.2), Texts.t("ui.used"), HORIZONTAL_ALIGNMENT_LEFT, w, int(fs * 0.85), Kit.MUTED)
 	elif Spells.is_once(id):
