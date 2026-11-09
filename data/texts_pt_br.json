@@ -274,6 +274,10 @@
    "Carbono",
    "Cadeia: +2 para cada outro Carbono na mão."
   ],
+  "Au": [
+   "Ouro",
+   "Ao ser usado numa magia, você ganha 1 moeda."
+  ],
   "Cs": [
    "Césio",
    "Radiação: ao ser usado, envenena o inimigo em 1 (acumula; o veneno não cai sozinho, só sai com magia)."
@@ -390,6 +394,10 @@
   "sticker": "Adesivo ×2 numa face",
   "element": "Elemento: {name}",
   "destroy": "Destruir um dado",
+  "gold_sticker": "Adesivo de ouro numa face",
+  "gold_sticker_desc": "Marca uma face de um dado. Toda vez que essa face for usada numa magia, você ganha 1 moeda.",
+  "copy_die": "Copiar um dado",
+  "copy_die_desc": "Escolha um dado da bolsa: uma cópia dele (elemento, faces, adesivos) entra na bolsa.",
   "maxhp": "+5 de vida máxima",
   "evolve": "Evoluir {name} (nível {lvl})",
   "slots": "+1 coluna no inventário",
@@ -437,6 +445,8 @@
   "done": "Pronto",
   "pick_die_title": "Escolha um dado",
   "pick_face_title": "Escolha uma face",
+  "pick_face_die": "Escolha o dado e depois a face",
+  "back": "Voltar",
   "cancel": "Cancelar",
   "no_room": "Não cabe no inventário.",
   "pick_face": "Escolha uma face.",
@@ -586,6 +596,8 @@
   "evolve_next": "Nível {n}: {fx}",
   "fx_alchemy": "Alquimia: {from} → {to}",
   "fx_reactor": "Reator: veneno {n}",
+  "fx_coin": "+{n} moeda",
+  "fx_coins": "+{n} moedas",
   "master_heal": "O Mestre caiu: você recupera {n} de vida.",
   "or": "ou",
   "pv_chance_up": "chance de subir: {p}%",
@@ -654,6 +666,8 @@
   "thirst": "Sede: {who} ganha +{n} de vida máxima",
   "alchemy": "A Alquimista troca o seu {from} por um {to}.",
   "poison_reactor": "Reator: dado parado, {who} envenenado (+{n})",
+  "coin_Au": "Ouro: {who} ganha +{n} moeda",
+  "coin_gold": "Adesivo de ouro: {who} ganha +{n} moeda",
   "mod": "{who} usa {spell}: {from} → {to}"
  },
  "spell_fx": {
@@ -886,6 +900,8 @@
   "element": "Elemento {name}",
   "sticker": "Adesivo ×2",
   "destroy": "Destruir um dado",
+  "gold_sticker": "Adesivo de ouro",
+  "copy_die": "Copiar um dado",
   "maxhp": "+5 de vida máxima",
   "evolve": "Evoluir {name}",
   "slots": "+1 coluna de magias",

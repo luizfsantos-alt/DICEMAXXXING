@@ -130,7 +130,13 @@ static func upgrade(f: Fighter, rng: RandomNumberGenerator, floor_n := 1) -> voi
 			var plain := f.bag.filter(func(d): return d.element == "")
 			if not plain.is_empty():
 				var max_r := "" if floor_n >= Config.RARE_ENEMY_FLOOR else "uncommon"
-				Elements.apply(plain[rng.randi_range(0, plain.size() - 1)], Shop.pick_element(rng, Shop.band(floor_n), max_r))
+				# Ouro só dá moedas a quem tem jornada: o inimigo sorteia outro.
+				var el := "Au"
+				for _t in 20:
+					el = Shop.pick_element(rng, Shop.band(floor_n), max_r)
+					if el != "Au":
+						break
+				Elements.apply(plain[rng.randi_range(0, plain.size() - 1)], el if el != "Au" else "Na")
 			else:
 				_sticker(f, rng)
 		3:

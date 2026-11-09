@@ -332,6 +332,11 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 		f.once_used.append(item)
 	push(ev, {"t": "cast", "side": side(f), "spell": id, "item": item, "dice": dice.duplicate(), "values": values})
 	var mult := int(def.get("mult", 1))
+	# Quantas vezes cada dado bateu: os efeitos do dado (elemento, adesivo de ouro) valem
+	# uma vez por golpe (Corte Duplo ímpar, Exibição de Velocidade com dados iguais).
+	var times := {}
+	for h in dice:
+		times[h] = 1
 	match str(def.fx):
 		"dmg":
 			var raw := Config.scale((total + int(def.get("plus", 0))) * mult, lvl)
@@ -339,6 +344,8 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 			hit(foe, f, raw + dmg_bonus(f), ev, false, pierce)
 			if def.get("odd_twice", false) and values.all(func(v): return v % 2 == 1) and foe.hp > 0 and f.hp > 0:
 				hit(foe, f, raw + dmg_bonus(f), ev)
+				for h in dice:
+					times[h] = 2
 			if def.has("burn") and foe.hp > 0:
 				_burn(foe, int(def.burn), ev)
 		"product":
@@ -346,13 +353,17 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 		"lever":
 			hit(foe, f, Config.scale(int(values.max()) * int(values.min()), lvl) + dmg_bonus(f), ev)
 		"multi":
-			var blows := values.duplicate()
+			var blows: Array = dice.duplicate()
 			if values.size() > 1 and values.all(func(v): return v == values[0]):
-				blows.append_array(values)
-			for v in blows:
+				blows.append_array(dice)
+			var n := {}
+			for h in blows:
 				if foe.hp <= 0 or f.hp <= 0:
 					break
-				hit(foe, f, Config.scale(int(v) * mult, lvl) + dmg_bonus(f), ev)
+				hit(foe, f, Config.scale(int(f.hand[h].value) * mult, lvl) + dmg_bonus(f), ev)
+				n[h] = int(n.get(h, 0)) + 1
+			for h in dice:
+				times[h] = maxi(1, int(n.get(h, 0)))
 		"ones":
 			var ones := 0
 			for e in f.hand:
@@ -451,21 +462,45 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 	# Marca para a sua próxima mão.
 	if def.has("mark"):
 		_mark(f, dice, str(def.mark), total, ev)
-	# Sódio: queima o inimigo ao ser usado. Amianto: machuca quem usa (não é golpe).
-	# Césio: cada dado usado põe veneno (radiação) no inimigo; não cai sozinho.
+	# Efeitos dos dados usados, uma vez por golpe que cada um deu.
 	for h in dice:
-		var e: Dictionary = f.hand[h]
-		if int(e.bag) == -2 or f.die_of(e) == null:
-			continue
-		var el := f.die_of(e).element
-		if el == "Na" and foe.hp > 0:
-			_burn(foe, Config.SODIUM_BURN, ev, "Na")
-		elif el == "Cs" and foe.hp > 0 and negative(foe, ev):
-			foe.poison += Config.CESIUM_POISON
-			push(ev, {"t": "poison_up", "side": side(foe), "n": Config.CESIUM_POISON, "total": foe.poison, "src": "Cs"})
-		elif el == "Am" and f.hp > 0:
-			f.hp -= Config.ASBESTOS_DMG
-			push(ev, {"t": "asbestos", "side": side(f), "n": Config.ASBESTOS_DMG})
+		for _k in int(times.get(h, 1)):
+			_die_effects(f, foe, h, ev)
+
+
+## Efeitos de um dado usado numa magia. Sódio: queima o inimigo. Césio: veneno
+## (radiação) no inimigo, que não cai sozinho. Amianto: machuca quem usa (não é golpe).
+## Ouro: +1 moeda. Adesivo de ouro na face que saiu: +1 moeda por adesivo.
+static func _die_effects(f: Fighter, foe: Fighter, h: int, ev: Array) -> void:
+	var e: Dictionary = f.hand[h]
+	var d := f.die_of(e) if int(e.bag) != -2 else null
+	if d == null:
+		return
+	match d.element:
+		"Na":
+			if foe.hp > 0:
+				_burn(foe, Config.SODIUM_BURN, ev, "Na")
+		"Cs":
+			if foe.hp > 0 and negative(foe, ev):
+				foe.poison += Config.CESIUM_POISON
+				push(ev, {"t": "poison_up", "side": side(foe), "n": Config.CESIUM_POISON, "total": foe.poison, "src": "Cs"})
+		"Am":
+			if f.hp > 0:
+				f.hp -= Config.ASBESTOS_DMG
+				push(ev, {"t": "asbestos", "side": side(f), "n": Config.ASBESTOS_DMG})
+		"Au":
+			_coins(f, Config.GOLD_COINS, ev, "Au")
+	var face := int(e.get("face", -1))
+	if face >= 0 and face < 6 and int(d.gold[face]) > 0:
+		_coins(f, int(d.gold[face]) * Config.GOLD_COINS, ev, "gold")
+
+
+## Moedas ganhas na luta (só o jogador junta: o inimigo não tem jornada).
+static func _coins(f: Fighter, n: int, ev: Array, src: String) -> void:
+	if not f.is_player or n <= 0:
+		return
+	f.coins_won += n
+	push(ev, {"t": "coin", "side": side(f), "n": n, "total": f.coins_won, "src": src})
 
 
 static func _block(f: Fighter, b: int, ev: Array) -> void:

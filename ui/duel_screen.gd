@@ -507,7 +507,7 @@ func _sync_shown() -> void:
 func _refresh_bars() -> void:
 	_refresh_shown_only()
 	hud.text = Texts.t("ui.hud_floor", {"n": run.floor_n, "max": Config.LAST_FLOOR, "t": duel.turn})
-	coins_label.text = str(run.coins)
+	coins_label.text = str(run.coins + duel.player.coins_won)
 	var e := duel.enemy
 	var arch := Texts.t("archetypes." + e.archetype) if e.master_id != "" else Texts.fighter_title(e)
 	enemy_sub.text = Texts.t("ui.enemy_sub", {"arch": arch, "n": e.bag.size()})
@@ -1364,6 +1364,10 @@ func _apply_event(ev: Dictionary) -> void:
 				# Urânio (ou dado parado, com o Reator) no fim do turno: sem magia de origem.
 				var pk := "ui.fx_reactor" if str(ev.get("src", "")) == "reactor" else "ui.fx_el_U"
 				await _effect(s, Texts.t(pk, {"n": ev.n}), "fx", null)
+		"coin":
+			# Ouro e adesivo de ouro: a moeda conta na hora (a jornada recebe no fim da luta).
+			_float(s, Texts.t("ui.fx_coin" if int(ev.n) == 1 else "ui.fx_coins", {"n": ev.n}), Elements.COLORS.Au)
+			coins_label.text = str(run.coins + int(ev.total))
 		"alchemy":
 			_float(s, Texts.t("ui.fx_alchemy", {"from": ev["from"], "to": ev.to}), Kit.ACCENT)
 		"dead_weight":
@@ -1682,6 +1686,8 @@ func _describe(ev: Dictionary) -> String:
 			return Texts.t("ev.poison_up", {"who": w, "n": ev.n})
 		"alchemy":
 			return Texts.t("ev.alchemy", {"from": ev["from"], "to": ev.to})
+		"coin":
+			return Texts.t("ev.coin_" + str(ev.src), {"who": w, "n": ev.n})
 		"burn_up":
 			if str(ev.get("src", "")) == "Na":
 				return Texts.t("ev.burn_up_na", {"who": w, "n": ev.n})

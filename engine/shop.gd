@@ -1,7 +1,8 @@
 class_name Shop
 extends RefCounted
 ## Ofertas da torre: recompensa pós-luta, Loja, Escola de Magia, Poço de Modificação e
-## recompensa do Mestre. Uma oferta é {kind, id, price, needs}. needs: "" (aplica
+## recompensa do Mestre. Loja: copiar um dado da bolsa e adesivo de ouro; Poço: adesivo
+## de ouro. Uma oferta é {kind, id, price, needs}. needs: "" (aplica
 ## direto), "die" (escolher um dado da bolsa) ou "face" (escolher uma face de um dado).
 ## Magias e dados seguem a raridade (docs/RARIDADE.md): sorteia a classe, depois o item.
 
@@ -73,6 +74,14 @@ static func die_offer(el: String, priced: bool) -> Dictionary:
 	return {"kind": "die", "id": el, "price": p, "needs": ""}
 
 
+static func copy_die_offer() -> Dictionary:
+	return {"kind": "copy_die", "id": "", "price": Config.PRICE_COPY_DIE, "needs": "die"}
+
+
+static func gold_sticker_offer() -> Dictionary:
+	return {"kind": "gold_sticker", "id": "", "price": Config.PRICE_GOLD_STICKER, "needs": "face"}
+
+
 static func element_offer(el: String) -> Dictionary:
 	return {"kind": "element", "id": el, "price": int(Config.PRICE_ELEMENT_BY_RARITY[Elements.rarity(el)]), "needs": "die"}
 
@@ -101,6 +110,8 @@ static func shop(hero: Fighter, rng: RandomNumberGenerator, hp_bought: int, floo
 	var out := [spell_offer(a, true), spell_offer(c, true), die_offer(pick_element(rng, b), true)]
 	if hero.archetype == "metallurgist":
 		out.append(die_offer("Pb", true))
+	out.append(copy_die_offer())
+	out.append(gold_sticker_offer())
 	out.append({"kind": "maxhp", "id": "", "price": Config.PRICE_HP + hp_bought * Config.PRICE_HP_STEP, "needs": ""})
 	return out
 
@@ -135,6 +146,7 @@ static func well(rng: RandomNumberGenerator, floor_n := 1, hero: Fighter = null)
 		e2 = pick_element(rng, b)
 	var out := [
 		{"kind": "sticker", "id": "", "price": Config.PRICE_STICKER, "needs": "face"},
+		gold_sticker_offer(),
 		element_offer(e1),
 		element_offer(e2),
 	]
@@ -204,12 +216,12 @@ static func check(o: Dictionary, hero: Fighter, target: Dictionary) -> String:
 		"spell":
 			if not hero.inventory.fits(o.id):
 				return "ui.no_room"
-		"sticker":
+		"sticker", "gold_sticker":
 			if not target.has("face"):
 				return "ui.pick_face"
 			if hero.bag[int(target.die)].locked[int(target.face)]:
 				return "ui.locked_face"
-		"element", "destroy":
+		"element", "destroy", "copy_die":
 			if not target.has("die"):
 				return "ui.pick_die"
 			if o.kind == "destroy" and hero.bag.size() <= 2:
@@ -225,6 +237,10 @@ static func apply(o: Dictionary, hero: Fighter, target: Dictionary) -> void:
 			hero.bag.append(Die.with_element(o.id) if o.id != "" else Die.basic())
 		"sticker":
 			hero.bag[int(target.die)].add_sticker(int(target.face))
+		"gold_sticker":
+			hero.bag[int(target.die)].add_gold(int(target.face))
+		"copy_die":
+			hero.bag.append(hero.bag[int(target.die)].copy())
 		"element":
 			Elements.apply(hero.bag[int(target.die)], o.id)
 		"destroy":

@@ -3,11 +3,11 @@ extends RefCounted
 ## Elementos e substâncias (docs/SPEC_v3.md §4.1, docs/PERSONAGENS.md §3.2 e §5).
 ## Química é tempero: cada um tem um efeito de uma linha.
 
-const ALL := ["H", "Os", "U", "Na", "Hg", "Pb", "Am", "C", "Fe", "Cs"]
-const SHOP := ["H", "Os", "U", "Na", "Hg", "Am", "C", "Cs"] ## Chumbo só vem dos inimigos (e do Metalurgista); Ferro, só do Bárbaro.
+const ALL := ["H", "Os", "U", "Na", "Hg", "Pb", "Am", "C", "Fe", "Cs", "Au"]
+const SHOP := ["H", "Os", "U", "Na", "Hg", "Am", "C", "Cs", "Au"] ## Chumbo só vem dos inimigos (e do Metalurgista); Ferro, só do Bárbaro.
 ## Raridade (docs/RARIDADE.md §4). Chumbo e Ferro ficam fora (não são sorteados): contam como Comum.
 const RARITY := {
-	"common": ["Na", "Am", "C"],
+	"common": ["Na", "Am", "C", "Au"],
 	"uncommon": ["U", "Hg", "Cs"],
 	"rare": ["H", "Os"],
 }
@@ -53,6 +53,10 @@ const LOOKS := {
 	"Cs": {"body": Color("#1d4fc4"), "body2": Color("#4f8dff"), "ink": Color("#eaf3ff"), "accent": Color("#6fb4ff"),
 		"finish": "vidro", "rough": 0.2, "metal": 0.0, "coat": 0.7, "alpha": 0.95, "rim": 0.35,
 		"glow": "body", "emission": Color("#3d9bff"), "energy": 0.3},
+	# Ouro: metal polido, dourado quente (bem mais saturado que o Amianto).
+	"Au": {"body": Color("#e0a514"), "body2": Color("#ffe27a"), "ink": Color("#3a2604"), "accent": Color("#ffcf3f"),
+		"finish": "espelho", "rough": 0.18, "metal": 0.85, "coat": 0.5, "alpha": 1.0, "rim": 0.2,
+		"glow": "", "emission": Color.BLACK, "energy": 0.0},
 }
 ## Energia máxima do brilho com o estado ativo (heat = 1).
 ## Contidos de propósito: forte demais, o brilho estoura e o valor deixa de ser lido.
@@ -70,6 +74,7 @@ const COLORS := {
 	"C": Color("#b8c4d6"),
 	"Fe": Color("#c7764e"),
 	"Cs": Color("#6fb4ff"),
+	"Au": Color("#ffcf3f"),
 }
 const SOLITARY_BAG := 6 ## Hidrogênio: ×3 com bolsa deste tamanho ou menor (a inicial tem 8).
 const SOLITARY_MULT := 3
@@ -97,6 +102,7 @@ static func apply(d: Die, el: String) -> void:
 		"Pb":
 			d.faces = [1, 1, 1, 2, 2, 3]
 			d.stickers = [0, 0, 0, 0, 0, 0]
+			d.gold = [0, 0, 0, 0, 0, 0]
 			d.locked = [true, true, true, false, false, false]
 
 

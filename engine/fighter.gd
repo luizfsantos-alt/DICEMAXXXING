@@ -28,6 +28,7 @@ var mirror: bool = false
 var dodge: bool = false
 var poison: int = 0
 var burn: int = 0
+var coins_won: int = 0 ## Moedas ganhas nesta luta (Ouro); a jornada recebe no fim dela.
 var sacrifice_bonus: int = 0
 var once_used: Array = [] ## Índices do inventário usados nesta luta (um por uso).
 var turns_taken: int = 0
@@ -90,6 +91,7 @@ func reset_fight_state() -> void:
 	dodge = false
 	poison = 0
 	burn = 0
+	coins_won = 0
 	sacrifice_bonus = 0
 	once_used = []
 	turns_taken = 0
@@ -356,7 +358,7 @@ func to_dict() -> Dictionary:
 		"master_id": master_id, "personality": personality, "portrait": portrait, "max_hp": max_hp, "hp": hp,
 		"hand_size": hand_size, "bag": bag_d, "inventory": inventory.to_dict(),
 		"draw_pile": draw_pile, "discard": discard, "hand": hand_d, "last_hand": last_hand,
-		"block": block, "mirror": mirror, "dodge": dodge, "poison": poison, "burn": burn,
+		"block": block, "mirror": mirror, "dodge": dodge, "poison": poison, "burn": burn, "coins_won": coins_won,
 		"sacrifice_bonus": sacrifice_bonus, "once_used": once_used, "turns_taken": turns_taken,
 		"riposte": riposte, "immune": immune, "recycle": recycle, "marked": marked,
 		"mirror_lvl": mirror_lvl, "dodge_lvl": dodge_lvl, "recycle_lvl": recycle_lvl,
@@ -413,6 +415,7 @@ static func from_dict(d: Dictionary) -> Fighter:
 	f.dodge = bool(d.get("dodge", false))
 	f.poison = int(d.get("poison", 0))
 	f.burn = int(d.get("burn", 0))
+	f.coins_won = int(d.get("coins_won", 0))
 	f.sacrifice_bonus = int(d.get("sacrifice_bonus", 0))
 	f.once_used = Die._ints(d.get("once_used", []))
 	f.turns_taken = int(d.get("turns_taken", 0))

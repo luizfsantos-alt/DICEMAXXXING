@@ -327,6 +327,10 @@ static func art_path(o: Dictionary) -> String:
 			return "res://assets/tower/door_%s.png" % o.id
 		"stop":
 			return "res://assets/tower/stop_%s.png" % o.id
+		"gold_sticker":
+			return "res://assets/icons/coin.png"
+		"copy_die":
+			return "res://assets/icons/offer/die.png"
 	return "res://assets/icons/offer/%s.png" % o.kind
 
 
@@ -374,6 +378,8 @@ func _describe(o: Dictionary) -> Array:
 			return [Texts.t("offers.hand"), Texts.t("offers.hand_desc", {"n": run.hero.hand_size + 1})]
 		"rare_pick":
 			return [Texts.t("offers.rare_pick"), Texts.t("offers.rare_pick_desc")]
+		"gold_sticker", "copy_die":
+			return [Texts.t("offers." + o.kind), Texts.t("offers.%s_desc" % o.kind)]
 	return [Texts.t("offers." + o.kind), ""]
 
 

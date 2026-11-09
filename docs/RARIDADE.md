@@ -79,10 +79,12 @@ Os **kits iniciais** ignoram a raridade (o Copista começa com a Imitação Bara
 
 | Classe | Dados | Por quê |
 |---|---|---|
-| **Comum** | Sódio, **Amianto**, **Carbono** | Efeito simples, sem risco grande. O Carbono só rende em quantidade, por isso é comum. |
+| **Comum** | Sódio, **Amianto**, **Carbono**, **Ouro** | Efeito simples, sem risco grande. O Carbono só rende em quantidade, por isso é comum. |
 | **Incomum** | Urânio, Mercúrio, **Césio** | Valor alto com custo, valor que depende do inimigo, ou dano que se acumula (o veneno do Césio não cai sozinho). |
 | **Raro** | Hidrogênio, Ósmio | O Hidrogênio (×3) define a build da bolsa pequena. O Ósmio sai em toda mão: com adesivos, é um valor alto garantido todo turno. |
 | — | Chumbo | Lixo: só o inimigo dá. Para o Metalurgista, conta como Comum. |
+
+**Adesivo de ouro** (Loja e Poço, 8 moedas): marca uma face; cada vez que ela é usada numa magia, +1 moeda. **Copiar um dado** (Loja, 12 moedas): uma cópia exata de um dado da bolsa (elemento, faces e adesivos) entra na bolsa.
 
 O **dado sem elemento** não tem classe: pela proposta de `docs/PERSONAGENS.md` §5.3, ele deixa de ser oferecido. **Adesivo ×2** e **editar face** são modificações, não dados: ficam fora da raridade.
 

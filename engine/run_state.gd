@@ -201,6 +201,10 @@ func finish_duel() -> void:
 	stats.dealt += duel.dealt
 	stats.taken += duel.taken
 	hero = duel.player
+	# Moedas ganhas durante a luta (dado de Ouro, adesivo de ouro).
+	coins += hero.coins_won
+	stats.coins += hero.coins_won
+	hero.coins_won = 0
 	var won := duel.state == "won"
 	var fe := Telemetry.floor_entry(tlog, floor_n)
 	fe.turns = duel.turn

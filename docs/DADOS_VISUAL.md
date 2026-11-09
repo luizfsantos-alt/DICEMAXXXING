@@ -24,6 +24,7 @@ A tabela fica em `Elements.LOOKS` (`engine/elements.gd`). `Elements.COLORS` cont
 | Amianto | `#d9b44a` | `#2b2410` | `#e3c25e` | fibroso (rugosidade 0,9) | — |
 | Carbono | `#18181c` | `#f4f8ff` | `#b8c4d6` | grafite (metal 0,5, clearcoat 0,5) | pontinhos `#9fd8ff` |
 | Ferro | `#7a4128` | `#f0c8a8` | `#c7764e` | ferrugem com arestas gastas (rugosidade 0,85) | — |
+| Ouro | `#e0a514` | `#3a2604` | `#ffcf3f` | espelho (metal 0,85, rugosidade 0,18, clearcoat 0,5) | — |
 | Césio | `#1d4fc4` | `#eaf3ff` | `#6fb4ff` | vidro (rugosidade 0,2, alfa 0,95, clearcoat 0,7, rim) | corpo `#3d9bff` (o azul do cloreto de césio) |
 
 ## Brilho como estado

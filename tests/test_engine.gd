@@ -153,6 +153,94 @@ func test_cesio_parado_nao_irradia_e_imune_bloqueia():
 	assert_eq(Elements.rarity("Cs"), "uncommon")
 
 
+func test_ouro_da_moeda_por_uso_e_a_jornada_recebe():
+	var run := RunState.new_run(11)
+	for _k in 5:
+		if run.duel != null:
+			break
+		run.choose(0)
+	var a := run.duel.player
+	var b := run.duel.enemy
+	a.bag[0] = Die.with_element("Au")
+	a.bag[1].add_gold(2)
+	a.inventory.add("faisca")
+	a.hand = [{"bag": 0, "temp": null, "face": 3, "value": 4}]
+	var ev := H.cast(a, b, {"faisca": [0]})
+	assert_eq(a.coins_won, Config.GOLD_COINS, "Ouro usado: +1")
+	assert_true(ev.any(func(e): return e.t == "coin" and e.src == "Au"))
+	a.hand = [{"bag": 1, "temp": null, "face": 2, "value": 3}]
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(a.coins_won, 2, "face com adesivo de ouro: +1")
+	a.hand = [{"bag": 1, "temp": null, "face": 0, "value": 1}]
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(a.coins_won, 2, "outra face do mesmo dado não dá")
+	var before := run.coins
+	run.duel.state = "won"
+	run.finish_duel()
+	assert_eq(run.coins, before + 2 + RunState.door_coins(run.door), "as moedas da luta vão para a jornada")
+	assert_eq(run.hero.coins_won, 0)
+
+
+func test_inimigo_nao_junta_moedas():
+	var a := H.fighter("a", ["faisca"])
+	a.is_player = false
+	var b := H.fighter("b", [])
+	a.bag[0] = Die.with_element("Au")
+	H.hand(a, [3])
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(a.coins_won, 0)
+
+
+func test_corte_duplo_aplica_os_efeitos_nos_dois_golpes():
+	var a := H.fighter("a", ["corte"])
+	var b := H.fighter("b", [], 200)
+	a.bag[0] = Die.with_element("Na")
+	a.bag[1] = Die.with_element("Cs")
+	H.hand(a, [3, 5])
+	H.cast(a, b, {"corte": [0, 1]})
+	assert_eq(b.burn, 2 * Config.SODIUM_BURN, "ímpares: dois golpes, Sódio queima duas vezes")
+	assert_eq(b.poison, 2 * Config.CESIUM_POISON, "Césio irradia duas vezes")
+	var c := H.fighter("c", [], 200)
+	H.hand(a, [3, 4])
+	H.cast(a, c, {"corte": [0, 1]})
+	assert_eq(c.burn, Config.SODIUM_BURN, "um golpe só: uma vez")
+
+
+func test_velocidade_efeito_por_golpe():
+	var a := H.fighter("a", ["velocidade"])
+	var b := H.fighter("b", [], 300)
+	a.bag[0] = Die.with_element("Na")
+	H.hand(a, [2, 2, 2])
+	H.cast(a, b, {"velocidade": [0, 1, 2]})
+	assert_eq(b.burn, 2 * Config.SODIUM_BURN, "dados iguais: cada um bate duas vezes")
+
+
+func test_loja_copiar_dado_e_adesivo_de_ouro():
+	var run := RunState.new_run(11)
+	run.choose(0)
+	run.coins = 100
+	run.hero.bag[3] = Die.with_element("Cs")
+	run.hero.bag[3].add_sticker(5)
+	run.phase = "shop"
+	run.options = Shop.shop(run.hero, run.rng, 0)
+	var ci := run.options.map(func(o): return o.kind).find("copy_die")
+	assert_gt(ci, -1, "a Loja vende copiar um dado")
+	assert_eq(run.choose(ci, {}), "ui.pick_die")
+	var n := run.hero.bag.size()
+	assert_eq(run.choose(ci, {"die": 3}), "")
+	assert_eq(run.hero.bag.size(), n + 1)
+	assert_eq(run.hero.bag.back().element, "Cs")
+	assert_eq(run.hero.bag.back().value(5), 12, "copia os adesivos")
+	assert_eq(run.coins, 100 - Config.PRICE_COPY_DIE)
+	var gi := run.options.map(func(o): return o.kind).find("gold_sticker")
+	assert_gt(gi, -1, "a Loja vende adesivo de ouro")
+	assert_eq(run.choose(gi, {"die": 0, "face": 1}), "")
+	assert_eq(int(run.hero.bag[0].gold[1]), 1)
+	var d := Die.from_dict(run.hero.bag[0].to_dict())
+	assert_eq(int(d.gold[1]), 1, "o save guarda o adesivo de ouro")
+	assert_true(Shop.well(run.rng).any(func(o): return o.kind == "gold_sticker"), "o Poço também")
+
+
 # ------------------------------------------------------------ Inventário
 func test_formatos_giram_e_ocupam_a_grade():
 	assert_eq(Spells.shape("escudo", 0), [Vector2i(0, 0), Vector2i(0, 1)])
@@ -500,7 +588,7 @@ func test_loja_poco_e_escola():
 	assert_eq(run.coins, 100 - Config.PRICE_STICKER)
 	assert_eq(run.choose(0, {"die": 2, "face": 5}), "")
 	assert_eq(run.coins, 100 - Config.PRICE_STICKER * 3, "o segundo adesivo no mesmo dado custa o dobro")
-	assert_eq(run.choose(3, {"die": 0}), "")
+	assert_eq(run.choose(4, {"die": 0}), "")
 	assert_eq(run.hero.bag.size(), 7)
 	run.leave()
 	assert_eq(run.phase, "doors")
