@@ -112,6 +112,14 @@
    "Exibição de Velocidade",
    "Três dados de valor 3 ou menos. Um golpe por dado, cada um igual ao valor ×2; se os 3 forem iguais, 6 golpes."
   ],
+  "bigorna": [
+   "Bigorna",
+   "Dois dados de valor exatamente 3. Dano igual à soma ×3 (dois 3 = 18). O Ferro sempre vale 3."
+  ],
+  "muralha": [
+   "Muralha de Ferro",
+   "Um 3. Bloqueio igual a 4 × quantos dados de valor 3 há na sua mão (contando este)."
+  ],
   "peso": [
    "Levantar Peso",
    "Um 1. Dano igual a 4 × quantos dados de valor 1 há na sua mão."
@@ -740,6 +748,8 @@
   "mordida": "Dano = valor; cura metade",
   "banquete": "Dano = soma; cura o menor",
   "machadada": "Dano = valor ×2",
+  "bigorna": "Dois 3: dano = soma ×3",
+  "muralha": "Bloqueio = 4 × cada 3 na mão",
   "cerrar": "Cura = valor ×3",
   "segunda": "Rola de novo, fica o maior",
   "ajuste": "+1 ou −1 no dado",
@@ -791,6 +801,8 @@
   "mordida": "Dano = valor ×{1}; cura metade",
   "banquete": "Dano = soma ×{1}; cura o menor ×{1}",
   "machadada": "Dano = valor ×{2}",
+  "bigorna": "Dois 3: dano = soma ×{3}",
+  "muralha": "Bloqueio = {4} × cada 3 na mão",
   "cerrar": "Cura = valor ×{3}",
   "espelho": "Reflete o próximo golpe ×{1}",
   "esquiva": "Anula o próximo golpe; vira bloqueio ×{-1}",

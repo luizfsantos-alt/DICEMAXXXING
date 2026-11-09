@@ -6,12 +6,12 @@ extends RefCounted
 
 const PERSONALITIES := ["bruto", "cauteloso", "caotico"]
 const SPAWN := ["forca", "imitacao"]
-const OFFENSE := ["foto", "matematica", "obra", "sombras", "meteoro", "bola", "expectativa", "anatomia",
+const OFFENSE := ["foto", "matematica", "bigorna", "obra", "sombras", "meteoro", "bola", "expectativa", "anatomia",
 	"fisica", "velocidade", "bis", "banquete", "machadada", "peso", "plagio", "arrancar", "impulso", "corte",
 	"sacrificio", "mordida", "dardo", "estocada", "faisca"]
 const DEBUFF := ["interrupcao", "chave", "meia_verdade", "roubar_cena"]
 const DEFENSE := ["esquiva_mais", "esquiva", "recuo", "espelho", "imune", "revide", "armadura", "escudo", "presenca",
-	"rasteira", "concentrar", "pose", "suor", "cerrar", "remendo", "transfusao", "improviso"]
+	"rasteira", "muralha", "concentrar", "pose", "suor", "cerrar", "remendo", "transfusao", "improviso"]
 
 
 static func choose(f: Fighter, foe: Fighter, rng: RandomNumberGenerator) -> TurnChoice:
@@ -220,6 +220,8 @@ static func estimate(f: Fighter, item: int, values: Array) -> float:
 			s = (1.0 if values.is_empty() else lo * hi) * mult * 0.7
 		"block_hand":
 			s = float(def.get("per", 1)) * f.hand.size() * 0.7
+		"block_count":
+			s = float(def.get("per", 1)) * Resolver.count_value(f, int(def.get("count", 1))) * 0.7
 		"heal":
 			s = total * mult * 0.5 if hurt else 0.0
 		"maxhp":

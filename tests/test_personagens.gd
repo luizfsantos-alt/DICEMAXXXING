@@ -139,6 +139,24 @@ func test_machadada_e_cerrar_os_dentes():
 	assert_eq(Spells.max_uses("cerrar"), 2)
 
 
+func test_bigorna_e_muralha_de_ferro():
+	var a := H.fighter("A", ["bigorna", "muralha"], 40, true)
+	a.bag[0] = Die.with_element("Fe")
+	a.bag[1] = Die.with_element("Fe")
+	a.bag[2] = Die.with_element("Fe")
+	var b := H.fighter("B", [], 80)
+	var bi := H.item(a, "bigorna")
+	assert_true(Spells.accepts_partial("bigorna", [], 3))
+	assert_false(Spells.accepts_partial("bigorna", [], 4), "só 3 exato")
+	assert_eq(Spells.dice_needed("bigorna"), 2)
+	H.hand(a, [3, 3, 3, 5])
+	H.cast(a, b, {"bigorna": [0, 1], "muralha": [2]})
+	assert_eq(b.hp, 80 - 18, "dois 3: soma ×3")
+	assert_eq(a.block, 4 * 3, "Muralha conta os três 3 da mão (inclusive os da Bigorna)")
+	assert_true(bi >= 0)
+	assert_eq(Spells.color_family("muralha"), "block")
+
+
 # ------------------------------------------------------------------ Passivas
 func test_furia_so_com_metade_da_vida():
 	var f := EnemyFactory.base("barbarian")
@@ -333,8 +351,8 @@ func test_aviso_do_carbono_em_cadeia():
 func test_todas_as_magias_tem_raridade():
 	for id in Spells.DATA:
 		assert_true(Spells.rarity(id) in Config.RARITIES, id)
-	assert_eq(Spells.ids_of_rarity("common").size(), 23, "16 + 7 mexidas")
-	assert_eq(Spells.ids_of_rarity("uncommon").size(), 24, "20 + 4 mexidas")
+	assert_eq(Spells.ids_of_rarity("common").size(), 24, "17 + 7 mexidas (com a Muralha de Ferro)")
+	assert_eq(Spells.ids_of_rarity("uncommon").size(), 25, "21 + 4 mexidas (com a Bigorna)")
 	assert_eq(Spells.ids_of_rarity("rare").size(), 11, "9 + 2 mexidas")
 	assert_eq(Elements.rarity("Os"), "rare")
 	assert_eq(Elements.rarity("Am"), "common")

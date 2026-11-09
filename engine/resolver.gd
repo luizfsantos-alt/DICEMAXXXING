@@ -318,6 +318,15 @@ static func _product(values: Array) -> int:
 	return p
 
 
+## Dados da mão com este valor (Muralha de Ferro conta os 3, contando os já postos).
+static func count_value(f: Fighter, v: int) -> int:
+	var n := 0
+	for e in f.hand:
+		if int(e.bag) != -2 and int(e.value) == v:
+			n += 1
+	return n
+
+
 static func _hand_count(f: Fighter) -> int:
 	var n := 0
 	for e in f.hand:
@@ -410,6 +419,8 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 			_block(f, Config.scale(_product(values) * mult, lvl), ev)
 		"block_hand":
 			_block(f, Config.scale(int(def.get("per", 1)) * _hand_count(f), lvl), ev)
+		"block_count":
+			_block(f, Config.scale(int(def.get("per", 1)) * count_value(f, int(def.get("count", 1))), lvl), ev)
 		"riposte":
 			_block(f, Config.scale(total * mult, lvl), ev)
 			f.riposte = maxi(f.riposte, Config.scale(total, lvl))

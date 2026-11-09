@@ -256,8 +256,11 @@ Vieram de `docs/PERSONAGENS.md`. Todas entram na Loja, na Escola e nas recompens
 | `banquete` | **Banquete** | Reta 3 | Vampiro | 3 dados quaisquer | Dano = soma; cura = o menor dos três. | sempre | Incomum |
 | `machadada` | **Machadada** | 1×2 | Bárbaro | dado ≥ 4 | Dano = valor ×2. | sempre | Comum |
 | `cerrar` | **Cerrar os Dentes** | 1×1 | Bárbaro | dado ≤ 3 | Cura = valor ×3. | 2× por luta | Comum |
+| `bigorna` | **Bigorna** | 2×1 | Bárbaro | 2 dados de valor exatamente 3 | Dano = soma ×3 (dois 3 = 18). | sempre | Incomum |
+| `muralha` | **Muralha de Ferro** | 1×2 | Bárbaro | dado = 3 | Bloqueio = 4 × cada dado de valor 3 na mão (contando este e os já postos). | sempre | Comum |
 
 - **Exigência nova "trio"**: 3 dados iguais; os buracos mostram "=" entre eles.
+- **Magias do Ferro** (0.20.0): o Ferro sempre vale 3, então Bigorna e Muralha de Ferro sempre aceitam os Ferros. Outros dados servem quando caem em 3 (ou com Ajuste Fino, Nivelar etc.). "exact" aceita "n" dados.
 - A cura cresce com o nível, como o dano. A Fúria do Bárbaro e o Sacrifício somam em cada golpe.
 
 
