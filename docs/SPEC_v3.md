@@ -42,7 +42,7 @@
 - **Prêmio das portas** (`Config.DOORS`, `Config.REWARD_CHOICES`): Fácil 3 moedas e recompensa 1 de 2; Normal 7 e 1 de 3; Difícil 12, 1 de 3 com a faixa de raridade acima; Insana 20, 1 de 4 com uma Rara garantida.
 - **Parada sem luta, a cada 3 lutas.** Aparecem 3 das 4 paradas abaixo e dá para usar **todas**: entra-se numa, volta-se quando quiser (mesmo depois de comprar) e entra-se em outra; "Seguir" vai para as portas. Loja e Poço guardam as ofertas entre as visitas (o que foi comprado não volta); a Cura e a Escola valem uma vez por parada.
   - **Loja**: magias, dados, vida máxima.
-  - **Cura**: recupera 35% da vida máxima por **8 moedas** (`Config.PRICE_HEAL_STOP`).
+  - **Cura**: recupera 35% da vida máxima por **8 moedas** (`Config.PRICE_HEAL_STOP`); para o Vampiro, metade (17,5%, `Config.VAMPIRE_HEAL_STOP_MULT`).
   - **Escola de Magia**: aprender uma magia ou **evoluir** uma conhecida (uma escolha).
   - **Poço de Modificação**: aplicar elemento, adesivo +2, editar face, destruir dado.
 - **Recompensa pós-luta:** escolher 1 entre 2, 3 ou 4 conforme a porta (dado, adesivo, magia ou vida máxima), ou pular e levar moedas.

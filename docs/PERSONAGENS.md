@@ -392,3 +392,5 @@ Simulação (200 jornadas, `--seed=1`, % que vence o andar 10, antes → depois)
 ### 8.5 Parada aberta (0.17.0)
 
 A parada deixou de ser "escolha uma": as 3 paradas sorteadas ficam abertas até seguir para as portas (Loja e Poço sem limite de visitas, Cura e Escola uma vez). A Cura passou a custar 8 moedas. Simulação (200 jornadas, `--seed=1`, % que vence o andar 10, 0.16.0 → 0.17.0): Feiticeiro 20 → 34, Assassino 12,5 → 29,5, Vampiro 27 → 50. Mais que compensa a queda do adesivo +2; o Vampiro (Sede + Cura) ficou forte e pode pedir ajuste (preço da Cura, Escola paga ou limite de paradas).
+
+Ajuste (0.17.1): a Cura da parada vale **metade para o Vampiro** (17,5% da vida máxima; a Sede continua dando +1). Vampiro no andar 10: 50 → 46% (andar 30: 10,5 → 9%).

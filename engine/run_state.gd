@@ -203,7 +203,7 @@ func _enter_stop(i: int) -> String:
 			return "ui.not_enough"
 		coins -= int(o.price)
 		hero.thirst_used = 0 ## A Sede do Vampiro também vale na parada de Cura.
-		hero.heal_full(int(ceil(hero.max_hp * Config.HEAL_STOP_FRACTION)))
+		hero.heal_full(heal_stop_amount(hero))
 		o["used"] = true
 		o["visited"] = true
 		if not tlog.is_empty():
@@ -222,6 +222,14 @@ func _enter_stop(i: int) -> String:
 	phase = id
 	options = stop_offers[id]
 	return ""
+
+
+## Vida que a Cura da parada recupera: 35% da máxima; metade disso para o Vampiro.
+static func heal_stop_amount(h: Fighter) -> int:
+	var frac := Config.HEAL_STOP_FRACTION
+	if h.archetype == "vampire":
+		frac *= Config.VAMPIRE_HEAL_STOP_MULT
+	return int(ceil(h.max_hp * frac))
 
 
 func _back_to_rest() -> void:

@@ -369,6 +369,8 @@ func _describe(o: Dictionary) -> Array:
 			return [Texts.t("ui.door", {"d": Texts.t("doors." + o.id)}), Texts.t("ui.door_info", {"d": Texts.t("doors." + o.id),
 				"c": o.get("coins", 0), "n": Config.REWARD_CHOICES.get(str(o.id), 3), "foe": door_foe(o)})]
 		"stop":
+			if o.id == "heal" and run and run.hero.archetype == "vampire":
+				return [Texts.t("stops.heal.0"), Texts.t("stops.heal_vampire", {"n": RunState.heal_stop_amount(run.hero)})]
 			return [Texts.t("stops.%s.0" % o.id), Texts.t("stops.%s.1" % o.id)]
 		"spell":
 			return [Texts.spell_name(o.id), Texts.spell_desc(o.id) + "\n" + Texts.t("ui.shape", {"n": Spells.shape(o.id).size()})]

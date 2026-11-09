@@ -84,6 +84,7 @@ const PRICE_ELEMENT_BY_RARITY := {"common": 6, "uncommon": 9, "rare": 13}
 const PRICE_EVOLVE_RARE := 18 ## Escola: evoluir uma magia Rara.
 const PRICE_HP := 7
 const PRICE_HEAL_STOP := 8 ## Parada de Cura (35% da vida máxima), uma vez por parada.
+const VAMPIRE_HEAL_STOP_MULT := 0.5 ## Vampiro: a Cura da parada vale metade (ele já cura com a Sede).
 const PRICE_HP_STEP := 3
 const HP_UPGRADE := 5
 const STICKER_PLUS := 2 ## Adesivo: +2 na face (somam; antes era ×2 e acumulava em potências).

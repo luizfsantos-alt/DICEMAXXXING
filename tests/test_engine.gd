@@ -800,6 +800,20 @@ func test_cura_da_parada_e_do_mestre():
 	assert_eq(run.choose(0), "ui.stop_used", "uma vez por parada")
 
 
+func test_cura_da_parada_vale_metade_para_o_vampiro():
+	var run := RunState.new_run(13, "vampire")
+	run.hero.hp = 10
+	run.coins = Config.PRICE_HEAL_STOP
+	run.phase = "rest"
+	run.options = [{"kind": "stop", "id": "heal", "price": Config.PRICE_HEAL_STOP, "needs": ""}]
+	var n := int(ceil(run.hero.max_hp * Config.HEAL_STOP_FRACTION * 0.5))
+	assert_eq(RunState.heal_stop_amount(run.hero), n)
+	var before := run.hero.max_hp
+	assert_eq(run.choose(0), "")
+	assert_eq(run.hero.hp, 10 + n + 1, "metade da Cura (+1 da Sede)")
+	assert_eq(run.hero.max_hp, before + 1, "a Sede continua valendo")
+
+
 func test_parada_entra_e_volta_quando_quiser():
 	var run := RunState.new_run(21, "sorcerer")
 	run.choose(0)

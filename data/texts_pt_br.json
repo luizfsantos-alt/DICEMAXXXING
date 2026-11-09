@@ -379,6 +379,7 @@
    "Cura",
    "Recupera 35% da vida máxima. Uma vez por parada."
   ],
+  "heal_vampire": "Recupera metade do normal para o Vampiro: {n} de vida (17,5% da máxima). Uma vez por parada.",
   "school": [
    "Escola de Magia",
    "Aprender uma magia ou evoluir uma que você tem."
