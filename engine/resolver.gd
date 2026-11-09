@@ -167,6 +167,8 @@ static func _announce_elements(f: Fighter, ev: Array) -> void:
 			push(ev, {"t": "element", "side": side(f), "el": "C", "v": int(e.value)})
 		elif d.element == "Hg" and int(e.value) > d.value(int(e.face)):
 			push(ev, {"t": "element", "side": side(f), "el": "Hg", "v": int(e.value)})
+		elif d.element == "Li" and d.charge > 0:
+			push(ev, {"t": "element", "side": side(f), "el": "Li", "v": int(e.value)})
 
 
 ## Mexidas na mão recém-rolada (ordem fixa, para ficar previsível).
@@ -477,7 +479,8 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 
 ## Efeitos de um dado usado numa magia. Sódio: queima o inimigo. Césio: veneno
 ## (radiação) no inimigo, que não cai sozinho. Amianto: machuca quem usa (não é golpe).
-## Ouro: +1 moeda. Adesivo de ouro na face que saiu: +1 moeda por adesivo.
+## Ouro: +1 moeda. Lítio: descarrega. Titânio: bloqueio para quem usa.
+## Adesivo de ouro na face que saiu: +1 moeda por adesivo.
 static func _die_effects(f: Fighter, foe: Fighter, h: int, ev: Array) -> void:
 	var e: Dictionary = f.hand[h]
 	var d := f.die_of(e) if int(e.bag) != -2 else null
@@ -497,6 +500,12 @@ static func _die_effects(f: Fighter, foe: Fighter, h: int, ev: Array) -> void:
 				push(ev, {"t": "asbestos", "side": side(f), "n": Config.ASBESTOS_DMG})
 		"Au":
 			_coins(f, Config.GOLD_COINS, ev, "Au")
+		"Li":
+			d.charge = 0 ## A bateria descarrega ao ser usada.
+		"Ti":
+			if f.hp > 0:
+				f.block += Config.TITANIUM_BLOCK
+				push(ev, {"t": "block", "side": side(f), "n": Config.TITANIUM_BLOCK, "total": f.block, "src": "Ti"})
 	var face := int(e.get("face", -1))
 	if face >= 0 and face < 6 and int(d.gold[face]) > 0:
 		_coins(f, int(d.gold[face]) * Config.GOLD_COINS, ev, "gold")
@@ -640,6 +649,12 @@ static func end_turn(f: Fighter, used: Array, ev: Array, keep: Array = [], react
 		if idle:
 			f.hp -= Spells.IDLE_DMG
 			push(ev, {"t": "idle_dmg", "side": side(f), "n": Spells.IDLE_DMG})
+		var dl := f.die_of(e)
+		if dl != null and dl.element == "Li" and dl.charge < Config.LITHIUM_CAP:
+			# Lítio parado: a bateria carrega para a próxima rolagem.
+			var add := mini(Config.LITHIUM_STEP, Config.LITHIUM_CAP - dl.charge)
+			dl.charge += add
+			push(ev, {"t": "charge", "side": side(f), "n": add, "total": dl.charge})
 		if f.recycle:
 			var rb := Config.scale(int(e.value), f.recycle_lvl)
 			f.block += rb

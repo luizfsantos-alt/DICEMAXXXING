@@ -188,6 +188,16 @@ static func _finish(ci: CanvasItem, face: Rect2, finish: String, body: Color, bo
 				var tone := body.lightened(0.18) if i % 2 == 0 else body.darkened(0.25)
 				ci.draw_circle(c, w * rng.randf_range(0.08, 0.16), Color(tone, 0.6 * k + 0.2))
 			ci.draw_style_box(_border(Color(body2, 0.75 * k + 0.1), rad, maxi(2, int(w * 0.035))), face)
+		"anodizado":
+			# Faixas furta-cor do titânio anodizado (magenta, azul, dourado).
+			var mid := Color("#3d6fe0") ## Azul do meio do furta-cor.
+			var cols := [body, mid, body2, mid]
+			for i in 4:
+				var a0 := 0.18 + i * 0.28
+				var poly := PackedVector2Array([p + Vector2(w * (a0 - 0.2), 0), p + Vector2(w * (a0 + 0.08), 0),
+					p + Vector2(w * (a0 - 0.32), h), p + Vector2(w * (a0 - 0.6), h)])
+				_poly(ci, _clip(poly, face), Color(cols[i], 0.75 * k))
+			ci.draw_style_box(_border(Color(1, 1, 1, 0.35 * k), rad, 2), face)
 		"grafite":
 			var band := PackedVector2Array([p + Vector2(w * 0.35, 0), p + Vector2(w * 0.65, 0), p + Vector2(w * 0.35, h), p + Vector2(w * 0.05, h)])
 			_poly(ci, _clip(band, face), Color(body2, 0.55 * k))

@@ -154,6 +154,51 @@ func test_cesio_parado_nao_irradia_e_imune_bloqueia():
 	assert_eq(Elements.rarity("Cs"), "uncommon")
 
 
+func test_litio_carrega_parado_e_descarrega_ao_usar():
+	var a := H.fighter("a", ["faisca"])
+	var b := H.fighter("b", [])
+	a.bag[1] = Die.with_element("Li")
+	H.hand(a, [3, 4])
+	var ev := H.cast(a, b, {"faisca": [0]})
+	assert_eq(a.bag[1].charge, Config.LITHIUM_STEP, "parado na mão: carrega")
+	assert_true(ev.any(func(e): return e.t == "charge"))
+	for t in 5:
+		H.hand(a, [3, 4])
+		H.cast(a, b, {"faisca": [0]})
+	assert_eq(a.bag[1].charge, Config.LITHIUM_CAP, "até o teto")
+	# A carga soma na rolagem.
+	a.hand = [{"bag": 1, "temp": null, "face": 0, "value": 0}]
+	a._roll_entry(a.hand[0], H.rng())
+	assert_eq(int(a.hand[0].value), int(a.hand[0].face) + 1 + Config.LITHIUM_CAP)
+	assert_eq(str(a.hand[0].cause), "Li")
+	# Usado numa magia: descarrega.
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(a.bag[1].charge, 0, "descarrega ao ser usado")
+	a.bag[1].charge = 4
+	a.end_fight_cleanup()
+	assert_eq(a.bag[1].charge, 0, "a luta seguinte começa sem carga")
+	assert_eq(Elements.rarity("Li"), "common")
+	assert_true("Li" in Elements.SHOP)
+
+
+func test_titanio_da_bloqueio_ao_usar():
+	var a := H.fighter("a", ["faisca"])
+	var b := H.fighter("b", [])
+	a.bag[0] = Die.with_element("Ti")
+	H.hand(a, [3, 4])
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(a.block, Config.TITANIUM_BLOCK, "usado: bloqueio")
+	assert_eq(b.hp, 40 - 3, "o dano da magia continua")
+	a.block = 0
+	a.bag[0] = Die.basic()
+	a.bag[1] = Die.with_element("Ti")
+	H.hand(a, [3, 4])
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(a.block, 0, "Titânio parado não bloqueia")
+	assert_eq(Elements.rarity("Ti"), "common")
+	assert_true("Ti" in Elements.SHOP)
+
+
 func test_ouro_da_moeda_por_uso_e_a_jornada_recebe():
 	var run := RunState.new_run(11)
 	for _k in 5:

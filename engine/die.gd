@@ -4,10 +4,11 @@ extends RefCounted
 ## e adesivos +2 (docs/SPEC_v3.md §4).
 
 var faces: Array = [1, 2, 3, 4, 5, 6]
-var element: String = "" ## "", H, Os, U, Pb, Na, Hg, Am, C, Fe, Cs, Au
+var element: String = "" ## "", H, Os, U, Pb, Na, Hg, Am, C, Fe, Cs, Au, Li, Ti
 var stickers: Array = [0, 0, 0, 0, 0, 0] ## Adesivos +2 por face (cada um soma Config.STICKER_PLUS).
 var gold: Array = [0, 0, 0, 0, 0, 0] ## Adesivos de ouro por face: +1 moeda cada, quando a face é usada.
 var locked: Array = [false, false, false, false, false, false] ## Faces que não podem ser editadas.
+var charge: int = 0 ## Lítio: carga da bateria (soma na rolagem; só vale na luta).
 
 
 static func basic() -> Die:
@@ -69,7 +70,7 @@ func copy() -> Die:
 
 func to_dict() -> Dictionary:
 	return {"faces": faces.duplicate(), "element": element, "stickers": stickers.duplicate(), "locked": locked.duplicate(),
-		"gold": gold.duplicate()}
+		"gold": gold.duplicate(), "charge": charge}
 
 
 static func from_dict(d: Dictionary) -> Die:
@@ -78,6 +79,7 @@ static func from_dict(d: Dictionary) -> Die:
 	x.element = str(d.get("element", ""))
 	x.stickers = _ints(d.get("stickers", [0, 0, 0, 0, 0, 0]))
 	x.gold = _ints(d.get("gold", [0, 0, 0, 0, 0, 0]))
+	x.charge = int(d.get("charge", 0))
 	var lk: Array = d.get("locked", [])
 	x.locked = []
 	for i in 6:

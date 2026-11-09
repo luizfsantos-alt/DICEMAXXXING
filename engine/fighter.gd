@@ -127,6 +127,8 @@ func end_fight_cleanup() -> void:
 			var d: Die = bag[b]
 			d.stickers[int(m.face)] = maxi(0, int(d.stickers[int(m.face)]) - int(m.d))
 	fight_mods = []
+	for d in bag:
+		d.charge = 0 ## A bateria do Lítio descarrega entre as lutas.
 
 
 ## Quantas vezes a magia do item já foi usada nesta luta.
@@ -263,6 +265,9 @@ func _roll_entry(e: Dictionary, rng: RandomNumberGenerator) -> void:
 	if Elements.solitary(self, d):
 		Resolver.mark_cause(e, "H")
 		e.value *= Elements.solitary_mult
+	if d.element == "Li" and d.charge > 0:
+		Resolver.mark_cause(e, "Li")
+		e.value += d.charge
 
 
 ## Cura. Vampiro (Sede): toda cura também dá +1 de vida máxima, até THIRST_CAP por luta.

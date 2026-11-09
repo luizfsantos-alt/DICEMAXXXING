@@ -198,6 +198,9 @@ static func material(value: int, element: String, heat := 0.0) -> StandardMateri
 		m.emission = l.emission
 		m.emission_energy_multiplier = Elements.energy(element, heat)
 		m.emission_texture = emission_texture(value, str(l.glow))
+		if l.get("glow_only", false):
+			# Só a máscara acende (o modo padrão soma a cor no dado inteiro).
+			m.emission_operator = BaseMaterial3D.EMISSION_OP_MULTIPLY
 	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	return m
 
@@ -266,6 +269,13 @@ static func _finish_color(finish: String, body: Color, body2: Color, u: float, v
 			var c := body.lightened(maxf(0.0, n) * 0.25).darkened(maxf(0.0, -n) * 0.3)
 			var wear := 1.0 - smoothstep(0.03, 0.09 + n * 0.03, edge)
 			return c.lerp(body2, wear)
+		"anodizado":
+			# Furta-cor do óxido: magenta, azul e dourado em faixas diagonais onduladas.
+			var t := fposmod((u * 0.8 + v) * 0.9 + sin(u * 7.0 + v * 3.0) * 0.08, 1.0)
+			var mid := Color("#3d6fe0") ## Azul do meio do furta-cor.
+			var c2 := body.lerp(mid, t * 2.0) if t < 0.5 else mid.lerp(body2, (t - 0.5) * 2.0)
+			var sheen := 1.0 - clampf(absf((u + v) - 0.8) / 0.12, 0.0, 1.0)
+			return c2.lightened(sheen * 0.3)
 		"grafite":
 			# Lustro de grafite: uma faixa suave na diagonal.
 			var sheen := 1.0 - clampf(absf((u + v) - 1.0) / 0.35, 0.0, 1.0)

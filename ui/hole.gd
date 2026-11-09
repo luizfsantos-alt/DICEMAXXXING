@@ -32,7 +32,7 @@ var badge_color := Color(0.76, 0.65, 1.0)
 ## Selo curto de cada causa: mexidas do inimigo, Alquimista, elementos e as suas mexidas.
 const BADGES := {
 	"halve": "½", "even_to_one": "1", "top_to_one": "1", "alquimista": "⇄", "porteiro": "Pb",
-	"H": "H", "C": "C", "Hg": "Hg",
+	"H": "H", "C": "C", "Hg": "Hg", "Li": "Li",
 }
 
 
@@ -45,7 +45,7 @@ func set_cause(o: int, cause: String) -> void:
 		return
 	if BADGES.has(cause):
 		badge = BADGES[cause]
-		badge_color = Elements.COLORS.get(cause, Color(1.0, 0.55, 0.5)) if cause in ["H", "C", "Hg", "porteiro"] else Color(1.0, 0.55, 0.5)
+		badge_color = Elements.COLORS.get(cause, Color(1.0, 0.55, 0.5)) if cause in ["H", "C", "Hg", "Li", "porteiro"] else Color(1.0, 0.55, 0.5)
 		if cause == "porteiro":
 			badge_color = Elements.COLORS.Pb
 	else:

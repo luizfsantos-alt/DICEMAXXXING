@@ -318,7 +318,7 @@ func _resolve_mod(f: Fighter, item: int) -> void:
 	mods[item] = m
 
 
-## Rolagem nova do dado da entrada (mesmas regras da mão: +plus, Hidrogênio, Carbono).
+## Rolagem nova do dado da entrada (mesmas regras da mão: +plus, Hidrogênio, Carbono, Lítio).
 ## A cadeia do Carbono é a da rolagem da mão ("chain"), sem recontar; o Mercúrio fica
 ## com a face, sem copiar. Com expect (IA), devolve o valor esperado.
 func _reroll(f: Fighter, e: Dictionary) -> Dictionary:
@@ -327,6 +327,7 @@ func _reroll(f: Fighter, e: Dictionary) -> Dictionary:
 		return {"face": int(e.face), "value": int(e.value), "top": bool(e.top)}
 	var chain := int(e.get("chain", 0)) if d.element == "C" else 0
 	var mult := Elements.solitary_mult if Elements.solitary(f, d) else 1
+	chain += d.charge if d.element == "Li" else 0 ## Lítio: a carga vale em qualquer rolagem.
 	if forced_face >= 0:
 		var fr := d.value(forced_face)
 		return {"face": forced_face, "value": (fr + int(e.get("plus", 0))) * mult + chain, "top": fr == d.max_value()}

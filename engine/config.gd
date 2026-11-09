@@ -36,6 +36,9 @@ const SODIUM_BURN := 2
 const GOLD_COINS := 1 ## Ouro: cada dado usado dá 1 moeda (e cada adesivo de ouro na face usada, 1).
 const CESIUM_POISON := 1 ## Césio: cada dado usado põe 1 de veneno (radiação) no inimigo.
 const ASBESTOS_DMG := 3 ## Amianto: dano em quem usa.
+const LITHIUM_STEP := 2 ## Lítio: carga ganha a cada turno parado na mão.
+const LITHIUM_CAP := 6 ## Lítio: carga máxima (somada na rolagem; zera ao ser usado).
+const TITANIUM_BLOCK := 2 ## Titânio: bloqueio ao ser usado numa magia.
 const HEAL_STOP_FRACTION := 0.35
 const WIN_HEAL_FRACTION := 0.1 ## Vitória fora dos Mestres recupera esta fração da vida máxima (sem a Sede).
 

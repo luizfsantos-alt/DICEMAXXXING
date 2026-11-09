@@ -1373,6 +1373,8 @@ func _apply_event(ev: Dictionary) -> void:
 			_note(s, Texts.t("ui.fx_asbestos", {"n": ev.n}))
 		"element":
 			_float(s, Texts.t("ui.fx_el_" + str(ev.el), {"v": ev.v}), Elements.COLORS.get(str(ev.el), Kit.TEXT))
+		"charge":
+			_float(s, Texts.t("ui.fx_charge", {"n": ev.n, "total": ev.total}), Elements.COLORS.Li)
 		"burn_up":
 			if str(ev.get("src", "")) == "Na":
 				_burst(fx_src, Elements.look("Na").emission, true)
@@ -1417,7 +1419,10 @@ func _apply_event(ev: Dictionary) -> void:
 			_float(s, "+%d" % int(ev.v), Kit.ACCENT)
 		"block":
 			# Bloqueio reciclado (dados parados no fim do turno) não vem de uma magia.
-			await _effect(s, Texts.t("ui.fx_block", {"n": ev.n}), "fx", null if ev.get("recycled", false) else fx_src)
+			if str(ev.get("src", "")) == "Ti":
+				_burst(fx_src, Elements.COLORS.Ti, false)
+			var bk := "ui.fx_el_Ti" if str(ev.get("src", "")) == "Ti" else "ui.fx_block"
+			await _effect(s, Texts.t(bk, {"n": ev.n}), "fx", null if ev.get("recycled", false) else fx_src)
 			v.block = int(ev.total)
 		"heal":
 			await _effect(s, Texts.t("ui.fx_heal", {"n": ev.n}), "heal")
@@ -1696,6 +1701,8 @@ func _describe(ev: Dictionary) -> String:
 		"block":
 			if ev.get("recycled", false):
 				return Texts.t("ev.recycled", {"who": w, "n": ev.n})
+			if str(ev.get("src", "")) == "Ti":
+				return Texts.t("ev.block_ti", {"who": w, "n": ev.n})
 			return Texts.t("ev.block", {"who": w, "n": ev.n})
 		"heal":
 			return Texts.t("ev.heal", {"who": w, "n": ev.n})
@@ -1767,6 +1774,8 @@ func _describe(ev: Dictionary) -> String:
 			return Texts.t("ev.asbestos", {"who": w, "n": ev.n})
 		"element":
 			return Texts.t("ev.el_" + str(ev.el), {"who": w, "v": ev.v})
+		"charge":
+			return Texts.t("ev.charge", {"who": w, "n": ev.n, "total": ev.total})
 		"dead_weight":
 			return Texts.t("ev.dead_weight", {"who": w, "n": ev.n})
 		"copy":

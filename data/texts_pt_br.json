@@ -281,6 +281,14 @@
   "Cs": [
    "Césio",
    "Radiação: ao ser usado, envenena o inimigo em 1 (acumula; o veneno não cai sozinho, só sai com magia)."
+  ],
+  "Li": [
+   "Lítio",
+   "Bateria: cada turno que fica na mão sem uso, carrega +2 (até +6), somado às próximas rolagens. Ao ser usado numa magia, descarrega."
+  ],
+  "Ti": [
+   "Titânio",
+   "Blindado: ao ser usado numa magia, você ganha 2 de bloqueio."
   ]
  },
  "masters": {
@@ -581,6 +589,9 @@
   "fx_el_H": "Hidrogênio ×2 = {v}",
   "fx_el_Hg": "Mercúrio copiou {v}",
   "fx_el_C": "Carbono em cadeia = {v}",
+  "fx_el_Li": "Lítio descarrega = {v}",
+  "fx_el_Ti": "Titânio: bloqueio +{n}",
+  "fx_charge": "Lítio carrega +{n} ({total})",
   "fx_el_Na": "Sódio: queima {n}",
   "fx_el_U": "Urânio: veneno {n}",
   "fx_el_Cs": "Césio: radiação +{n}",
@@ -662,6 +673,9 @@
   "el_H": "Hidrogênio: {who} rola ×2 ({v})",
   "el_Hg": "Mercúrio: {who} copia o valor {v}",
   "el_C": "Carbono: {who} encadeia e rola {v}",
+  "el_Li": "Lítio: {who} descarrega a bateria e rola {v}",
+  "charge": "Lítio: a bateria de {who} carrega +{n} (agora +{total})",
+  "block_ti": "Titânio: {who} ganha {n} de bloqueio",
   "dead_weight": "Peso Morto: {who} puxa mais {n} dado(s)",
   "copy": "Inspiração: {who} copia {name} nesta luta",
   "copy_none": "Inspiração: nada do outro cabe nas casas livres de {who}",

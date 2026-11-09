@@ -110,6 +110,8 @@ Cada dado pode ter **um** elemento, além de qualquer número de adesivos. O efe
 | **Sódio** | Ao ser usado, **queima** o inimigo por alguns turnos. |
 | **Mercúrio** | Amálgama: copia o maior valor entre a sua mão e a **última mão do inimigo**. |
 | **Ferro** | Maciço: todas as faces são 3. Só o Bárbaro começa com ele (não é vendido). |
+| **Lítio** | Bateria: cada turno parado na mão (sem uso) carrega +2, até +6, somado às próximas rolagens; descarrega ao ser usado e entre as lutas. Comum. |
+| **Titânio** | Blindado: ao ser usado numa magia, você ganha 2 de bloqueio. Comum. |
 | **Ouro** | Ao ser usado com 6, dá moedas. |
 | **Hélio** | Inerte: imune a efeitos do inimigo. |
 | **Vidro** (molécula) | Valor ×2; 1 chance em 6 de quebrar ao ser usado. |
