@@ -86,7 +86,7 @@ Os **kits iniciais** ignoram a raridade (o Copista começa com a Imitação Bara
 
 **Adesivo de ouro** (Loja e Poço, 8 moedas): marca uma face; cada vez que ela é usada numa magia, +1 moeda. **Copiar um dado** (Loja, 12 moedas): uma cópia exata de um dado da bolsa (elemento, faces e adesivos) entra na bolsa.
 
-O **dado sem elemento** não tem classe: pela proposta de `docs/PERSONAGENS.md` §5.3, ele deixa de ser oferecido. **Adesivo ×2** e **editar face** são modificações, não dados: ficam fora da raridade.
+O **dado sem elemento** não tem classe: pela proposta de `docs/PERSONAGENS.md` §5.3, ele deixa de ser oferecido. **Adesivo +2** e **editar face** são modificações, não dados: ficam fora da raridade.
 
 ---
 

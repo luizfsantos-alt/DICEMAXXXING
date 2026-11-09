@@ -33,7 +33,7 @@ A tabela fica em `Elements.LOOKS` (`engine/elements.gd`). `Elements.COLORS` cont
 
 | Dado | Em repouso | Ativo quando | Reação |
 |---|---|---|---|
-| Hidrogênio | pontinhos fracos, pulso lento | Solitário valendo (bolsa de 6 ou menos) | halo e pontinhos fortes |
+| Hidrogênio | pontinhos fracos, pulso lento | Solitário valendo (bolsa de menos de 8) | halo e pontinhos fortes |
 | Carbono | pontinhos fracos | outro Carbono na mão (cresce até 4 na cadeia) | pontinhos mais fortes a cada elo |
 | Urânio | corpo aceso, pulso lento | parado na mão, ainda não posto numa magia | pisca como contador Geiger |
 | Sódio | brasa nas arestas | queima o inimigo ao ser usado | faíscas |

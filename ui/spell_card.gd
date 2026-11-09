@@ -193,9 +193,10 @@ func _req_text(placed: Array, k: int) -> String:
 ## values: dados postos (valores); sel: valor do dado selecionado (-1 = nenhum).
 ## tops: face mais alta, por dado posto; sel_top: o dado selecionado está na face mais alta.
 ## sel_ok: o dado selecionado passa nas regras fora do valor (mexido, cópia); sel_die e
-## sel_plus: o dado selecionado, para a prévia das mexidas (chance de subir).
+## sel_plus: o dado selecionado, para a prévia das mexidas (chance de subir). marks: [+2, ouro]
+## da face de cada dado posto (selos dos adesivos).
 func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top := false, heats: Array = [],
-		sel_ok := true, sel_die: Die = null, sel_plus := 0) -> void:
+		sel_ok := true, sel_die: Die = null, sel_plus := 0, marks: Array = []) -> void:
 	var is_used := used()
 	var lvl := int(fighter.inventory.items[item].level)
 	fx_label.text = spell_fx(id, lvl) ## O efeito acompanha o nível (evoluir muda o texto).
@@ -216,6 +217,8 @@ func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top
 		var h: Hole = holes[k]
 		if k < values.size():
 			h.set_die(int(values[k]), elements[k] if k < elements.size() else "", float(heats[k]) if k < heats.size() else 0.0)
+			var mk: Array = marks[k] if k < marks.size() else [0, 0]
+			h.set_marks(int(mk[0]), int(mk[1]))
 		else:
 			h.clear_die()
 		h.req = _req_text(values, k)

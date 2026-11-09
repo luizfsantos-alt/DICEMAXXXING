@@ -5,7 +5,8 @@ extends SubViewportContainer
 ## Fundo transparente; não pega toques (o "tocar acelera" da tela de duelo continua).
 ##
 ## dice: Array de {value, element, faces (6 valores), face (índice que saiu), fixed,
-## heat (estado do brilho, 0 a 1; opcional)}.
+## heat (estado do brilho, 0 a 1; opcional), stickers e gold (adesivos por face, 6
+## valores; opcionais)}.
 ##
 ## Visual (docs/DADOS_VISUAL.md): os metais refletem a taverna (céu só de reflexo, o
 ## fundo continua transparente) e os dados que brilham projetam um halo na mesa.
@@ -183,6 +184,16 @@ func _build_nodes(dice: Array, sim: DicePhysics) -> void:
 			mi.set_surface_override_material(k, m)
 			mats.append(m)
 		_glow.append({"el": el, "heat": heat, "mats": mats})
+		# Adesivos: selos colados nas faces que têm (cada face local leva a face do dado).
+		var stk: Array = d.get("stickers", [])
+		var gld: Array = d.get("gold", [])
+		if not stk.is_empty() or not gld.is_empty():
+			var slots := Dice3D.face_slots(sim.up_face(i), int(d.get("face", 0)))
+			for k in 6:
+				var fi := int(slots[k])
+				var mk := Dice3D.marks_node(k, int(_at(stk, fi)), int(_at(gld, fi)))
+				if mk != null:
+					mi.add_child(mk)
 		var lk := Elements.look(el)
 		var halo: MeshInstance3D = null
 		if str(lk.glow) != "":
@@ -196,6 +207,10 @@ func _build_nodes(dice: Array, sim: DicePhysics) -> void:
 		sh.mesh = shadow_mesh
 		world.add_child(sh)
 		_shadows.append(sh)
+
+
+static func _at(a: Array, k: int) -> int:
+	return int(a[k]) if k < a.size() else 0
 
 
 ## Luz que o dado aceso joga na mesa: um disco colorido que some para as bordas.

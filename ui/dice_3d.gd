@@ -84,6 +84,91 @@ static func labels(up: int, value: int, faces: Array, face: int) -> Array:
 	return out
 
 
+## Índice da face do dado (0 a 5, a ordem de Die.faces) em cada face local, com a mesma
+## distribuição de labels(): serve para os adesivos irem na face certa.
+static func face_slots(up: int, face: int) -> Array:
+	var out := [0, 0, 0, 0, 0, 0]
+	var f := clampi(face, 0, 5)
+	out[up] = f
+	out[up ^ 1] = 5 - f
+	var pairs := []
+	for k in 3:
+		if k != mini(f, 5 - f):
+			pairs.append([k, 5 - k])
+	var slots := []
+	for k in [0, 2, 4]:
+		if k != (up & ~1):
+			slots.append(k)
+	for k in 2:
+		out[slots[k]] = pairs[k][0]
+		out[slots[k] + 1] = pairs[k][1]
+	return out
+
+
+## Selos dos adesivos numa face local do dado 3D (como DieFace.marks): bolinha vermelha
+## com "+2" no canto de cima à direita e bolinha dourada embaixo à esquerda. Nós filhos
+## do dado, colados na face; null se a face não tem adesivo.
+static func marks_node(local_face: int, stickers: int, gold: int) -> Node3D:
+	if stickers <= 0 and gold <= 0:
+		return null
+	var n: Vector3 = DicePhysics.FACE_NORMALS[local_face]
+	var u := _face_u(n)
+	var v: Vector3 = u.cross(n) ## Para baixo na textura.
+	var root := Node3D.new()
+	root.transform = Transform3D(Basis(u, -v, n), n * (DicePhysics.H + 0.004))
+	var rr := 0.16
+	if stickers > 0:
+		root.add_child(_mark_disc(Vector2(0.5 - 0.05 - rr, 0.5 - 0.05 - rr), rr, DieFace.STICKER_RED,
+			"+%d" % (Config.STICKER_PLUS * stickers), Color.WHITE))
+	if gold > 0:
+		root.add_child(_mark_disc(Vector2(-0.5 + 0.05 + rr, -0.5 + 0.05 + rr), rr * 0.85, DieFace.GOLD,
+			str(gold) if gold > 1 else "", Color(0.3, 0.18, 0.0)))
+	return root
+
+
+static var _disc_tex := {}
+
+
+## Disco com contorno (textura gerada) e o texto por cima (Label3D), no plano da face.
+static func _mark_disc(at: Vector2, rr: float, col: Color, txt: String, ink: Color) -> Node3D:
+	var key := col.to_html()
+	if not _disc_tex.has(key):
+		var px := 64
+		var img := Image.create(px, px, false, Image.FORMAT_RGBA8)
+		var c := Vector2(px, px) * 0.5
+		for y in px:
+			for x in px:
+				var d := (Vector2(x + 0.5, y + 0.5) - c).length() / (px * 0.5)
+				var a := clampf((1.0 - d) * px * 0.5, 0.0, 1.0)
+				var cc := col if d < 0.84 else col.darkened(0.4)
+				if (Vector2(x + 0.5, y + 0.5) - c * Vector2(0.7, 0.66)).length() < px * 0.12:
+					cc = cc.lerp(Color.WHITE, 0.35)
+				img.set_pixel(x, y, Color(cc, a))
+		img.generate_mipmaps()
+		_disc_tex[key] = ImageTexture.create_from_image(img)
+	var node := Node3D.new()
+	node.position = Vector3(at.x, at.y, 0)
+	var sp := Sprite3D.new()
+	sp.texture = _disc_tex[key]
+	sp.pixel_size = rr * 2.0 / 64.0
+	sp.shaded = true
+	sp.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	sp.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	node.add_child(sp)
+	if txt != "":
+		var lb := Label3D.new()
+		lb.text = txt
+		lb.font = Kit.num_font()
+		lb.font_size = 64
+		lb.pixel_size = rr * (1.0 if txt.length() <= 2 else 0.8) / 64.0
+		lb.modulate = ink
+		lb.outline_size = 0
+		lb.position = Vector3(0, -rr * 0.04, 0.003)
+		lb.alpha_cut = Label3D.ALPHA_CUT_DISCARD
+		node.add_child(lb)
+	return node
+
+
 # ================================================================== Texturas
 ## Material de uma face: cor, acabamento e brilho do elemento (Elements.LOOKS).
 ## heat: estado do dado, de 0 (repouso) a 1 (efeito ativo); só muda a energia do brilho.

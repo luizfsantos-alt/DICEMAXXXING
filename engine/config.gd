@@ -85,6 +85,7 @@ const PRICE_EVOLVE_RARE := 18 ## Escola: evoluir uma magia Rara.
 const PRICE_HP := 7
 const PRICE_HP_STEP := 3
 const HP_UPGRADE := 5
+const STICKER_PLUS := 2 ## Adesivo: +2 na face (somam; antes era ×2 e acumulava em potências).
 const PRICE_STICKER := 6 ## × (1 + adesivos já no dado).
 const PRICE_GOLD_STICKER := 8 ## Adesivo de ouro (Loja e Poço).
 const PRICE_COPY_DIE := 12 ## Loja: copiar um dado da bolsa.

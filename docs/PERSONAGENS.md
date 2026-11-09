@@ -113,9 +113,9 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro   Bárbaro
 
 ### 2.1 Minimalista: "Possuo cinco dados. Os outros possuem desculpas."
 
-- **Plano:** bolsa minúscula. Com 5 dados e mão de 3, quase todo turno saem 3 dos 5, e o Hidrogênio (×3 com bolsa de 6 ou menos) vale de 3 a 18. A Faísca e o Dardo Arcano usam os dois maiores: o Dardo pede um valor par, e o Hidrogênio ×3 dá 6, 12 ou 18 nas faces pares.
+- **Plano:** bolsa minúscula. Com 5 dados e mão de 3, quase todo turno saem 3 dos 5, e o Hidrogênio (×2 com bolsa de menos de 8) vale de 2 a 12, sempre par: casa com o Dardo Arcano, que pede valor par.
 - **Por que se vira:** dois dados de 9 a 18 por turno (+2 no Dardo) dão uns **20 a 24 de dano**. O inimigo do andar 1 cai em 2 turnos. A vida baixa (70) é o preço.
-- **Como cresce:** adesivos ×2 nos Hidrogênios (um 6 com adesivo vale 36). Cada dado novo é uma decisão séria: com 7 dados, o Hidrogênio desliga. A passiva deixa limpar a bolsa de graça.
+- **Como cresce:** adesivos +2 nos Hidrogênios (um 6 com adesivo vale (6 + 2) × 2 = 16). Cada dado novo é uma decisão séria: com 8 dados, o Hidrogênio desliga. A passiva deixa limpar a bolsa de graça.
 - **Inventário:** 6 casas, 2 já ocupadas. Cabem o Meteoro (L de 4) ou uma Reta 3, não os dois.
 - **Ponto fraco:** o Lixeiro (Chumbo na bolsa), o Arrancar das Mãos (tira o melhor dado de uma bolsa de 5) e a Interrupção Rude (mão de 4 vira 2) machucam muito mais que nos outros.
 - **Combos do catálogo:** Bis! (o Hidrogênio na face máxima rola de novo e soma ×3), Física Aplicada (Hidrogênio com 1 = 3, o "menor" perfeito), Plágio.
@@ -143,7 +143,7 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro   Bárbaro
 
 - **Plano:** nunca usa a mão inteira. O Ósmio inicial sai em toda mão: um dado garantido para começar o par, turno após turno. No fim do turno, guarda até 2 dados que sobraram (**marca**: entram na próxima mão com o mesmo valor, sem rolar, além da mão normal). Com dois 6 guardados, a próxima mão de 5 tem 60% de chance de completar o trio para a **Obra-Prima** (3 dados iguais: dano = soma ×2; três 6 = 36).
 - **Por que se vira:** no 1º turno, Dardo Arcano num par (~6) e guarda o par; no 2º, Obra-Prima (~27) + Dardo. O inimigo do andar 1 cai entre o 2º e o 3º turno. Os turnos são lentos e o pico é alto.
-- **Como cresce:** adesivos ×2 em várias faces do mesmo número (três 12 = 72). Combina com todas as magias de par e sequência.
+- **Como cresce:** adesivos +2 em várias faces do mesmo número (três 8 = 24). Combina com todas as magias de par e sequência.
 - **Inventário:** a Moldura não tem o meio. Não cabem 2×2 (Bola de Fogo), T nem Cruz. Cabem Reta 4 (em cima ou embaixo), Retas 3, 1×2 nas laterais e L de 3 e de 4 nos cantos.
 - **Ponto fraco:** as mexidas do inimigo na próxima mão também pegam os dados guardados (é a mesma regra da marca hoje): a **Meia Verdade** transforma o par de 6 guardado em dois 1. A Interrupção Rude não tira os guardados, porque eles entram além da mão.
 - **Combos do catálogo:** Pose Congelada, Concentrar Força e Impulso Calculado (marcas que agora convivem), Meteoro e Matemática Superior (o trio guardado também serve), Transfusão.
@@ -245,7 +245,7 @@ Cada dado pode ter **um** elemento, que dá uma regra de uma linha a ele. No jog
 
 | Elemento | Na prática |
 |---|---|
-| **Hidrogênio** | Vale ×3, mas só com a bolsa de 6 dados ou menos (a bolsa inicial tem 8: só funciona em bolsa enxugada). |
+| **Hidrogênio** | Vale ×2, mas só com a bolsa de menos de 8 dados (a bolsa inicial tem 8: só funciona em bolsa enxugada). |
 | **Ósmio** | Âncora: sai sempre na primeira mão da luta. Também **não pode ser roubado nem arrancado** (Roubar a Cena e Arrancar das Mãos o pulam). O valor rola normalmente: é um dado comum que você sabe que vem. **Proposta (rodada 5): sai em toda mão** (ver 5.3). |
 | **Urânio** | Faces de 3 a 8. Se sobrar na mão sem uso, envenena **você** em 2 (o veneno não cai durante a luta). |
 | **Sódio** | Ao ser usado numa magia, queima o inimigo em 2. |
@@ -382,3 +382,9 @@ A sensação era de dados demais por turno: com só 2 magias iniciais, 3 dos 5 d
 
 Resultado com os valores escolhidos: Feiticeiro 13–14%, Assassino ~14% (85 de vida), Vampiro 14%, Bárbaro 13%.
 
+
+### 8.4 Adesivo +2 e Hidrogênio ×2 com menos de 8 dados (0.16.0)
+
+O adesivo ×2 acumulava em potências (6 → 12 → 24 → 48): um Ósmio com vários adesivos e a Faísca evoluída venciam a jornada sozinhos. Agora cada adesivo soma **+2** à face (`Config.STICKER_PLUS`; o Plágio também rouba +2). O Hidrogênio ficou mais fraco e mais fácil de ligar: **×2 com a bolsa de menos de 8 dados** (antes ×3 com 6 ou menos).
+
+Simulação (200 jornadas, `--seed=1`, % que vence o andar 10, antes → depois): Feiticeiro 28 → 20, Assassino 29,5 → 12,5, Metalurgista 30,5 → 27, Vampiro 27,5 → 27, Bárbaro 28,5 → 17, Minimalista 11 → 0. Quase toda a queda vem do adesivo: com o Hidrogênio antigo (`--h-mult=3 --h-bag=6`) o Assassino fica nos mesmos 12,5%. Falta decidir se o herói ganha alguma compensação (preço do adesivo, vida, recompensas).

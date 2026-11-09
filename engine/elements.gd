@@ -60,7 +60,7 @@ const LOOKS := {
 }
 ## Energia máxima do brilho com o estado ativo (heat = 1).
 ## Contidos de propósito: forte demais, o brilho estoura e o valor deixa de ser lido.
-const ENERGY_ACTIVE := {"H": 0.7, "U": 0.5, "Na": 1.0, "C": 0.9, "Cs": 0.9}
+const ENERGY_ACTIVE := {"H": 0.7, "U": 0.5, "Na": 1.0, "C": 0.9, "Cs": 0.45} ## Césio mais forte estoura o corpo em branco.
 ## Cor do elemento em texto e rótulos (o accent de LOOKS: legível sobre o fundo escuro).
 const COLORS := {
 	"": Color("#efe6d2"),
@@ -76,8 +76,8 @@ const COLORS := {
 	"Cs": Color("#6fb4ff"),
 	"Au": Color("#ffcf3f"),
 }
-const SOLITARY_BAG := 6 ## Hidrogênio: ×3 com bolsa deste tamanho ou menor (a inicial tem 8).
-const SOLITARY_MULT := 3
+const SOLITARY_BAG := 7 ## Hidrogênio: ×2 com bolsa deste tamanho ou menor (menos de 8; a inicial tem 8).
+const SOLITARY_MULT := 2
 ## Valores em uso (o simulador troca para testar; o jogo usa os de cima).
 static var solitary_bag := SOLITARY_BAG
 static var solitary_mult := SOLITARY_MULT

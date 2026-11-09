@@ -58,7 +58,7 @@
   ],
   "plagio": [
    "Plágio",
-   "Dado de valor 2 ou menos. Rouba 1 adesivo ×2 do dado mais adesivado do inimigo e cola na face usada, até o fim da luta. Dano igual ao valor novo. Uma vez por luta."
+   "Dado de valor 2 ou menos. Rouba 1 adesivo +2 do dado mais adesivado do inimigo e cola na face usada, até o fim da luta. Dano igual ao valor novo. Uma vez por luta."
   ],
   "roubar_cena": [
    "Roubar a Cena",
@@ -240,7 +240,7 @@
  "elements": {
   "H": [
    "Hidrogênio",
-   "Solitário: vale ×3 se a bolsa tiver 6 dados ou menos."
+   "Solitário: vale ×2 se a bolsa tiver menos de 8 dados."
   ],
   "Os": [
    "Ósmio",
@@ -385,13 +385,13 @@
   ],
   "well": [
    "Poço de Modificação",
-   "Adesivo ×2, elementos e destruir dados."
+   "Adesivo +2, elementos e destruir dados."
   ]
  },
  "offers": {
   "spell": "Magia: {name}",
   "die": "Dado novo: {name}",
-  "sticker": "Adesivo ×2 numa face",
+  "sticker": "Adesivo +2 numa face",
   "element": "Elemento: {name}",
   "destroy": "Destruir um dado",
   "gold_sticker": "Adesivo de ouro numa face",
@@ -505,7 +505,7 @@
   "enemy": "Inimigo",
   "spell_used": "Essa magia já foi usada nesta luta.",
   "not_accepted": "{name} pede: {req}.",
-  "consult_stickers": "adesivos ×2: {n}",
+  "consult_stickers": "adesivos +2: {n}",
   "history": "Histórico",
   "enemy_spells": "MAGIAS DO INIMIGO",
   "your_spells": "SUAS MAGIAS",
@@ -554,7 +554,7 @@
   "pv_pierce": "ignora defesas",
   "pv_multi": "→ {list} de dano",
   "pv_encore": "→ {n} de dano + bis",
-  "pv_steal": "→ {n} de dano (×2 se roubar)",
+  "pv_steal": "→ {n} de dano (+2 se roubar)",
   "pv_bench": "tira o dado mais forte dele",
   "pv_spawn": "+2 dados de {v}",
   "pv_riposte": "revide {n}",
@@ -574,7 +574,7 @@
   "fury": "Fúria +{n}",
   "thirst": "Sede {n}/{max}",
   "fx_asbestos": "Amianto −{n}",
-  "fx_el_H": "Hidrogênio ×3 = {v}",
+  "fx_el_H": "Hidrogênio ×2 = {v}",
   "fx_el_Hg": "Mercúrio copiou {v}",
   "fx_el_C": "Carbono em cadeia = {v}",
   "fx_el_Na": "Sódio: queima {n}",
@@ -655,7 +655,7 @@
   "pierce": "(ignora defesas)",
   "lead_convert": "O Fundidor transforma um dado seu em Chumbo (até o fim da luta)!",
   "asbestos": "Amianto: {who} perde {n}",
-  "el_H": "Hidrogênio: {who} rola ×3 ({v})",
+  "el_H": "Hidrogênio: {who} rola ×2 ({v})",
   "el_Hg": "Mercúrio: {who} copia o valor {v}",
   "el_C": "Carbono: {who} encadeia e rola {v}",
   "dead_weight": "Peso Morto: {who} puxa mais {n} dado(s)",
@@ -685,7 +685,7 @@
   "corte": "Soma; se os 2 forem ímpares, golpeia de novo",
   "sombras": "Dano = valor; ignora defesas",
   "bis": "Rola de novo e soma; repete na face máxima",
-  "plagio": "Rouba 1 adesivo ×2; dano = valor novo",
+  "plagio": "Rouba 1 adesivo +2; dano = valor novo",
   "roubar_cena": "Rouba o maior dado da próxima mão dele",
   "imitacao": "Devolve 2 cópias do dado",
   "expectativa": "Valor ×2; dados parados dele dão 2 de dano",
@@ -743,7 +743,7 @@
   "corte": "Soma ×{1}; se os 2 forem ímpares, golpeia de novo",
   "sombras": "Dano = valor ×{1}; ignora defesas",
   "bis": "Rola de novo e soma; repete na face máxima; total ×{1}",
-  "plagio": "Rouba 1 adesivo ×2; dano = valor novo ×{1}",
+  "plagio": "Rouba 1 adesivo +2; dano = valor novo ×{1}",
   "expectativa": "Valor ×{2}; dados parados dele dão 2 de dano",
   "matematica": "Dano = produto ×{1}",
   "pose": "Bloqueio = valor ×{1}; volta igual",
@@ -898,7 +898,7 @@
   "die": "Dado de {name}",
   "die_plain": "Dado comum",
   "element": "Elemento {name}",
-  "sticker": "Adesivo ×2",
+  "sticker": "Adesivo +2",
   "destroy": "Destruir um dado",
   "gold_sticker": "Adesivo de ouro",
   "copy_die": "Copiar um dado",

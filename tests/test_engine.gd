@@ -5,12 +5,12 @@ const H := preload("res://tests/helpers.gd")
 
 
 # ------------------------------------------------------------ Dados e elementos
-func test_adesivo_dobra_a_face_e_acumula():
+func test_adesivo_soma_2_na_face_e_acumula():
 	var d := Die.basic()
 	assert_true(d.add_sticker(5))
-	assert_eq(d.value(5), 12)
+	assert_eq(d.value(5), 8)
 	d.add_sticker(5)
-	assert_eq(d.value(5), 24)
+	assert_eq(d.value(5), 10)
 	assert_eq(d.sticker_count(), 2)
 
 
@@ -21,7 +21,7 @@ func test_chumbo_tem_tres_faces_1_travadas():
 	assert_true(d.add_sticker(5))
 
 
-func test_hidrogenio_triplica_com_bolsa_pequena():
+func test_hidrogenio_dobra_com_bolsa_de_menos_de_8():
 	var f := H.fighter("a", ["faisca"])
 	f.bag.resize(Elements.SOLITARY_BAG)
 	f.bag[0] = Die.with_element("H")
@@ -30,7 +30,8 @@ func test_hidrogenio_triplica_com_bolsa_pequena():
 	f.hand_size = 1
 	f.draw_hand(H.rng())
 	f.roll_hand(H.rng(), [])
-	assert_eq(f.hand[0].value, (int(f.hand[0].face) + 1) * 3)
+	assert_eq(Elements.SOLITARY_BAG, 7, "menos de 8 dados")
+	assert_eq(f.hand[0].value, (int(f.hand[0].face) + 1) * 2)
 	f.bag.append(Die.basic())
 	f.roll_hand(H.rng(), [])
 	assert_eq(f.hand[0].value, int(f.hand[0].face) + 1, "bolsa acima do limite: sem bônus")
@@ -230,7 +231,7 @@ func test_loja_copiar_dado_e_adesivo_de_ouro():
 	assert_eq(run.choose(ci, {"die": 3}), "")
 	assert_eq(run.hero.bag.size(), n + 1)
 	assert_eq(run.hero.bag.back().element, "Cs")
-	assert_eq(run.hero.bag.back().value(5), 12, "copia os adesivos")
+	assert_eq(run.hero.bag.back().value(5), 8, "copia os adesivos")
 	assert_eq(run.coins, 100 - Config.PRICE_COPY_DIE)
 	var gi := run.options.map(func(o): return o.kind).find("gold_sticker")
 	assert_gt(gi, -1, "a Loja vende adesivo de ouro")
@@ -584,7 +585,7 @@ func test_loja_poco_e_escola():
 	run.options = Shop.well(run.rng)
 	assert_eq(run.choose(0, {"die": 2}), "ui.pick_face")
 	assert_eq(run.choose(0, {"die": 2, "face": 5}), "")
-	assert_eq(run.hero.bag[2].value(5), 12)
+	assert_eq(run.hero.bag[2].value(5), 8)
 	assert_eq(run.coins, 100 - Config.PRICE_STICKER)
 	assert_eq(run.choose(0, {"die": 2, "face": 5}), "")
 	assert_eq(run.coins, 100 - Config.PRICE_STICKER * 3, "o segundo adesivo no mesmo dado custa o dobro")

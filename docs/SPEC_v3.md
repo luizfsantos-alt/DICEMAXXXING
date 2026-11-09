@@ -44,13 +44,13 @@
   - **Loja**: magias, dados, vida máxima.
   - **Cura**: recupera 35% da vida máxima.
   - **Escola de Magia**: aprender uma magia ou **evoluir** uma conhecida.
-  - **Poço de Modificação**: aplicar elemento, adesivo ×2, editar face, destruir dado.
+  - **Poço de Modificação**: aplicar elemento, adesivo +2, editar face, destruir dado.
 - **Recompensa pós-luta:** escolher 1 entre 2, 3 ou 4 conforme a porta (dado, adesivo, magia ou vida máxima), ou pular e levar moedas.
 - **Mestre de Andar** nos andares 10, 20 e 30 (seção 8.3). A recompensa é escolher uma: **+casas no inventário** ou **+1 dado na mão**.
 
 ### 2.1 Escala e vida
 
-- **Tudo cresce junto.** Os inimigos têm faces com adesivo ×2, magias evoluídas e vida maior a cada andar.
+- **Tudo cresce junto.** Os inimigos têm faces com adesivo +2, magias evoluídas e vida maior a cada andar.
 - **Vida máxima é investimento:** comprar ou gerar vida na hora certa disputa moedas e escolhas com dados e magias.
 - Fontes de vida: Loja (vida máxima, preço crescente), Cura (recupera, não aumenta a máxima), magias de vida, recompensa pós-luta.
 
@@ -99,7 +99,7 @@ Cada dado pode ter **um** elemento, além de qualquer número de adesivos. O efe
 
 | Elemento | Efeito |
 |---|---|
-| **Hidrogênio** | Solitário: vale ×3 se a bolsa tiver 6 dados ou menos. |
+| **Hidrogênio** | Solitário: vale ×2 se a bolsa tiver menos de 8 dados. |
 | **Nitrogênio** | Multidão: +1 em cada face para cada 4 dados na bolsa. |
 | **Carbono** | Cadeia: +2 para cada outro Carbono **na mão** (2 na mão: +2 em cada; 3: +4; 5: +8). Comum. |
 | **Ósmio** | Âncora: sai **em toda mão** (ocupa uma vaga); não pode ser roubado nem arrancado. |
@@ -116,7 +116,7 @@ Cada dado pode ter **um** elemento, além de qualquer número de adesivos. O efe
 
 ### 4.2 Faces
 
-- **Adesivo ×2:** dobra aquela face **para sempre**; acumula (6 → 12 → 24). O preço sobe a cada adesivo no mesmo dado.
+- **Adesivo +2:** soma 2 àquela face **para sempre**; acumula (6 → 8 → 10). O preço sobe a cada adesivo no mesmo dado. (Antes era ×2 e explodia em potências: um Ósmio com vários adesivos vencia sozinho.) Na luta e fora dela, a face com adesivo mostra uma bolinha vermelha "+2"; o adesivo de ouro, uma bolinha dourada.
 - **Editar face:** troca o número de uma face (ex.: 1 → 5).
 - É por aqui que **os números explodem**. Um 24 é ótimo numa Faísca e inútil numa magia que pede "dado ≤ 3".
 
@@ -174,7 +174,7 @@ Os lados se alternam. **O jogador começa** *(inicial; o simulador avalia se o p
 ## 7. Economia *(valores iniciais)*
 
 - Vitória: moedas conforme a porta (fácil < normal < insana).
-- Preços: magia, dado novo, elemento, adesivo ×2 (crescente por dado), editar face, destruir dado (crescente por jornada), vida máxima (crescente por compra).
+- Preços: magia, dado novo, elemento, adesivo +2 (crescente por dado), editar face, destruir dado (crescente por jornada), vida máxima (crescente por compra).
 - Valores exatos em `engine/config.gd` quando implementado.
 
 ---

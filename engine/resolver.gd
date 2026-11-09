@@ -87,7 +87,8 @@ static func draw_and_roll(f: Fighter, foe: Fighter, rng: RandomNumberGenerator, 
 	var info := hand_dice(f)
 	push(ev, {"t": "hand", "side": side(f), "values": f.hand_values(), "elements": info.elements,
 		"faces": info.faces, "face": info.face, "fixed": info.fixed, "heat": info.heat,
-		"orig": info.orig, "cause": info.cause})
+		"orig": info.orig, "cause": info.cause, "stickers": info.stickers, "gold": info.gold,
+		"face_stickers": info.face_stickers, "face_gold": info.face_gold})
 
 
 ## O valor do dado da mão vai mudar por "cause" (mexida do inimigo, Alquimista, elemento):
@@ -102,7 +103,8 @@ static func mark_cause(e: Dictionary, cause: String) -> void:
 ## face que saiu, se estava marcado (não rolou), o estado do brilho (Elements.heat) e,
 ## quando algo mudou o valor, o original e a causa.
 static func hand_dice(f: Fighter) -> Dictionary:
-	var out := {"elements": [], "faces": [], "face": [], "fixed": [], "heat": [], "orig": [], "cause": []}
+	var out := {"elements": [], "faces": [], "face": [], "fixed": [], "heat": [], "orig": [], "cause": [],
+		"stickers": [], "gold": [], "face_stickers": [], "face_gold": []}
 	for e in f.hand:
 		out.orig.append(int(e.get("orig", -1)))
 		out.cause.append(str(e.get("cause", "")))
@@ -115,6 +117,11 @@ static func hand_dice(f: Fighter) -> Dictionary:
 		out.faces.append(fs)
 		out.face.append(int(e.face))
 		out.fixed.append(bool(e.get("fixed", false)))
+		# Adesivos da face que saiu (selos na coluna) e de todas (dado 3D).
+		out.stickers.append(int(d.stickers[int(e.face)]))
+		out.gold.append(int(d.gold[int(e.face)]))
+		out.face_stickers.append(d.stickers.duplicate())
+		out.face_gold.append(d.gold.duplicate())
 	return out
 
 
@@ -515,7 +522,7 @@ static func _burn(f: Fighter, n: int, ev: Array, src := "") -> void:
 	push(ev, {"t": "burn_up", "side": side(f), "n": n, "total": f.burn, "src": src})
 
 
-## Plágio: rouba 1 adesivo ×2 do dado mais adesivado do inimigo e cola na face usada,
+## Plágio: rouba 1 adesivo +2 do dado mais adesivado do inimigo e cola na face usada,
 ## até o fim da luta. Retorna o valor do dado depois disso.
 static func _steal_sticker(f: Fighter, foe: Fighter, h: int, ev: Array) -> int:
 	var e: Dictionary = f.hand[h]
@@ -541,7 +548,7 @@ static func _steal_sticker(f: Fighter, foe: Fighter, h: int, ev: Array) -> int:
 	mine.stickers[int(e.face)] = int(mine.stickers[int(e.face)]) + 1
 	if int(e.bag) >= 0:
 		f.fight_mods.append({"bag": int(e.bag), "face": int(e.face), "d": 1})
-	v *= 2
+	v += Config.STICKER_PLUS
 	e.value = v
 	push(ev, {"t": "steal_sticker", "side": side(f), "v": v})
 	return v

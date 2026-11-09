@@ -551,16 +551,30 @@ func _build_tray() -> void:
 	var p := duel.player
 	var els := []
 	var heats := []
+	var stks := []
+	var golds := []
 	for e in p.hand:
 		var d := p.die_of(e)
 		els.append(d.element if d else "")
 		heats.append(Elements.heat(p, d))
-	_fill_tray(p.hand_values(), els, true, heats)
+		var m := _marks_of(p, e)
+		stks.append(m[0])
+		golds.append(m[1])
+	_fill_tray(p.hand_values(), els, true, heats, stks, golds)
+
+
+## Adesivos da face que saiu de um dado da mão: [+2, ouro] (selos em DieFace.marks).
+static func _marks_of(f: Fighter, e: Dictionary) -> Array:
+	var d := f.die_of(e)
+	if d == null:
+		return [0, 0]
+	var k := clampi(int(e.get("face", 0)), 0, 5)
+	return [int(d.stickers[k]), int(d.gold[k])]
 
 
 ## Coluna de dados com uma mão qualquer (a sua é tocável; a do inimigo, não).
 ## heats: estado do brilho de cada dado (Elements.heat), opcional.
-func _fill_tray(values: Array, elements: Array, interactive: bool, heats: Array = []) -> void:
+func _fill_tray(values: Array, elements: Array, interactive: bool, heats: Array = [], stks: Array = [], golds: Array = []) -> void:
 	Kit.clear(tray)
 	tray_views = []
 	dice_side = "player" if interactive else "enemy"
@@ -568,6 +582,7 @@ func _fill_tray(values: Array, elements: Array, interactive: bool, heats: Array 
 	for h in values.size():
 		var v := Hole.new().set_interactive(interactive).setup(DIE, h)
 		v.set_die(int(values[h]), elements[h] if h < elements.size() else "", float(_at(heats, h, 0.0)))
+		v.set_marks(int(_at(stks, h, 0)), int(_at(golds, h, 0)))
 		if interactive:
 			v.tapped.connect(_on_die)
 			v.set_drag_forwarding(_drag_from.bind(v), _can_drop_tray, _drop_tray)
@@ -590,6 +605,8 @@ func _roll_tray(ev: Dictionary) -> void:
 			"face": int(_at(ev.get("face", []), k, 0)),
 			"fixed": bool(_at(ev.get("fixed", []), k, false)),
 			"heat": float(_at(ev.get("heat", []), k, 0.0)),
+			"stickers": _at(ev.get("face_stickers", []), k, []),
+			"gold": _at(ev.get("face_gold", []), k, []),
 		})
 	for v: Hole in tray_views:
 		v.has_die = false
@@ -635,7 +652,7 @@ func _fly_to_tray(spots: Array, origin: Vector2) -> void:
 		# Buraco cujo dado tem a mesma aresta que o dado 3D tinha na tela.
 		var start_px := float(sp.width) / DieSnapshot.FILL / 0.88
 		var g := Hole.new().set_interactive(false).setup(int(target_px))
-		g.set_die(v.value, v.element, v.heat)
+		g.copy_die(v)
 		g.pivot_offset = g.size / 2.0
 		g.scale = Vector2.ONE * (start_px / target_px)
 		g.rotation = wrapf(float(sp.angle), -PI, PI) ## Começa girado como estava na mesa.
@@ -695,7 +712,7 @@ func _fly(from: Hole, to: Hole) -> void:
 		return
 	var fs := _visual_px(from)
 	var g := Hole.new().set_interactive(false).setup(int(fs))
-	g.set_die(from.value, from.element, from.heat)
+	g.copy_die(from)
 	g.position = from.global_position - fx_layer.global_position
 	fx_layer.add_child(g)
 	from.has_die = false
@@ -741,6 +758,9 @@ func _refresh_tray() -> void:
 				if it >= 0:
 					hv.caption = Texts.spell_name(p.inventory.items[it].id)
 			hv.heat = Elements.heat(p, dd, not (hv.index in used))
+			var mk := _marks_of(p, e)
+			hv.stickers = int(mk[0])
+			hv.gold = int(mk[1])
 		hv.raised = hv.index == selected
 		hv.queue_redraw()
 	var sel := int(p.hand[selected].value) if selected >= 0 else -1
@@ -755,16 +775,18 @@ func _refresh_tray() -> void:
 		var vals := choice.values_in(p, c.item)
 		var els := []
 		var heats := []
+		var marks := []
 		for h in choice.dice_in(c.item):
 			var d := p.die_of(p.hand[h])
 			els.append(d.element if d else "")
 			heats.append(Elements.heat(p, d, false))
+			marks.append(_marks_of(p, p.hand[h]))
 		var ins := choice.dice_in(c.item)
 		for k in c.holes.size():
 			c.holes[k].index = int(ins[k]) if k < ins.size() else -1
 		var sel_ok := selected >= 0 and choice.available(p, c.item) and TurnChoice.die_allowed(p, c.item, selected)
 		c.refresh(vals, els, sel if (dragging >= 0 or not (selected in used)) else -1, choice.tops_in(p, c.item), sel_top, heats,
-			sel_ok, sel_die, sel_plus)
+			sel_ok, sel_die, sel_plus, marks)
 	_refresh_undo()
 	if phase != "player":
 		return
@@ -820,7 +842,7 @@ func _drag_from(_at: Vector2, hole: Hole) -> Variant:
 	var h := hole.index
 	var px := int(maxf(24.0, _visual_px(hole)))
 	var g := Hole.new().set_interactive(false).setup(px)
-	g.set_die(hole.value, hole.element, hole.heat)
+	g.copy_die(hole)
 	g.position = -g.size / 2.0
 	var prev := Control.new()
 	prev.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1018,6 +1040,8 @@ func _resolve_anim(item: int, dice: Array, prev: Array, slot: int) -> void:
 			tv.set_cause(-1, "")
 			await _fly(tv, c.holes[hk])
 		c.holes[hk].set_die(int(prev[k]), el)
+		if tv:
+			c.holes[hk].set_marks(tv.stickers, tv.gold)
 	if random:
 		var hk2 := slot if two else 0
 		for _t in 8:
@@ -1292,7 +1316,7 @@ func _apply_event(ev: Dictionary) -> void:
 			fx_src = null
 			if s == "enemy":
 				hint.text = Texts.t("ui.enemy_rolling")
-			_fill_tray(ev["values"], ev.get("elements", []), s == "player", ev.get("heat", []))
+			_fill_tray(ev["values"], ev.get("elements", []), s == "player", ev.get("heat", []), ev.get("stickers", []), ev.get("gold", []))
 			var origs: Array = ev.get("orig", [])
 			var causes: Array = ev.get("cause", [])
 			for k in mini(tray_views.size(), causes.size()):
@@ -1450,11 +1474,14 @@ func _enemy_mod(ev: Dictionary) -> void:
 		var h := int(dice[k])
 		var hk := slot if two else mini(k, ec.holes.size() - 1)
 		var el := ""
+		var mk := [0, 0]
 		if h < tray_views.size():
 			el = tray_views[h].element
+			mk = [tray_views[h].stickers, tray_views[h].gold]
 			tray_views[h].value = int(from[k])
 			await _fly(tray_views[h], ec.holes[hk])
 		ec.holes[hk].set_die(int(from[k]), el)
+		ec.holes[hk].set_marks(int(mk[0]), int(mk[1]))
 	if bool(ev.get("random", false)):
 		for _t in 8:
 			ec.holes[slot if two else 0].set_die(randi_range(1, 6), ec.holes[0].element)

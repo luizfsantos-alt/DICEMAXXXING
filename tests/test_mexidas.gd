@@ -62,7 +62,7 @@ func test_virar_pico_inflar_polarizar():
 	f = _f(["pico"], [2])
 	f.bag[0].add_sticker(5)
 	_place(f, TurnChoice.new(), "pico", [0])
-	assert_eq(_vals(f), [12], "face máxima com adesivo")
+	assert_eq(_vals(f), [8], "face máxima com adesivo")
 	assert_true(bool(f.hand[0].top))
 	f = _f(["inflar"], [3])
 	_place(f, TurnChoice.new(), "inflar", [0])
