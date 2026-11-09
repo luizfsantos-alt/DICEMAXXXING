@@ -11,7 +11,10 @@ extends RefCounted
 ## Mexidas (docs/SPEC_v3.1.md §1): quando o buraco fica completo, a mexida resolve na
 ## hora: muda o valor dos dados (na própria mão) e os devolve livres. A magia sai de
 ## "casts" e vai para "mods". As determinísticas se desfazem (undo_mod); as aleatórias
-## são definitivas. Cada dado da mão mexido guarda "mod" (item), "orig" e "cause".
+## são definitivas. Cada dado da mão mexido guarda "mod" (a última mexida), "mod_hist"
+## (cada mexida e o valor de antes, em ordem), "orig" e "cause". Um dado pode receber
+## várias mexidas no mesmo turno (cada mexida, uma vez por turno); desfazer uma mexida
+## desfaz antes as que vieram depois nos mesmos dados.
 
 var casts: Dictionary = {} ## item -> Array de índices da mão
 var spawned: Dictionary = {} ## item -> índices da mão dos dados devolvidos
@@ -22,6 +25,7 @@ var slots: Dictionary = {} ## item -> buraco escolhido (Ajuste Fino: 0 = +1, 1 =
 var rng: RandomNumberGenerator ## Sorteio das mexidas aleatórias (o do duelo).
 var expect := false ## IA: mexidas aleatórias valem o valor esperado, sem rolar.
 var forced_face := -1 ## IA: a rolagem das mexidas aleatórias sai nesta face (0 a 5).
+var seq := 0 ## Ordem das mexidas (mod_hist guarda; o save no meio do turno remonta nela).
 
 
 ## Cópia independente (a IA testa mexidas sem mexer na escolha de verdade).
@@ -35,6 +39,7 @@ func clone() -> TurnChoice:
 	t.rng = rng
 	t.expect = expect
 	t.forced_face = forced_face
+	t.seq = seq
 	return t
 
 
@@ -45,30 +50,42 @@ static func make(c: Dictionary = {}) -> TurnChoice:
 	return t
 
 
-## Remonta as mexidas a partir da mão (save no meio do turno): os dados guardam o item.
+## Remonta as mexidas a partir da mão (save no meio do turno): os dados guardam o
+## histórico ("mod_hist") e as partes guardam a mexida que as criou ("spawn").
 static func from_hand(f: Fighter) -> TurnChoice:
 	var t := TurnChoice.new()
+	var recs := []
 	for h in f.hand.size():
 		var e: Dictionary = f.hand[h]
-		var it := int(e.get("mod", -1))
+		for r in e.get("mod_hist", []):
+			recs.append({"h": h, "r": r})
+	recs.sort_custom(func(a, b): return int(a.r.seq) < int(b.r.seq))
+	for x in recs:
+		var it := int(x.r.item)
 		if it < 0 or it >= f.inventory.items.size():
 			continue
 		if not t.mods.has(it):
-			t.mods[it] = {"dice": [], "prev": [], "spawn": [], "random": Spells.is_random_mod(str(f.inventory.items[it].id)), "polish": {}}
-		var m: Dictionary = t.mods[it]
-		if int(e.spawn) == it:
-			m.spawn.append(h)
-		else:
-			m.dice.append(h)
-			m.prev.append({"h": h, "value": int(e.get("orig", e.value)), "top": bool(e.get("orig_top", false)),
-				"face": int(e.face), "spent": false})
+			t.mods[it] = _empty_mod(f, it)
+		t.mods[it].dice.append(int(x.h))
+		t.mods[it].prev.append({"h": int(x.h), "value": int(x.r.value), "top": bool(x.r.top),
+			"face": int(x.r.face), "spent": false})
+		t.seq = maxi(t.seq, int(x.r.seq) + 1)
 	for h in f.hand.size():
 		var e: Dictionary = f.hand[h]
 		var sp := int(e.get("spent", -1))
-		if sp >= 0 and t.mods.has(sp):
+		if sp >= 0 and sp < f.inventory.items.size():
+			if not t.mods.has(sp):
+				t.mods[sp] = _empty_mod(f, sp)
 			t.mods[sp].dice.append(h)
-			t.mods[sp].prev.append({"h": h, "value": int(e.value), "top": bool(e.top), "face": int(e.face), "spent": true})
+			t.mods[sp].prev.append({"h": h, "value": int(e.value), "top": bool(e.get("top", false)), "face": int(e.face), "spent": true})
+		var src := int(e.get("spawn", -1))
+		if src >= 0 and t.mods.has(src):
+			t.mods[src].spawn.append(h)
 	return t
+
+
+static func _empty_mod(f: Fighter, it: int) -> Dictionary:
+	return {"dice": [], "prev": [], "spawn": [], "random": Spells.is_random_mod(str(f.inventory.items[it].id)), "polish": {}}
 
 
 func used_dice() -> Array:
@@ -120,15 +137,12 @@ static func die_allowed(f: Fighter, item: int, h: int, slot := 0) -> bool:
 	var e: Dictionary = f.hand[h]
 	if int(e.bag) == -2 or int(e.get("spent", -1)) >= 0:
 		return false
-	var copy := int(e.get("spawn", -1)) >= 0
-	if copy and id in Spells.NO_COPIES:
-		return false
 	if not Spells.is_mod(id):
 		return true
-	if copy or int(e.get("mod", -1)) >= 0:
-		return false ## Um dado recebe no máximo uma mexida por turno.
-	if Spells.is_random_mod(id) and bool(e.get("fixed", false)):
-		return false ## Dado que não rola não aceita mexida aleatória.
+	# Dados devolvidos (partes da Sangria, cópias) e dados já mexidos aceitam outras
+	# mexidas. Só o dado marcado da mão anterior (fixo, sem ser devolvido) não rola de novo.
+	if Spells.is_random_mod(id) and bool(e.get("fixed", false)) and int(e.get("spawn", -1)) < 0:
+		return false
 	match str(Spells.get_def(id).get("mod", "")):
 		"nudge":
 			if slot == 1 and int(e.value) <= 1:
@@ -176,15 +190,18 @@ func _spawn(f: Fighter, item: int) -> void:
 		return
 	var src: Dictionary = f.hand[dice_in(item)[0]]
 	var v := int(src.value)
+	var sd := f.die_of(src)
 	var out := []
 	for _k in 2:
-		var e := {"bag": -1, "temp": null, "face": 0, "value": v, "top": false, "fixed": true, "plus": 0, "spawn": item}
+		# Os devolvidos guardam o dado de origem (elemento, faces, adesivos) e a cadeia
+		# do Carbono da rolagem.
+		var e := {"bag": -1, "temp": sd.copy() if sd else Die.basic(), "face": int(src.face), "value": v,
+			"top": false, "fixed": true, "plus": 0, "spawn": item}
+		if src.has("chain"):
+			e["chain"] = int(src.chain)
 		if fx == "spawn_half":
 			e.value = Config.ceil_div(v, 2)
-			e.temp = Die.basic()
 		else:
-			var sd := f.die_of(src)
-			e.temp = sd.copy() if sd else Die.basic()
 			# Imitação evoluída: as cópias valem mais (×1,5 no nível 2, ×2 no 3).
 			e.value = Config.scale(v, int(f.inventory.items[item].level))
 		out.append(f.hand.size())
@@ -203,7 +220,8 @@ func _resolve_mod(f: Fighter, item: int) -> void:
 	var lvl := int(it.level)
 	var b := lvl - 1 ## Nível: +1 / +2 em cada dado devolvido.
 	var dice: Array = casts[item].duplicate()
-	var m := {"dice": dice, "prev": [], "spawn": [], "random": bool(def.get("random", false)), "polish": {}}
+	var m := {"dice": dice, "prev": [], "spawn": [], "random": bool(def.get("random", false)), "polish": {}, "seq": seq}
+	seq += 1
 	for h in dice:
 		var e: Dictionary = f.hand[h]
 		var p := {"h": h, "value": int(e.value), "top": bool(e.get("top", false)), "face": int(e.face), "spent": false}
@@ -249,10 +267,13 @@ func _resolve_mod(f: Fighter, item: int) -> void:
 			# As partes guardam o dado de origem (elemento, faces e adesivos): Sódio queima
 			# por parte, Carbono conta na cadeia, rolar de novo usa as faces dele. Como as
 			# partes não rolam (fixed), o Mercúrio não copia de novo.
-			var src := f.die_of(f.hand[dice[0]])
+			var se: Dictionary = f.hand[dice[0]]
+			var src := f.die_of(se)
 			for k in 3:
-				var part := {"bag": -1, "temp": src.copy() if src else Die.basic(), "face": 0, "value": q + (1 if k < rest else 0) + b,
-					"top": false, "fixed": true, "plus": 0, "spawn": item, "mod": item, "orig": v, "cause": id}
+				var part := {"bag": -1, "temp": src.copy() if src else Die.basic(), "face": int(se.face), "value": q + (1 if k < rest else 0) + b,
+					"top": false, "fixed": true, "plus": 0, "spawn": item, "orig": v, "cause": id}
+				if se.has("chain"):
+					part["chain"] = int(se.chain)
 				m.spawn.append(f.hand.size())
 				f.hand.append(part)
 		"flip":
@@ -286,6 +307,9 @@ func _resolve_mod(f: Fighter, item: int) -> void:
 			e["spent"] = item
 			continue
 		e["mod"] = item
+		var hist: Array = e.get("mod_hist", []).duplicate(true)
+		hist.append({"item": item, "seq": int(m.seq), "value": int(p.value), "top": bool(p.top), "face": int(p.face)})
+		e["mod_hist"] = hist
 		if not e.has("orig") or str(e.get("cause", "")) == "":
 			e["orig"] = int(p.value)
 		e["orig_top"] = bool(p.top)
@@ -295,12 +319,13 @@ func _resolve_mod(f: Fighter, item: int) -> void:
 
 
 ## Rolagem nova do dado da entrada (mesmas regras da mão: +plus, Hidrogênio, Carbono).
-## Com expect (IA), devolve o valor esperado.
+## A cadeia do Carbono é a da rolagem da mão ("chain"), sem recontar; o Mercúrio fica
+## com a face, sem copiar. Com expect (IA), devolve o valor esperado.
 func _reroll(f: Fighter, e: Dictionary) -> Dictionary:
 	var d := f.die_of(e)
 	if d == null:
 		return {"face": int(e.face), "value": int(e.value), "top": bool(e.top)}
-	var chain := Elements.chain_bonus(f) if d.element == "C" else 0
+	var chain := int(e.get("chain", 0)) if d.element == "C" else 0
 	var mult := Elements.solitary_mult if Elements.solitary(f, d) else 1
 	if forced_face >= 0:
 		var fr := d.value(forced_face)
@@ -341,11 +366,39 @@ func _bump(f: Fighter, e: Dictionary, b: int) -> void:
 func undo_mod(f: Fighter, item: int) -> bool:
 	if not mods.has(item) or bool(mods[item].random):
 		return false
+	for it in _later_mods(item):
+		if bool(mods[it].random):
+			return false ## Uma aleatória veio depois nos mesmos dados: fica.
 	_restore_mod(f, item)
 	return true
 
 
+## Mexidas feitas depois de item nos dados dela (ou nas partes que ela criou), em
+## qualquer profundidade, da mais nova para a mais antiga.
+func _later_mods(item: int) -> Array:
+	var out := []
+	var touched := {}
+	for p in mods[item].prev:
+		touched[int(p.h)] = true
+	for h in mods[item].spawn:
+		touched[int(h)] = true
+	var s0 := int(mods[item].get("seq", 0))
+	var later := mods.keys().filter(func(k): return int(mods[k].get("seq", 0)) > s0)
+	later.sort_custom(func(a, b): return int(mods[a].get("seq", 0)) < int(mods[b].get("seq", 0)))
+	for k in later:
+		var m: Dictionary = mods[k]
+		if m.prev.any(func(p): return touched.has(int(p.h))):
+			out.push_front(k)
+			for h in m.spawn:
+				touched[int(h)] = true
+	return out
+
+
 func _restore_mod(f: Fighter, item: int) -> void:
+	if not mods.has(item):
+		return
+	for it in _later_mods(item):
+		_restore_mod(f, it)
 	var m: Dictionary = mods[item]
 	mods.erase(item)
 	slots.erase(item)
@@ -363,8 +416,14 @@ func _restore_mod(f: Fighter, item: int) -> void:
 		e.value = int(p.value)
 		e.top = bool(p.top)
 		e.face = int(p.face)
-		e.erase("mod")
 		e.erase("spent")
+		var hist: Array = e.get("mod_hist", []).filter(func(r): return int(r.item) != item)
+		if hist.is_empty():
+			e.erase("mod")
+			e.erase("mod_hist")
+		else:
+			e["mod_hist"] = hist
+			e["mod"] = int(hist.back().item)
 		for k in ["orig", "orig_top", "cause"]:
 			e.erase(k)
 			if p.has("was_" + k):

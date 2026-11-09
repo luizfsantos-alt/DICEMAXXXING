@@ -118,7 +118,6 @@ const DATA := {
 
 ## Dados devolvidos (Imitação, Força Desnecessária, Sangria) não entram nestas magias
 ## (docs/SPEC_v3.1.md §6): sem corrente de cópias, Sacrifício grátis nem vida máxima infinita.
-const NO_COPIES := ["imitacao", "sacrificio", "transfusao"]
 
 ## Mexidas na próxima mão do inimigo (Resolver.apply_hand_mods).
 const HAND_MODS := ["steal_top", "idle_dmg", "even_to_one", "minus2", "minus1", "halve", "top_to_one"]

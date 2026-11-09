@@ -126,35 +126,41 @@ func test_marcado_nao_aceita_aleatoria():
 
 
 # ------------------------------------------------------------ Uma mexida por dado (critério 2)
-func test_um_dado_uma_mexida():
-	var f := _f(["virar", "inflar"], [2])
+func test_dado_mexido_aceita_outra_mexida():
+	var f := _f(["virar", "ajuste"], [2])
 	var c := TurnChoice.new()
 	_place(f, c, "virar", [0])
 	assert_eq(_vals(f), [5])
-	assert_false(c.accepts(f, H.item(f, "inflar"), 0), "já mexido")
+	assert_true(_place(f, c, "ajuste", [0]), "o dado mexido aceita outra mexida")
+	assert_eq(_vals(f), [6])
+	assert_eq(int(f.hand[0].orig), 2, "o original riscado é o da rolagem")
+	assert_true(c.undo_mod(f, H.item(f, "virar")), "desfazer a primeira desfaz a de cima")
+	assert_eq(_vals(f), [2])
+	assert_false(f.hand[0].has("mod"))
+	assert_true(c.mods.is_empty())
 
 
-func test_copias_nao_alimentam_imitacao_sacrificio_transfusao():
+func test_copias_alimentam_qualquer_magia():
 	var f := _f(["imitacao", "transfusao", "sacrificio", "faisca"], [1, 4])
 	f.inventory.add("imitacao")
 	var c := TurnChoice.new()
 	var im := f.inventory.ids().find("imitacao")
 	assert_true(c.place(f, im, 0))
 	var copy := f.hand.size() - 1
-	assert_false(c.accepts(f, H.item(f, "sacrificio"), copy), "Sacrifício não aceita cópia")
-	assert_false(c.accepts(f, H.item(f, "transfusao"), copy), "Transfusão não aceita cópia")
+	assert_true(c.accepts(f, H.item(f, "sacrificio"), copy), "Sacrifício aceita cópia")
+	assert_true(c.accepts(f, H.item(f, "transfusao"), copy), "Transfusão aceita cópia")
 	var im2 := f.inventory.ids().rfind("imitacao")
 	assert_ne(im2, im)
-	assert_false(c.accepts(f, im2, copy), "Imitação não aceita cópia")
-	assert_true(c.accepts(f, H.item(f, "faisca"), copy), "as outras aceitam")
+	assert_true(c.accepts(f, im2, copy), "Imitação aceita cópia")
+	assert_true(c.accepts(f, H.item(f, "faisca"), copy))
 	var sg := _f(["sangria", "sacrificio"], [3])
 	var cs := TurnChoice.new()
 	_place(sg, cs, "sangria", [0])
-	assert_false(cs.accepts(sg, H.item(sg, "sacrificio"), 1), "parte da Sangria é devolvida")
+	assert_true(cs.accepts(sg, H.item(sg, "sacrificio"), 1), "parte da Sangria entra no Sacrifício")
 
 
 # ------------------------------------------------------------ Corrente da crítica (critério 3)
-func test_corrente_de_imitacoes_acabou():
+func test_corrente_de_imitacoes_liberada():
 	var f := H.fighter("a", [], 40, true)
 	f.inventory.items = [
 		{"id": "imitacao", "level": 3, "x": 0, "y": 0, "rot": 0},
@@ -165,7 +171,8 @@ func test_corrente_de_imitacoes_acabou():
 	var c := TurnChoice.new()
 	assert_true(c.place(f, 0, 0))
 	assert_eq(_vals(f).slice(4), [12, 12])
-	assert_false(c.place(f, 1, 4), "a cópia não vai para outra Imitação")
+	assert_true(c.place(f, 1, 4), "a cópia vai para outra Imitação")
+	assert_eq(_vals(f).slice(6), [24, 24], "a corrente volta a valer (cópia da cópia, ×2 no nível 3)")
 
 
 # ------------------------------------------------------------ Desfazer (critério 4)
@@ -306,3 +313,53 @@ func test_sangria_mercurio_nao_recalcula():
 	_place(f, TurnChoice.new(), "sangria", [0])
 	assert_eq(f.die_of(f.hand[2]).element, "Hg")
 	assert_eq(_vals(f).slice(2), [2, 2, 2], "o Mercúrio não copia o maior de novo")
+
+
+func test_parte_da_sangria_rola_de_novo_com_o_elemento():
+	var f := _f(["sangria", "tudo_nada"], [9, 2])
+	f.bag[0] = Die.with_element("U") ## Faces 3 a 8.
+	var c := TurnChoice.new()
+	c.rng = H.rng(3)
+	_place(f, c, "sangria", [0])
+	assert_true(_place(f, c, "tudo_nada", [2]), "a parte aceita mexida aleatória")
+	assert_eq(f.die_of(f.hand[2]).element, "U")
+	var v := int(f.hand[2].value)
+	assert_true(v % 2 == 0 and v >= 6 and v <= 16, "rolou com as faces do Urânio (×2): %d" % v)
+	assert_false(c.undo_mod(f, H.item(f, "sangria")), "uma aleatória veio depois: a Sangria fica")
+
+
+func test_carbono_cadeia_fixa_na_rolagem():
+	var f := H.fighter("a", ["sangria"], 40, true)
+	f.bag = [Die.with_element("C"), Die.with_element("C"), Die.basic()]
+	f.hand = []
+	for i in 3:
+		f.hand.append({"bag": i, "temp": null, "face": 5, "value": 6, "top": true, "fixed": false, "plus": 0, "spawn": -1})
+	# Rolagem da mão com 2 Carbonos: +2 em cada, guardado em "chain".
+	for h in 2:
+		f.hand[h].value = 8
+		f.hand[h]["chain"] = Elements.chain_bonus(f)
+	assert_eq(int(f.hand[0].chain), 2)
+	var c := TurnChoice.new()
+	_place(f, c, "sangria", [0])
+	assert_eq(Elements.chain_bonus(f), 0, "partes e o original gasto não viram elos")
+	assert_eq(int(f.hand[3].chain), 2, "a parte guarda a cadeia da rolagem")
+	var g := H.fighter("b", ["tudo_nada"], 40, true)
+	g.bag = [Die.with_element("C")]
+	g.hand = [{"bag": 0, "temp": null, "face": 0, "value": 7, "top": false, "fixed": false, "plus": 0, "spawn": -1, "chain": 6}]
+	var cg := TurnChoice.new()
+	cg.forced_face = 0
+	_place(g, cg, "tudo_nada", [0])
+	assert_eq(int(g.hand[0].value), (1 + 6) * 2, "rolar de novo soma a cadeia da rolagem, sem recontar")
+
+
+func test_save_no_meio_do_turno_com_duas_mexidas():
+	var f := _f(["virar", "ajuste", "sangria"], [2, 9])
+	var c := TurnChoice.new()
+	_place(f, c, "virar", [0])
+	_place(f, c, "ajuste", [0])
+	_place(f, c, "sangria", [1])
+	var t := TurnChoice.from_hand(f)
+	assert_eq(t.mods.keys().size(), 3)
+	assert_eq(t.mods[H.item(f, "sangria")].spawn.size(), 3)
+	assert_true(t.undo_mod(f, H.item(f, "virar")))
+	assert_eq(int(f.hand[0].value), 2)

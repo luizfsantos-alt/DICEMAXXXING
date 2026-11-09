@@ -112,10 +112,14 @@ static func solitary(f: Fighter, d: Die) -> bool:
 
 
 ## Carbono (Cadeia): bônus de cada Carbono da mão, + CHAIN_STEP por outro Carbono nela.
+## Conta só os dados rolados: partes da Sangria, cópias e dados gastos não são elos (a
+## cadeia fica fixa na rolagem; rolar de novo usa a que o dado guardou em "chain").
 static func chain_bonus(f: Fighter) -> int:
 	var n := 0
 	for e in f.hand:
 		var d := f.die_of(e)
+		if int(e.get("spawn", -1)) >= 0 or int(e.get("spent", -1)) >= 0:
+			continue
 		if d != null and d.element == "C":
 			n += 1
 	return maxi(0, n - 1) * CHAIN_STEP
