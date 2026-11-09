@@ -246,8 +246,12 @@ func _resolve_mod(f: Fighter, item: int) -> void:
 			var q := v / 3
 			var rest := v % 3
 			m.prev[0].spent = true
+			# As partes guardam o dado de origem (elemento, faces e adesivos): Sódio queima
+			# por parte, Carbono conta na cadeia, rolar de novo usa as faces dele. Como as
+			# partes não rolam (fixed), o Mercúrio não copia de novo.
+			var src := f.die_of(f.hand[dice[0]])
 			for k in 3:
-				var part := {"bag": -1, "temp": Die.basic(), "face": 0, "value": q + (1 if k < rest else 0) + b,
+				var part := {"bag": -1, "temp": src.copy() if src else Die.basic(), "face": 0, "value": q + (1 if k < rest else 0) + b,
 					"top": false, "fixed": true, "plus": 0, "spawn": item, "mod": item, "orig": v, "cause": id}
 				m.spawn.append(f.hand.size())
 				f.hand.append(part)

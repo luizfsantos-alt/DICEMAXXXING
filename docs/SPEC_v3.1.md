@@ -56,7 +56,7 @@ As mexidas seguem os princípios do catálogo: tudo passa por dado posto em bura
 | 40 | `segunda` | **Segunda Chance** | 1×1 | Feiticeiro | qualquer dado que rola | Rola o dado de novo e fica com o **maior** dos dois valores. | sempre | Comum |
 | 41 | `ajuste` | **Ajuste Fino** | 1×1 | Assassino | qualquer dado | +1 ou −1 no valor (o jogador escolhe; mínimo 1). | sempre | Comum |
 | 42 | `pico` | **Pico** | 1×1 | qualquer | qualquer dado | O dado vai para a sua **face máxima** (com adesivos). | 1× por luta | Comum |
-| 43 | `sangria` | **Sangria** | 1×1 | qualquer | dado ≥ 3 | O dado se divide em **3 partes iguais** (§1.4). As partes são dados comuns temporários. | sempre | Comum |
+| 43 | `sangria` | **Sangria** | 1×1 | qualquer | dado ≥ 3 | O dado se divide em **3 partes iguais** (§1.4). As partes são temporárias e mantêm o elemento do dado. | sempre | Comum |
 | 44 | `virar` | **Virar** | 1×1 | qualquer | dado ≤ 6 | O dado mostra a face oposta: valor = 7 − valor (1 ↔ 6, 2 ↔ 5, 3 ↔ 4). | sempre | Comum |
 | 45 | `nivelar` | **Nivelar** | 2×1 | Assassino | 2 dados | Os dois viram a média deles, arredondada para cima (2 e 6 → 4 e 4). | sempre | Comum |
 | 46 | `polarizar` | **Polarizar** | 1×1 | Assassino | qualquer dado | Dado ≤ 3 vira 1; dado ≥ 4 vira 6. | sempre | Comum |
@@ -74,7 +74,7 @@ Contagem: 7 Comuns, 4 Incomuns, 2 Raras. Todas são retas ou 1×1, menos a Escad
 - **Segunda Chance:** rolagem nova com as regras do §1.2.8; fica o maior entre o valor atual e o novo. Nunca piora o dado.
 - **Ajuste Fino:** o cartão tem **dois buracos**, "+1" e "−1"; o dado vai em um deles e o outro apaga. Um 1 no "−1" continua 1 (o buraco "−1" não aceita um 1).
 - **Pico:** valor = maior face do dado. Um Chumbo vira 3. Um dado com o 6 adesivado duas vezes vira 24.
-- **Sangria:** v ≥ 3 vira 3 partes: q = v ÷ 3 (inteiro) e as primeiras (v mod 3) partes ganham +1. Exemplos: 3 → 1, 1, 1; 6 → 2, 2, 2; 7 → 3, 2, 2; 8 → 3, 3, 2; 12 → 4, 4, 4. O dado original vai para o descarte como usado. As partes são temporárias, contam como mexidas e somem no fim do turno.
+- **Sangria:** v ≥ 3 vira 3 partes: q = v ÷ 3 (inteiro) e as primeiras (v mod 3) partes ganham +1. Exemplos: 3 → 1, 1, 1; 6 → 2, 2, 2; 7 → 3, 2, 2; 8 → 3, 3, 2; 12 → 4, 4, 4. O dado original vai para o descarte como usado. As partes são temporárias, contam como mexidas e somem no fim do turno. Cada parte **mantém o elemento** (e as faces) do dado original: Sódio queima por parte usada, Amianto machuca por parte, Urânio parado envenena por parte, Carbono conta na cadeia, e rolar de novo usa as faces do dado original. O Mercúrio não é recalculado: a parte fica com o valor dividido, sem copiar o maior de novo.
 - **Virar:** só valores de 1 a 6 (dado com adesivo ou Urânio acima de 6 não serve). O Chumbo 1 vira 6. É temporário: não edita a face travada.
 - **Nivelar:** média arredondada para cima: 3 e 4 → 4 e 4; 1 e 6 → 4 e 4. Sempre produz um par.
 - **Polarizar:** prepara exigências "um 1" (Espelho, Sacrifício, Levantar Peso) e "um 6" (Golpe nas Sombras, Meia Verdade, Presença Imponente).

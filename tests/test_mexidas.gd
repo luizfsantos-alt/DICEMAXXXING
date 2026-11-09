@@ -288,3 +288,21 @@ func test_ia_vira_o_chumbo_para_a_estocada():
 	var c := EnemyAI.choose(f, H.fighter("b", []), H.rng(1))
 	assert_true(c.mods.has(H.item(f, "virar")))
 	assert_eq(c.values_in(f, H.item(f, "estocada")), [6])
+
+
+func test_sangria_partes_mantem_o_elemento():
+	var f := _f(["sangria"], [9, 2])
+	f.bag[0] = Die.with_element("Na")
+	var c := TurnChoice.new()
+	assert_true(_place(f, c, "sangria", [0]))
+	for h in [2, 3, 4]:
+		assert_eq(f.die_of(f.hand[h]).element, "Na", "a parte guarda o elemento")
+	assert_eq(_vals(f).slice(2), [3, 3, 3])
+
+
+func test_sangria_mercurio_nao_recalcula():
+	var f := _f(["sangria"], [6, 2])
+	f.bag[0] = Die.with_element("Hg")
+	_place(f, TurnChoice.new(), "sangria", [0])
+	assert_eq(f.die_of(f.hand[2]).element, "Hg")
+	assert_eq(_vals(f).slice(2), [2, 2, 2], "o Mercúrio não copia o maior de novo")
