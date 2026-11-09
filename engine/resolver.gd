@@ -452,6 +452,7 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 	if def.has("mark"):
 		_mark(f, dice, str(def.mark), total, ev)
 	# Sódio: queima o inimigo ao ser usado. Amianto: machuca quem usa (não é golpe).
+	# Césio: cada dado usado põe veneno (radiação) no inimigo; não cai sozinho.
 	for h in dice:
 		var e: Dictionary = f.hand[h]
 		if int(e.bag) == -2 or f.die_of(e) == null:
@@ -459,6 +460,9 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 		var el := f.die_of(e).element
 		if el == "Na" and foe.hp > 0:
 			_burn(foe, Config.SODIUM_BURN, ev, "Na")
+		elif el == "Cs" and foe.hp > 0 and negative(foe, ev):
+			foe.poison += Config.CESIUM_POISON
+			push(ev, {"t": "poison_up", "side": side(foe), "n": Config.CESIUM_POISON, "total": foe.poison, "src": "Cs"})
 		elif el == "Am" and f.hp > 0:
 			f.hp -= Config.ASBESTOS_DMG
 			push(ev, {"t": "asbestos", "side": side(f), "n": Config.ASBESTOS_DMG})

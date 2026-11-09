@@ -116,6 +116,43 @@ func test_sodio_queima_e_queima_decai():
 	assert_eq(b.burn, Config.SODIUM_BURN - 1)
 
 
+func test_cesio_irradia_e_o_veneno_nao_cai():
+	var a := H.fighter("a", ["faisca"])
+	var b := H.fighter("b", [])
+	a.bag[0] = Die.with_element("Cs")
+	a.bag[1] = Die.with_element("Cs")
+	a.bag[2] = Die.with_element("Cs")
+	H.hand(a, [3, 5, 5])
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(b.poison, Config.CESIUM_POISON, "cada dado de Césio usado põe 1")
+	for t in 3:
+		Resolver.start_turn(b, [])
+	assert_eq(b.poison, Config.CESIUM_POISON, "não cai com as rodadas")
+	assert_eq(b.hp, 40 - 3 - 3 * Config.CESIUM_POISON)
+	var hp := b.hp
+	H.hand(a, [3, 5, 5])
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(b.poison, 2 * Config.CESIUM_POISON, "acumula")
+	assert_eq(a.poison, 0, "não irradia quem usa")
+	assert_true(hp > b.hp)
+
+
+func test_cesio_parado_nao_irradia_e_imune_bloqueia():
+	var a := H.fighter("a", ["faisca"])
+	var b := H.fighter("b", [])
+	a.bag[1] = Die.with_element("Cs")
+	H.hand(a, [3, 4])
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(b.poison, 0, "Césio que sobra na mão não faz nada")
+	b.immune = 1
+	a.bag[0] = Die.with_element("Cs")
+	H.hand(a, [3])
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(b.poison, 0, "Imune a Críticas anula a radiação")
+	assert_true("Cs" in Elements.SHOP)
+	assert_eq(Elements.rarity("Cs"), "uncommon")
+
+
 # ------------------------------------------------------------ Inventário
 func test_formatos_giram_e_ocupam_a_grade():
 	assert_eq(Spells.shape("escudo", 0), [Vector2i(0, 0), Vector2i(0, 1)])

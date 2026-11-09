@@ -1356,9 +1356,14 @@ func _apply_event(ev: Dictionary) -> void:
 			else:
 				await _effect(s, Texts.t("ui.fx_burn_up", {"n": ev.n}), "fx")
 		"poison_up":
-			# Urânio (ou dado parado, com o Reator) no fim do turno: sem magia de origem.
-			var pk := "ui.fx_reactor" if str(ev.get("src", "")) == "reactor" else "ui.fx_el_U"
-			await _effect(s, Texts.t(pk, {"n": ev.n}), "fx", null)
+			if str(ev.get("src", "")) == "Cs":
+				# Césio: sai do cartão da magia, como a queima do Sódio.
+				_burst(fx_src, Elements.look("Cs").emission, true)
+				await _effect(s, Texts.t("ui.fx_el_Cs", {"n": ev.n}), "fx")
+			else:
+				# Urânio (ou dado parado, com o Reator) no fim do turno: sem magia de origem.
+				var pk := "ui.fx_reactor" if str(ev.get("src", "")) == "reactor" else "ui.fx_el_U"
+				await _effect(s, Texts.t(pk, {"n": ev.n}), "fx", null)
 		"alchemy":
 			_float(s, Texts.t("ui.fx_alchemy", {"from": ev["from"], "to": ev.to}), Kit.ACCENT)
 		"dead_weight":
@@ -1672,6 +1677,8 @@ func _describe(ev: Dictionary) -> String:
 		"poison_up":
 			if str(ev.get("src", "")) == "reactor":
 				return Texts.t("ev.poison_reactor", {"who": w, "n": ev.n})
+			if str(ev.get("src", "")) == "Cs":
+				return Texts.t("ev.poison_up_cs", {"who": w, "n": ev.n})
 			return Texts.t("ev.poison_up", {"who": w, "n": ev.n})
 		"alchemy":
 			return Texts.t("ev.alchemy", {"from": ev["from"], "to": ev.to})

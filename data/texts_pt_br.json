@@ -273,6 +273,10 @@
   "C": [
    "Carbono",
    "Cadeia: +2 para cada outro Carbono na mão."
+  ],
+  "Cs": [
+   "Césio",
+   "Radiação: ao ser usado, envenena o inimigo em 1 (acumula; o veneno não cai sozinho, só sai com magia)."
   ]
  },
  "masters": {
@@ -565,6 +569,7 @@
   "fx_el_C": "Carbono em cadeia = {v}",
   "fx_el_Na": "Sódio: queima {n}",
   "fx_el_U": "Urânio: veneno {n}",
+  "fx_el_Cs": "Césio: radiação +{n}",
   "fx_dead_weight": "Peso Morto: +{n} dado(s)",
   "fx_copy": "Copiou {name}",
   "fx_thirst": "Sede: +{n} vida máx.",
@@ -611,6 +616,7 @@
   "poison": "Veneno: {who} perde {n}",
   "burn": "Queima: {who} perde {n}",
   "poison_up": "Urânio parado: {who} envenenado (+{n})",
+  "poison_up_cs": "Césio: {who} irradiado (+{n} de veneno)",
   "burn_up": "{who} pega fogo (+{n} de queima)",
   "dodge_up": "{who} se prepara para esquivar",
   "mirror_up": "{who} ergue um espelho",

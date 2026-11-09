@@ -33,6 +33,7 @@ const MAX_LEVEL := 3
 const SACRIFICE_BONUS := 5
 const URANIUM_POISON := 2
 const SODIUM_BURN := 2
+const CESIUM_POISON := 1 ## Césio: cada dado usado põe 1 de veneno (radiação) no inimigo.
 const ASBESTOS_DMG := 3 ## Amianto: dano em quem usa.
 const HEAL_STOP_FRACTION := 0.35
 const WIN_HEAL_FRACTION := 0.1 ## Vitória fora dos Mestres recupera esta fração da vida máxima (sem a Sede).

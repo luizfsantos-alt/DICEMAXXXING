@@ -250,6 +250,7 @@ Cada dado pode ter **um** elemento, que dá uma regra de uma linha a ele. No jog
 | **Urânio** | Faces de 3 a 8. Se sobrar na mão sem uso, envenena **você** em 2 (o veneno não cai durante a luta). |
 | **Sódio** | Ao ser usado numa magia, queima o inimigo em 2. |
 | **Mercúrio** | Ao rolar, vale o maior valor entre a sua mão e a última mão do inimigo. |
+| **Césio** | Radiação: ao ser usado numa magia, envenena o **inimigo** em 1 por dado. O veneno é o mesmo do Urânio: dá dano todo começo de turno, acumula e não cai sozinho (só sai com magia de limpeza, como o Suor de Campeão). Faces comuns (1 a 6). Incomum. |
 | **Chumbo** | Lixo: três faces 1 travadas. Só vem do inimigo. |
 
 ### 5.2 Diagnóstico
