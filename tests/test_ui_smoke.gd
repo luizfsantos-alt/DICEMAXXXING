@@ -418,7 +418,9 @@ func test_palco_e_dados_trocam_por_turno():
 	assert_eq(d.dice_side, "enemy")
 	assert_eq(d.tray_views.size(), 3)
 	assert_false(d.tray_views[0].interactive, "dados do inimigo não são tocáveis")
+	d.skip = true ## Tocou para acelerar o turno do inimigo.
 	d._start_player_phase()
+	assert_false(d.skip, "a sua vez volta com as animações (mexidas voam e giram)")
 	assert_eq(d.stage_side(), "player")
 	assert_eq(d.dice_side, "player")
 	assert_eq(d.tray_views.size(), run.duel.player.hand.size())

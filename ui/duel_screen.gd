@@ -531,6 +531,9 @@ func _start_player_phase() -> void:
 	choice.rng = duel.rng
 	selected = -1
 	busy = false
+	# O "tocar acelera" vale só para a resolução: sem isto, quem tocou no turno do
+	# inimigo ficava sem as animações das próprias mexidas (o dado não voava nem girava).
+	skip = false
 	banner.text = Texts.t("ui.your_turn")
 	hint.text = Texts.t("ui.hint_place")
 	catcher.visible = false
