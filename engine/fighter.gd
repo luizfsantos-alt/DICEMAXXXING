@@ -265,6 +265,10 @@ func _roll_entry(e: Dictionary, rng: RandomNumberGenerator) -> void:
 	if Elements.solitary(self, d):
 		Resolver.mark_cause(e, "H")
 		e.value *= Elements.solitary_mult
+	if Elements.bursts(d, int(e.face)):
+		# Estrôncio: estoura, rola mais uma vez (só uma) e soma.
+		Resolver.mark_cause(e, "Sr")
+		e.value += d.value(rng.randi_range(0, 5))
 	if d.element == "Li" and d.charge > 0:
 		Resolver.mark_cause(e, "Li")
 		e.value += d.charge

@@ -181,6 +181,40 @@ func test_litio_carrega_parado_e_descarrega_ao_usar():
 	assert_true("Li" in Elements.SHOP)
 
 
+func test_estroncio_estoura_na_face_mais_alta():
+	var f := H.fighter("a", ["faisca"])
+	f.bag[0] = Die.with_element("Sr")
+	f.bag[0].faces = [1, 2, 3, 6, 6, 4] ## Duas faces empatadas no maior valor.
+	var hits := {}
+	for s in 80:
+		f.hand = [{"bag": 0, "temp": null, "face": 0, "value": 0}]
+		f._roll_entry(f.hand[0], H.rng(s))
+		var face := int(f.hand[0].face)
+		var raw := int(f.bag[0].faces[face])
+		if raw == 6:
+			hits[face] = true
+			var extra := int(f.hand[0].value) - 6
+			assert_true(extra in [1, 2, 3, 4, 6], "estoura: rola mais uma vez e soma (%d)" % extra)
+			assert_lte(int(f.hand[0].value), 12, "só uma vez")
+			assert_eq(str(f.hand[0].cause), "Sr")
+		else:
+			assert_eq(int(f.hand[0].value), raw, "as outras faces não mudam")
+	assert_eq(hits.keys().size(), 2, "qualquer face empatada no maior valor estoura")
+	# Adesivo na face mais alta: ela continua estourando (6 + 2 = 8).
+	f.bag[0].faces = [1, 2, 3, 4, 5, 6]
+	f.bag[0].add_sticker(5)
+	assert_true(Elements.bursts(f.bag[0], 5))
+	assert_false(Elements.bursts(f.bag[0], 4))
+	assert_false(Elements.bursts(Die.basic(), 5), "só o Estrôncio")
+	# Rolar de novo (mexidas) também estoura; a IA estima o estouro pela média.
+	var c := TurnChoice.new()
+	c.forced_face = 5
+	f.hand = [{"bag": 0, "temp": null, "face": 0, "value": 1}]
+	assert_eq(int(c._reroll(f, f.hand[0]).value), 8 + Elements.burst_mean(f.bag[0]))
+	assert_eq(Elements.rarity("Sr"), "uncommon")
+	assert_true("Sr" in Elements.SHOP)
+
+
 func test_titanio_da_bloqueio_ao_usar():
 	var a := H.fighter("a", ["faisca"])
 	var b := H.fighter("b", [])

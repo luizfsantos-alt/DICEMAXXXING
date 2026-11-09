@@ -289,6 +289,10 @@
   "Ti": [
    "Titânio",
    "Blindado: ao ser usado numa magia, você ganha 2 de bloqueio."
+  ],
+  "Sr": [
+   "Estrôncio",
+   "Fogos: se cair na face mais alta (qualquer uma empatada serve), estoura: rola mais uma vez e soma."
   ]
  },
  "masters": {
@@ -590,6 +594,7 @@
   "fx_el_Hg": "Mercúrio copiou {v}",
   "fx_el_C": "Carbono em cadeia = {v}",
   "fx_el_Li": "Lítio descarrega = {v}",
+  "fx_el_Sr": "Estrôncio estoura! = {v}",
   "fx_el_Ti": "Titânio: bloqueio +{n}",
   "fx_charge": "Lítio carrega +{n} ({total})",
   "fx_el_Na": "Sódio: queima {n}",
@@ -674,6 +679,7 @@
   "el_Hg": "Mercúrio: {who} copia o valor {v}",
   "el_C": "Carbono: {who} encadeia e rola {v}",
   "el_Li": "Lítio: {who} descarrega a bateria e rola {v}",
+  "el_Sr": "Estrôncio: {who} tira a face mais alta, estoura, rola de novo e soma {v}",
   "charge": "Lítio: a bateria de {who} carrega +{n} (agora +{total})",
   "block_ti": "Titânio: {who} ganha {n} de bloqueio",
   "dead_weight": "Peso Morto: {who} puxa mais {n} dado(s)",

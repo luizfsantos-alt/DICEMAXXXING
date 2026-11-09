@@ -28,6 +28,7 @@ A tabela fica em `Elements.LOOKS` (`engine/elements.gd`). `Elements.COLORS` cont
 | Césio | `#1d4fc4` | `#eaf3ff` | `#6fb4ff` | vidro (rugosidade 0,2, alfa 0,95, clearcoat 0,7, rim) | corpo `#3d9bff` (o azul do cloreto de césio) |
 | Lítio | `#737980` | `#d8ff6a` | `#b8ff2e` | espelho escovado (metal 0,7, rugosidade 0,3) | só pontinhos e algarismos `#b8ff2e` (emissão em modo multiplicar, `glow_only`: o corpo fica cinza) |
 | Titânio | `#a33cc4` → `#3d6fe0` → `#e0b040` | `#ffffff` | `#e08cf0` | anodizado: faixas furta-cor magenta, azul e dourado (metal 0,8, rugosidade 0,22) | — |
+| Estrôncio | `#c8161d` | `#ffd23a` | `#ff6b5a` | envernizado (marfim com clearcoat 0,9): o tubo vermelho dos fogos | — (pontinhos amarelos das faíscas) |
 
 ## Brilho como estado
 

@@ -167,6 +167,8 @@ static func _announce_elements(f: Fighter, ev: Array) -> void:
 			push(ev, {"t": "element", "side": side(f), "el": "C", "v": int(e.value)})
 		elif d.element == "Hg" and int(e.value) > d.value(int(e.face)):
 			push(ev, {"t": "element", "side": side(f), "el": "Hg", "v": int(e.value)})
+		elif Elements.bursts(d, int(e.face)):
+			push(ev, {"t": "element", "side": side(f), "el": "Sr", "v": int(e.value)})
 		elif d.element == "Li" and d.charge > 0:
 			push(ev, {"t": "element", "side": side(f), "el": "Li", "v": int(e.value)})
 

@@ -318,7 +318,8 @@ func _resolve_mod(f: Fighter, item: int) -> void:
 	mods[item] = m
 
 
-## Rolagem nova do dado da entrada (mesmas regras da mão: +plus, Hidrogênio, Carbono, Lítio).
+## Rolagem nova do dado da entrada (mesmas regras da mão: +plus, Hidrogênio, Estrôncio,
+## Carbono, Lítio).
 ## A cadeia do Carbono é a da rolagem da mão ("chain"), sem recontar; o Mercúrio fica
 ## com a face, sem copiar. Com expect (IA), devolve o valor esperado.
 func _reroll(f: Fighter, e: Dictionary) -> Dictionary:
@@ -330,13 +331,16 @@ func _reroll(f: Fighter, e: Dictionary) -> Dictionary:
 	chain += d.charge if d.element == "Li" else 0 ## Lítio: a carga vale em qualquer rolagem.
 	if forced_face >= 0:
 		var fr := d.value(forced_face)
-		return {"face": forced_face, "value": (fr + int(e.get("plus", 0))) * mult + chain, "top": fr == d.max_value()}
+		var fb := Elements.burst_mean(d) if Elements.bursts(d, forced_face) else 0
+		return {"face": forced_face, "value": (fr + int(e.get("plus", 0))) * mult + fb + chain, "top": fr == d.max_value()}
 	if expect:
 		# A IA estima: Segunda Chance vale a média do maior; Tudo ou Nada, a média da face.
 		var best := 0.0
 		var sum := 0.0
 		for k in 6:
 			var v := (d.value(k) + int(e.get("plus", 0))) * mult + chain
+			if Elements.bursts(d, k):
+				v += Elements.burst_mean(d)
 			sum += v
 			best += maxf(v, float(e.value))
 		return {"face": int(e.face), "value": int(round(sum / 6.0)), "top": false, "ev_max": int(round(best / 6.0))}
@@ -345,7 +349,8 @@ func _reroll(f: Fighter, e: Dictionary) -> Dictionary:
 		rng.randomize()
 	var face := rng.randi_range(0, 5)
 	var raw := d.value(face)
-	return {"face": face, "value": (raw + int(e.get("plus", 0))) * mult + chain, "top": raw == d.max_value()}
+	var extra := d.value(rng.randi_range(0, 5)) if Elements.bursts(d, face) else 0 ## Estrôncio.
+	return {"face": face, "value": (raw + int(e.get("plus", 0))) * mult + extra + chain, "top": raw == d.max_value()}
 
 
 func _set_val(f: Fighter, e: Dictionary, v: int) -> void:
