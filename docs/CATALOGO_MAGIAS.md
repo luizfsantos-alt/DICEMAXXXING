@@ -42,7 +42,7 @@ Nada é permanente, salvo quando o cartão diz "para sempre" (Sacrifício, Trans
 
 Imitação Barata e Força Desnecessária devolvem dados à bandeja **na hora em que o dado entra no buraco**. Os dados devolvidos são temporários e podem alimentar outras magias **neste turno**. Tirar o dado do buraco recolhe os devolvidos e solta as magias que eles alimentavam. No fim do turno, eles somem.
 
-**Cópias não alimentam Imitação, Sacrifício nem Transfusão** (spec v3.1 §6). Isso acaba com a corrente de Imitações (6 → 12 → 24 → 48…), o Sacrifício sem perder dado e a vida máxima infinita. As cópias continuam servindo para qualquer outra magia (Bola de Fogo, Matemática Superior…). Valem também para as partes da Sangria (seção 11).
+**Cópias servem para qualquer magia** (spec v3.1 §6, revogada a restrição antiga): inclusive Imitação, Sacrifício, Transfusão e mexidas. Elas mantêm o elemento do dado de origem. Vale também para as partes da Sangria (seção 11).
 
 ### 2.3 Marca para a próxima mão
 
@@ -268,7 +268,7 @@ Vieram de `docs/PERSONAGENS.md`. Todas entram na Loja, na Escola e nas recompens
 Saíram da crítica de mecânicas (spec `docs/SPEC_v3.1.md` §1, hoje histórico). Uma **mexida** não age no inimigo: muda o valor dos seus dados **na alocação**, quando o buraco fica completo, e devolve o dado à mão para outra magia neste turno. O cartão sai do palco assim que resolve.
 
 **Regras:**
-- Um dado recebe **no máximo uma mexida por turno**; dados devolvidos (cópias, metades, partes da Sangria) contam como mexidos.
+- Um dado pode receber **várias mexidas** no turno (cada mexida 1× por turno); dados devolvidos (cópias, metades, partes da Sangria) aceitam mexidas e mantêm o elemento.
 - **Mexer não é usar o dado:** Sódio e Amianto só reagem quando o dado é gasto numa magia que não é mexida; o Urânio mexido que fica parado envenena.
 - **Rolar de novo** usa as faces do dado (com adesivos) e os efeitos de rolagem (Hidrogênio, Carbono, +2 do Impulso); o Mercúrio fica com a face, sem copiar.
 - Dado que não rola (marcado, guardado, recebido) só aceita mexidas determinísticas.

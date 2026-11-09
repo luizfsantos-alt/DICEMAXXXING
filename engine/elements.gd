@@ -3,12 +3,12 @@ extends RefCounted
 ## Elementos e substâncias (docs/SPEC_v3.md §4.1, docs/PERSONAGENS.md §3.2 e §5).
 ## Química é tempero: cada um tem um efeito de uma linha.
 
-const ALL := ["H", "Os", "U", "Na", "Hg", "Pb", "Am", "C", "Fe"]
-const SHOP := ["H", "Os", "U", "Na", "Hg", "Am", "C"] ## Chumbo só vem dos inimigos (e do Metalurgista); Ferro, só do Bárbaro.
+const ALL := ["H", "Os", "U", "Na", "Hg", "Pb", "Am", "C", "Fe", "Cs", "Au"]
+const SHOP := ["H", "Os", "U", "Na", "Hg", "Am", "C", "Cs", "Au"] ## Chumbo só vem dos inimigos (e do Metalurgista); Ferro, só do Bárbaro.
 ## Raridade (docs/RARIDADE.md §4). Chumbo e Ferro ficam fora (não são sorteados): contam como Comum.
 const RARITY := {
-	"common": ["Na", "Am", "C"],
-	"uncommon": ["U", "Hg"],
+	"common": ["Na", "Am", "C", "Au"],
+	"uncommon": ["U", "Hg", "Cs"],
 	"rare": ["H", "Os"],
 }
 ## Visual de cada dado (docs/DADOS_VISUAL.md). Três camadas:
@@ -49,10 +49,18 @@ const LOOKS := {
 	"Fe": {"body": Color("#7a4128"), "body2": Color("#8f8f96"), "ink": Color("#f0c8a8"), "accent": Color("#c7764e"),
 		"finish": "ferrugem", "rough": 0.85, "metal": 0.2, "coat": 0.0, "alpha": 1.0, "rim": 0.0,
 		"glow": "", "emission": Color.BLACK, "energy": 0.0},
+	# Césio: o brilho azul do cloreto de césio (o pó de Goiânia).
+	"Cs": {"body": Color("#1d4fc4"), "body2": Color("#4f8dff"), "ink": Color("#eaf3ff"), "accent": Color("#6fb4ff"),
+		"finish": "vidro", "rough": 0.2, "metal": 0.0, "coat": 0.7, "alpha": 0.95, "rim": 0.35,
+		"glow": "body", "emission": Color("#3d9bff"), "energy": 0.3},
+	# Ouro: metal polido, dourado quente (bem mais saturado que o Amianto).
+	"Au": {"body": Color("#e0a514"), "body2": Color("#ffe27a"), "ink": Color("#3a2604"), "accent": Color("#ffcf3f"),
+		"finish": "espelho", "rough": 0.18, "metal": 0.85, "coat": 0.5, "alpha": 1.0, "rim": 0.2,
+		"glow": "", "emission": Color.BLACK, "energy": 0.0},
 }
 ## Energia máxima do brilho com o estado ativo (heat = 1).
 ## Contidos de propósito: forte demais, o brilho estoura e o valor deixa de ser lido.
-const ENERGY_ACTIVE := {"H": 0.7, "U": 0.5, "Na": 1.0, "C": 0.9}
+const ENERGY_ACTIVE := {"H": 0.7, "U": 0.5, "Na": 1.0, "C": 0.9, "Cs": 0.9}
 ## Cor do elemento em texto e rótulos (o accent de LOOKS: legível sobre o fundo escuro).
 const COLORS := {
 	"": Color("#efe6d2"),
@@ -65,6 +73,8 @@ const COLORS := {
 	"Am": Color("#e3c25e"),
 	"C": Color("#b8c4d6"),
 	"Fe": Color("#c7764e"),
+	"Cs": Color("#6fb4ff"),
+	"Au": Color("#ffcf3f"),
 }
 const SOLITARY_BAG := 6 ## Hidrogênio: ×3 com bolsa deste tamanho ou menor (a inicial tem 8).
 const SOLITARY_MULT := 3
@@ -92,6 +102,7 @@ static func apply(d: Die, el: String) -> void:
 		"Pb":
 			d.faces = [1, 1, 1, 2, 2, 3]
 			d.stickers = [0, 0, 0, 0, 0, 0]
+			d.gold = [0, 0, 0, 0, 0, 0]
 			d.locked = [true, true, true, false, false, false]
 
 
@@ -112,10 +123,14 @@ static func solitary(f: Fighter, d: Die) -> bool:
 
 
 ## Carbono (Cadeia): bônus de cada Carbono da mão, + CHAIN_STEP por outro Carbono nela.
+## Conta só os dados rolados: partes da Sangria, cópias e dados gastos não são elos (a
+## cadeia fica fixa na rolagem; rolar de novo usa a que o dado guardou em "chain").
 static func chain_bonus(f: Fighter) -> int:
 	var n := 0
 	for e in f.hand:
 		var d := f.die_of(e)
+		if int(e.get("spawn", -1)) >= 0 or int(e.get("spent", -1)) >= 0:
+			continue
 		if d != null and d.element == "C":
 			n += 1
 	return maxi(0, n - 1) * CHAIN_STEP
@@ -135,7 +150,8 @@ static func energy(el: String, heat := 0.0) -> float:
 
 ## Estado do dado d na mão de f, de 0 a 1 (docs/DADOS_VISUAL.md, "Brilho como estado"):
 ## Hidrogênio com o Solitário valendo, Carbono pelo tamanho da cadeia, Urânio parado
-## na mão (vai envenenar se não for usado; idle = ainda não foi posto numa magia).
+## na mão (vai envenenar se não for usado; idle = ainda não foi posto numa magia) e
+## Césio posto numa magia (vai irradiar o inimigo).
 static func heat(f: Fighter, d: Die, idle := true) -> float:
 	if d == null:
 		return 0.0
@@ -146,4 +162,6 @@ static func heat(f: Fighter, d: Die, idle := true) -> float:
 			return clampf(float(chain_bonus(f)) / CHAIN_STEP / 3.0, 0.0, 1.0)
 		"U":
 			return 1.0 if idle else 0.0
+		"Cs":
+			return 0.0 if idle else 1.0 ## Posto numa magia: vai irradiar.
 	return 0.0

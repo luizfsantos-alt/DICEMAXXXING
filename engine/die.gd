@@ -4,8 +4,9 @@ extends RefCounted
 ## e adesivos ×2 (docs/SPEC_v3.md §4).
 
 var faces: Array = [1, 2, 3, 4, 5, 6]
-var element: String = "" ## "", H, Os, U, Pb, Na, Hg, Am, C, Fe
+var element: String = "" ## "", H, Os, U, Pb, Na, Hg, Am, C, Fe, Cs, Au
 var stickers: Array = [0, 0, 0, 0, 0, 0] ## Adesivos ×2 por face.
+var gold: Array = [0, 0, 0, 0, 0, 0] ## Adesivos de ouro por face: +1 moeda cada, quando a face é usada.
 var locked: Array = [false, false, false, false, false, false] ## Faces que não podem ser editadas.
 
 
@@ -54,12 +55,21 @@ func add_sticker(face: int) -> bool:
 	return true
 
 
+## Adesivo de ouro: a face usada numa magia dá +1 moeda (por adesivo). false se travada.
+func add_gold(face: int) -> bool:
+	if locked[face]:
+		return false
+	gold[face] = int(gold[face]) + 1
+	return true
+
+
 func copy() -> Die:
 	return Die.from_dict(to_dict())
 
 
 func to_dict() -> Dictionary:
-	return {"faces": faces.duplicate(), "element": element, "stickers": stickers.duplicate(), "locked": locked.duplicate()}
+	return {"faces": faces.duplicate(), "element": element, "stickers": stickers.duplicate(), "locked": locked.duplicate(),
+		"gold": gold.duplicate()}
 
 
 static func from_dict(d: Dictionary) -> Die:
@@ -67,6 +77,7 @@ static func from_dict(d: Dictionary) -> Die:
 	x.faces = _ints(d.get("faces", [1, 2, 3, 4, 5, 6]))
 	x.element = str(d.get("element", ""))
 	x.stickers = _ints(d.get("stickers", [0, 0, 0, 0, 0, 0]))
+	x.gold = _ints(d.get("gold", [0, 0, 0, 0, 0, 0]))
 	var lk: Array = d.get("locked", [])
 	x.locked = []
 	for i in 6:

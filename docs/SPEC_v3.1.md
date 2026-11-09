@@ -36,12 +36,12 @@ As mexidas seguem os princípios do catálogo: tudo passa por dado posto em bura
 1. **Resolve na alocação.** Assim que o buraco da mexida fica completo, ela resolve: o dado volta à mão com o valor novo. Ela não age de novo na fase de resolução, e a ordem do inventário não importa para ela.
 2. **O mesmo dado volta.** A mexida não cria dados (exceto a Sangria, que divide o dado em 3, §1.3). O dado da bolsa continua sendo o mesmo dado: vai para o descarte no fim do turno como qualquer outro.
 3. **O valor novo vale só neste turno**, salvo quando o cartão diz "para sempre" (Lapidar).
-4. **Um dado recebe no máximo uma mexida por turno.** O dado mexido mostra o selo "mexido", e as outras mexidas não o aceitam. Dados devolvidos por outras magias (Imitação Barata, Força Desnecessária, as partes da Sangria) contam como mexidos.
+4. **Um dado pode receber várias mexidas no mesmo turno** (cada mexida continua 1× por turno). O dado mexido mostra o selo "mexido" e o valor original da rolagem riscado. Dados devolvidos por outras magias (Imitação Barata, Força Desnecessária, as partes da Sangria) entram em qualquer magia, inclusive em mexidas, e **mantêm o elemento** (e as faces) do dado de origem.
 5. **Cada mexida é uma magia:** no máximo 1 uso por turno; cópias da mesma mexida são permitidas, se couberem.
 6. **Usar uma mexida não é usar o dado.** Só a magia que gasta o dado no fim conta como uso. Isso vale para os elementos que reagem ao uso (Sódio queima, Amianto fere quem usa) e para o Urânio: o Urânio mexido que termina o turno parado na mão envenena normalmente.
 7. **Face máxima ("MÁX").** Depois de uma mexida, o dado está na face máxima se o valor novo for igual à face mais alta que ele tem (com adesivos). O Pico sempre deixa o dado na face máxima.
-8. **Rolar de novo** (Segunda Chance, Tudo ou Nada) usa as faces do próprio dado, com adesivos, e os efeitos de rolagem do dado: Hidrogênio ×3 (se ligado), Carbono em cadeia e o +2 do Impulso Calculado. O Mercúrio rolado de novo fica com o valor da face, sem copiar.
-9. **Dado que não rola não aceita mexida aleatória.** Dados marcados (Pose Congelada, Recuo Estratégico, Concentrar Força), guardados (Perfeccionista) e recebidos (Roubar a Cena) só aceitam mexidas determinísticas.
+8. **Rolar de novo** (Segunda Chance, Tudo ou Nada) usa as faces do próprio dado, com adesivos, e os efeitos de rolagem do dado: Hidrogênio ×3 (se ligado), Carbono em cadeia e o +2 do Impulso Calculado. O Mercúrio rolado de novo fica com o valor da face, sem copiar. Os **efeitos do dado** (Sódio, Césio, Amianto, Ouro, adesivo de ouro) valem **uma vez por golpe** que o dado dá: no Corte Duplo com dados ímpares, duas vezes; na Exibição de Velocidade com dados iguais, duas vezes cada. A **cadeia do Carbono fica fixa na rolagem da mão**: o Carbono rolado de novo (ou a parte/cópia de um Carbono) soma o mesmo bônus que tinha, sem recontar; partes, cópias e dados gastos não viram elos.
+9. **Dado que não rola não aceita mexida aleatória.** As partes da Sangria e as cópias aceitam: rolam com as faces do dado de origem. Dados marcados (Pose Congelada, Recuo Estratégico, Concentrar Força), guardados (Perfeccionista) e recebidos (Roubar a Cena) só aceitam mexidas determinísticas.
 10. **Desfazer:**
     - **Mexidas determinísticas** (todas, menos Segunda Chance e Tudo ou Nada) podem ser desfeitas até "Terminar turno": toque no dado mexido e escolha "desfazer". O dado volta ao valor anterior e o cartão volta ao palco. Se o dado mexido estava noutra magia, ele sai de lá antes.
     - **Mexidas aleatórias** são **definitivas**: o dado rola na hora em que entra no buraco e o resultado fica. Sem isso, o jogador poderia ver o resultado e desfazer, e o Tudo ou Nada perderia o risco. O dado já rolado pode trocar de magia livremente.
@@ -56,7 +56,7 @@ As mexidas seguem os princípios do catálogo: tudo passa por dado posto em bura
 | 40 | `segunda` | **Segunda Chance** | 1×1 | Feiticeiro | qualquer dado que rola | Rola o dado de novo e fica com o **maior** dos dois valores. | sempre | Comum |
 | 41 | `ajuste` | **Ajuste Fino** | 1×1 | Assassino | qualquer dado | +1 ou −1 no valor (o jogador escolhe; mínimo 1). | sempre | Comum |
 | 42 | `pico` | **Pico** | 1×1 | qualquer | qualquer dado | O dado vai para a sua **face máxima** (com adesivos). | 1× por luta | Comum |
-| 43 | `sangria` | **Sangria** | 1×1 | qualquer | dado ≥ 3 | O dado se divide em **3 partes iguais** (§1.4). As partes são dados comuns temporários. | sempre | Comum |
+| 43 | `sangria` | **Sangria** | 1×1 | qualquer | dado ≥ 3 | O dado se divide em **3 partes iguais** (§1.4). As partes são temporárias e mantêm o elemento do dado. | sempre | Comum |
 | 44 | `virar` | **Virar** | 1×1 | qualquer | dado ≤ 6 | O dado mostra a face oposta: valor = 7 − valor (1 ↔ 6, 2 ↔ 5, 3 ↔ 4). | sempre | Comum |
 | 45 | `nivelar` | **Nivelar** | 2×1 | Assassino | 2 dados | Os dois viram a média deles, arredondada para cima (2 e 6 → 4 e 4). | sempre | Comum |
 | 46 | `polarizar` | **Polarizar** | 1×1 | Assassino | qualquer dado | Dado ≤ 3 vira 1; dado ≥ 4 vira 6. | sempre | Comum |
@@ -74,7 +74,7 @@ Contagem: 7 Comuns, 4 Incomuns, 2 Raras. Todas são retas ou 1×1, menos a Escad
 - **Segunda Chance:** rolagem nova com as regras do §1.2.8; fica o maior entre o valor atual e o novo. Nunca piora o dado.
 - **Ajuste Fino:** o cartão tem **dois buracos**, "+1" e "−1"; o dado vai em um deles e o outro apaga. Um 1 no "−1" continua 1 (o buraco "−1" não aceita um 1).
 - **Pico:** valor = maior face do dado. Um Chumbo vira 3. Um dado com o 6 adesivado duas vezes vira 24.
-- **Sangria:** v ≥ 3 vira 3 partes: q = v ÷ 3 (inteiro) e as primeiras (v mod 3) partes ganham +1. Exemplos: 3 → 1, 1, 1; 6 → 2, 2, 2; 7 → 3, 2, 2; 8 → 3, 3, 2; 12 → 4, 4, 4. O dado original vai para o descarte como usado. As partes são temporárias, contam como mexidas e somem no fim do turno.
+- **Sangria:** v ≥ 3 vira 3 partes: q = v ÷ 3 (inteiro) e as primeiras (v mod 3) partes ganham +1. Exemplos: 3 → 1, 1, 1; 6 → 2, 2, 2; 7 → 3, 2, 2; 8 → 3, 3, 2; 12 → 4, 4, 4. O dado original vai para o descarte como usado. As partes são temporárias, contam como mexidas e somem no fim do turno. Cada parte **mantém o elemento** (e as faces) do dado original: Sódio queima por parte usada, Amianto machuca por parte, Urânio parado envenena por parte, Carbono conta na cadeia, e rolar de novo usa as faces do dado original. O Mercúrio não é recalculado: a parte fica com o valor dividido, sem copiar o maior de novo.
 - **Virar:** só valores de 1 a 6 (dado com adesivo ou Urânio acima de 6 não serve). O Chumbo 1 vira 6. É temporário: não edita a face travada.
 - **Nivelar:** média arredondada para cima: 3 e 4 → 4 e 4; 1 e 6 → 4 e 4. Sempre produz um par.
 - **Polarizar:** prepara exigências "um 1" (Espelho, Sacrifício, Levantar Peso) e "um 6" (Golpe nas Sombras, Meia Verdade, Presença Imponente).
@@ -239,10 +239,7 @@ O relatório passa a mostrar também: meios-turnos médios por luta nos andares 
 
 ## 6. Imitação Barata sem corrente (achado 6)
 
-**Regra nova (catálogo §2.2):** dados **devolvidos** por magias (Imitação Barata, Força Desnecessária, partes da Sangria) **não alimentam** Imitação Barata, Sacrifício nem Transfusão. Os buracos dessas três mostram "não aceita cópia" quando um dado devolvido é selecionado.
-
-- Continua valendo: Imitação → Bola de Fogo, Matemática Superior e qualquer outra magia.
-- Com a regra das mexidas (§1.2.4), os devolvidos também não entram em mexidas.
+**Revogada (0.13.0):** dados **devolvidos** por magias (Imitação Barata, Força Desnecessária, partes da Sangria) entram em **qualquer** magia, inclusive Imitação Barata, Sacrifício, Transfusão e mexidas. Cada magia continua no máximo 1× por turno, então a corrente só cresce com várias cópias da Imitação no inventário. A regra antiga ("não aceita cópia") saiu a pedido, para dar mais estratégia aos dados com elemento.
 
 ---
 

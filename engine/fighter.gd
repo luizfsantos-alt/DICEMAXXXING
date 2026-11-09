@@ -28,6 +28,7 @@ var mirror: bool = false
 var dodge: bool = false
 var poison: int = 0
 var burn: int = 0
+var coins_won: int = 0 ## Moedas ganhas nesta luta (Ouro); a jornada recebe no fim dela.
 var sacrifice_bonus: int = 0
 var once_used: Array = [] ## Índices do inventário usados nesta luta (um por uso).
 var turns_taken: int = 0
@@ -53,8 +54,9 @@ var restore: Array = []
 var turn_mods: Array = [] ## Mexidas valendo neste turno.
 ## Campos opcionais de um dado da mão (docs/SPEC_v3.1.md §1 e §8): "mod" (mexida que o
 ## mudou), "spent" (mexida que o gastou), "orig" e "orig_top" (antes da mudança) e "cause"
-## (id da magia, mexida do inimigo ou elemento que mudou o valor).
-const HAND_EXTRA := ["mod", "spent", "orig", "orig_top", "cause"]
+## (id da magia, mexida do inimigo ou elemento que mudou o valor), "mod_hist" (mexidas
+## do turno, em ordem, com o valor de antes) e "chain" (cadeia do Carbono na rolagem).
+const HAND_EXTRA := ["mod", "spent", "orig", "orig_top", "cause", "mod_hist", "chain"]
 
 
 func die_of(entry: Dictionary) -> Die:
@@ -89,6 +91,7 @@ func reset_fight_state() -> void:
 	dodge = false
 	poison = 0
 	burn = 0
+	coins_won = 0
 	sacrifice_bonus = 0
 	once_used = []
 	turns_taken = 0
@@ -231,6 +234,7 @@ func roll_hand(rng: RandomNumberGenerator, foe_last: Array) -> int:
 			if die_of(e).element == "C" and not e.get("fixed", false):
 				Resolver.mark_cause(e, "C")
 				e.value = int(e.value) + chain
+				e["chain"] = chain
 	var top := 0
 	for e in hand:
 		if die_of(e).element != "Hg":
@@ -255,6 +259,7 @@ func _roll_entry(e: Dictionary, rng: RandomNumberGenerator) -> void:
 	e.value = raw + int(e.get("plus", 0))
 	e.erase("orig")
 	e.erase("cause")
+	e.erase("chain")
 	if Elements.solitary(self, d):
 		Resolver.mark_cause(e, "H")
 		e.value *= Elements.solitary_mult
@@ -353,7 +358,7 @@ func to_dict() -> Dictionary:
 		"master_id": master_id, "personality": personality, "portrait": portrait, "max_hp": max_hp, "hp": hp,
 		"hand_size": hand_size, "bag": bag_d, "inventory": inventory.to_dict(),
 		"draw_pile": draw_pile, "discard": discard, "hand": hand_d, "last_hand": last_hand,
-		"block": block, "mirror": mirror, "dodge": dodge, "poison": poison, "burn": burn,
+		"block": block, "mirror": mirror, "dodge": dodge, "poison": poison, "burn": burn, "coins_won": coins_won,
 		"sacrifice_bonus": sacrifice_bonus, "once_used": once_used, "turns_taken": turns_taken,
 		"riposte": riposte, "immune": immune, "recycle": recycle, "marked": marked,
 		"mirror_lvl": mirror_lvl, "dodge_lvl": dodge_lvl, "recycle_lvl": recycle_lvl,
@@ -400,13 +405,17 @@ static func from_dict(d: Dictionary) -> Fighter:
 		var he: Dictionary = f.hand.back()
 		for k in HAND_EXTRA:
 			if e.has(k):
-				he[k] = bool(e[k]) if k == "orig_top" else (str(e[k]) if k == "cause" else int(e[k]))
+				if k == "mod_hist":
+					he[k] = _hist(e[k])
+				else:
+					he[k] = bool(e[k]) if k == "orig_top" else (str(e[k]) if k == "cause" else int(e[k]))
 	f.last_hand = Die._ints(d.get("last_hand", []))
 	f.block = int(d.get("block", 0))
 	f.mirror = bool(d.get("mirror", false))
 	f.dodge = bool(d.get("dodge", false))
 	f.poison = int(d.get("poison", 0))
 	f.burn = int(d.get("burn", 0))
+	f.coins_won = int(d.get("coins_won", 0))
 	f.sacrifice_bonus = int(d.get("sacrifice_bonus", 0))
 	f.once_used = Die._ints(d.get("once_used", []))
 	f.turns_taken = int(d.get("turns_taken", 0))
@@ -436,3 +445,13 @@ static func from_dict(d: Dictionary) -> Fighter:
 	for r in d.get("restore", []):
 		f.restore.append({"bag": int(r.bag), "die": r.die})
 	return f
+
+
+static func _hist(a: Variant) -> Array:
+	var out := []
+	if a is Array:
+		for r in a:
+			if r is Dictionary:
+				out.append({"item": int(r.get("item", -1)), "seq": int(r.get("seq", 0)), "value": int(r.get("value", 0)),
+					"top": bool(r.get("top", false)), "face": int(r.get("face", 0))})
+	return out

@@ -202,6 +202,45 @@ func test_bolsa_desenha_os_dados():
 	assert_true(icons.any(func(i): return i.element == "Na" and i.stickers == 1), "selo ×2 no dado de Sódio")
 
 
+func test_escolher_face_sem_rolar():
+	var run := RunState.new_run(5)
+	for k in 8:
+		run.hero.bag.append(Die.basic()) ## Bolsa grande: 16 dados.
+	run.hero.bag[2].add_gold(4)
+	var frame := Control.new()
+	frame.size = Vector2(1280, 720)
+	add_child_autofree(frame)
+	var picked := []
+	var o := BagPanel.open(frame, run.hero.bag, "face", func(d, f): picked.append([d, f]))
+	await wait_process_frames(2)
+	assert_eq(_nodes_of(o, ScrollContainer).size(), 0, "sem rolagem")
+	var cells: Array = _nodes_of(o, Button).filter(func(b): return b.get_parent() is GridContainer)
+	cells.sort_custom(func(x, y): return x.get_index() < y.get_index())
+	assert_eq(cells.size(), run.hero.bag.size(), "um botão por dado")
+	for c in cells:
+		var r: Rect2 = c.get_global_rect()
+		assert_true(r.end.y <= 720 and r.position.y >= 0, "o dado cabe na tela")
+	assert_true(_nodes_of(o, DieIcon).any(func(i): return i.gold == 1), "a moeda do adesivo de ouro aparece")
+	cells[2].pressed.emit()
+	await wait_process_frames(1)
+	var faces: Array = _nodes_of(o, Button).filter(func(b): return b.get_child_count() > 0 and b.get_child(0) is DieIcon)
+	faces.sort_custom(func(x, y): return x.get_index() < y.get_index())
+	assert_eq(faces.size(), 6, "as 6 faces do dado escolhido")
+	faces[4].pressed.emit()
+	assert_eq(picked, [[2, 4]])
+
+
+func _nodes_of(root: Node, type: Variant) -> Array:
+	var out := []
+	var stack: Array = [root]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if is_instance_of(n, type):
+			out.append(n)
+		stack.append_array(n.get_children())
+	return out
+
+
 func test_cartoes_buracos_previa_e_historico():
 	var run := _run_at_duel(12)
 	var p := run.duel.player
@@ -418,7 +457,9 @@ func test_palco_e_dados_trocam_por_turno():
 	assert_eq(d.dice_side, "enemy")
 	assert_eq(d.tray_views.size(), 3)
 	assert_false(d.tray_views[0].interactive, "dados do inimigo não são tocáveis")
+	d.skip = true ## Tocou para acelerar o turno do inimigo.
 	d._start_player_phase()
+	assert_false(d.skip, "a sua vez volta com as animações (mexidas voam e giram)")
 	assert_eq(d.stage_side(), "player")
 	assert_eq(d.dice_side, "player")
 	assert_eq(d.tray_views.size(), run.duel.player.hand.size())
