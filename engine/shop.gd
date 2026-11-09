@@ -162,7 +162,7 @@ static func rest_stops(rng: RandomNumberGenerator) -> Array:
 	Fighter._shuffle(s, rng)
 	var out := []
 	for id in s.slice(0, 3):
-		out.append({"kind": "stop", "id": id, "price": 0, "needs": ""})
+		out.append({"kind": "stop", "id": id, "price": Config.PRICE_HEAL_STOP if id == "heal" else 0, "needs": ""})
 	return out
 
 

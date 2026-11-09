@@ -377,7 +377,7 @@
   ],
   "heal": [
    "Cura",
-   "Recupera 35% da vida máxima."
+   "Recupera 35% da vida máxima. Uma vez por parada."
   ],
   "school": [
    "Escola de Magia",
@@ -434,8 +434,11 @@
   "door_master": "Mestre de Andar",
   "pick_reward": "Recompensa: escolha uma",
   "skip_reward": "Pular (+{n} moedas)",
-  "pick_rest": "Parada: escolha uma",
+  "pick_rest": "Parada: entre e volte quando quiser",
   "leave": "Seguir",
+  "back_to_rest": "Voltar",
+  "stop_used": "Já usada",
+  "hp_full": "Vida cheia",
   "free": "Grátis",
   "price": "{n} moedas",
   "sell": "Vender {name} (+{n})",

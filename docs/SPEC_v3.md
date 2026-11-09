@@ -40,10 +40,10 @@
 - **A vida persiste entre as lutas.** Cada vitória fora dos Mestres recupera **10%** da vida máxima (`Config.WIN_HEAL_FRACTION`, sem a Sede do Vampiro); a Cura da parada recupera **35%**.
 - **Portas** (antes de cada luta): normalmente **2**, às vezes **3** (a terceira é uma porta "insana", que paga muito). Cada porta mostra a dificuldade, a recompensa e o **nome do arquétipo do inimigo** (e a variante); a build dele só aparece na luta. O inimigo nasce com as portas (`RunState._door_enemies`).
 - **Prêmio das portas** (`Config.DOORS`, `Config.REWARD_CHOICES`): Fácil 3 moedas e recompensa 1 de 2; Normal 7 e 1 de 3; Difícil 12, 1 de 3 com a faixa de raridade acima; Insana 20, 1 de 4 com uma Rara garantida.
-- **Trifurcação sem luta, a cada 3 lutas.** Escolhe-se uma entre:
+- **Parada sem luta, a cada 3 lutas.** Aparecem 3 das 4 paradas abaixo e dá para usar **todas**: entra-se numa, volta-se quando quiser (mesmo depois de comprar) e entra-se em outra; "Seguir" vai para as portas. Loja e Poço guardam as ofertas entre as visitas (o que foi comprado não volta); a Cura e a Escola valem uma vez por parada.
   - **Loja**: magias, dados, vida máxima.
-  - **Cura**: recupera 35% da vida máxima.
-  - **Escola de Magia**: aprender uma magia ou **evoluir** uma conhecida.
+  - **Cura**: recupera 35% da vida máxima por **8 moedas** (`Config.PRICE_HEAL_STOP`).
+  - **Escola de Magia**: aprender uma magia ou **evoluir** uma conhecida (uma escolha).
   - **Poço de Modificação**: aplicar elemento, adesivo +2, editar face, destruir dado.
 - **Recompensa pós-luta:** escolher 1 entre 2, 3 ou 4 conforme a porta (dado, adesivo, magia ou vida máxima), ou pular e levar moedas.
 - **Mestre de Andar** nos andares 10, 20 e 30 (seção 8.3). A recompensa é escolher uma: **+casas no inventário** ou **+1 dado na mão**.

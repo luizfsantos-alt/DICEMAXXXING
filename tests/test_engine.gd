@@ -503,7 +503,8 @@ func test_masmorra_1_paradas_e_mestres_no_10_20_30():
 			run.choose(run.options.map(func(o): return o.id).find("heal"))
 			if run.phase == "rest":
 				run.choose(0)
-			run.leave()
+			while run.phase != "doors":
+				run.leave() ## Volta para a parada e segue.
 	assert_eq(masters, ["porteiro", "alquimista", "reator"])
 	assert_eq(run.phase, "victory")
 	assert_eq(run.hero.hand_size, Config.HAND_SIZE + 2, "duas recompensas de Mestre (andares 10 e 20)")
@@ -592,6 +593,8 @@ func test_loja_poco_e_escola():
 	assert_eq(run.choose(4, {"die": 0}), "")
 	assert_eq(run.hero.bag.size(), 7)
 	run.leave()
+	assert_eq(run.phase, "rest", "volta para a parada")
+	run.leave()
 	assert_eq(run.phase, "doors")
 	run.phase = "school"
 	run.options = Shop.school(run.hero, run.rng)
@@ -599,7 +602,7 @@ func test_loja_poco_e_escola():
 	var item: int = run.options[ev].item
 	run.choose(ev)
 	assert_eq(int(run.hero.inventory.items[item].level), 2)
-	assert_eq(run.phase, "doors")
+	assert_eq(run.phase, "rest", "a Escola volta para a parada")
 
 
 func test_salvar_e_carregar_no_meio_do_duelo():
@@ -787,8 +790,56 @@ func test_cura_da_parada_e_do_mestre():
 	var run := RunState.new_run(13, "barbarian")
 	run.hero.hp = 10
 	run.phase = "rest"
-	run._enter_stop("heal")
+	run.options = [{"kind": "stop", "id": "heal", "price": Config.PRICE_HEAL_STOP, "needs": ""}]
+	assert_eq(run.choose(0), "ui.not_enough", "a Cura custa moedas")
+	run.coins = Config.PRICE_HEAL_STOP
+	assert_eq(run.choose(0), "")
 	assert_eq(run.hero.hp, 10 + int(ceil(run.hero.max_hp * Config.HEAL_STOP_FRACTION)))
+	assert_eq(run.coins, 0)
+	assert_eq(run.phase, "rest", "continua na parada")
+	assert_eq(run.choose(0), "ui.stop_used", "uma vez por parada")
+
+
+func test_parada_entra_e_volta_quando_quiser():
+	var run := RunState.new_run(21, "sorcerer")
+	run.choose(0)
+	run.coins = 200
+	run.hero.hp = 10
+	run.phase = "rest"
+	run.options = [
+		{"kind": "stop", "id": "well", "price": 0, "needs": ""},
+		{"kind": "stop", "id": "heal", "price": Config.PRICE_HEAL_STOP, "needs": ""},
+		{"kind": "stop", "id": "shop", "price": 0, "needs": ""},
+	]
+	assert_eq(run.choose(0), "")
+	assert_eq(run.phase, "well")
+	var well := run.options.duplicate(true)
+	assert_eq(run.choose(0, {"die": 1, "face": 5}), "", "compra no Poço")
+	run.leave()
+	assert_eq(run.phase, "rest", "volta depois de comprar")
+	assert_eq(run.choose(1), "", "e usa a Cura")
+	assert_gt(run.hero.hp, 10)
+	assert_eq(run.choose(2), "")
+	assert_eq(run.phase, "shop")
+	var shop_n := run.options.size()
+	assert_eq(run.choose(0), "")
+	run.leave()
+	# Voltar ao Poço: as mesmas ofertas de antes (não sorteia de novo).
+	assert_eq(run.choose(0), "")
+	assert_eq(run.options.map(func(o): return o.kind), well.map(func(o): return o.kind))
+	run.leave()
+	assert_eq(run.choose(2), "")
+	assert_eq(run.options.size(), shop_n - 1, "a magia comprada não volta à Loja")
+	# Salvar e carregar dentro da Loja mantém a parada.
+	var back := RunState.from_dict(JSON.parse_string(JSON.stringify(run.to_dict())))
+	assert_eq(back.phase, "shop")
+	assert_eq(back.options.size(), shop_n - 1)
+	back.leave()
+	assert_eq(back.phase, "rest")
+	assert_eq(back.options.size(), 3)
+	assert_true(back.options[1].get("used", false), "a Cura já usada continua marcada")
+	back.leave()
+	assert_eq(back.phase, "doors", "Seguir vai para as portas")
 
 
 func test_mestres_tem_kit_fixo_que_cabe():

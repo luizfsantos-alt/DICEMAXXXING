@@ -124,6 +124,8 @@ func test_torre_loja_poco_bolsa_e_grimorio():
 	assert_true(o.is_inside_tree())
 	BagPanel.open(t, run.hero.bag)
 	t._leave()
+	assert_eq(run.phase, "rest", "Voltar leva à parada")
+	run.leave()
 	assert_eq(run.phase, "doors")
 	run.phase = "shop"
 	run.options = Shop.shop(run.hero, run.rng, 0)

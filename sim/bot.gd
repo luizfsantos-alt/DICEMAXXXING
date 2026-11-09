@@ -135,22 +135,26 @@ func pick_door(run: RunState) -> int:
 	return best
 
 
+## Próxima parada a visitar (cada uma uma vez por parada), ou -1 para seguir às portas.
 func pick_stop(run: RunState) -> int:
 	var h := run.hero
 	var ids := run.options.map(func(o): return str(o.id))
 	var want := []
-	if hp_frac(h) < 0.5:
+	if hp_frac(h) < 0.5 and run.coins >= Config.PRICE_HEAL_STOP:
 		want.append("heal")
 	if h.inventory.items.any(func(it): return int(it.level) < Config.MAX_LEVEL):
 		want.append("school")
 	if run.coins >= 12:
 		want.append("shop")
-	want.append_array(["well", "shop", "school", "heal"])
+	want.append("well")
+	if hp_frac(h) < 0.8 and run.coins >= Config.PRICE_HEAL_STOP:
+		want.append("heal")
+	want.append_array(["shop", "school"])
 	for w in want:
 		var j := ids.find(w)
-		if j >= 0:
+		if j >= 0 and not run.options[j].get("visited", false):
 			return j
-	return 0
+	return -1
 
 
 ## Recompensa, Loja, Escola, Poço, Erudito e Mestre. Compra enquanto valer; depois sai.

@@ -85,7 +85,9 @@ func refresh() -> void:
 	if run.phase == "reward":
 		_bottom_btn(Texts.t("ui.skip_reward", {"n": Config.SKIP_REWARD_COINS}), _leave)
 	elif run.phase in ["shop", "well", "school"]:
-		_bottom_btn(Texts.t("ui.leave"), _leave)
+		_bottom_btn(Texts.t("ui.back_to_rest"), _leave) ## Volta para a parada, mesmo depois de comprar.
+	elif run.phase == "rest":
+		_bottom_btn(Texts.t("ui.leave"), _leave) ## Segue para as portas.
 	elif run.phase == "master_rare":
 		_bottom_btn(Texts.t("ui.cancel"), _leave)
 
@@ -103,6 +105,11 @@ static func icon_px(n: int) -> int:
 
 ## Por que a opção não pode ser escolhida agora ("" se pode).
 func _blocked(o: Dictionary, price: int) -> String:
+	if o.kind == "stop":
+		if o.get("used", false):
+			return Texts.t("ui.stop_used")
+		if o.id == "heal" and run.hero.hp >= run.hero.max_hp:
+			return Texts.t("ui.hp_full")
 	if o.kind == "spell" and not run.hero.inventory.fits(o.id):
 		return Texts.t("ui.fits_no")
 	if price > run.coins:
@@ -177,7 +184,7 @@ func _card(i: int, o: Dictionary, px: int) -> Control:
 				if l is Label:
 					_outline(l)
 		v.add_child(sub)
-	elif run.phase != "rest":
+	elif run.phase != "rest" or int(o.price) > 0:
 		var p: Control
 		if price == 0:
 			p = Kit.label(Texts.t("ui.free"), 22, Kit.ACCENT)

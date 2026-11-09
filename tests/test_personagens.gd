@@ -464,8 +464,11 @@ func test_jornada_inteira_de_cada_jogavel():
 						while run.duel.state == "choosing":
 							run.duel.submit(EnemyAI.choose(run.duel.player, run.duel.enemy, br))
 						run.finish_duel()
-					"doors", "rest":
+					"doors":
 						run.choose(0)
+					"rest":
+						if run.options.is_empty() or run.options[0].get("visited", false) or run.choose(0) != "":
+							run.leave()
 					_:
 						if run.choose(0, {"die": 0, "face": 5}) != "" or run.phase in ["shop", "well", "school"]:
 							run.leave()

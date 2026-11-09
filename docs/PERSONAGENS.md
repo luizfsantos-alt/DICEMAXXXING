@@ -388,3 +388,7 @@ Resultado com os valores escolhidos: Feiticeiro 13–14%, Assassino ~14% (85 de 
 O adesivo ×2 acumulava em potências (6 → 12 → 24 → 48): um Ósmio com vários adesivos e a Faísca evoluída venciam a jornada sozinhos. Agora cada adesivo soma **+2** à face (`Config.STICKER_PLUS`; o Plágio também rouba +2). O Hidrogênio ficou mais fraco e mais fácil de ligar: **×2 com a bolsa de menos de 8 dados** (antes ×3 com 6 ou menos).
 
 Simulação (200 jornadas, `--seed=1`, % que vence o andar 10, antes → depois): Feiticeiro 28 → 20, Assassino 29,5 → 12,5, Metalurgista 30,5 → 27, Vampiro 27,5 → 27, Bárbaro 28,5 → 17, Minimalista 11 → 0. Quase toda a queda vem do adesivo: com o Hidrogênio antigo (`--h-mult=3 --h-bag=6`) o Assassino fica nos mesmos 12,5%. Falta decidir se o herói ganha alguma compensação (preço do adesivo, vida, recompensas).
+
+### 8.5 Parada aberta (0.17.0)
+
+A parada deixou de ser "escolha uma": as 3 paradas sorteadas ficam abertas até seguir para as portas (Loja e Poço sem limite de visitas, Cura e Escola uma vez). A Cura passou a custar 8 moedas. Simulação (200 jornadas, `--seed=1`, % que vence o andar 10, 0.16.0 → 0.17.0): Feiticeiro 20 → 34, Assassino 12,5 → 29,5, Vampiro 27 → 50. Mais que compensa a queda do adesivo +2; o Vampiro (Sede + Cura) ficou forte e pode pedir ajuste (preço da Cura, Escola paga ou limite de paradas).
