@@ -266,6 +266,7 @@ func _roll_entry(e: Dictionary, rng: RandomNumberGenerator) -> void:
 
 
 ## Cura. Vampiro (Sede): toda cura também dá +1 de vida máxima, até THIRST_CAP por luta.
+## A vida máxima ganha vem vazia (só a cura enche).
 ## Retorna {hp: vida recuperada, max: vida máxima ganha}.
 func heal_full(n: int) -> Dictionary:
 	var got := heal(n)
@@ -275,7 +276,6 @@ func heal_full(n: int) -> Dictionary:
 		if gain > 0:
 			thirst_used += gain
 			max_hp += gain
-			hp += gain
 	return {"hp": got, "max": maxi(0, gain)}
 
 

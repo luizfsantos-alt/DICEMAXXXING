@@ -166,7 +166,7 @@ func test_sede_do_vampiro():
 	assert_eq(int(r.hp), 4, "cura normal mesmo machucado")
 	assert_eq(int(r.max), 1, "toda cura dá +1 de vida máxima")
 	assert_eq(v.max_hp, base + 1)
-	assert_eq(v.hp, 55)
+	assert_eq(v.hp, 54, "a vida a mais da Sede vem vazia")
 	v.heal_full(0)
 	assert_eq(v.max_hp, base + 1, "cura zero não conta")
 	for i in 20:

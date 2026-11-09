@@ -810,7 +810,7 @@ func test_cura_da_parada_vale_metade_para_o_vampiro():
 	assert_eq(RunState.heal_stop_amount(run.hero), n)
 	var before := run.hero.max_hp
 	assert_eq(run.choose(0), "")
-	assert_eq(run.hero.hp, 10 + n + 1, "metade da Cura (+1 da Sede)")
+	assert_eq(run.hero.hp, 10 + n, "metade da Cura (a Sede vem vazia)")
 	assert_eq(run.hero.max_hp, before + 1, "a Sede continua valendo")
 
 

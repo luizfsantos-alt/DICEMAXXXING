@@ -92,7 +92,7 @@ Para comparar: o **Feiticeiro** tem 90 de vida, mão de 4 e causa uns **6 a 8 de
 | **Metalurgista** | Esteira **5×2** (10 casas) | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado da bolsa para a mão. A Loja e o Poço vendem Chumbo para você. | 100 | 4 | 8 dados: 5 comuns + 3 Chumbo | Levantar Peso (nível 2), Estocada |
 | **Copista** | Grade **4×2** (8 casas) | **Inspiração**: no início de cada luta, uma magia aleatória do inimigo que caiba nas suas casas livres é copiada nelas, no mesmo nível, até o fim da luta. | 80 | 4 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
 | **Perfeccionista** | **Moldura 4×3** sem as 2 casas do meio (10 casas) | **Ainda Não Está Bom**: no fim do turno, até 2 dados que sobraram na mão ficam marcados. Você pode ter 2 marcas. | 80 | 4 | 7 comuns + 1 Ósmio | **Dardo Arcano** (nova), **Obra-Prima** (nova) |
-| **Vampiro** | **Caixão 2×4** (2 de largura, 4 de altura) | **Sede**: toda cura que você recebe também dá +1 de vida máxima, para sempre (até 3 por luta). Queima causa o dobro de dano em você. | **70** | 4 | 7 comuns + 1 Sódio | **Mordida** (nova), **Banquete** (nova) |
+| **Vampiro** | **Caixão 2×4** (2 de largura, 4 de altura) | **Sede**: toda cura que você recebe também dá +1 de vida máxima vazia, para sempre (até 3 por luta). Queima causa o dobro de dano em você. | **70** | 4 | 7 comuns + 1 Sódio | **Mordida** (nova), **Banquete** (nova) |
 | **Bárbaro** | Grade **3×3** (9 casas) | **Fúria**: com metade da vida ou menos, toda magia de dano causa +1 por golpe para cada 10 de vida que você perdeu. | **90** | 4 | 6 comuns + 2 **Ferro** (sempre 3) | **Machadada** (nova), **Cerrar os Dentes** (nova) |
 
 ### 1.1 Formatos
@@ -394,3 +394,5 @@ Simulação (200 jornadas, `--seed=1`, % que vence o andar 10, antes → depois)
 A parada deixou de ser "escolha uma": as 3 paradas sorteadas ficam abertas até seguir para as portas (Loja e Poço sem limite de visitas, Cura e Escola uma vez). A Cura passou a custar 8 moedas. Simulação (200 jornadas, `--seed=1`, % que vence o andar 10, 0.16.0 → 0.17.0): Feiticeiro 20 → 34, Assassino 12,5 → 29,5, Vampiro 27 → 50. Mais que compensa a queda do adesivo +2; o Vampiro (Sede + Cura) ficou forte e pode pedir ajuste (preço da Cura, Escola paga ou limite de paradas).
 
 Ajuste (0.17.1): a Cura da parada vale **metade para o Vampiro** (17,5% da vida máxima; a Sede continua dando +1). Vampiro no andar 10: 50 → 46% (andar 30: 10,5 → 9%).
+
+Ajuste (0.17.2): a vida máxima da **Sede vem vazia** (antes enchia junto). Vampiro: andar 10 46 → 40%, andar 20 28 → 26%, andar 30 9 → 10,5%.
