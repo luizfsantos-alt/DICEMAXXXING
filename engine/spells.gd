@@ -26,7 +26,9 @@ extends RefCounted
 ## block_count ("per" × dados da mão de valor "count"), skin (Revestimento: −1 por golpe
 ## recebido, acumula até Config.SKIN_CAP + nível − 1), riposte, immune, cleanse, recycle, debuff (só "hand_mod"), dodge, mirror, heal,
 ## maxhp, sacrifice, drain (dano = valor, cura metade), feast (dano = soma, cura o
-## menor). "heal" usa "mult".
+## menor). "heal" usa "mult". synth (Síntese: cura valor − 1 e bloqueio valor − 1),
+## antithesis (Antítese: dano = valor × "mult" no inimigo; valor de dano em quem usa, antes
+## de todas as magias do turno: "self_first").
 ## mod: mexida (docs/SPEC_v3.1.md §1): resolve na alocação, quando o buraco fica completo
 ## (TurnChoice), e devolve o dado mexido à mão. "mod" diz qual: reroll_max, nudge, top,
 ## split3, flip, avg, polar, echo, double, fuse, stairs, gamble, polish, insight (o dado
@@ -119,6 +121,9 @@ const DATA := {
 	"pele": {"shape": S_V2, "req": "exact", "v": 3, "fx": "skin", "use": "always", "pool": "barbarian", "rarity": "uncommon"},
 	"muralha": {"shape": S_V2, "req": "exact", "v": 3, "fx": "block_count", "count": 3, "per": 4, "use": "always", "pool": "barbarian", "rarity": "common"},
 	# Mexidas (docs/SPEC_v3.1.md §1.3): mudam os próprios dados na alocação.
+	# Xamã (docs/XAMA.md): só no kit inicial (fora da Loja e das recompensas).
+	"sintese": {"shape": S_V2, "req": "min", "v": 2, "fx": "synth", "use": "always", "pool": "shaman", "rarity": "common", "start_only": true},
+	"antitese": {"shape": S_V2, "req": "any", "n": 1, "fx": "antithesis", "mult": 2, "self_first": true, "use": "always", "pool": "shaman", "rarity": "common", "start_only": true},
 	"segunda": {"shape": S1, "req": "any", "n": 1, "fx": "mod", "mod": "reroll_max", "random": true, "use": "always", "pool": "sorcerer", "rarity": "common"},
 	"ajuste": {"shape": S1, "req": "any", "n": 1, "fx": "mod", "mod": "nudge", "use": "always", "pool": "assassin", "rarity": "common"},
 	"pico": {"shape": S1, "req": "any", "n": 1, "fx": "mod", "mod": "top", "use": "once", "pool": "any", "rarity": "common"},
@@ -213,6 +218,9 @@ static func in_pool(id: String, archetype: String) -> bool:
 			return (base and color_family(id) == "dmg") or id == "transfusao"
 		"barbarian":
 			return p == "assassin"
+		"shaman":
+			# Cura e bloqueio viram ataque (Correspondência).
+			return base and color_family(id) in ["heal", "block"]
 	return false
 
 
@@ -228,8 +236,10 @@ static func ids_of_rarity(r: String) -> Array:
 static func color_family(id: String) -> String:
 	var fx := str(get_def(id).get("fx", "dmg"))
 	match fx:
-		"product", "lever", "multi", "ones", "pelt", "riddle", "top_x", "encore", "steal_sticker", "bench", "spawn_half", "drain", "feast":
+		"product", "lever", "multi", "ones", "pelt", "riddle", "top_x", "encore", "steal_sticker", "bench", "spawn_half", "drain", "feast", "antithesis":
 			return "dmg"
+		"synth":
+			return "heal"
 		"block_product", "block_hand", "block_count", "riposte", "recycle", "skin":
 			return "block"
 		"immune", "debuff":
@@ -254,6 +264,8 @@ static func icon_key(id: String) -> String:
 			return "fx/" + fx
 		"feast":
 			return "fx/drain"
+		"synth":
+			return "fx/heal"
 		"encore", "lever", "spawn_half", "spawn_copy", "steal_sticker", "bench", "mod", "tide_out":
 			return "fx/dice"
 		"block", "block_hand", "block_product", "block_count", "recycle":

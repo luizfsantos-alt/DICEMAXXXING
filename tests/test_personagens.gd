@@ -79,7 +79,7 @@ func test_kits_de_todos_os_arquetipos():
 
 
 func test_jogaveis():
-	assert_eq(Characters.PLAYABLE, ["sorcerer", "assassin", "metallurgist", "vampire", "barbarian"])
+	assert_eq(Characters.PLAYABLE, ["sorcerer", "assassin", "metallurgist", "vampire", "barbarian", "shaman"])
 	for id in Characters.PLAYABLE:
 		var run := RunState.new_run(7, id)
 		assert_eq(run.character, id)

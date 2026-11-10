@@ -53,6 +53,12 @@ var hand_mods: Array = [] ## Mexidas do inimigo que valem na próxima mão.
 var keeps: Array = []
 var dodge_bonus: int = 0 ## Assassino (Ágil): dados a mais na próxima mão.
 var thirst_used: int = 0 ## Vampiro: vida máxima já ganha nesta luta com a Sede.
+## Marcado (Correspondência do Xamã, docs/XAMA.md §4): na próxima vez que a vida baixar, as
+## marcas quebram e causam isto a mais. sigil_src: efeito que pôs a última marca
+## (Resolver.effect), que não pode quebrá-la. Na tela, "Marcado".
+var sigil: int = 0
+var sigil_src: int = -1
+var _foe: WeakRef = null ## Adversário na luta (Duel.setup): a Correspondência acerta nele.
 ## Dados trocados só nesta luta (Fundidor): [{bag, die}] com o dado original.
 var restore: Array = []
 var turn_mods: Array = [] ## Mexidas valendo neste turno.
@@ -61,6 +67,16 @@ var turn_mods: Array = [] ## Mexidas valendo neste turno.
 ## (id da magia, mexida do inimigo ou elemento que mudou o valor), "mod_hist" (mexidas
 ## do turno, em ordem, com o valor de antes) e "chain" (cadeia do Carbono na rolagem).
 const HAND_EXTRA := ["mod", "spent", "orig", "orig_top", "cause", "mod_hist", "chain"]
+
+
+## Liga os dois lados de uma luta (cada um sabe quem é o adversário).
+static func link(a: Fighter, b: Fighter) -> void:
+	a._foe = weakref(b)
+	b._foe = weakref(a)
+
+
+func foe() -> Fighter:
+	return _foe.get_ref() if _foe != null else null
 
 
 func die_of(entry: Dictionary) -> Die:
@@ -115,6 +131,8 @@ func reset_fight_state() -> void:
 	keeps = []
 	thirst_used = 0
 	dodge_bonus = 0
+	sigil = 0
+	sigil_src = -1
 
 
 ## Desfaz o que vale só nesta luta (adesivos roubados pelo Plágio, Chumbo do Fundidor,
@@ -388,7 +406,7 @@ func to_dict() -> Dictionary:
 		"mirror_lvl": mirror_lvl, "dodge_lvl": dodge_lvl, "recycle_lvl": recycle_lvl,
 		"extra_next": extra_next, "benched": benched, "fight_mods": fight_mods,
 		"hand_mods": hand_mods, "turn_mods": turn_mods, "keeps": keeps, "thirst_used": thirst_used, "dodge_bonus": dodge_bonus,
-		"restore": restore,
+		"restore": restore, "sigil": sigil,
 	}
 
 
@@ -400,7 +418,7 @@ func status_state() -> Dictionary:
 		"block": block, "poison": poison, "burn": burn, "mirror": mirror, "dodge": dodge,
 		"riposte": riposte, "immune": immune, "skin": skin, "kept": (0 if marked.is_empty() else 1) + keeps.size(),
 		"fury": Characters.fury(self), "archetype": archetype, "thirst_used": thirst_used,
-		"hand_mods": hand_mods.duplicate(),
+		"hand_mods": hand_mods.duplicate(), "sigil": sigil,
 	}
 
 
@@ -471,6 +489,7 @@ static func from_dict(d: Dictionary) -> Fighter:
 		f.keeps.append({"bag": int(k.bag), "temp": k.get("temp", {}), "value": int(k.value)})
 	f.thirst_used = int(d.get("thirst_used", 0))
 	f.dodge_bonus = int(d.get("dodge_bonus", 0))
+	f.sigil = int(d.get("sigil", 0))
 	for r in d.get("restore", []):
 		f.restore.append({"bag": int(r.bag), "die": r.die})
 	return f

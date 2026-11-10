@@ -6,7 +6,7 @@ extends RefCounted
 
 const PERSONALITIES := ["bruto", "cauteloso", "caotico"]
 const SPAWN := ["forca", "imitacao"]
-const OFFENSE := ["foto", "matematica", "bigorna", "obra", "sombras", "meteoro", "bola", "expectativa", "anatomia",
+const OFFENSE := ["sintese", "antitese", "foto", "matematica", "bigorna", "obra", "sombras", "meteoro", "bola", "expectativa", "anatomia",
 	"fisica", "velocidade", "bis", "banquete", "machadada", "peso", "plagio", "arrancar", "impulso", "corte",
 	"sacrificio", "mordida", "dardo", "estocada", "faisca", "forjamento", "charada"]
 const DEBUFF := ["interrupcao", "chave", "meia_verdade", "roubar_cena"]
@@ -238,6 +238,15 @@ static func estimate(f: Fighter, item: int, values: Array) -> float:
 			s = float(def.get("per", 1)) * Resolver.count_value(f, int(def.get("count", 1))) * 0.7
 		"heal":
 			s = total * mult * 0.5 if hurt else 0.0
+		"synth":
+			var sv := maxf(0.0, total - 1.0)
+			s = sv * 0.7 + (sv * 0.5 if hurt else 0.0)
+			if f.archetype == "shaman":
+				# Correspondência: a cura efetiva vira dano, e o bloqueio vira marca.
+				s += minf(sv, float(f.max_hp - f.hp)) + sv * 0.8
+		"antithesis":
+			# O dano em si é custo; pesa mais com pouca vida.
+			s = total * mult - total * (1.0 if f.hp * 2 < f.max_hp else 0.4)
 		"maxhp":
 			s = lo * 0.8
 		"dodge", "mirror":
@@ -306,6 +315,10 @@ static func _priority(f: Fighter, foe: Fighter, id: String) -> int:
 				base += 60
 		"sacrificio":
 			if foe.hp <= 10:
+				return 0
+		"antitese":
+			# Com pouca vida, só se for para acabar a luta.
+			if f.hp * 4 <= f.max_hp and foe.hp > 12:
 				return 0
 	return base
 

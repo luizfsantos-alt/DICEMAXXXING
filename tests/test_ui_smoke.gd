@@ -687,6 +687,8 @@ func test_cartoes_da_torre_tem_ilustracao():
 
 func test_todo_arquetipo_tem_3_fotos():
 	for arch in Portrait.COLORS:
+		if arch in Portrait.PENDING_ART:
+			continue ## Silhueta até chegar a arte (docs/ARTE_FALTANDO.md).
 		for k in Portrait.VARIATIONS:
 			assert_true(ResourceLoader.exists("%s%s_%d.png" % [Portrait.ART_DIR, arch, k + 1]), "foto %s %d" % [arch, k + 1])
 

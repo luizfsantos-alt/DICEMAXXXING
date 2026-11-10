@@ -30,6 +30,8 @@ A pauta de arte está toda feita. O que sobra é opcional ou é código.
 
 | Elemento | Arquivo | Hoje |
 |---|---|---|
+| Fotos do Xamã (3 variações): cego (venda nos olhos ou olhos brancos), pinturas de cobre e verdete, tom verde-água (`#5fe0cc`) e cobre; frase "Assim como acima, abaixo" | `assets/portraits/shaman_1..3.png` | silhueta na cor do arquétipo (`Portrait.PENDING_ART`); ao chegar a arte, tirar de lá |
+| Ícone de status Marcado (Xamã) | `assets/icons/status/sigil.png` | provisório desenhado em código (alvo verde-água com centro cobre), no estilo pixel dos outros |
 | Fotos da Alquimista (andar 20) e do Reator (andar 30) | `assets/portraits/alquimista_1.png`, `reator_1.png` | sem a arte, usam a foto do arquétipo (Copista e Bárbaro) |
 | Cartões da torre | `ui/tower_screen.gd` | ilustração no topo, mas o cartão em si é cor lisa (dá para usar `card_<raridade>.png` nas ofertas de magia) |
 | Ilustração por magia | `ui/spell_card.gd` | só o ícone do tipo de efeito (opcional) |

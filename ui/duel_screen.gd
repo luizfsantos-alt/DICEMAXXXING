@@ -441,6 +441,8 @@ static func statuses(st: Dictionary) -> Array:
 		out.append(_st("marked", int(st.kept)))
 	if int(st.fury) > 0:
 		out.append(_st("fury", int(st.fury)))
+	if int(st.get("sigil", 0)) > 0:
+		out.append(_st("sigil", int(st.sigil)))
 	var thirst := int(st.thirst_used)
 	if st.archetype == "vampire" and thirst > 0:
 		var t := _st("thirst", thirst)
@@ -453,6 +455,10 @@ static func statuses(st: Dictionary) -> Array:
 		out.append({"id": "mod_" + m, "n": mods[m],
 			"name": Texts.t("ui.next_hand", {"mod": Texts.t("ui.mod_" + m)}), "desc": Texts.t("status.hand_mod.1")})
 	return out
+
+
+static func _other(s: String) -> String:
+	return "enemy" if s == "player" else "player"
 
 
 static func _st(id: String, n: int) -> Dictionary:
@@ -1468,6 +1474,24 @@ func _apply_event(ev: Dictionary) -> void:
 			fx_bounce = null
 			await _effect(s, hit_txt, "dmg" if int(ev.dmg) > 0 else "fx", from, ScreenShake.tier(int(ev.dmg), int(v.max)))
 			_note(s, hit_txt)
+		"self_dmg":
+			# Antítese: o Xamã se fere antes das magias (não é golpe).
+			v.hp -= int(ev.n)
+			await _effect(s, "−%d" % int(ev.n), "dmg", null, ScreenShake.tier(int(ev.n), int(v.max)))
+			_note(s, Texts.t("ui.fx_self_dmg", {"n": ev.n}))
+		"echo":
+			# Correspondência: a cura do Xamã sai da foto dele e acerta o adversário.
+			v.hp -= int(ev.dmg)
+			v.block = maxi(0, int(v.block) - int(ev.absorbed))
+			var et := "−%d" % int(ev.dmg) if int(ev.dmg) > 0 else Texts.t("ui.fx_absorb", {"n": ev.absorbed})
+			await _effect(s, et, "dmg" if int(ev.dmg) > 0 else "fx", _portrait_point(_other(s)), ScreenShake.tier(int(ev.dmg), int(v.max)))
+			_note(s, et)
+		"sigil_up":
+			await _effect(s, Texts.t("ui.fx_sigil_up", {"n": ev.n}), "fx", _portrait_point(_other(s)))
+		"sigil_break":
+			v.hp -= int(ev.n)
+			await _effect(s, Texts.t("ui.fx_sigil_break", {"n": ev.n}), "dmg", null, ScreenShake.tier(int(ev.n), int(v.max)))
+			_note(s, Texts.t("ui.fx_sigil_break", {"n": ev.n}))
 		"asbestos":
 			_burst(fx_src, Elements.look("Am").body, false)
 			v.hp -= int(ev.n)
@@ -1897,6 +1921,17 @@ func _describe(ev: Dictionary) -> String:
 			return Texts.t("ev.lead_convert")
 		"asbestos":
 			return Texts.t("ev.asbestos", {"who": w, "n": ev.n})
+		"self_dmg":
+			return Texts.t("ev.self_dmg", {"who": w, "n": ev.n, "spell": Texts.spell_name(ev.spell)})
+		"echo":
+			var et := Texts.t("ev.echo", {"who": w, "n": ev.dmg})
+			if int(ev.absorbed) > 0:
+				et += " " + Texts.t("ev.absorbed", {"n": ev.absorbed})
+			return et
+		"sigil_up":
+			return Texts.t("ev.sigil_up", {"who": w, "n": ev.n, "total": ev.total})
+		"sigil_break":
+			return Texts.t("ev.sigil_break", {"who": w, "n": ev.n})
 		"element":
 			return Texts.t("ev.el_" + str(ev.el), {"who": w, "v": ev.v})
 		"charge":
