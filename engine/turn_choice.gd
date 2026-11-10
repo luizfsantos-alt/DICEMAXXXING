@@ -161,6 +161,8 @@ func accepts(f: Fighter, item: int, h: int, slot := 0) -> bool:
 	if not die_allowed(f, item, h, slot):
 		return false
 	var e: Dictionary = f.hand[h]
+	if str(Spells.get_def(f.inventory.items[item].id).get("req", "")) == "riddle" and int(e.value) in f.riddle_values(item):
+		return false ## Charada Fatal: esse valor já está guardado.
 	return Spells.accepts_partial(f.inventory.items[item].id, values_in(f, item), int(e.value), bool(e.get("top", false)))
 
 
@@ -296,6 +298,35 @@ func _resolve_mod(f: Fighter, item: int) -> void:
 			var lo := int(vals.min())
 			for k in dice.size():
 				_set_val(f, f.hand[dice[k]], lo + k + b)
+		"tide_low":
+			# Maré Baixa: o dado sai e entram dois dados provisórios valendo 6.
+			m.prev[0].spent = true
+			for k in 2:
+				m.spawn.append(f.hand.size())
+				f.hand.append({"bag": -1, "temp": Die.basic(), "face": 5, "value": Config.TIDE_LOW_VALUE + b,
+					"top": false, "fixed": true, "plus": 0, "spawn": item, "orig": int(vals[0]), "cause": id})
+		"lingot":
+			# Lingotamento: o dado vira tantos dados de valor 1 quanto o valor dele. Cada
+			# lingote herda o elemento com uma chance (sobe com o nível); os adesivos se perdem.
+			m.prev[0].spent = true
+			var se: Dictionary = f.hand[dice[0]]
+			var src := f.die_of(se)
+			var n := int(vals[0]) + b
+			var chance: float = Config.LINGOT_INHERIT[clampi(lvl, 1, Config.LINGOT_INHERIT.size()) - 1]
+			var sim := expect or forced_face >= 0 ## IA: herdam os primeiros, pela média.
+			if not sim and rng == null:
+				rng = RandomNumberGenerator.new()
+				rng.randomize()
+			for k in n:
+				var heir := src != null and src.element != "" and (k < roundi(n * chance) if sim else rng.randf() < chance)
+				var d := Die.basic()
+				if heir:
+					d.element = src.element ## Só o elemento: faces, adesivos e carga não vêm.
+				m.spawn.append(f.hand.size())
+				f.hand.append({"bag": -1, "temp": d, "face": 0, "value": 1,
+					"top": false, "fixed": true, "plus": 0, "spawn": item, "orig": int(vals[0]), "cause": id})
+		"insight":
+			_insight(f, item, m, b)
 		"polish":
 			var e: Dictionary = f.hand[dice[0]]
 			var nv := 5 + lvl ## A face vira 6 / 7 / 8.
@@ -318,7 +349,8 @@ func _resolve_mod(f: Fighter, item: int) -> void:
 	mods[item] = m
 
 
-## Rolagem nova do dado da entrada (mesmas regras da mão: +plus, Hidrogênio, Carbono).
+## Rolagem nova do dado da entrada (mesmas regras da mão: +plus, Hidrogênio, Estrôncio,
+## Carbono, Lítio).
 ## A cadeia do Carbono é a da rolagem da mão ("chain"), sem recontar; o Mercúrio fica
 ## com a face, sem copiar. Com expect (IA), devolve o valor esperado.
 func _reroll(f: Fighter, e: Dictionary) -> Dictionary:
@@ -327,15 +359,19 @@ func _reroll(f: Fighter, e: Dictionary) -> Dictionary:
 		return {"face": int(e.face), "value": int(e.value), "top": bool(e.top)}
 	var chain := int(e.get("chain", 0)) if d.element == "C" else 0
 	var mult := Elements.solitary_mult if Elements.solitary(f, d) else 1
+	chain += d.charge if d.element == "Li" else 0 ## Lítio: a carga vale em qualquer rolagem.
 	if forced_face >= 0:
 		var fr := d.value(forced_face)
-		return {"face": forced_face, "value": (fr + int(e.get("plus", 0))) * mult + chain, "top": fr == d.max_value()}
+		var fb := Elements.burst_mean(d) if Elements.bursts(d, forced_face) else 0
+		return {"face": forced_face, "value": (fr + int(e.get("plus", 0))) * mult + fb + chain, "top": fr == d.max_value()}
 	if expect:
 		# A IA estima: Segunda Chance vale a média do maior; Tudo ou Nada, a média da face.
 		var best := 0.0
 		var sum := 0.0
 		for k in 6:
 			var v := (d.value(k) + int(e.get("plus", 0))) * mult + chain
+			if Elements.bursts(d, k):
+				v += Elements.burst_mean(d)
 			sum += v
 			best += maxf(v, float(e.value))
 		return {"face": int(e.face), "value": int(round(sum / 6.0)), "top": false, "ev_max": int(round(best / 6.0))}
@@ -344,7 +380,39 @@ func _reroll(f: Fighter, e: Dictionary) -> Dictionary:
 		rng.randomize()
 	var face := rng.randi_range(0, 5)
 	var raw := d.value(face)
-	return {"face": face, "value": (raw + int(e.get("plus", 0))) * mult + chain, "top": raw == d.max_value()}
+	var extra := d.value(rng.randi_range(0, 5)) if Elements.bursts(d, face) else 0 ## Estrôncio.
+	return {"face": face, "value": (raw + int(e.get("plus", 0))) * mult + extra + chain, "top": raw == d.max_value()}
+
+
+## Insight: o dado volta para a bolsa (pilha de compra) e saem dois dados dela, rolados
+## na hora (podendo ser ele mesmo). A IA (expect / forced_face) simula com dados comuns
+## sem mexer na bolsa.
+func _insight(f: Fighter, item: int, m: Dictionary, b: int) -> void:
+	var e: Dictionary = f.hand[int(m.dice[0])]
+	m.prev[0].spent = true
+	var out := []
+	if expect or forced_face >= 0:
+		for k in 2:
+			out.append({"bag": -1, "temp": Die.basic(), "face": maxi(0, forced_face), "value": (forced_face + 1 if forced_face >= 0 else 4),
+				"top": false, "fixed": false, "plus": 0})
+	else:
+		if rng == null:
+			rng = RandomNumberGenerator.new()
+			rng.randomize()
+		if int(e.bag) >= 0 and not (int(e.bag) in f.draw_pile):
+			f.draw_pile.append(int(e.bag))
+			e["returned"] = true
+		for k in 2:
+			var x := f.draw_one(rng)
+			if x.is_empty():
+				break
+			f._roll_entry(x, rng)
+			out.append(x)
+	for x in out:
+		x.value = int(x.value) + b
+		x["spawn"] = item
+		m.spawn.append(f.hand.size())
+		f.hand.append(x)
 
 
 func _set_val(f: Fighter, e: Dictionary, v: int) -> void:
@@ -494,7 +562,13 @@ func ready_items(f: Fighter) -> Array:
 	for item in f.inventory.order():
 		if casts.has(item) and Spells.complete(f.inventory.items[item].id, values_in(f, item), tops_in(f, item)):
 			out.append(item)
+		elif casts.has(item) and not casts[item].is_empty() and is_riddle(f, item):
+			out.append(item) ## Charada Fatal: guarda os dados mesmo sem completar.
 	return out
+
+
+static func is_riddle(f: Fighter, item: int) -> bool:
+	return str(Spells.get_def(f.inventory.items[item].id).get("req", "")) == "riddle"
 
 
 ## Mexidas resolvidas, na ordem do inventário.
@@ -512,7 +586,7 @@ func mod_items(f: Fighter) -> Array:
 func incomplete_items(f: Fighter) -> Array:
 	var out := []
 	for item in f.inventory.order():
-		if casts.has(item) and not casts[item].is_empty() and Spells.dice_needed(f.inventory.items[item].id) > 1 \
+		if casts.has(item) and not casts[item].is_empty() and Spells.dice_needed(f.inventory.items[item].id) > 1 and not is_riddle(f, item) \
 				and not Spells.complete(f.inventory.items[item].id, values_in(f, item), tops_in(f, item)):
 			out.append(item)
 	return out

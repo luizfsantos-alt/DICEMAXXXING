@@ -5,12 +5,12 @@ const H := preload("res://tests/helpers.gd")
 
 
 # ------------------------------------------------------------ Dados e elementos
-func test_adesivo_dobra_a_face_e_acumula():
+func test_adesivo_soma_2_na_face_e_acumula():
 	var d := Die.basic()
 	assert_true(d.add_sticker(5))
-	assert_eq(d.value(5), 12)
+	assert_eq(d.value(5), 8)
 	d.add_sticker(5)
-	assert_eq(d.value(5), 24)
+	assert_eq(d.value(5), 10)
 	assert_eq(d.sticker_count(), 2)
 
 
@@ -21,7 +21,7 @@ func test_chumbo_tem_tres_faces_1_travadas():
 	assert_true(d.add_sticker(5))
 
 
-func test_hidrogenio_triplica_com_bolsa_pequena():
+func test_hidrogenio_dobra_com_bolsa_de_menos_de_8():
 	var f := H.fighter("a", ["faisca"])
 	f.bag.resize(Elements.SOLITARY_BAG)
 	f.bag[0] = Die.with_element("H")
@@ -30,7 +30,8 @@ func test_hidrogenio_triplica_com_bolsa_pequena():
 	f.hand_size = 1
 	f.draw_hand(H.rng())
 	f.roll_hand(H.rng(), [])
-	assert_eq(f.hand[0].value, (int(f.hand[0].face) + 1) * 3)
+	assert_eq(Elements.SOLITARY_BAG, 7, "menos de 8 dados")
+	assert_eq(f.hand[0].value, (int(f.hand[0].face) + 1) * 2)
 	f.bag.append(Die.basic())
 	f.roll_hand(H.rng(), [])
 	assert_eq(f.hand[0].value, int(f.hand[0].face) + 1, "bolsa acima do limite: sem bônus")
@@ -153,6 +154,85 @@ func test_cesio_parado_nao_irradia_e_imune_bloqueia():
 	assert_eq(Elements.rarity("Cs"), "uncommon")
 
 
+func test_litio_carrega_parado_e_descarrega_ao_usar():
+	var a := H.fighter("a", ["faisca"])
+	var b := H.fighter("b", [])
+	a.bag[1] = Die.with_element("Li")
+	H.hand(a, [3, 4])
+	var ev := H.cast(a, b, {"faisca": [0]})
+	assert_eq(a.bag[1].charge, Config.LITHIUM_STEP, "parado na mão: carrega")
+	assert_true(ev.any(func(e): return e.t == "charge"))
+	for t in 5:
+		H.hand(a, [3, 4])
+		H.cast(a, b, {"faisca": [0]})
+	assert_eq(a.bag[1].charge, Config.LITHIUM_CAP, "até o teto")
+	# A carga soma na rolagem.
+	a.hand = [{"bag": 1, "temp": null, "face": 0, "value": 0}]
+	a._roll_entry(a.hand[0], H.rng())
+	assert_eq(int(a.hand[0].value), int(a.hand[0].face) + 1 + Config.LITHIUM_CAP)
+	assert_eq(str(a.hand[0].cause), "Li")
+	# Usado numa magia: descarrega.
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(a.bag[1].charge, 0, "descarrega ao ser usado")
+	a.bag[1].charge = 4
+	a.end_fight_cleanup()
+	assert_eq(a.bag[1].charge, 0, "a luta seguinte começa sem carga")
+	assert_eq(Elements.rarity("Li"), "common")
+	assert_true("Li" in Elements.SHOP)
+
+
+func test_estroncio_estoura_na_face_mais_alta():
+	var f := H.fighter("a", ["faisca"])
+	f.bag[0] = Die.with_element("Sr")
+	f.bag[0].faces = [1, 2, 3, 6, 6, 4] ## Duas faces empatadas no maior valor.
+	var hits := {}
+	for s in 80:
+		f.hand = [{"bag": 0, "temp": null, "face": 0, "value": 0}]
+		f._roll_entry(f.hand[0], H.rng(s))
+		var face := int(f.hand[0].face)
+		var raw := int(f.bag[0].faces[face])
+		if raw == 6:
+			hits[face] = true
+			var extra := int(f.hand[0].value) - 6
+			assert_true(extra in [1, 2, 3, 4, 6], "estoura: rola mais uma vez e soma (%d)" % extra)
+			assert_lte(int(f.hand[0].value), 12, "só uma vez")
+			assert_eq(str(f.hand[0].cause), "Sr")
+		else:
+			assert_eq(int(f.hand[0].value), raw, "as outras faces não mudam")
+	assert_eq(hits.keys().size(), 2, "qualquer face empatada no maior valor estoura")
+	# Adesivo na face mais alta: ela continua estourando (6 + 2 = 8).
+	f.bag[0].faces = [1, 2, 3, 4, 5, 6]
+	f.bag[0].add_sticker(5)
+	assert_true(Elements.bursts(f.bag[0], 5))
+	assert_false(Elements.bursts(f.bag[0], 4))
+	assert_false(Elements.bursts(Die.basic(), 5), "só o Estrôncio")
+	# Rolar de novo (mexidas) também estoura; a IA estima o estouro pela média.
+	var c := TurnChoice.new()
+	c.forced_face = 5
+	f.hand = [{"bag": 0, "temp": null, "face": 0, "value": 1}]
+	assert_eq(int(c._reroll(f, f.hand[0]).value), 8 + Elements.burst_mean(f.bag[0]))
+	assert_eq(Elements.rarity("Sr"), "uncommon")
+	assert_true("Sr" in Elements.SHOP)
+
+
+func test_titanio_da_bloqueio_ao_usar():
+	var a := H.fighter("a", ["faisca"])
+	var b := H.fighter("b", [])
+	a.bag[0] = Die.with_element("Ti")
+	H.hand(a, [3, 4])
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(a.block, Config.TITANIUM_BLOCK, "usado: bloqueio")
+	assert_eq(b.hp, 40 - 3, "o dano da magia continua")
+	a.block = 0
+	a.bag[0] = Die.basic()
+	a.bag[1] = Die.with_element("Ti")
+	H.hand(a, [3, 4])
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(a.block, 0, "Titânio parado não bloqueia")
+	assert_eq(Elements.rarity("Ti"), "common")
+	assert_true("Ti" in Elements.SHOP)
+
+
 func test_ouro_da_moeda_por_uso_e_a_jornada_recebe():
 	var run := RunState.new_run(11)
 	for _k in 5:
@@ -230,7 +310,7 @@ func test_loja_copiar_dado_e_adesivo_de_ouro():
 	assert_eq(run.choose(ci, {"die": 3}), "")
 	assert_eq(run.hero.bag.size(), n + 1)
 	assert_eq(run.hero.bag.back().element, "Cs")
-	assert_eq(run.hero.bag.back().value(5), 12, "copia os adesivos")
+	assert_eq(run.hero.bag.back().value(5), 8, "copia os adesivos")
 	assert_eq(run.coins, 100 - Config.PRICE_COPY_DIE)
 	var gi := run.options.map(func(o): return o.kind).find("gold_sticker")
 	assert_gt(gi, -1, "a Loja vende adesivo de ouro")
@@ -502,7 +582,8 @@ func test_masmorra_1_paradas_e_mestres_no_10_20_30():
 			run.choose(run.options.map(func(o): return o.id).find("heal"))
 			if run.phase == "rest":
 				run.choose(0)
-			run.leave()
+			while run.phase != "doors":
+				run.leave() ## Volta para a parada e segue.
 	assert_eq(masters, ["porteiro", "alquimista", "reator"])
 	assert_eq(run.phase, "victory")
 	assert_eq(run.hero.hand_size, Config.HAND_SIZE + 2, "duas recompensas de Mestre (andares 10 e 20)")
@@ -584,12 +665,14 @@ func test_loja_poco_e_escola():
 	run.options = Shop.well(run.rng)
 	assert_eq(run.choose(0, {"die": 2}), "ui.pick_face")
 	assert_eq(run.choose(0, {"die": 2, "face": 5}), "")
-	assert_eq(run.hero.bag[2].value(5), 12)
+	assert_eq(run.hero.bag[2].value(5), 8)
 	assert_eq(run.coins, 100 - Config.PRICE_STICKER)
 	assert_eq(run.choose(0, {"die": 2, "face": 5}), "")
 	assert_eq(run.coins, 100 - Config.PRICE_STICKER * 3, "o segundo adesivo no mesmo dado custa o dobro")
 	assert_eq(run.choose(4, {"die": 0}), "")
 	assert_eq(run.hero.bag.size(), 7)
+	run.leave()
+	assert_eq(run.phase, "rest", "volta para a parada")
 	run.leave()
 	assert_eq(run.phase, "doors")
 	run.phase = "school"
@@ -598,7 +681,7 @@ func test_loja_poco_e_escola():
 	var item: int = run.options[ev].item
 	run.choose(ev)
 	assert_eq(int(run.hero.inventory.items[item].level), 2)
-	assert_eq(run.phase, "doors")
+	assert_eq(run.phase, "rest", "a Escola volta para a parada")
 
 
 func test_salvar_e_carregar_no_meio_do_duelo():
@@ -778,7 +861,7 @@ func test_recompensa_tem_opcoes_pela_porta():
 	assert_eq(Shop.reward(h, H.rng(), 3, "dificil").size(), 3)
 	var ins := Shop.reward(h, H.rng(), 3, "insana")
 	assert_eq(ins.size(), 4)
-	assert_true(ins.any(func(o): return o.kind == "spell" and Spells.rarity(o.id) == "rare"))
+	assert_true(ins.any(func(o): return o.kind == "spell" and Spells.rarity(o.id) in ["rare", "legendary"]))
 	assert_true(RunState.door_coins("dificil") > RunState.door_coins("normal"))
 
 
@@ -786,8 +869,70 @@ func test_cura_da_parada_e_do_mestre():
 	var run := RunState.new_run(13, "barbarian")
 	run.hero.hp = 10
 	run.phase = "rest"
-	run._enter_stop("heal")
+	run.options = [{"kind": "stop", "id": "heal", "price": Config.PRICE_HEAL_STOP, "needs": ""}]
+	assert_eq(run.choose(0), "ui.not_enough", "a Cura custa moedas")
+	run.coins = Config.PRICE_HEAL_STOP
+	assert_eq(run.choose(0), "")
 	assert_eq(run.hero.hp, 10 + int(ceil(run.hero.max_hp * Config.HEAL_STOP_FRACTION)))
+	assert_eq(run.coins, 0)
+	assert_eq(run.phase, "rest", "continua na parada")
+	assert_eq(run.choose(0), "ui.stop_used", "uma vez por parada")
+
+
+func test_cura_da_parada_vale_metade_para_o_vampiro():
+	var run := RunState.new_run(13, "vampire")
+	run.hero.hp = 10
+	run.coins = Config.PRICE_HEAL_STOP
+	run.phase = "rest"
+	run.options = [{"kind": "stop", "id": "heal", "price": Config.PRICE_HEAL_STOP, "needs": ""}]
+	var n := int(ceil(run.hero.max_hp * Config.HEAL_STOP_FRACTION * 0.5))
+	assert_eq(RunState.heal_stop_amount(run.hero), n)
+	var before := run.hero.max_hp
+	assert_eq(run.choose(0), "")
+	assert_eq(run.hero.hp, 10 + n, "metade da Cura (a Sede vem vazia)")
+	assert_eq(run.hero.max_hp, before + 1, "a Sede continua valendo")
+
+
+func test_parada_entra_e_volta_quando_quiser():
+	var run := RunState.new_run(21, "sorcerer")
+	run.choose(0)
+	run.coins = 200
+	run.hero.hp = 10
+	run.phase = "rest"
+	run.options = [
+		{"kind": "stop", "id": "well", "price": 0, "needs": ""},
+		{"kind": "stop", "id": "heal", "price": Config.PRICE_HEAL_STOP, "needs": ""},
+		{"kind": "stop", "id": "shop", "price": 0, "needs": ""},
+	]
+	assert_eq(run.choose(0), "")
+	assert_eq(run.phase, "well")
+	var well := run.options.duplicate(true)
+	assert_eq(run.choose(0, {"die": 1, "face": 5}), "", "compra no Poço")
+	run.leave()
+	assert_eq(run.phase, "rest", "volta depois de comprar")
+	assert_eq(run.choose(1), "", "e usa a Cura")
+	assert_gt(run.hero.hp, 10)
+	assert_eq(run.choose(2), "")
+	assert_eq(run.phase, "shop")
+	var shop_n := run.options.size()
+	assert_eq(run.choose(0), "")
+	run.leave()
+	# Voltar ao Poço: as mesmas ofertas de antes (não sorteia de novo).
+	assert_eq(run.choose(0), "")
+	assert_eq(run.options.map(func(o): return o.kind), well.map(func(o): return o.kind))
+	run.leave()
+	assert_eq(run.choose(2), "")
+	assert_eq(run.options.size(), shop_n - 1, "a magia comprada não volta à Loja")
+	# Salvar e carregar dentro da Loja mantém a parada.
+	var back := RunState.from_dict(JSON.parse_string(JSON.stringify(run.to_dict())))
+	assert_eq(back.phase, "shop")
+	assert_eq(back.options.size(), shop_n - 1)
+	back.leave()
+	assert_eq(back.phase, "rest")
+	assert_eq(back.options.size(), 3)
+	assert_true(back.options[1].get("used", false), "a Cura já usada continua marcada")
+	back.leave()
+	assert_eq(back.phase, "doors", "Seguir vai para as portas")
 
 
 func test_mestres_tem_kit_fixo_que_cabe():

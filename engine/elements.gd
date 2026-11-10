@@ -3,12 +3,12 @@ extends RefCounted
 ## Elementos e substâncias (docs/SPEC_v3.md §4.1, docs/PERSONAGENS.md §3.2 e §5).
 ## Química é tempero: cada um tem um efeito de uma linha.
 
-const ALL := ["H", "Os", "U", "Na", "Hg", "Pb", "Am", "C", "Fe", "Cs", "Au"]
-const SHOP := ["H", "Os", "U", "Na", "Hg", "Am", "C", "Cs", "Au"] ## Chumbo só vem dos inimigos (e do Metalurgista); Ferro, só do Bárbaro.
+const ALL := ["H", "Os", "U", "Na", "Hg", "Pb", "Am", "C", "Fe", "Cs", "Au", "Li", "Ti", "Sr"]
+const SHOP := ["H", "Os", "U", "Na", "Hg", "Am", "C", "Cs", "Au", "Li", "Ti", "Sr"] ## Chumbo só vem dos inimigos (e do Metalurgista); Ferro, só do Bárbaro.
 ## Raridade (docs/RARIDADE.md §4). Chumbo e Ferro ficam fora (não são sorteados): contam como Comum.
 const RARITY := {
-	"common": ["Na", "Am", "C", "Au"],
-	"uncommon": ["U", "Hg", "Cs"],
+	"common": ["Na", "Am", "C", "Au", "Li", "Ti"],
+	"uncommon": ["U", "Hg", "Cs", "Sr"],
 	"rare": ["H", "Os"],
 }
 ## Visual de cada dado (docs/DADOS_VISUAL.md). Três camadas:
@@ -57,10 +57,24 @@ const LOOKS := {
 	"Au": {"body": Color("#e0a514"), "body2": Color("#ffe27a"), "ink": Color("#3a2604"), "accent": Color("#ffcf3f"),
 		"finish": "espelho", "rough": 0.18, "metal": 0.85, "coat": 0.5, "alpha": 1.0, "rim": 0.2,
 		"glow": "", "emission": Color.BLACK, "energy": 0.0},
+	# Lítio: a bateria. Metal cinza escovado; só os pontinhos e algarismos brilham em
+	# verde-limão (o indicador de carga), mais forte conforme a carga.
+	"Li": {"body": Color("#737980"), "body2": Color("#a9afb7"), "ink": Color("#d8ff6a"), "accent": Color("#b8ff2e"),
+		"finish": "espelho", "rough": 0.3, "metal": 0.7, "coat": 0.2, "alpha": 1.0, "rim": 0.0,
+		"glow": "pips", "emission": Color("#b8ff2e"), "energy": 0.6, "glow_only": true},
+	# Titânio anodizado: o metal ganha o furta-cor magenta, azul e dourado da camada de óxido.
+	"Ti": {"body": Color("#a33cc4"), "body2": Color("#e0b040"), "ink": Color("#ffffff"), "accent": Color("#e08cf0"),
+		"finish": "anodizado", "rough": 0.22, "metal": 0.8, "coat": 0.4, "alpha": 1.0, "rim": 0.2,
+		"glow": "", "emission": Color.BLACK, "energy": 0.0},
+	# Estrôncio: o vermelho dos fogos de artifício. Vermelho-vivo envernizado, com os
+	# pontinhos e algarismos amarelos das faíscas.
+	"Sr": {"body": Color("#c8161d"), "body2": Color("#ff4a3d"), "ink": Color("#ffd23a"), "accent": Color("#ff6b5a"),
+		"finish": "marfim", "rough": 0.25, "metal": 0.0, "coat": 0.9, "alpha": 1.0, "rim": 0.0,
+		"glow": "", "emission": Color.BLACK, "energy": 0.0},
 }
 ## Energia máxima do brilho com o estado ativo (heat = 1).
 ## Contidos de propósito: forte demais, o brilho estoura e o valor deixa de ser lido.
-const ENERGY_ACTIVE := {"H": 0.7, "U": 0.5, "Na": 1.0, "C": 0.9, "Cs": 0.9}
+const ENERGY_ACTIVE := {"H": 0.7, "U": 0.5, "Na": 1.0, "C": 0.9, "Cs": 0.45, "Li": 2.0} ## Césio mais forte estoura o corpo em branco.
 ## Cor do elemento em texto e rótulos (o accent de LOOKS: legível sobre o fundo escuro).
 const COLORS := {
 	"": Color("#efe6d2"),
@@ -75,14 +89,18 @@ const COLORS := {
 	"Fe": Color("#c7764e"),
 	"Cs": Color("#6fb4ff"),
 	"Au": Color("#ffcf3f"),
+	"Li": Color("#b8ff2e"),
+	"Ti": Color("#e08cf0"),
+	"Sr": Color("#ff6b5a"),
 }
-const SOLITARY_BAG := 6 ## Hidrogênio: ×3 com bolsa deste tamanho ou menor (a inicial tem 8).
-const SOLITARY_MULT := 3
+const SOLITARY_BAG := 7 ## Hidrogênio: ×2 com bolsa deste tamanho ou menor (menos de 8; a inicial tem 8).
+const SOLITARY_MULT := 2
 ## Valores em uso (o simulador troca para testar; o jogo usa os de cima).
 static var solitary_bag := SOLITARY_BAG
 static var solitary_mult := SOLITARY_MULT
 const ASBESTOS_PLUS := 3 ## Amianto: +3 em todas as faces.
 const CHAIN_STEP := 2 ## Carbono: + isto para cada outro Carbono na mão.
+
 
 
 static func apply(d: Die, el: String) -> void:
@@ -122,6 +140,20 @@ static func solitary(f: Fighter, d: Die) -> bool:
 	return d != null and d.element == "H" and f.bag.size() <= solitary_bag
 
 
+## Estrôncio (Fogos): a face que saiu é a mais alta do dado (empates valem): estoura,
+## rola mais uma vez (só uma) e soma.
+static func bursts(d: Die, face: int) -> bool:
+	return d != null and d.element == "Sr" and face >= 0 and face < 6 and d.value(face) == d.max_value()
+
+
+## Média do dado (o que o estouro do Estrôncio soma, em média): para a IA estimar.
+static func burst_mean(d: Die) -> int:
+	var t := 0
+	for k in 6:
+		t += d.value(k)
+	return int(round(t / 6.0))
+
+
 ## Carbono (Cadeia): bônus de cada Carbono da mão, + CHAIN_STEP por outro Carbono nela.
 ## Conta só os dados rolados: partes da Sangria, cópias e dados gastos não são elos (a
 ## cadeia fica fixa na rolagem; rolar de novo usa a que o dado guardou em "chain").
@@ -151,7 +183,7 @@ static func energy(el: String, heat := 0.0) -> float:
 ## Estado do dado d na mão de f, de 0 a 1 (docs/DADOS_VISUAL.md, "Brilho como estado"):
 ## Hidrogênio com o Solitário valendo, Carbono pelo tamanho da cadeia, Urânio parado
 ## na mão (vai envenenar se não for usado; idle = ainda não foi posto numa magia) e
-## Césio posto numa magia (vai irradiar o inimigo).
+## Césio posto numa magia (vai irradiar o inimigo) e Lítio pela carga.
 static func heat(f: Fighter, d: Die, idle := true) -> float:
 	if d == null:
 		return 0.0
@@ -164,4 +196,6 @@ static func heat(f: Fighter, d: Die, idle := true) -> float:
 			return 1.0 if idle else 0.0
 		"Cs":
 			return 0.0 if idle else 1.0 ## Posto numa magia: vai irradiar.
+		"Li":
+			return clampf(float(d.charge) / Config.LITHIUM_CAP, 0.0, 1.0) ## Carga da bateria.
 	return 0.0

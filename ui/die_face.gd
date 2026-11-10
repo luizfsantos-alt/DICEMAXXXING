@@ -85,6 +85,44 @@ static func draw(ci: CanvasItem, r: Rect2, value: int, element := "", dim := 0.0
 			HORIZONTAL_ALIGNMENT_CENTER, face.size.x, es, Color(col, 0.55))
 
 
+## Selos dos adesivos sobre o dado em r (bolsa, coluna, cartões, voo): bolinha vermelha
+## com "+2" (+2 por adesivo) no alto à direita e bolinha dourada (adesivo de ouro; o número
+## com mais de um) embaixo à esquerda. dim: dado apagado (já usado).
+const STICKER_RED := Color("#d8322c")
+const GOLD := Color("#f2c230")
+
+
+static func marks(ci: CanvasItem, r: Rect2, stickers: int, gold: int, dim := 0.0) -> void:
+	var s := minf(r.size.x, r.size.y)
+	var k := 1.0 - clampf(dim, 0.0, 0.8)
+	var rr := s * 0.2
+	if stickers > 0:
+		var c := Vector2(r.end.x - rr * 0.95, r.position.y + rr * 0.95)
+		_dot(ci, c, rr, STICKER_RED, k)
+		var t := "+%d" % (Config.STICKER_PLUS * stickers)
+		var fs := int(rr * (0.9 if t.length() <= 2 else 0.7))
+		var font := Kit.num_font()
+		var w := font.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		ci.draw_string(font, c + Vector2(-w * 0.5, fs * 0.36), t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1, 1, 1, k))
+	if gold > 0:
+		var c2 := Vector2(r.position.x + rr * 0.95, r.end.y - rr * 0.95)
+		_dot(ci, c2, rr * 0.85, GOLD, k)
+		if gold > 1:
+			var fs2 := int(rr * 0.9)
+			var font2 := Kit.num_font()
+			var t2 := str(gold)
+			var w2 := font2.get_string_size(t2, HORIZONTAL_ALIGNMENT_LEFT, -1, fs2).x
+			ci.draw_string(font2, c2 + Vector2(-w2 * 0.5, fs2 * 0.36), t2, HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, Color(0.3, 0.18, 0.0, k))
+
+
+## Bolinha com contorno escuro e um brilho no alto, para destacar do dado.
+static func _dot(ci: CanvasItem, c: Vector2, rr: float, col: Color, k: float) -> void:
+	ci.draw_circle(c + Vector2(0, rr * 0.08), rr * 1.08, Color(0, 0, 0, 0.55 * k))
+	ci.draw_circle(c, rr, Color(col.darkened(0.35), k))
+	ci.draw_circle(c, rr * 0.86, Color(col, k))
+	ci.draw_circle(c - Vector2(rr * 0.3, rr * 0.32), rr * 0.25, Color(1, 1, 1, 0.35 * k))
+
+
 ## Halo em volta do dado aceso: sombra colorida do StyleBox, maior com mais energia.
 static func _halo(ci: CanvasItem, r: Rect2, rad: int, col: Color, energy: float) -> void:
 	if energy <= 0.0:
@@ -150,6 +188,16 @@ static func _finish(ci: CanvasItem, face: Rect2, finish: String, body: Color, bo
 				var tone := body.lightened(0.18) if i % 2 == 0 else body.darkened(0.25)
 				ci.draw_circle(c, w * rng.randf_range(0.08, 0.16), Color(tone, 0.6 * k + 0.2))
 			ci.draw_style_box(_border(Color(body2, 0.75 * k + 0.1), rad, maxi(2, int(w * 0.035))), face)
+		"anodizado":
+			# Faixas furta-cor do titânio anodizado (magenta, azul, dourado).
+			var mid := Color("#3d6fe0") ## Azul do meio do furta-cor.
+			var cols := [body, mid, body2, mid]
+			for i in 4:
+				var a0 := 0.18 + i * 0.28
+				var poly := PackedVector2Array([p + Vector2(w * (a0 - 0.2), 0), p + Vector2(w * (a0 + 0.08), 0),
+					p + Vector2(w * (a0 - 0.32), h), p + Vector2(w * (a0 - 0.6), h)])
+				_poly(ci, _clip(poly, face), Color(cols[i], 0.75 * k))
+			ci.draw_style_box(_border(Color(1, 1, 1, 0.35 * k), rad, 2), face)
 		"grafite":
 			var band := PackedVector2Array([p + Vector2(w * 0.35, 0), p + Vector2(w * 0.65, 0), p + Vector2(w * 0.35, h), p + Vector2(w * 0.05, h)])
 			_poly(ci, _clip(band, face), Color(body2, 0.55 * k))

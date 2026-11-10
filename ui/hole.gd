@@ -18,8 +18,11 @@ var element := ""
 var lit := false ## Aceita o dado selecionado.
 var raised := false ## Dado selecionado: levantado.
 var faded := false ## Dado já lançado neste turno.
+var kept := false ## Charada Fatal: dado guardado de um turno anterior (contorno brasa).
 var _glows := false ## O dado encaixado brilha (pulsa: redesenha a cada quadro).
 var heat := 0.0 ## Estado do brilho do dado (Elements.heat): 0 repouso, 1 ativo.
+var stickers := 0 ## Adesivos +2 na face que saiu (selo vermelho).
+var gold := 0 ## Adesivos de ouro na face que saiu (selo dourado).
 var interactive := true
 var floor_hidden := false ## Só o dado, sem o buraco (dado voando).
 ## Dado mexido (docs/SPEC_v3.1.md §8): valor de antes, riscado no alto, e a causa num selo.
@@ -30,7 +33,7 @@ var badge_color := Color(0.76, 0.65, 1.0)
 ## Selo curto de cada causa: mexidas do inimigo, Alquimista, elementos e as suas mexidas.
 const BADGES := {
 	"halve": "½", "even_to_one": "1", "top_to_one": "1", "alquimista": "⇄", "porteiro": "Pb",
-	"H": "H", "C": "C", "Hg": "Hg",
+	"H": "H", "C": "C", "Hg": "Hg", "Li": "Li", "Sr": "Sr",
 }
 
 
@@ -43,7 +46,7 @@ func set_cause(o: int, cause: String) -> void:
 		return
 	if BADGES.has(cause):
 		badge = BADGES[cause]
-		badge_color = Elements.COLORS.get(cause, Color(1.0, 0.55, 0.5)) if cause in ["H", "C", "Hg", "porteiro"] else Color(1.0, 0.55, 0.5)
+		badge_color = Elements.COLORS.get(cause, Color(1.0, 0.55, 0.5)) if cause in ["H", "C", "Hg", "Li", "Sr", "porteiro"] else Color(1.0, 0.55, 0.5)
 		if cause == "porteiro":
 			badge_color = Elements.COLORS.Pb
 	else:
@@ -75,6 +78,19 @@ func set_die(v: int, el := "", h := 0.0) -> void:
 	queue_redraw()
 
 
+## Adesivos da face do dado encaixado (DieFace.marks). clear_die zera.
+func set_marks(n_stickers: int, n_gold: int) -> void:
+	stickers = n_stickers
+	gold = n_gold
+	queue_redraw()
+
+
+## Mesmo dado de outro buraco (valor, elemento, brilho e adesivos): cópias que voam.
+func copy_die(o: Hole) -> void:
+	set_die(o.value, o.element, o.heat)
+	set_marks(o.stickers, o.gold)
+
+
 func set_heat(h: float) -> void:
 	heat = h
 	queue_redraw()
@@ -87,6 +103,9 @@ func _process(_delta: float) -> void:
 
 func clear_die() -> void:
 	has_die = false
+	kept = false
+	stickers = 0
+	gold = 0
 	orig = -1
 	badge = ""
 	raised = false
@@ -117,7 +136,9 @@ func _draw() -> void:
 	var rad := int(s * 0.2)
 	if floor_hidden and has_die:
 		var p0 := s * 0.06
-		DieFace.draw(self, Rect2(r.position + Vector2(p0, p0), Vector2(s - p0 * 2, s - p0 * 2)), value, element, 0.0, heat, Time.get_ticks_msec() / 1000.0)
+		var dr := Rect2(r.position + Vector2(p0, p0), Vector2(s - p0 * 2, s - p0 * 2))
+		DieFace.draw(self, dr, value, element, 0.0, heat, Time.get_ticks_msec() / 1000.0)
+		DieFace.marks(self, dr, stickers, gold)
 		return
 	# Afundado: borda de cima mais escura, fundo um pouco mais claro embaixo.
 	draw_style_box(_sb(FLOOR, rad), r)
@@ -141,7 +162,10 @@ func _draw() -> void:
 	if raised:
 		d.position.y -= s * 0.14
 		draw_style_box(_sb(Color(0, 0, 0, 0.45), rad), Rect2(d.position + Vector2(0, s * 0.12), d.size))
-	DieFace.draw(self, d, value, element, 0.6 if faded else 0.0, heat, Time.get_ticks_msec() / 1000.0)
+	DieFace.draw(self, d, value, element, 0.6 if faded else (0.2 if kept else 0.0), heat, Time.get_ticks_msec() / 1000.0)
+	if kept:
+		draw_style_box(_sb(Color.TRANSPARENT, int(rad * 0.85) + 2, 3, Kit.RARITY_COLORS.legendary), d.grow(2))
+	DieFace.marks(self, d, stickers, gold, 0.6 if faded else 0.0)
 	if raised:
 		draw_style_box(_sb(Color.TRANSPARENT, int(rad * 0.85) + 2, 4, Kit.ACCENT), d.grow(3))
 	_draw_cause(d, font, s)

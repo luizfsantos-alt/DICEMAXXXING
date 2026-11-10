@@ -13,9 +13,10 @@ const OK := Color(0.35, 0.85, 0.45)
 const SHIELD := Color(0.4, 0.7, 1.0)
 const TEXT := Color(0.95, 0.94, 0.97)
 const MUTED := Color(0.65, 0.62, 0.72)
-## Raridade (docs/RARIDADE.md §2): cinza, azul, dourada.
+## Raridade (docs/RARIDADE.md §2): cinza, azul, dourada e brasa (Lendária).
 const RARITY_COLORS := {
 	"common": Color(0.62, 0.62, 0.66), "uncommon": Color(0.35, 0.6, 1.0), "rare": Color(1.0, 0.78, 0.25),
+	"legendary": Color(1.0, 0.42, 0.22),
 }
 
 ## Tamanhos mínimos (pixels da tela de 1280×720; num celular, 18 px ≈ 1,7 mm).
@@ -33,6 +34,7 @@ const COIN := "res://assets/icons/coin.png"
 const NINE := {
 	"panel": [20, 20, 20, 20], "button": [14, 12, 14, 12], "hp_frame": [20, 9, 20, 9],
 	"card_common": [26, 26, 26, 26], "card_uncommon": [26, 26, 26, 26], "card_rare": [26, 26, 26, 26],
+	"card_legendary": [26, 26, 26, 26],
 }
 ## Fundo de tela -> escurecimento (os painéis e textos ficam por cima).
 const BG_SHADE := 0.55

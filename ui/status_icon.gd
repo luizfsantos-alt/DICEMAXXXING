@@ -20,6 +20,7 @@ const STYLE := {
 	"marked": ["GU", Color(1.0, 0.78, 0.2)],
 	"fury": ["FU", Color(0.93, 0.3, 0.3)],
 	"thirst": ["SE", Color(0.7, 0.15, 0.25)],
+	"skin": ["RV", Color(0.62, 0.66, 0.72)], ## Revestimento.
 	"hand_mod": ["PM", Color(0.75, 0.45, 0.85)],
 }
 

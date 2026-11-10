@@ -139,6 +139,53 @@ func test_machadada_e_cerrar_os_dentes():
 	assert_eq(Spells.max_uses("cerrar"), 2)
 
 
+func test_bigorna_e_muralha_de_ferro():
+	var a := H.fighter("A", ["bigorna", "muralha"], 40, true)
+	a.bag[0] = Die.with_element("Fe")
+	a.bag[1] = Die.with_element("Fe")
+	a.bag[2] = Die.with_element("Fe")
+	var b := H.fighter("B", [], 80)
+	var bi := H.item(a, "bigorna")
+	assert_true(Spells.accepts_partial("bigorna", [], 3))
+	assert_false(Spells.accepts_partial("bigorna", [], 4), "só 3 exato")
+	assert_eq(Spells.dice_needed("bigorna"), 2)
+	H.hand(a, [3, 3, 3, 5])
+	H.cast(a, b, {"bigorna": [0, 1], "muralha": [2]})
+	assert_eq(b.hp, 80 - 18, "dois 3: soma ×3")
+	assert_eq(a.block, 4 * 3, "Muralha conta os três 3 da mão (inclusive os da Bigorna)")
+	assert_true(bi >= 0)
+	assert_eq(Spells.color_family("muralha"), "block")
+
+
+func test_pele_de_ferro_da_revestimento():
+	var a := H.fighter("A", ["pele"], 40, true)
+	a.bag[0] = Die.with_element("Fe")
+	var b := H.fighter("B", [], 80)
+	for t in 5:
+		H.hand(a, [3])
+		H.cast(a, b, {"pele": [0]})
+	assert_eq(a.skin, Config.SKIN_CAP, "acumula até o teto (−3 no nível 1)")
+	var ev := []
+	Resolver.hit(a, b, 10, ev)
+	assert_eq(a.hp, 40 - 7, "golpe de 10 causa 7")
+	assert_eq(int(ev[0].skin), 3)
+	Resolver.hit(a, b, 2, ev)
+	assert_eq(a.hp, 33 - 1, "nunca menos de 1")
+	Resolver.hit(a, b, 6, ev, false, true)
+	assert_eq(a.hp, 32 - 6, "golpe que ignora defesas passa")
+	a.block = 5
+	Resolver.hit(a, b, 6, ev)
+	assert_eq(a.block, 2, "o Revestimento reduz antes do bloqueio")
+	H.item(a, "pele")
+	a.inventory.items[0].level = 3
+	H.hand(a, [3])
+	H.cast(a, b, {"pele": [0]})
+	assert_eq(a.skin, Config.SKIN_CAP + 1, "evoluída: teto maior")
+	a.reset_fight_state()
+	assert_eq(a.skin, 0, "dura só a luta")
+	assert_eq(Spells.color_family("pele"), "block")
+
+
 # ------------------------------------------------------------------ Passivas
 func test_furia_so_com_metade_da_vida():
 	var f := EnemyFactory.base("barbarian")
@@ -166,7 +213,7 @@ func test_sede_do_vampiro():
 	assert_eq(int(r.hp), 4, "cura normal mesmo machucado")
 	assert_eq(int(r.max), 1, "toda cura dá +1 de vida máxima")
 	assert_eq(v.max_hp, base + 1)
-	assert_eq(v.hp, 55)
+	assert_eq(v.hp, 54, "a vida a mais da Sede vem vazia")
 	v.heal_full(0)
 	assert_eq(v.max_hp, base + 1, "cura zero não conta")
 	for i in 20:
@@ -333,19 +380,21 @@ func test_aviso_do_carbono_em_cadeia():
 func test_todas_as_magias_tem_raridade():
 	for id in Spells.DATA:
 		assert_true(Spells.rarity(id) in Config.RARITIES, id)
-	assert_eq(Spells.ids_of_rarity("common").size(), 23, "16 + 7 mexidas")
-	assert_eq(Spells.ids_of_rarity("uncommon").size(), 24, "20 + 4 mexidas")
+	assert_eq(Spells.ids_of_rarity("common").size(), 26, "19 + 7 mexidas (com a Muralha de Ferro, a Maré Cheia e o Forjamento)")
+	assert_eq(Spells.ids_of_rarity("uncommon").size(), 29, "22 + 7 mexidas (com a Bigorna, a Pele de Ferro, Insight, Maré Baixa e Lingotamento)")
 	assert_eq(Spells.ids_of_rarity("rare").size(), 11, "9 + 2 mexidas")
+	assert_eq(Spells.ids_of_rarity("legendary"), ["charada"], "a Charada Fatal é a primeira Lendária")
 	assert_eq(Elements.rarity("Os"), "rare")
 	assert_eq(Elements.rarity("Am"), "common")
 
 
 func test_tabela_por_andar():
 	var r := H.rng(4)
-	var count := {"common": 0, "uncommon": 0, "rare": 0}
+	var count := {"common": 0, "uncommon": 0, "rare": 0, "legendary": 0}
 	for _k in 3000:
 		count[Shop.roll_rarity(r, Shop.band(1))] += 1
-	assert_almost_eq(count.common / 3000.0, 0.70, 0.04)
+	assert_almost_eq(count.common / 3000.0, 0.69, 0.04)
+	assert_almost_eq(count.legendary / 3000.0, 0.01, 0.01, "Lendária: 1% no começo")
 	assert_almost_eq(count.rare / 3000.0, 0.05, 0.02)
 	assert_eq(Shop.band(3), 0)
 	assert_eq(Shop.band(4), 1)
@@ -378,7 +427,7 @@ func test_escola_cobra_evoluir_rara():
 func test_porta_insana_garante_rara():
 	for s in 30:
 		var opts := Shop.reward(EnemyFactory.base("barbarian"), H.rng(s), 1, "insana")
-		assert_true(opts.any(func(o): return o.kind == "spell" and Spells.rarity(o.id) == "rare"))
+		assert_true(opts.any(func(o): return o.kind == "spell" and Spells.rarity(o.id) in ["rare", "legendary"]))
 
 
 func test_inimigo_sem_rara_antes_do_andar_4():
@@ -464,8 +513,11 @@ func test_jornada_inteira_de_cada_jogavel():
 						while run.duel.state == "choosing":
 							run.duel.submit(EnemyAI.choose(run.duel.player, run.duel.enemy, br))
 						run.finish_duel()
-					"doors", "rest":
+					"doors":
 						run.choose(0)
+					"rest":
+						if run.options.is_empty() or run.options[0].get("visited", false) or run.choose(0) != "":
+							run.leave()
 					_:
 						if run.choose(0, {"die": 0, "face": 5}) != "" or run.phase in ["shop", "well", "school"]:
 							run.leave()

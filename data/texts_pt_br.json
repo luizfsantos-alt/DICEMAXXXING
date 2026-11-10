@@ -58,7 +58,7 @@
   ],
   "plagio": [
    "Plágio",
-   "Dado de valor 2 ou menos. Rouba 1 adesivo ×2 do dado mais adesivado do inimigo e cola na face usada, até o fim da luta. Dano igual ao valor novo. Uma vez por luta."
+   "Dado de valor 2 ou menos. Rouba 1 adesivo +2 do dado mais adesivado do inimigo e cola na face usada, até o fim da luta. Dano igual ao valor novo. Uma vez por luta."
   ],
   "roubar_cena": [
    "Roubar a Cena",
@@ -112,9 +112,45 @@
    "Exibição de Velocidade",
    "Três dados de valor 3 ou menos. Um golpe por dado, cada um igual ao valor ×2; se os 3 forem iguais, 6 golpes."
   ],
+  "bigorna": [
+   "Bigorna",
+   "Dois dados de valor exatamente 3. Dano igual à soma ×3 (dois 3 = 18). O Ferro sempre vale 3."
+  ],
+  "charada": [
+   "Charada Fatal",
+   "Um dado de cada valor, de 1 a 6. Os dados postos ficam guardados na magia (fora da bolsa) de turno em turno. Quando os seis estão lá, causa 40 de dano que ignora as defesas e os dados voltam para a bolsa."
+  ],
+  "insight": [
+   "Insight",
+   "Um dado. Ele volta para a bolsa e saem dois dados dela, rolados na hora (pode sair ele mesmo). Mexida: os dois novos ficam livres para outras magias. Não se desfaz."
+  ],
+  "mare_baixa": [
+   "Maré Baixa, Maré Cheia",
+   "Um dado. Ele sai e você recebe dois dados provisórios de valor 6 (somem depois do turno). Mexida. Uma vez por luta."
+  ],
+  "mare_cheia": [
+   "Maré Cheia, Maré Baixa",
+   "Um 6. Na sua próxima mão, entram três dados de valor 1 a mais."
+  ],
+  "forjamento": [
+   "Forjamento",
+   "Um buraco que aceita quantos dados de valor 1 você quiser, um por vez, até passar o turno (o contador mostra quantos). Cada um é atirado no inimigo: um golpe de 1 de dano por dado."
+  ],
+  "lingotamento": [
+   "Lingotamento",
+   "Dado de valor 6 ou menos. Ele vira tantos dados de valor 1 quanto o valor dele (um 5 vira cinco 1). Cada lingote tem 33% de chance de herdar o elemento do dado; os adesivos se perdem. Mexida (não se desfaz). Uma vez por luta."
+  ],
+  "pele": [
+   "Pele de Ferro",
+   "Um 3. Ganha 1 de Revestimento: até o fim da luta, todo golpe que você recebe causa 1 a menos (acumula a cada uso, até −3; um golpe sempre causa pelo menos 1)."
+  ],
+  "muralha": [
+   "Muralha de Ferro",
+   "Um 3. Bloqueio igual a 4 × quantos dados de valor 3 há na sua mão (contando este)."
+  ],
   "peso": [
    "Levantar Peso",
-   "Um 1. Dano igual a 4 × quantos dados de valor 1 há na sua mão."
+   "Um 1. Dano igual a 4 × quantos dados de valor 1 há na sua mão (contam no máximo 3). Duas vezes por luta."
   ],
   "impulso": [
    "Impulso Calculado",
@@ -240,7 +276,7 @@
  "elements": {
   "H": [
    "Hidrogênio",
-   "Solitário: vale ×3 se a bolsa tiver 6 dados ou menos."
+   "Solitário: vale ×2 se a bolsa tiver menos de 8 dados."
   ],
   "Os": [
    "Ósmio",
@@ -281,6 +317,18 @@
   "Cs": [
    "Césio",
    "Radiação: ao ser usado, envenena o inimigo em 1 (acumula; o veneno não cai sozinho, só sai com magia)."
+  ],
+  "Li": [
+   "Lítio",
+   "Bateria: cada turno que fica na mão sem uso, carrega +2 (até +6), somado às próximas rolagens. Ao ser usado numa magia, descarrega."
+  ],
+  "Ti": [
+   "Titânio",
+   "Blindado: ao ser usado numa magia, você ganha 2 de bloqueio."
+  ],
+  "Sr": [
+   "Estrôncio",
+   "Fogos: se cair na face mais alta (qualquer uma empatada serve), estoura: rola mais uma vez e soma."
   ]
  },
  "masters": {
@@ -337,7 +385,7 @@
   "vampire": [
    "Vampiro",
    "Sede",
-   "Toda cura que você recebe também dá +1 de vida máxima, para sempre (até 3 por luta). Queima causa o dobro de dano em você.",
+   "Toda cura que você recebe também dá +1 de vida máxima vazia, para sempre (até 3 por luta). Queima causa o dobro de dano em você.",
    "\"Não bebo sangue. Recebo homenagens.\""
   ],
   "barbarian": [
@@ -377,21 +425,22 @@
   ],
   "heal": [
    "Cura",
-   "Recupera 35% da vida máxima."
+   "Recupera 35% da vida máxima. Uma vez por parada."
   ],
+  "heal_vampire": "Recupera metade do normal para o Vampiro: {n} de vida (17,5% da máxima). Uma vez por parada.",
   "school": [
    "Escola de Magia",
    "Aprender uma magia ou evoluir uma que você tem."
   ],
   "well": [
    "Poço de Modificação",
-   "Adesivo ×2, elementos e destruir dados."
+   "Adesivo +2, elementos e destruir dados."
   ]
  },
  "offers": {
   "spell": "Magia: {name}",
   "die": "Dado novo: {name}",
-  "sticker": "Adesivo ×2 numa face",
+  "sticker": "Adesivo +2 numa face",
   "element": "Elemento: {name}",
   "destroy": "Destruir um dado",
   "gold_sticker": "Adesivo de ouro numa face",
@@ -434,8 +483,11 @@
   "door_master": "Mestre de Andar",
   "pick_reward": "Recompensa: escolha uma",
   "skip_reward": "Pular (+{n} moedas)",
-  "pick_rest": "Parada: escolha uma",
+  "pick_rest": "Parada: entre e volte quando quiser",
   "leave": "Seguir",
+  "back_to_rest": "Voltar",
+  "stop_used": "Já usada",
+  "hp_full": "Vida cheia",
   "free": "Grátis",
   "price": "{n} moedas",
   "sell": "Vender {name} (+{n})",
@@ -505,7 +557,7 @@
   "enemy": "Inimigo",
   "spell_used": "Essa magia já foi usada nesta luta.",
   "not_accepted": "{name} pede: {req}.",
-  "consult_stickers": "adesivos ×2: {n}",
+  "consult_stickers": "adesivos +2: {n}",
   "history": "Histórico",
   "enemy_spells": "MAGIAS DO INIMIGO",
   "your_spells": "SUAS MAGIAS",
@@ -554,16 +606,24 @@
   "pv_pierce": "ignora defesas",
   "pv_multi": "→ {list} de dano",
   "pv_encore": "→ {n} de dano + bis",
-  "pv_steal": "→ {n} de dano (×2 se roubar)",
+  "pv_steal": "→ {n} de dano (+2 se roubar)",
   "pv_bench": "tira o dado mais forte dele",
   "pv_spawn": "+2 dados de {v}",
   "pv_riposte": "revide {n}",
+  "pv_skin": "→ revestimento −{n} por golpe",
+  "pv_insight": "→ 2 dados da bolsa",
+  "pv_riddle": "faltam: {list}",
+  "pv_tide_out": "→ próxima mão: +{n} dados de valor 1",
   "pv_immune": "anula o próximo efeito",
   "pv_cleanse": "→ limpa efeitos",
   "pv_recycle": "→ sobras viram bloqueio",
   "pv_mark": "volta na próxima mão",
   "fx_idle_dmg": "parado −{n}",
   "fx_riposte": "revide!",
+  "fx_skin": "Revestimento −{n}",
+  "fx_tide_out": "Maré: +{n} dados de 1",
+  "fx_riddle_store": "Charada {n}/6",
+  "fx_riddle_done": "Charada resolvida!",
   "fx_immune": "imune!",
   "pick_master": "Mestre vencido: escolha uma recompensa",
   "pick_master_rare": "Escolha uma magia Rara",
@@ -574,9 +634,13 @@
   "fury": "Fúria +{n}",
   "thirst": "Sede {n}/{max}",
   "fx_asbestos": "Amianto −{n}",
-  "fx_el_H": "Hidrogênio ×3 = {v}",
+  "fx_el_H": "Hidrogênio ×2 = {v}",
   "fx_el_Hg": "Mercúrio copiou {v}",
   "fx_el_C": "Carbono em cadeia = {v}",
+  "fx_el_Li": "Lítio descarrega = {v}",
+  "fx_el_Sr": "Estrôncio estoura! = {v}",
+  "fx_el_Ti": "Titânio: bloqueio +{n}",
+  "fx_charge": "Lítio carrega +{n} ({total})",
   "fx_el_Na": "Sódio: queima {n}",
   "fx_el_U": "Urânio: veneno {n}",
   "fx_el_Cs": "Césio: radiação +{n}",
@@ -640,6 +704,11 @@
   "idle_dmg": "Dados parados: {who} perde {n}",
   "riposte": "{who} revida ({n})",
   "riposte_up": "{who} se prepara para revidar ({n})",
+  "skin_up": "{who} ganha revestimento (golpes −{n})",
+  "tide_out": "Maré Cheia: {who} terá {n} dados de valor 1 a mais na próxima mão",
+  "riddle_store": "Charada Fatal: {who} guarda os dados ({n}/6)",
+  "riddle_done": "Charada Fatal: {who} resolve a charada",
+  "skin": "(revestimento −{n})",
   "immune_up": "{who} fica imune a críticas",
   "immune_block": "{who} ignora o efeito do inimigo",
   "cleanse": "{who} remove os efeitos negativos",
@@ -655,9 +724,13 @@
   "pierce": "(ignora defesas)",
   "lead_convert": "O Fundidor transforma um dado seu em Chumbo (até o fim da luta)!",
   "asbestos": "Amianto: {who} perde {n}",
-  "el_H": "Hidrogênio: {who} rola ×3 ({v})",
+  "el_H": "Hidrogênio: {who} rola ×2 ({v})",
   "el_Hg": "Mercúrio: {who} copia o valor {v}",
   "el_C": "Carbono: {who} encadeia e rola {v}",
+  "el_Li": "Lítio: {who} descarrega a bateria e rola {v}",
+  "el_Sr": "Estrôncio: {who} tira a face mais alta, estoura, rola de novo e soma {v}",
+  "charge": "Lítio: a bateria de {who} carrega +{n} (agora +{total})",
+  "block_ti": "Titânio: {who} ganha {n} de bloqueio",
   "dead_weight": "Peso Morto: {who} puxa mais {n} dado(s)",
   "copy": "Inspiração: {who} copia {name} nesta luta",
   "copy_none": "Inspiração: nada do outro cabe nas casas livres de {who}",
@@ -685,7 +758,7 @@
   "corte": "Soma; se os 2 forem ímpares, golpeia de novo",
   "sombras": "Dano = valor; ignora defesas",
   "bis": "Rola de novo e soma; repete na face máxima",
-  "plagio": "Rouba 1 adesivo ×2; dano = valor novo",
+  "plagio": "Rouba 1 adesivo +2; dano = valor novo",
   "roubar_cena": "Rouba o maior dado da próxima mão dele",
   "imitacao": "Devolve 2 cópias do dado",
   "expectativa": "Valor ×2; dados parados dele dão 2 de dano",
@@ -699,7 +772,8 @@
   "fisica": "Dano = maior × menor",
   "arrancar": "Dano = valor; tira o dado mais forte dele",
   "velocidade": "Um golpe por dado, valor ×2",
-  "peso": "Dano = 4 × cada 1 na mão",
+  "peso": "Dano = 4 × cada 1 na mão (até 3)",
+  "forjamento": "Um golpe de 1 por dado atirado",
   "impulso": "Dano = valor; volta com +2",
   "anatomia": "Soma ×2; face máxima dele vira 1",
   "foto": "Dano = maior × 4",
@@ -716,6 +790,14 @@
   "mordida": "Dano = valor; cura metade",
   "banquete": "Dano = soma; cura o menor",
   "machadada": "Dano = valor ×2",
+  "bigorna": "Dois 3: dano = soma ×3",
+  "pele": "Revestimento +1 (golpes −1, até −3)",
+  "insight": "Volta à bolsa; saem 2 dados dela",
+  "charada": "1 a 6, guardados: 40 que ignora defesas",
+  "mare_baixa": "Vira dois 6 provisórios",
+  "mare_cheia": "Próxima mão: +três 1",
+  "lingotamento": "Um 1 por ponto; 33% herdam o elemento",
+  "muralha": "Bloqueio = 4 × cada 3 na mão",
   "cerrar": "Cura = valor ×3",
   "segunda": "Rola de novo, fica o maior",
   "ajuste": "+1 ou −1 no dado",
@@ -743,7 +825,7 @@
   "corte": "Soma ×{1}; se os 2 forem ímpares, golpeia de novo",
   "sombras": "Dano = valor ×{1}; ignora defesas",
   "bis": "Rola de novo e soma; repete na face máxima; total ×{1}",
-  "plagio": "Rouba 1 adesivo ×2; dano = valor novo ×{1}",
+  "plagio": "Rouba 1 adesivo +2; dano = valor novo ×{1}",
   "expectativa": "Valor ×{2}; dados parados dele dão 2 de dano",
   "matematica": "Dano = produto ×{1}",
   "pose": "Bloqueio = valor ×{1}; volta igual",
@@ -752,7 +834,8 @@
   "fisica": "Dano = maior × menor ×{1}",
   "arrancar": "Dano = valor ×{1}; tira o dado mais forte dele",
   "velocidade": "Um golpe por dado, valor ×{2}",
-  "peso": "Dano = {4} × cada 1 na mão",
+  "peso": "Dano = {4} × cada 1 na mão (até 3)",
+  "forjamento": ["Um golpe de 2 por dado atirado", "Um golpe de 3 por dado atirado"],
   "impulso": "Dano = valor ×{1}; volta com +2",
   "anatomia": "Soma ×{2}; face máxima dele vira 1",
   "foto": "Dano = maior × {4}",
@@ -767,6 +850,14 @@
   "mordida": "Dano = valor ×{1}; cura metade",
   "banquete": "Dano = soma ×{1}; cura o menor ×{1}",
   "machadada": "Dano = valor ×{2}",
+  "bigorna": "Dois 3: dano = soma ×{3}",
+  "pele": ["Revestimento +1 (golpes −1, até −4)", "Revestimento +1 (golpes −1, até −5)"],
+  "charada": "1 a 6, guardados: {40} que ignora defesas",
+  "insight": ["Volta à bolsa; saem 2 dados dela (+1 cada)", "Volta à bolsa; saem 2 dados dela (+2 cada)"],
+  "mare_baixa": ["Vira dois 7 provisórios", "Vira dois 8 provisórios"],
+  "mare_cheia": ["Próxima mão: +quatro 1", "Próxima mão: +cinco 1"],
+  "lingotamento": ["Um 1 por ponto, +1; 50% herdam o elemento", "Um 1 por ponto, +2; 66% herdam o elemento"],
+  "muralha": "Bloqueio = {4} × cada 3 na mão",
   "cerrar": "Cura = valor ×{3}",
   "espelho": "Reflete o próximo golpe ×{1}",
   "esquiva": "Anula o próximo golpe; vira bloqueio ×{-1}",
@@ -846,7 +937,8 @@
  "rarity": {
   "common": "Comum",
   "uncommon": "Incomum",
-  "rare": "Rara"
+  "rare": "Rara",
+  "legendary": "Lendária"
  },
  "status": {
   "block": [
@@ -873,6 +965,10 @@
    "Revide",
    "Devolve esse dano a cada golpe recebido enquanto houver bloqueio."
   ],
+  "skin": [
+   "Revestimento",
+   "Cada golpe recebido causa esse tanto a menos (nunca menos de 1). Dura até o fim da luta. Golpes que ignoram defesas passam."
+  ],
   "immune": [
    "Imune",
    "Anula os próximos efeitos negativos do adversário."
@@ -898,7 +994,7 @@
   "die": "Dado de {name}",
   "die_plain": "Dado comum",
   "element": "Elemento {name}",
-  "sticker": "Adesivo ×2",
+  "sticker": "Adesivo +2",
   "destroy": "Destruir um dado",
   "gold_sticker": "Adesivo de ouro",
   "copy_die": "Copiar um dado",

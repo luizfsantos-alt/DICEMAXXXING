@@ -87,7 +87,8 @@ static func draw_and_roll(f: Fighter, foe: Fighter, rng: RandomNumberGenerator, 
 	var info := hand_dice(f)
 	push(ev, {"t": "hand", "side": side(f), "values": f.hand_values(), "elements": info.elements,
 		"faces": info.faces, "face": info.face, "fixed": info.fixed, "heat": info.heat,
-		"orig": info.orig, "cause": info.cause})
+		"orig": info.orig, "cause": info.cause, "stickers": info.stickers, "gold": info.gold,
+		"face_stickers": info.face_stickers, "face_gold": info.face_gold})
 
 
 ## O valor do dado da mão vai mudar por "cause" (mexida do inimigo, Alquimista, elemento):
@@ -102,7 +103,8 @@ static func mark_cause(e: Dictionary, cause: String) -> void:
 ## face que saiu, se estava marcado (não rolou), o estado do brilho (Elements.heat) e,
 ## quando algo mudou o valor, o original e a causa.
 static func hand_dice(f: Fighter) -> Dictionary:
-	var out := {"elements": [], "faces": [], "face": [], "fixed": [], "heat": [], "orig": [], "cause": []}
+	var out := {"elements": [], "faces": [], "face": [], "fixed": [], "heat": [], "orig": [], "cause": [],
+		"stickers": [], "gold": [], "face_stickers": [], "face_gold": []}
 	for e in f.hand:
 		out.orig.append(int(e.get("orig", -1)))
 		out.cause.append(str(e.get("cause", "")))
@@ -115,6 +117,11 @@ static func hand_dice(f: Fighter) -> Dictionary:
 		out.faces.append(fs)
 		out.face.append(int(e.face))
 		out.fixed.append(bool(e.get("fixed", false)))
+		# Adesivos da face que saiu (selos na coluna) e de todas (dado 3D).
+		out.stickers.append(int(d.stickers[int(e.face)]))
+		out.gold.append(int(d.gold[int(e.face)]))
+		out.face_stickers.append(d.stickers.duplicate())
+		out.face_gold.append(d.gold.duplicate())
 	return out
 
 
@@ -160,6 +167,10 @@ static func _announce_elements(f: Fighter, ev: Array) -> void:
 			push(ev, {"t": "element", "side": side(f), "el": "C", "v": int(e.value)})
 		elif d.element == "Hg" and int(e.value) > d.value(int(e.face)):
 			push(ev, {"t": "element", "side": side(f), "el": "Hg", "v": int(e.value)})
+		elif Elements.bursts(d, int(e.face)):
+			push(ev, {"t": "element", "side": side(f), "el": "Sr", "v": int(e.value)})
+		elif d.element == "Li" and d.charge > 0:
+			push(ev, {"t": "element", "side": side(f), "el": "Li", "v": int(e.value)})
 
 
 ## Mexidas na mão recém-rolada (ordem fixa, para ficar previsível).
@@ -307,6 +318,15 @@ static func _product(values: Array) -> int:
 	return p
 
 
+## Dados da mão com este valor (Muralha de Ferro conta os 3, contando os já postos).
+static func count_value(f: Fighter, v: int) -> int:
+	var n := 0
+	for e in f.hand:
+		if int(e.bag) != -2 and int(e.value) == v:
+			n += 1
+	return n
+
+
 static func _hand_count(f: Fighter) -> int:
 	var n := 0
 	for e in f.hand:
@@ -328,6 +348,9 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 	for h in dice:
 		values.append(int(f.hand[h].value))
 		total += int(f.hand[h].value)
+	if str(def.fx) == "riddle" and not _riddle_done(f, item, values):
+		_riddle_store(f, item, dice, ev)
+		return
 	if Spells.is_once(id):
 		f.once_used.append(item)
 	push(ev, {"t": "cast", "side": side(f), "spell": id, "item": item, "dice": dice.duplicate(), "values": values})
@@ -348,6 +371,15 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 					times[h] = 2
 			if def.has("burn") and foe.hp > 0:
 				_burn(foe, int(def.burn), ev)
+		"riddle":
+			# Charada Fatal completa: dano que ignora as defesas; os guardados voltam à bolsa.
+			hit(foe, f, Config.scale(Config.RIDDLE_DMG, lvl) + dmg_bonus(f), ev, false, true)
+			for x in f.riddle.get(item, []):
+				var b := int(x.bag)
+				if b >= 0 and b < f.bag.size() and not (b in f.discard) and not (b in f.draw_pile):
+					f.discard.append(b)
+			f.riddle.erase(item)
+			push(ev, {"t": "riddle_done", "side": side(f)})
 		"product":
 			hit(foe, f, Config.scale(_product(values) * mult, lvl) + dmg_bonus(f), ev)
 		"lever":
@@ -369,7 +401,15 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 			for e in f.hand:
 				if int(e.bag) != -2 and int(e.value) == 1:
 					ones += 1
+			if def.has("cap"):
+				ones = mini(ones, int(def.cap)) ## Levantar Peso: até 3 dados contam.
 			hit(foe, f, Config.scale(int(def.get("per", 1)) * ones, lvl) + dmg_bonus(f), ev)
+		"pelt":
+			# Forjamento: cada dado de valor 1 é atirado no inimigo, 1 de dano por golpe.
+			for _v in values:
+				if foe.hp <= 0:
+					break
+				hit(foe, f, lvl + dmg_bonus(f), ev) ## 1 / 2 / 3 por golpe, pelo nível.
 		"top_x":
 			hit(foe, f, Config.scale(int(values.max()) * mult, lvl) + dmg_bonus(f), ev)
 		"encore":
@@ -399,10 +439,24 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 			_block(f, Config.scale(_product(values) * mult, lvl), ev)
 		"block_hand":
 			_block(f, Config.scale(int(def.get("per", 1)) * _hand_count(f), lvl), ev)
+		"block_count":
+			_block(f, Config.scale(int(def.get("per", 1)) * count_value(f, int(def.get("count", 1))), lvl), ev)
 		"riposte":
 			_block(f, Config.scale(total * mult, lvl), ev)
 			f.riposte = maxi(f.riposte, Config.scale(total, lvl))
 			push(ev, {"t": "riposte_up", "side": side(f), "n": f.riposte})
+		"skin":
+			# Pele de Ferro: +1 de Revestimento, até SKIN_CAP (+1 por nível).
+			var cap := Config.SKIN_CAP + lvl - 1
+			if f.skin < cap:
+				f.skin += 1
+			push(ev, {"t": "skin_up", "side": side(f), "n": f.skin})
+		"tide_out":
+			# Maré Cheia: dados de valor 1 entram na próxima mão.
+			var n := Config.TIDE_ONES + lvl - 1
+			for _k in n:
+				f.extra_next.append({"temp": Die.basic().to_dict(), "value": 1})
+			push(ev, {"t": "tide_out", "side": side(f), "n": n})
 		"immune":
 			_block(f, Config.scale(total * mult, lvl), ev)
 			f.immune = maxi(f.immune, 1)
@@ -470,7 +524,8 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 
 ## Efeitos de um dado usado numa magia. Sódio: queima o inimigo. Césio: veneno
 ## (radiação) no inimigo, que não cai sozinho. Amianto: machuca quem usa (não é golpe).
-## Ouro: +1 moeda. Adesivo de ouro na face que saiu: +1 moeda por adesivo.
+## Ouro: +1 moeda. Lítio: descarrega. Titânio: bloqueio para quem usa.
+## Adesivo de ouro na face que saiu: +1 moeda por adesivo.
 static func _die_effects(f: Fighter, foe: Fighter, h: int, ev: Array) -> void:
 	var e: Dictionary = f.hand[h]
 	var d := f.die_of(e) if int(e.bag) != -2 else null
@@ -490,9 +545,39 @@ static func _die_effects(f: Fighter, foe: Fighter, h: int, ev: Array) -> void:
 				push(ev, {"t": "asbestos", "side": side(f), "n": Config.ASBESTOS_DMG})
 		"Au":
 			_coins(f, Config.GOLD_COINS, ev, "Au")
+		"Li":
+			d.charge = 0 ## A bateria descarrega ao ser usada.
+		"Ti":
+			if f.hp > 0:
+				f.block += Config.TITANIUM_BLOCK
+				push(ev, {"t": "block", "side": side(f), "n": Config.TITANIUM_BLOCK, "total": f.block, "src": "Ti"})
 	var face := int(e.get("face", -1))
 	if face >= 0 and face < 6 and int(d.gold[face]) > 0:
 		_coins(f, int(d.gold[face]) * Config.GOLD_COINS, ev, "gold")
+
+
+## A Charada Fatal fica completa com os guardados e os postos agora (1 a 6, um de cada)?
+static func _riddle_done(f: Fighter, item: int, values: Array) -> bool:
+	var have := {}
+	for v in f.riddle_values(item) + values:
+		have[int(v)] = true
+	for v in range(1, 7):
+		if not have.has(v):
+			return false
+	return true
+
+
+## Guarda na Charada Fatal os dados postos neste turno (saem da bolsa até completar).
+static func _riddle_store(f: Fighter, item: int, dice: Array, ev: Array) -> void:
+	if not f.riddle.has(item):
+		f.riddle[item] = []
+	for h in dice:
+		var e: Dictionary = f.hand[h]
+		var d := f.die_of(e)
+		f.riddle[item].append({"bag": int(e.bag), "temp": d.to_dict() if int(e.bag) < 0 and d != null else {},
+			"value": int(e.value), "element": d.element if d != null else ""})
+		e["stored"] = true
+	push(ev, {"t": "riddle_store", "side": side(f), "n": f.riddle[item].size(), "values": f.riddle_values(item)})
 
 
 ## Moedas ganhas na luta (só o jogador junta: o inimigo não tem jornada).
@@ -515,7 +600,7 @@ static func _burn(f: Fighter, n: int, ev: Array, src := "") -> void:
 	push(ev, {"t": "burn_up", "side": side(f), "n": n, "total": f.burn, "src": src})
 
 
-## Plágio: rouba 1 adesivo ×2 do dado mais adesivado do inimigo e cola na face usada,
+## Plágio: rouba 1 adesivo +2 do dado mais adesivado do inimigo e cola na face usada,
 ## até o fim da luta. Retorna o valor do dado depois disso.
 static func _steal_sticker(f: Fighter, foe: Fighter, h: int, ev: Array) -> int:
 	var e: Dictionary = f.hand[h]
@@ -541,7 +626,7 @@ static func _steal_sticker(f: Fighter, foe: Fighter, h: int, ev: Array) -> int:
 	mine.stickers[int(e.face)] = int(mine.stickers[int(e.face)]) + 1
 	if int(e.bag) >= 0:
 		f.fight_mods.append({"bag": int(e.bag), "face": int(e.face), "d": 1})
-	v *= 2
+	v += Config.STICKER_PLUS
 	e.value = v
 	push(ev, {"t": "steal_sticker", "side": side(f), "v": v})
 	return v
@@ -609,12 +694,18 @@ static func hit(target: Fighter, attacker: Fighter, n: int, ev: Array, reflected
 			# Espelho evoluído devolve o golpe mais forte (×1,5 no nível 2, ×2 no 3).
 			hit(attacker, target, Config.scale(n, target.mirror_lvl), ev, true)
 			return
+	# Revestimento: cada golpe causa menos (nunca menos de 1). Golpes que ignoram defesas passam.
+	var skin := 0
+	if not pierce and target.skin > 0 and n > 1:
+		skin = mini(target.skin, n - 1)
+		n -= skin
 	var had_block := target.block > 0
 	var absorbed := 0 if pierce else mini(target.block, n)
 	target.block -= absorbed
 	var dmg := n - absorbed
 	target.hp -= dmg
-	push(ev, {"t": "hit", "side": side(target), "n": n, "absorbed": absorbed, "dmg": dmg, "reflected": reflected, "pierce": pierce})
+	push(ev, {"t": "hit", "side": side(target), "n": n, "absorbed": absorbed, "dmg": dmg, "reflected": reflected, "pierce": pierce,
+		"skin": skin})
 	if not pierce and not reflected and had_block and target.riposte > 0 and target.hp > 0 and attacker.hp > 0:
 		push(ev, {"t": "riposte", "side": side(target), "n": target.riposte})
 		hit(attacker, target, target.riposte, ev, true)
@@ -633,6 +724,12 @@ static func end_turn(f: Fighter, used: Array, ev: Array, keep: Array = [], react
 		if idle:
 			f.hp -= Spells.IDLE_DMG
 			push(ev, {"t": "idle_dmg", "side": side(f), "n": Spells.IDLE_DMG})
+		var dl := f.die_of(e)
+		if dl != null and dl.element == "Li" and dl.charge < Config.LITHIUM_CAP:
+			# Lítio parado: a bateria carrega para a próxima rolagem.
+			var add := mini(Config.LITHIUM_STEP, Config.LITHIUM_CAP - dl.charge)
+			dl.charge += add
+			push(ev, {"t": "charge", "side": side(f), "n": add, "total": dl.charge})
 		if f.recycle:
 			var rb := Config.scale(int(e.value), f.recycle_lvl)
 			f.block += rb

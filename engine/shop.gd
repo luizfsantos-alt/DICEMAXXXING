@@ -61,7 +61,7 @@ static func pick_spell(rng: RandomNumberGenerator, b: int, filter: Callable = Ca
 
 
 static func pick_element(rng: RandomNumberGenerator, b: int, max_r := "") -> String:
-	var r := roll_rarity(rng, b, max_r)
+	var r := roll_rarity(rng, b, max_r if max_r != "" else "rare") ## Não há elemento Lendário.
 	return _pick(Elements.RARITY[r], rng)
 
 
@@ -96,7 +96,7 @@ static func reward(hero: Fighter, rng: RandomNumberGenerator, floor_n := 1, door
 	var out := []
 	for k in kinds.slice(0, int(Config.REWARD_CHOICES.get(door, 3))):
 		out.append(_make(k, rng, b))
-	if door == "insana" and not out.any(func(o): return o.kind == "spell" and Spells.rarity(o.id) == "rare"):
+	if door == "insana" and not out.any(func(o): return o.kind == "spell" and Spells.rarity(o.id) in ["rare", "legendary"]):
 		out[0] = spell_offer(pick_spell(rng, b, Callable(), "", "rare"), false)
 	if hero.archetype == "minimalist":
 		out.append({"kind": "destroy", "id": "", "price": 0, "needs": "die"})
@@ -129,7 +129,7 @@ static func school(hero: Fighter, rng: RandomNumberGenerator, floor_n := 1) -> A
 	Fighter._shuffle(evolvable, rng)
 	for i in evolvable.slice(0, 3):
 		var id: String = hero.inventory.items[i].id
-		var p := Config.PRICE_EVOLVE_RARE if Spells.rarity(id) == "rare" else 0
+		var p := Config.PRICE_EVOLVE_RARE if Spells.rarity(id) in ["rare", "legendary"] else 0
 		out.append({"kind": "evolve", "id": id, "item": i, "price": p, "needs": ""})
 	return out
 
@@ -162,7 +162,7 @@ static func rest_stops(rng: RandomNumberGenerator) -> Array:
 	Fighter._shuffle(s, rng)
 	var out := []
 	for id in s.slice(0, 3):
-		out.append({"kind": "stop", "id": id, "price": 0, "needs": ""})
+		out.append({"kind": "stop", "id": id, "price": Config.PRICE_HEAL_STOP if id == "heal" else 0, "needs": ""})
 	return out
 
 

@@ -176,7 +176,9 @@ func _simulate(char_id: String, runs: int, seed0: int, door_pref: String) -> voi
 					for j in run.options.size():
 						if (low and run.options[j].id == "heal") or (not low and run.options[j].id == "school"):
 							pick = j
-					run.choose(bot.pick_stop(run) if bot_kind == "new" else pick)
+					var j: int = bot.pick_stop(run) if bot_kind == "new" else pick
+					if j < 0 or run.options[j].get("visited", false) or run.choose(j) != "":
+						run.leave()
 				_:
 					if bot_kind == "new":
 						bot.shop_phase(run)

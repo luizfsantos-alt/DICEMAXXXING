@@ -118,12 +118,14 @@ func test_torre_loja_poco_bolsa_e_grimorio():
 	await wait_process_frames(1)
 	assert_true(t.get_children().any(func(x): return x is Overlay))
 	t._apply(0, {"die": 1, "face": 4})
-	assert_eq(run.hero.bag[1].value(4), 10)
+	assert_eq(run.hero.bag[1].value(4), 7)
 	var o := Organizer.open(t, run.hero.inventory)
 	await wait_process_frames(1)
 	assert_true(o.is_inside_tree())
 	BagPanel.open(t, run.hero.bag)
 	t._leave()
+	assert_eq(run.phase, "rest", "Voltar leva à parada")
+	run.leave()
 	assert_eq(run.phase, "doors")
 	run.phase = "shop"
 	run.options = Shop.shop(run.hero, run.rng, 0)
@@ -199,7 +201,7 @@ func test_bolsa_desenha_os_dados():
 			icons.append(n)
 		stack.append_array(n.get_children())
 	assert_eq(icons.size(), run.hero.bag.size() * 6, "uma face desenhada por face")
-	assert_true(icons.any(func(i): return i.element == "Na" and i.stickers == 1), "selo ×2 no dado de Sódio")
+	assert_true(icons.any(func(i): return i.element == "Na" and i.stickers == 1), "selo +2 no dado de Sódio")
 
 
 func test_escolher_face_sem_rolar():
@@ -1106,3 +1108,33 @@ func test_so_mestres_tem_nome_e_rosetas():
 	assert_eq(Portrait.hero_metal(21), "gold")
 	for metal in ["bronze", "silver", "gold"]:
 		assert_not_null(Kit.tex(Portrait.ROSETTE_DIR % metal), "roseta " + metal)
+
+
+func test_adesivos_aparecem_na_coluna_e_no_dado_3d():
+	var run := _run_at_duel(5)
+	var p := run.duel.player
+	p.bag[p.hand[0].bag].stickers[int(p.hand[0].face)] = 1
+	p.bag[p.hand[0].bag].gold[int(p.hand[0].face)] = 2
+	var info := Resolver.hand_dice(p)
+	assert_eq(int(info.stickers[0]), 1, "+2 da face que saiu")
+	assert_eq(int(info.gold[0]), 2, "ouro da face que saiu")
+	var d := DuelScreen.new().setup(run)
+	add_child_autofree(d)
+	await wait_process_frames(2)
+	d._build_tray()
+	assert_eq(d.tray_views[0].stickers, 1, "a coluna mostra o selo +2")
+	assert_eq(d.tray_views[0].gold, 2, "e o dourado")
+	# No dado 3D, cada face local recebe os adesivos da face do dado que ela mostra.
+	var slots := Dice3D.face_slots(0, 4)
+	assert_eq(slots[0], 4)
+	assert_eq(slots[1], 1, "face oposta")
+	var all := slots.duplicate()
+	all.sort()
+	assert_eq(all, [0, 1, 2, 3, 4, 5])
+	var labels := Dice3D.labels(0, 50, [10, 20, 30, 40, 50, 60], 4)
+	for k in 6:
+		assert_eq(int(labels[k]), [10, 20, 30, 40, 50, 60][slots[k]], "face_slots segue labels")
+	var mk := Dice3D.marks_node(0, 1, 1)
+	assert_not_null(mk)
+	mk.free()
+	assert_null(Dice3D.marks_node(0, 0, 0))

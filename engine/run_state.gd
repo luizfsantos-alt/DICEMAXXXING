@@ -15,6 +15,11 @@ var since_rest: int = 0
 var door: String = "normal"
 var phase: String = "start_pick"
 var options: Array = []
+## Parada (rest): as paradas sorteadas ficam abertas até seguir para as portas. Loja, Poço e
+## Escola guardam as ofertas entre as visitas (stop_offers: id -> opções); rest_options são
+## as paradas (com "used" na Cura/Escola já usadas e "visited" nas visitadas).
+var rest_options: Array = []
+var stop_offers: Dictionary = {}
 var duel: Duel
 var rng := RandomNumberGenerator.new()
 var stats := {"wins": 0, "dealt": 0, "taken": 0, "coins": 0}
@@ -98,10 +103,7 @@ func choose(i: int, target: Dictionary = {}) -> String:
 			start_duel(o.get("enemy", {}))
 			return ""
 		"rest":
-			var fr := Telemetry.floor_entry(tlog, floor_n)
-			fr.stop_options = options.map(func(x): return str(x.id))
-			fr.stop_pick = str(o.id)
-			return _enter_stop(o.id)
+			return _enter_stop(i)
 		"master_reward":
 			if o.kind == "rare_pick":
 				phase = "master_rare"
@@ -117,8 +119,12 @@ func choose(i: int, target: Dictionary = {}) -> String:
 	Shop.apply(o, hero, target)
 	_log_pick(o)
 	match phase:
-		"start_pick", "school":
+		"start_pick":
 			_to_doors()
+		"school":
+			# Uma escolha por Escola: ela fica marcada e você volta para a parada.
+			_mark_stop("school", "used")
+			_back_to_rest()
 		"reward", "master_reward", "master_rare":
 			_advance()
 		"shop":
@@ -127,9 +133,11 @@ func choose(i: int, target: Dictionary = {}) -> String:
 				o.price = Config.PRICE_HP + hp_bought * Config.PRICE_HP_STEP
 			else:
 				options.remove_at(i)
+			stop_offers[phase] = options
 		"well":
 			if o.kind == "destroy":
 				destroys_used += 1
+			stop_offers[phase] = options
 	return ""
 
 
@@ -145,7 +153,8 @@ func _log_pick(o: Dictionary) -> void:
 		fe.buys.append(phase + ":" + Telemetry.offer_key(o))
 
 
-## Sai da Loja, do Poço ou da Escola sem (mais) compras; pula a recompensa (+moedas).
+## Volta da Loja, do Poço ou da Escola para a parada; na parada, segue para as portas;
+## na recompensa, pula (+moedas).
 func leave() -> void:
 	if phase == "master_rare":
 		phase = "master_reward"
@@ -159,6 +168,16 @@ func leave() -> void:
 		stats.coins += Config.SKIP_REWARD_COINS
 		_advance()
 	elif phase in ["shop", "well", "school"]:
+		stop_offers[phase] = options
+		_back_to_rest()
+	elif phase == "rest":
+		if not tlog.is_empty():
+			var fr := Telemetry.floor_entry(tlog, floor_n)
+			fr.stop_options = options.map(func(x): return str(x.id))
+			var seen := options.filter(func(x): return x.get("visited", false)).map(func(x): return str(x.id))
+			fr.stop_pick = ",".join(PackedStringArray(seen))
+		rest_options = []
+		stop_offers = {}
 		_to_doors()
 
 
@@ -170,22 +189,58 @@ func sell_spell(item: int) -> bool:
 	return true
 
 
-func _enter_stop(id: String) -> String:
-	match id:
-		"heal":
-			hero.thirst_used = 0 ## A Sede do Vampiro também vale na parada de Cura.
-			hero.heal_full(int(ceil(hero.max_hp * Config.HEAL_STOP_FRACTION)))
-			_to_doors()
-		"shop":
-			phase = "shop"
-			options = Shop.shop(hero, rng, hp_bought, floor_n)
-		"school":
-			phase = "school"
-			options = Shop.school(hero, rng, floor_n)
-		"well":
-			phase = "well"
-			options = Shop.well(rng, floor_n, hero)
+## Entra na parada i: a Cura cura na hora (paga, uma vez); Loja, Poço e Escola abrem as
+## ofertas (sorteadas na 1ª visita e guardadas até seguir para as portas).
+func _enter_stop(i: int) -> String:
+	var o: Dictionary = options[i]
+	var id := str(o.id)
+	if o.get("used", false):
+		return "ui.stop_used"
+	if id == "heal":
+		if hero.hp >= hero.max_hp:
+			return "ui.hp_full"
+		if coins < int(o.price):
+			return "ui.not_enough"
+		coins -= int(o.price)
+		hero.thirst_used = 0 ## A Sede do Vampiro também vale na parada de Cura.
+		hero.heal_full(heal_stop_amount(hero))
+		o["used"] = true
+		o["visited"] = true
+		if not tlog.is_empty():
+			Telemetry.floor_entry(tlog, floor_n).buys.append("rest:heal")
+		return ""
+	o["visited"] = true
+	rest_options = options
+	if not stop_offers.has(id):
+		match id:
+			"shop":
+				stop_offers[id] = Shop.shop(hero, rng, hp_bought, floor_n)
+			"school":
+				stop_offers[id] = Shop.school(hero, rng, floor_n)
+			"well":
+				stop_offers[id] = Shop.well(rng, floor_n, hero)
+	phase = id
+	options = stop_offers[id]
 	return ""
+
+
+## Vida que a Cura da parada recupera: 35% da máxima; metade disso para o Vampiro.
+static func heal_stop_amount(h: Fighter) -> int:
+	var frac := Config.HEAL_STOP_FRACTION
+	if h.archetype == "vampire":
+		frac *= Config.VAMPIRE_HEAL_STOP_MULT
+	return int(ceil(h.max_hp * frac))
+
+
+func _back_to_rest() -> void:
+	phase = "rest"
+	options = rest_options
+
+
+func _mark_stop(id: String, flag: String) -> void:
+	for o in rest_options:
+		if str(o.id) == id:
+			o[flag] = true
 
 
 func start_duel(enemy_d: Dictionary = {}) -> void:
@@ -264,12 +319,26 @@ func to_dict() -> Dictionary:
 		"version": 3, "character": character, "hero": hero.to_dict(), "floor": floor_n,
 		"coins": coins, "hp_bought": hp_bought, "destroys_used": destroys_used,
 		"since_rest": since_rest, "door": door, "phase": phase, "options": options,
+		"rest_options": rest_options, "stop_offers": stop_offers,
 		"stats": stats, "last_reward": last_reward,
 		"seed": str(rng.seed), "rng_state": str(rng.state),
 		"duel": duel.to_dict() if duel else {},
 		"tlog": tlog,
 		"nemesis": nemesis.to_dict() if nemesis else {},
 	}
+
+
+static func _offers(a: Array) -> Array:
+	var out := []
+	for o in a:
+		var oo: Dictionary = o.duplicate()
+		oo.price = int(oo.get("price", 0))
+		if oo.has("item"):
+			oo.item = int(oo.item)
+		if oo.has("coins"):
+			oo.coins = int(oo.coins)
+		out.append(oo)
+	return out
 
 
 static func from_dict(d: Dictionary) -> RunState:
@@ -285,15 +354,17 @@ static func from_dict(d: Dictionary) -> RunState:
 	r.since_rest = int(d.get("since_rest", 0))
 	r.door = str(d.get("door", "normal"))
 	r.phase = str(d.get("phase", "doors"))
-	r.options = []
-	for o in d.get("options", []):
-		var oo: Dictionary = o.duplicate()
-		oo.price = int(oo.get("price", 0))
-		if oo.has("item"):
-			oo.item = int(oo.item)
-		if oo.has("coins"):
-			oo.coins = int(oo.coins)
-		r.options.append(oo)
+	r.options = _offers(d.get("options", []))
+	r.rest_options = _offers(d.get("rest_options", []))
+	r.stop_offers = {}
+	var so: Dictionary = d.get("stop_offers", {})
+	for k in so:
+		r.stop_offers[str(k)] = _offers(so[k])
+	# A parada e o lugar aberto apontam para as mesmas listas (as compras ficam guardadas).
+	if r.phase == "rest" and not r.rest_options.is_empty():
+		r.options = r.rest_options
+	elif r.phase in ["shop", "well", "school"] and r.stop_offers.has(r.phase):
+		r.options = r.stop_offers[r.phase]
 	var st: Dictionary = d.get("stats", {})
 	for k in r.stats:
 		r.stats[k] = int(st.get(k, 0))

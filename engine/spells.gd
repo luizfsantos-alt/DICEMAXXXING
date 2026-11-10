@@ -5,7 +5,7 @@ extends RefCounted
 ## Exigências ("req"), todas checam o valor rolado:
 ## - any:     N dados quaisquer ("n" = quantidade).
 ## - max/min: 1 dado de valor ≤ / ≥ "v".
-## - exact:   1 dado de valor exatamente "v".
+## - exact:   1 dado (ou "n" dados) de valor exatamente "v".
 ## - odd/even: 1 dado ímpar / par.
 ## - max_n/min_n: "n" dados, todos ≤ / ≥ "v".
 ## - low_one: "n" dados, pelo menos um ≤ "v".
@@ -13,28 +13,38 @@ extends RefCounted
 ## - pair:    2 dados iguais.
 ## - seq3:    3 dados em sequência (ex.: 3-4-5).
 ## - trio:    3 dados iguais.
+## - riddle:  um dado de cada valor, de 1 a 6 (Charada Fatal): os dados postos ficam
+##            guardados na magia (fora da bolsa) de turno em turno até completar.
 ##
 ## Efeitos ("fx"), resolvidos em Resolver.cast:
 ## dmg (dano = soma + "plus", × "mult"; "pierce" ignora todas as defesas; "burn";
 ## "odd_twice"), product (produto × "mult"), lever (maior × menor), multi (um golpe
 ## por dado, valor × "mult"; o dobro se todos forem iguais), ones (dano = "per" ×
-## quantos 1 há na mão), top_x (maior dado × "mult"), encore (Bis!), steal_sticker
+## quantos 1 há na mão, até "cap"), pelt (um golpe de 1 por dado), top_x (maior dado × "mult"), encore (Bis!), steal_sticker
 ## (Plágio), bench (Arrancar das Mãos), spawn_half / spawn_copy (devolvem dados à mão
 ## na alocação), block ("mult"), block_product, block_hand ("per" × dados na mão),
-## riposte, immune, cleanse, recycle, debuff (só "hand_mod"), dodge, mirror, heal,
+## block_count ("per" × dados da mão de valor "count"), skin (Revestimento: −1 por golpe
+## recebido, acumula até Config.SKIN_CAP + nível − 1), riposte, immune, cleanse, recycle, debuff (só "hand_mod"), dodge, mirror, heal,
 ## maxhp, sacrifice, drain (dano = valor, cura metade), feast (dano = soma, cura o
 ## menor). "heal" usa "mult".
 ## mod: mexida (docs/SPEC_v3.1.md §1): resolve na alocação, quando o buraco fica completo
 ## (TurnChoice), e devolve o dado mexido à mão. "mod" diz qual: reroll_max, nudge, top,
-## split3, flip, avg, polar, echo, double, fuse, stairs, gamble, polish.
+## split3, flip, avg, polar, echo, double, fuse, stairs, gamble, polish, insight (o dado
+## volta à bolsa e saem 2 dela, rolados), tide_low (o dado vira dois 6 provisórios) e
+## lingot (o dado vira tantos 1 quanto o valor).
+## tide_out (Maré Cheia): três dados de valor 1 entram na sua próxima mão.
 ## Opcionais: "hand_mod" (mexe na próxima mão do inimigo) e "mark" (marca o dado
 ## para a sua próxima mão: same, six, sum, plus2).
 ##
 ## Raridade ("rarity"): common, uncommon, rare (docs/RARIDADE.md).
 ##
+## "flex": a magia aceita quantos dados couberem na exigência (Forjamento): um buraco
+## na tela, com contador; completa com qualquer quantidade a partir de 1.
+##
 ## Uso ("use"): always, once (1× por luta), twice (2× por luta). Sempre no máximo 1×
 ## por turno.
 
+const FLEX_MAX := 99 ## Teto técnico das magias "flex" (na prática, a mão inteira).
 const S1 := [Vector2i(0, 0)]
 const S_V2 := [Vector2i(0, 0), Vector2i(0, 1)] ## 1×2 (em pé).
 const S_H2 := [Vector2i(0, 0), Vector2i(1, 0)] ## 2×1.
@@ -65,6 +75,8 @@ const DATA := {
 	"corte": {"shape": S_H2, "req": "any", "n": 2, "fx": "dmg", "odd_twice": true, "use": "always", "pool": "assassin", "rarity": "common"},
 	"sombras": {"shape": S_H3, "req": "exact", "v": 6, "fx": "dmg", "pierce": true, "use": "once", "pool": "assassin", "rarity": "uncommon"},
 	# Rodada 1 (Feiticeiro).
+	# Lendária: um dado de cada valor, guardados de turno em turno até completar.
+	"charada": {"shape": S_SQ, "req": "riddle", "n": 6, "fx": "riddle", "use": "always", "pool": "sorcerer", "rarity": "legendary"},
 	"bis": {"shape": S_H3, "req": "top", "fx": "encore", "use": "always", "pool": "sorcerer", "rarity": "rare"},
 	"plagio": {"shape": S_V2, "req": "max", "v": 2, "fx": "steal_sticker", "use": "once", "pool": "sorcerer", "rarity": "uncommon"},
 	"roubar_cena": {"shape": S1, "req": "exact", "v": 2, "fx": "debuff", "hand_mod": "steal_top", "use": "once", "pool": "sorcerer", "rarity": "uncommon"},
@@ -81,7 +93,8 @@ const DATA := {
 	"fisica": {"shape": S_H3, "req": "low_one", "n": 2, "v": 3, "fx": "lever", "use": "always", "pool": "assassin", "rarity": "rare"},
 	"arrancar": {"shape": S_V2, "req": "max", "v": 2, "fx": "bench", "use": "once", "pool": "assassin", "rarity": "uncommon"},
 	"velocidade": {"shape": S_H3, "req": "max_n", "n": 3, "v": 3, "fx": "multi", "mult": 2, "use": "always", "pool": "assassin", "rarity": "uncommon"},
-	"peso": {"shape": S1, "req": "exact", "v": 1, "fx": "ones", "per": 4, "use": "always", "pool": "assassin", "rarity": "common"},
+	"peso": {"shape": S1, "req": "exact", "v": 1, "fx": "ones", "per": 4, "cap": 3, "use": "twice", "pool": "assassin", "rarity": "common"},
+	"forjamento": {"shape": S_H2, "req": "exact", "n": FLEX_MAX, "v": 1, "flex": true, "fx": "pelt", "use": "always", "pool": "metallurgist", "rarity": "common"},
 	"impulso": {"shape": S_V2, "req": "any", "n": 1, "fx": "dmg", "mark": "plus2", "use": "always", "pool": "assassin", "rarity": "common"},
 	"anatomia": {"shape": S_L3, "req": "pair", "fx": "dmg", "mult": 2, "hand_mod": "top_to_one", "use": "once", "pool": "assassin", "rarity": "uncommon"},
 	"foto": {"shape": S_H4, "req": "min_n", "n": 4, "v": 5, "fx": "top_x", "mult": 4, "use": "once", "pool": "assassin", "rarity": "rare"},
@@ -99,7 +112,12 @@ const DATA := {
 	"mordida": {"shape": S1, "req": "any", "n": 1, "fx": "drain", "use": "always", "pool": "vampire", "rarity": "common"},
 	"banquete": {"shape": S_H3, "req": "any", "n": 3, "fx": "feast", "use": "always", "pool": "vampire", "rarity": "uncommon"},
 	"machadada": {"shape": S_V2, "req": "min", "v": 4, "fx": "dmg", "mult": 2, "use": "always", "pool": "barbarian", "rarity": "common"},
+	"mare_cheia": {"shape": S_L3, "req": "exact", "v": 6, "fx": "tide_out", "use": "always", "pool": "any", "rarity": "common"},
 	"cerrar": {"shape": S1, "req": "max", "v": 3, "fx": "heal", "mult": 3, "use": "twice", "pool": "barbarian", "rarity": "common"},
+	# Magias do Ferro (sempre 3): pedem 3 exato e crescem com os 3 da mão.
+	"bigorna": {"shape": S_H2, "req": "exact", "n": 2, "v": 3, "fx": "dmg", "mult": 3, "use": "always", "pool": "barbarian", "rarity": "uncommon"},
+	"pele": {"shape": S_V2, "req": "exact", "v": 3, "fx": "skin", "use": "always", "pool": "barbarian", "rarity": "uncommon"},
+	"muralha": {"shape": S_V2, "req": "exact", "v": 3, "fx": "block_count", "count": 3, "per": 4, "use": "always", "pool": "barbarian", "rarity": "common"},
 	# Mexidas (docs/SPEC_v3.1.md §1.3): mudam os próprios dados na alocação.
 	"segunda": {"shape": S1, "req": "any", "n": 1, "fx": "mod", "mod": "reroll_max", "random": true, "use": "always", "pool": "sorcerer", "rarity": "common"},
 	"ajuste": {"shape": S1, "req": "any", "n": 1, "fx": "mod", "mod": "nudge", "use": "always", "pool": "assassin", "rarity": "common"},
@@ -113,6 +131,9 @@ const DATA := {
 	"juntar": {"shape": S_H2, "req": "any", "n": 2, "fx": "mod", "mod": "fuse", "use": "always", "pool": "assassin", "rarity": "uncommon"},
 	"escada": {"shape": S_L3, "req": "any", "n": 3, "fx": "mod", "mod": "stairs", "use": "always", "pool": "sorcerer", "rarity": "uncommon"},
 	"tudo_nada": {"shape": S_V2, "req": "any", "n": 1, "fx": "mod", "mod": "gamble", "random": true, "use": "always", "pool": "sorcerer", "rarity": "rare"},
+	"insight": {"shape": S_V2, "req": "any", "n": 1, "fx": "mod", "mod": "insight", "random": true, "use": "always", "pool": "sorcerer", "rarity": "uncommon"},
+	"mare_baixa": {"shape": S_V2, "req": "any", "n": 1, "fx": "mod", "mod": "tide_low", "use": "once", "pool": "any", "rarity": "uncommon"},
+	"lingotamento": {"shape": S_H2, "req": "max", "v": 6, "fx": "mod", "mod": "lingot", "random": true, "use": "once", "pool": "metallurgist", "rarity": "uncommon"},
 	"lapidar": {"shape": S_H3, "req": "exact", "v": 1, "fx": "mod", "mod": "polish", "use": "once", "pool": "any", "rarity": "rare"},
 }
 
@@ -138,6 +159,10 @@ static func is_mod(id: String) -> bool:
 
 
 ## Mexida aleatória (rola o dado de novo): definitiva, não se desfaz.
+static func is_flex(id: String) -> bool:
+	return bool(get_def(id).get("flex", false))
+
+
 static func is_random_mod(id: String) -> bool:
 	return is_mod(id) and bool(get_def(id).get("random", false))
 
@@ -203,9 +228,9 @@ static func ids_of_rarity(r: String) -> Array:
 static func color_family(id: String) -> String:
 	var fx := str(get_def(id).get("fx", "dmg"))
 	match fx:
-		"product", "lever", "multi", "ones", "top_x", "encore", "steal_sticker", "bench", "spawn_half", "drain", "feast":
+		"product", "lever", "multi", "ones", "pelt", "riddle", "top_x", "encore", "steal_sticker", "bench", "spawn_half", "drain", "feast":
 			return "dmg"
-		"block_product", "block_hand", "riposte", "recycle":
+		"block_product", "block_hand", "block_count", "riposte", "recycle", "skin":
 			return "block"
 		"immune", "debuff":
 			return "mirror"
@@ -213,6 +238,8 @@ static func color_family(id: String) -> String:
 			return "heal"
 		"spawn_copy":
 			return "sacrifice"
+		"tide_out":
+			return "mod"
 		"mod":
 			return "mod"
 	return fx
@@ -227,10 +254,12 @@ static func icon_key(id: String) -> String:
 			return "fx/" + fx
 		"feast":
 			return "fx/drain"
-		"encore", "lever", "spawn_half", "spawn_copy", "steal_sticker", "bench", "mod":
+		"encore", "lever", "spawn_half", "spawn_copy", "steal_sticker", "bench", "mod", "tide_out":
 			return "fx/dice"
-		"block", "block_hand", "block_product", "recycle":
+		"block", "block_hand", "block_product", "block_count", "recycle":
 			return "status/block"
+		"skin":
+			return "status/skin"
 		"dodge", "mirror", "riposte", "immune":
 			return "status/" + fx
 		"debuff":
@@ -298,6 +327,8 @@ static func accepts_partial(id: String, placed: Array, v: int, top := false) -> 
 			return false
 		"pair", "trio":
 			return placed.is_empty() or int(placed[0]) == v
+		"riddle":
+			return v >= 1 and v <= 6 and not (v in placed)
 		"seq3":
 			if v in placed:
 				return false
@@ -309,7 +340,8 @@ static func accepts_partial(id: String, placed: Array, v: int, top := false) -> 
 
 ## A magia está pronta para ser lançada com estes valores? tops: face mais alta, por dado.
 static func complete(id: String, values: Array, tops: Array = []) -> bool:
-	if values.size() != dice_needed(id):
+	var flex := bool(get_def(id).get("flex", false))
+	if (values.size() != dice_needed(id) and not flex) or values.is_empty() or values.size() > dice_needed(id):
 		return false
 	var placed := []
 	for k in values.size():

@@ -33,7 +33,9 @@ func _play(run_seed: int) -> RunState:
 			"doors":
 				run.choose(bot.pick_door(run))
 			"rest":
-				run.choose(bot.pick_stop(run))
+				var j: int = bot.pick_stop(run)
+				if j < 0 or run.choose(j) != "":
+					run.leave()
 			_:
 				bot.shop_phase(run)
 	return run

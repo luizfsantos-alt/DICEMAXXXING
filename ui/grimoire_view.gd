@@ -44,6 +44,10 @@ static func req_label(id: String) -> String:
 		"min":
 			return "≥ %d" % int(d.v)
 		"exact":
+			if bool(d.get("flex", false)):
+				return "quantos quiser = %d" % int(d.v)
+			if int(d.get("n", 1)) > 1:
+				return "%d dados = %d" % [int(d.n), int(d.v)]
 			return "= %d" % int(d.v)
 		"odd":
 			return "ímpar"

@@ -40,17 +40,17 @@
 - **A vida persiste entre as lutas.** Cada vitória fora dos Mestres recupera **10%** da vida máxima (`Config.WIN_HEAL_FRACTION`, sem a Sede do Vampiro); a Cura da parada recupera **35%**.
 - **Portas** (antes de cada luta): normalmente **2**, às vezes **3** (a terceira é uma porta "insana", que paga muito). Cada porta mostra a dificuldade, a recompensa e o **nome do arquétipo do inimigo** (e a variante); a build dele só aparece na luta. O inimigo nasce com as portas (`RunState._door_enemies`).
 - **Prêmio das portas** (`Config.DOORS`, `Config.REWARD_CHOICES`): Fácil 3 moedas e recompensa 1 de 2; Normal 7 e 1 de 3; Difícil 12, 1 de 3 com a faixa de raridade acima; Insana 20, 1 de 4 com uma Rara garantida.
-- **Trifurcação sem luta, a cada 3 lutas.** Escolhe-se uma entre:
+- **Parada sem luta, a cada 3 lutas.** Aparecem 3 das 4 paradas abaixo e dá para usar **todas**: entra-se numa, volta-se quando quiser (mesmo depois de comprar) e entra-se em outra; "Seguir" vai para as portas. Loja e Poço guardam as ofertas entre as visitas (o que foi comprado não volta); a Cura e a Escola valem uma vez por parada.
   - **Loja**: magias, dados, vida máxima.
-  - **Cura**: recupera 35% da vida máxima.
-  - **Escola de Magia**: aprender uma magia ou **evoluir** uma conhecida.
-  - **Poço de Modificação**: aplicar elemento, adesivo ×2, editar face, destruir dado.
+  - **Cura**: recupera 35% da vida máxima por **8 moedas** (`Config.PRICE_HEAL_STOP`); para o Vampiro, metade (17,5%, `Config.VAMPIRE_HEAL_STOP_MULT`).
+  - **Escola de Magia**: aprender uma magia ou **evoluir** uma conhecida (uma escolha).
+  - **Poço de Modificação**: aplicar elemento, adesivo +2, editar face, destruir dado.
 - **Recompensa pós-luta:** escolher 1 entre 2, 3 ou 4 conforme a porta (dado, adesivo, magia ou vida máxima), ou pular e levar moedas.
 - **Mestre de Andar** nos andares 10, 20 e 30 (seção 8.3). A recompensa é escolher uma: **+casas no inventário** ou **+1 dado na mão**.
 
 ### 2.1 Escala e vida
 
-- **Tudo cresce junto.** Os inimigos têm faces com adesivo ×2, magias evoluídas e vida maior a cada andar.
+- **Tudo cresce junto.** Os inimigos têm faces com adesivo +2, magias evoluídas e vida maior a cada andar.
 - **Vida máxima é investimento:** comprar ou gerar vida na hora certa disputa moedas e escolhas com dados e magias.
 - Fontes de vida: Loja (vida máxima, preço crescente), Cura (recupera, não aumenta a máxima), magias de vida, recompensa pós-luta.
 
@@ -67,10 +67,10 @@ Escolhidos no início. O **formato do inventário** é a identidade; cada person
 | **Feiticeiro** | Grade **4×3** | **Erudito**: começa com 1 magia extra, à escolha entre 3. | 90 | 4 | 7 comuns + 1 Sódio | Faísca, Bola de Fogo, Segunda Chance (+1 do Erudito) |
 | **Assassino** | Cinto **6×1** | **Ágil**: cada golpe que ele esquiva dá +1 dado na próxima mão. | 85 | 4 | 7 comuns + 1 Mercúrio | Estocada, Corte Duplo, Esquiva Melhorada (um 2; 2× por luta), Ajuste Fino |
 | **Minimalista** | Grade **3×2** | **Voto de Pobreza**: destruir no Poço é grátis; a recompensa tem a opção "destruir 1 dado". | 70 | 3 | 2 comuns + 3 Hidrogênio | Faísca, Dardo Arcano |
-| **Metalurgista** | Esteira **5×2** | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado. Loja e Poço vendem Chumbo. | 100 | 4 | 5 comuns + 3 Chumbo | Levantar Peso (nv 2), Estocada, Virar |
+| **Metalurgista** | Esteira **5×2** | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado. Loja e Poço vendem Chumbo. | 100 | 4 | 5 comuns + 3 Chumbo | Levantar Peso (nv 2), Estocada, Virar, Lingotamento, Forjamento |
 | **Copista** | Grade **4×2** | **Inspiração**: no início da luta, copia uma magia aleatória do inimigo que caiba nas casas livres. | 80 | 4 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
 | **Perfeccionista** | **Moldura 4×3** sem o meio | **Ainda Não Está Bom**: guarda até 2 sobras no fim do turno; pode ter 2 marcas. | 80 | 4 | 7 comuns + 1 Ósmio | Dardo Arcano, Obra-Prima |
-| **Vampiro** | **Caixão 2×4** | **Sede**: toda cura dá +1 de vida máxima (até 3 por luta). Queima em dobro. | 70 | 4 | 7 comuns + 1 Sódio | Mordida, Banquete, Sangria |
+| **Vampiro** | **Caixão 2×4** | **Sede**: toda cura dá +1 de vida máxima, vazia (até 3 por luta). Queima em dobro. | 70 | 4 | 7 comuns + 1 Sódio | Mordida, Banquete, Sangria |
 | **Bárbaro** | Grade **3×3** | **Fúria**: com metade da vida ou menos, +1 por golpe a cada 10 de vida perdida. | 90 | 4 | 6 comuns + 2 Ferro | Machadada, Cerrar os Dentes, Pico |
 
 - **Feiticeiro**: magias grandes e exigentes (pares, sequências), efeitos fortes, várias de uso único por luta.
@@ -99,7 +99,7 @@ Cada dado pode ter **um** elemento, além de qualquer número de adesivos. O efe
 
 | Elemento | Efeito |
 |---|---|
-| **Hidrogênio** | Solitário: vale ×3 se a bolsa tiver 6 dados ou menos. |
+| **Hidrogênio** | Solitário: vale ×2 se a bolsa tiver menos de 8 dados. |
 | **Nitrogênio** | Multidão: +1 em cada face para cada 4 dados na bolsa. |
 | **Carbono** | Cadeia: +2 para cada outro Carbono **na mão** (2 na mão: +2 em cada; 3: +4; 5: +8). Comum. |
 | **Ósmio** | Âncora: sai **em toda mão** (ocupa uma vaga); não pode ser roubado nem arrancado. |
@@ -110,13 +110,16 @@ Cada dado pode ter **um** elemento, além de qualquer número de adesivos. O efe
 | **Sódio** | Ao ser usado, **queima** o inimigo por alguns turnos. |
 | **Mercúrio** | Amálgama: copia o maior valor entre a sua mão e a **última mão do inimigo**. |
 | **Ferro** | Maciço: todas as faces são 3. Só o Bárbaro começa com ele (não é vendido). |
+| **Lítio** | Bateria: cada turno parado na mão (sem uso) carrega +2, até +6, somado às próximas rolagens; descarrega ao ser usado e entre as lutas. Comum. |
+| **Titânio** | Blindado: ao ser usado numa magia, você ganha 2 de bloqueio. Comum. |
+| **Estrôncio** | Fogos: se cair na face mais alta (qualquer face empatada no maior valor serve), estoura: rola mais uma vez (só uma) e soma. Vale também nas mexidas que rolam de novo. Incomum. |
 | **Ouro** | Ao ser usado com 6, dá moedas. |
 | **Hélio** | Inerte: imune a efeitos do inimigo. |
 | **Vidro** (molécula) | Valor ×2; 1 chance em 6 de quebrar ao ser usado. |
 
 ### 4.2 Faces
 
-- **Adesivo ×2:** dobra aquela face **para sempre**; acumula (6 → 12 → 24). O preço sobe a cada adesivo no mesmo dado.
+- **Adesivo +2:** soma 2 àquela face **para sempre**; acumula (6 → 8 → 10). O preço sobe a cada adesivo no mesmo dado. (Antes era ×2 e explodia em potências: um Ósmio com vários adesivos vencia sozinho.) Na luta e fora dela, a face com adesivo mostra uma bolinha vermelha "+2"; o adesivo de ouro, uma bolinha dourada.
 - **Editar face:** troca o número de uma face (ex.: 1 → 5).
 - É por aqui que **os números explodem**. Um 24 é ótimo numa Faísca e inútil numa magia que pede "dado ≤ 3".
 
@@ -174,7 +177,7 @@ Os lados se alternam. **O jogador começa** *(inicial; o simulador avalia se o p
 ## 7. Economia *(valores iniciais)*
 
 - Vitória: moedas conforme a porta (fácil < normal < insana).
-- Preços: magia, dado novo, elemento, adesivo ×2 (crescente por dado), editar face, destruir dado (crescente por jornada), vida máxima (crescente por compra).
+- Preços: magia, dado novo, elemento, adesivo +2 (crescente por dado), editar face, destruir dado (crescente por jornada), vida máxima (crescente por compra).
 - Valores exatos em `engine/config.gd` quando implementado.
 
 ---

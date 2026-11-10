@@ -26,6 +26,9 @@ A tabela fica em `Elements.LOOKS` (`engine/elements.gd`). `Elements.COLORS` cont
 | Ferro | `#7a4128` | `#f0c8a8` | `#c7764e` | ferrugem com arestas gastas (rugosidade 0,85) | — |
 | Ouro | `#e0a514` | `#3a2604` | `#ffcf3f` | espelho (metal 0,85, rugosidade 0,18, clearcoat 0,5) | — |
 | Césio | `#1d4fc4` | `#eaf3ff` | `#6fb4ff` | vidro (rugosidade 0,2, alfa 0,95, clearcoat 0,7, rim) | corpo `#3d9bff` (o azul do cloreto de césio) |
+| Lítio | `#737980` | `#d8ff6a` | `#b8ff2e` | espelho escovado (metal 0,7, rugosidade 0,3) | só pontinhos e algarismos `#b8ff2e` (emissão em modo multiplicar, `glow_only`: o corpo fica cinza) |
+| Titânio | `#a33cc4` → `#3d6fe0` → `#e0b040` | `#ffffff` | `#e08cf0` | anodizado: faixas furta-cor magenta, azul e dourado (metal 0,8, rugosidade 0,22) | — |
+| Estrôncio | `#c8161d` | `#ffd23a` | `#ff6b5a` | envernizado (marfim com clearcoat 0,9): o tubo vermelho dos fogos | — (pontinhos amarelos das faíscas) |
 
 ## Brilho como estado
 
@@ -33,12 +36,13 @@ A tabela fica em `Elements.LOOKS` (`engine/elements.gd`). `Elements.COLORS` cont
 
 | Dado | Em repouso | Ativo quando | Reação |
 |---|---|---|---|
-| Hidrogênio | pontinhos fracos, pulso lento | Solitário valendo (bolsa de 6 ou menos) | halo e pontinhos fortes |
+| Hidrogênio | pontinhos fracos, pulso lento | Solitário valendo (bolsa de menos de 8) | halo e pontinhos fortes |
 | Carbono | pontinhos fracos | outro Carbono na mão (cresce até 4 na cadeia) | pontinhos mais fortes a cada elo |
 | Urânio | corpo aceso, pulso lento | parado na mão, ainda não posto numa magia | pisca como contador Geiger |
 | Sódio | brasa nas arestas | queima o inimigo ao ser usado | faíscas |
 | Amianto | — | causa dano em quem usa | nuvem de poeira |
 | Césio | corpo azul aceso | posto numa magia (vai irradiar o inimigo) | faíscas azuis saindo do cartão |
+| Lítio | pontinhos apagados | carga da bateria (+2, +4, +6: acende aos poucos) | "Lítio carrega +2" no fim do turno |
 
 ## Luz e aparência na coluna
 

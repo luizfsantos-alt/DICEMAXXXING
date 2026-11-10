@@ -430,6 +430,8 @@ static func statuses(st: Dictionary) -> Array:
 		out.append(_st("riposte", int(st.riposte)))
 	if int(st.immune) > 0:
 		out.append(_st("immune", int(st.immune)))
+	if int(st.get("skin", 0)) > 0:
+		out.append(_st("skin", int(st.skin)))
 	if int(st.kept) > 0:
 		out.append(_st("marked", int(st.kept)))
 	if int(st.fury) > 0:
@@ -551,16 +553,30 @@ func _build_tray() -> void:
 	var p := duel.player
 	var els := []
 	var heats := []
+	var stks := []
+	var golds := []
 	for e in p.hand:
 		var d := p.die_of(e)
 		els.append(d.element if d else "")
 		heats.append(Elements.heat(p, d))
-	_fill_tray(p.hand_values(), els, true, heats)
+		var m := _marks_of(p, e)
+		stks.append(m[0])
+		golds.append(m[1])
+	_fill_tray(p.hand_values(), els, true, heats, stks, golds)
+
+
+## Adesivos da face que saiu de um dado da mão: [+2, ouro] (selos em DieFace.marks).
+static func _marks_of(f: Fighter, e: Dictionary) -> Array:
+	var d := f.die_of(e)
+	if d == null:
+		return [0, 0]
+	var k := clampi(int(e.get("face", 0)), 0, 5)
+	return [int(d.stickers[k]), int(d.gold[k])]
 
 
 ## Coluna de dados com uma mão qualquer (a sua é tocável; a do inimigo, não).
 ## heats: estado do brilho de cada dado (Elements.heat), opcional.
-func _fill_tray(values: Array, elements: Array, interactive: bool, heats: Array = []) -> void:
+func _fill_tray(values: Array, elements: Array, interactive: bool, heats: Array = [], stks: Array = [], golds: Array = []) -> void:
 	Kit.clear(tray)
 	tray_views = []
 	dice_side = "player" if interactive else "enemy"
@@ -568,6 +584,7 @@ func _fill_tray(values: Array, elements: Array, interactive: bool, heats: Array 
 	for h in values.size():
 		var v := Hole.new().set_interactive(interactive).setup(DIE, h)
 		v.set_die(int(values[h]), elements[h] if h < elements.size() else "", float(_at(heats, h, 0.0)))
+		v.set_marks(int(_at(stks, h, 0)), int(_at(golds, h, 0)))
 		if interactive:
 			v.tapped.connect(_on_die)
 			v.set_drag_forwarding(_drag_from.bind(v), _can_drop_tray, _drop_tray)
@@ -590,6 +607,8 @@ func _roll_tray(ev: Dictionary) -> void:
 			"face": int(_at(ev.get("face", []), k, 0)),
 			"fixed": bool(_at(ev.get("fixed", []), k, false)),
 			"heat": float(_at(ev.get("heat", []), k, 0.0)),
+			"stickers": _at(ev.get("face_stickers", []), k, []),
+			"gold": _at(ev.get("face_gold", []), k, []),
 		})
 	for v: Hole in tray_views:
 		v.has_die = false
@@ -635,7 +654,7 @@ func _fly_to_tray(spots: Array, origin: Vector2) -> void:
 		# Buraco cujo dado tem a mesma aresta que o dado 3D tinha na tela.
 		var start_px := float(sp.width) / DieSnapshot.FILL / 0.88
 		var g := Hole.new().set_interactive(false).setup(int(target_px))
-		g.set_die(v.value, v.element, v.heat)
+		g.copy_die(v)
 		g.pivot_offset = g.size / 2.0
 		g.scale = Vector2.ONE * (start_px / target_px)
 		g.rotation = wrapf(float(sp.angle), -PI, PI) ## Começa girado como estava na mesa.
@@ -695,7 +714,7 @@ func _fly(from: Hole, to: Hole) -> void:
 		return
 	var fs := _visual_px(from)
 	var g := Hole.new().set_interactive(false).setup(int(fs))
-	g.set_die(from.value, from.element, from.heat)
+	g.copy_die(from)
 	g.position = from.global_position - fx_layer.global_position
 	fx_layer.add_child(g)
 	from.has_die = false
@@ -741,6 +760,9 @@ func _refresh_tray() -> void:
 				if it >= 0:
 					hv.caption = Texts.spell_name(p.inventory.items[it].id)
 			hv.heat = Elements.heat(p, dd, not (hv.index in used))
+			var mk := _marks_of(p, e)
+			hv.stickers = int(mk[0])
+			hv.gold = int(mk[1])
 		hv.raised = hv.index == selected
 		hv.queue_redraw()
 	var sel := int(p.hand[selected].value) if selected >= 0 else -1
@@ -755,16 +777,25 @@ func _refresh_tray() -> void:
 		var vals := choice.values_in(p, c.item)
 		var els := []
 		var heats := []
+		var marks := []
 		for h in choice.dice_in(c.item):
 			var d := p.die_of(p.hand[h])
 			els.append(d.element if d else "")
 			heats.append(Elements.heat(p, d, false))
+			marks.append(_marks_of(p, p.hand[h]))
 		var ins := choice.dice_in(c.item)
 		for k in c.holes.size():
 			c.holes[k].index = int(ins[k]) if k < ins.size() else -1
 		var sel_ok := selected >= 0 and choice.available(p, c.item) and TurnChoice.die_allowed(p, c.item, selected)
+		if c.riddle():
+			# Charada Fatal: o buraco de cada valor guarda o índice do dado posto com ele.
+			for k in c.holes.size():
+				c.holes[k].index = -1
+				for h in ins:
+					if int(p.hand[h].value) == k + 1:
+						c.holes[k].index = int(h)
 		c.refresh(vals, els, sel if (dragging >= 0 or not (selected in used)) else -1, choice.tops_in(p, c.item), sel_top, heats,
-			sel_ok, sel_die, sel_plus)
+			sel_ok, sel_die, sel_plus, marks, p.riddle.get(c.item, []))
 	_refresh_undo()
 	if phase != "player":
 		return
@@ -820,7 +851,7 @@ func _drag_from(_at: Vector2, hole: Hole) -> Variant:
 	var h := hole.index
 	var px := int(maxf(24.0, _visual_px(hole)))
 	var g := Hole.new().set_interactive(false).setup(px)
-	g.set_die(hole.value, hole.element, hole.heat)
+	g.copy_die(hole)
 	g.position = -g.size / 2.0
 	var prev := Control.new()
 	prev.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -856,7 +887,7 @@ func _drop_card_slot(_at: Vector2, data: Variant, item: int, slot: int) -> void:
 ## Buraco k do cartão como "slot" do motor (só o Ajuste Fino usa).
 func _slot_for(item: int, k: int) -> int:
 	var id: String = duel.player.inventory.items[item].id
-	return k if SpellCard.hole_count(id) != Spells.dice_needed(id) else 0
+	return k if SpellCard.two_slots(id) else 0
 
 
 func _can_drop_tray(_at: Vector2, data: Variant) -> bool:
@@ -971,8 +1002,28 @@ func place(h: int, item: int, slot := 0) -> bool:
 	if choice.mods.has(item) or choice.spawned.has(item):
 		_resolve_anim(item, before, prev, slot)
 		return true
+	if Spells.is_flex(id) and not fast and is_inside_tree():
+		_flex_bounce(_card_of(cards, item))
+		return true
 	_refresh_tray()
 	return true
+
+
+## Forjamento: ao receber um dado, o cartão some como se tivesse sido usado e volta
+## logo em seguida, com o buraco vazio e o contador atualizado.
+func _flex_bounce(c: SpellCard) -> void:
+	if c == null:
+		_refresh_tray()
+		return
+	var tw := c.create_tween()
+	tw.tween_property(c, "modulate:a", 0.0, 0.16)
+	await tw.finished
+	if not is_inside_tree():
+		return
+	_refresh_tray() ## O cartão volta com a transparência que o estado pede.
+	var target := c.modulate.a
+	c.modulate.a = 0.0
+	c.create_tween().tween_property(c, "modulate:a", target, 0.22)
 
 
 ## Nome da causa de um dado mexido: magia, elemento, mexida do inimigo ou Mestre.
@@ -1005,7 +1056,7 @@ func _resolve_anim(item: int, dice: Array, prev: Array, slot: int) -> void:
 		_refresh_tray()
 		return
 	busy = true
-	var two := SpellCard.hole_count(c.id) != Spells.dice_needed(c.id)
+	var two := SpellCard.two_slots(c.id)
 	for k in dice.size():
 		var hk := slot if two else mini(k, c.holes.size() - 1)
 		var tv := _tray_view(int(dice[k]))
@@ -1018,6 +1069,8 @@ func _resolve_anim(item: int, dice: Array, prev: Array, slot: int) -> void:
 			tv.set_cause(-1, "")
 			await _fly(tv, c.holes[hk])
 		c.holes[hk].set_die(int(prev[k]), el)
+		if tv:
+			c.holes[hk].set_marks(tv.stickers, tv.gold)
 	if random:
 		var hk2 := slot if two else 0
 		for _t in 8:
@@ -1292,7 +1345,7 @@ func _apply_event(ev: Dictionary) -> void:
 			fx_src = null
 			if s == "enemy":
 				hint.text = Texts.t("ui.enemy_rolling")
-			_fill_tray(ev["values"], ev.get("elements", []), s == "player", ev.get("heat", []))
+			_fill_tray(ev["values"], ev.get("elements", []), s == "player", ev.get("heat", []), ev.get("stickers", []), ev.get("gold", []))
 			var origs: Array = ev.get("orig", [])
 			var causes: Array = ev.get("cause", [])
 			for k in mini(tray_views.size(), causes.size()):
@@ -1349,6 +1402,8 @@ func _apply_event(ev: Dictionary) -> void:
 			_note(s, Texts.t("ui.fx_asbestos", {"n": ev.n}))
 		"element":
 			_float(s, Texts.t("ui.fx_el_" + str(ev.el), {"v": ev.v}), Elements.COLORS.get(str(ev.el), Kit.TEXT))
+		"charge":
+			_float(s, Texts.t("ui.fx_charge", {"n": ev.n, "total": ev.total}), Elements.COLORS.Li)
 		"burn_up":
 			if str(ev.get("src", "")) == "Na":
 				_burst(fx_src, Elements.look("Na").emission, true)
@@ -1393,7 +1448,10 @@ func _apply_event(ev: Dictionary) -> void:
 			_float(s, "+%d" % int(ev.v), Kit.ACCENT)
 		"block":
 			# Bloqueio reciclado (dados parados no fim do turno) não vem de uma magia.
-			await _effect(s, Texts.t("ui.fx_block", {"n": ev.n}), "fx", null if ev.get("recycled", false) else fx_src)
+			if str(ev.get("src", "")) == "Ti":
+				_burst(fx_src, Elements.COLORS.Ti, false)
+			var bk := "ui.fx_el_Ti" if str(ev.get("src", "")) == "Ti" else "ui.fx_block"
+			await _effect(s, Texts.t(bk, {"n": ev.n}), "fx", null if ev.get("recycled", false) else fx_src)
 			v.block = int(ev.total)
 		"heal":
 			await _effect(s, Texts.t("ui.fx_heal", {"n": ev.n}), "heal")
@@ -1417,6 +1475,14 @@ func _apply_event(ev: Dictionary) -> void:
 			await _effect(s, "%s %d" % [Texts.t("status.riposte.0"), int(ev.n)], "fx")
 		"immune_up":
 			await _effect(s, Texts.t("status.immune.0"), "fx")
+		"skin_up":
+			await _effect(s, Texts.t("ui.fx_skin", {"n": ev.n}), "fx")
+		"tide_out":
+			await _effect(s, Texts.t("ui.fx_tide_out", {"n": ev.n}), "fx")
+		"riddle_store":
+			await _effect(s, Texts.t("ui.fx_riddle_store", {"n": ev.n}), "fx")
+		"riddle_done":
+			_float(s, Texts.t("ui.fx_riddle_done"), Kit.RARITY_COLORS.legendary)
 		"cleanse":
 			await _effect(s, Texts.t("ui.fx_cleanse"), "fx")
 		"recycle_up":
@@ -1444,17 +1510,20 @@ func _enemy_mod(ev: Dictionary) -> void:
 		+ " ".join(PackedStringArray(to.filter(func(x): return int(x) > 0).map(func(x): return str(x)))))
 	if ec == null:
 		return
-	var two := SpellCard.hole_count(ec.id) != Spells.dice_needed(ec.id)
+	var two := SpellCard.two_slots(ec.id)
 	var slot := 1 if two and not to.is_empty() and int(to[0]) < int(from[0]) else 0
 	for k in dice.size():
 		var h := int(dice[k])
 		var hk := slot if two else mini(k, ec.holes.size() - 1)
 		var el := ""
+		var mk := [0, 0]
 		if h < tray_views.size():
 			el = tray_views[h].element
+			mk = [tray_views[h].stickers, tray_views[h].gold]
 			tray_views[h].value = int(from[k])
 			await _fly(tray_views[h], ec.holes[hk])
 		ec.holes[hk].set_die(int(from[k]), el)
+		ec.holes[hk].set_marks(int(mk[0]), int(mk[1]))
 	if bool(ev.get("random", false)):
 		for _t in 8:
 			ec.holes[slot if two else 0].set_die(randi_range(1, 6), ec.holes[0].element)
@@ -1665,10 +1734,14 @@ func _describe(ev: Dictionary) -> String:
 				t += " " + Texts.t("ev.reflected")
 			if ev.get("pierce", false):
 				t += " " + Texts.t("ev.pierce")
+			if int(ev.get("skin", 0)) > 0:
+				t += " " + Texts.t("ev.skin", {"n": ev.skin})
 			return t
 		"block":
 			if ev.get("recycled", false):
 				return Texts.t("ev.recycled", {"who": w, "n": ev.n})
+			if str(ev.get("src", "")) == "Ti":
+				return Texts.t("ev.block_ti", {"who": w, "n": ev.n})
 			return Texts.t("ev.block", {"who": w, "n": ev.n})
 		"heal":
 			return Texts.t("ev.heal", {"who": w, "n": ev.n})
@@ -1710,6 +1783,14 @@ func _describe(ev: Dictionary) -> String:
 			return Texts.t("ev.riposte_up", {"who": w, "n": ev.n})
 		"immune_up":
 			return Texts.t("ev.immune_up", {"who": w})
+		"skin_up":
+			return Texts.t("ev.skin_up", {"who": w, "n": ev.n})
+		"tide_out":
+			return Texts.t("ev.tide_out", {"who": w, "n": ev.n})
+		"riddle_store":
+			return Texts.t("ev.riddle_store", {"who": w, "n": ev.n})
+		"riddle_done":
+			return Texts.t("ev.riddle_done", {"who": w})
 		"immune_block":
 			return Texts.t("ev.immune_block", {"who": w})
 		"cleanse":
@@ -1740,6 +1821,8 @@ func _describe(ev: Dictionary) -> String:
 			return Texts.t("ev.asbestos", {"who": w, "n": ev.n})
 		"element":
 			return Texts.t("ev.el_" + str(ev.el), {"who": w, "v": ev.v})
+		"charge":
+			return Texts.t("ev.charge", {"who": w, "n": ev.n, "total": ev.total})
 		"dead_weight":
 			return Texts.t("ev.dead_weight", {"who": w, "n": ev.n})
 		"copy":

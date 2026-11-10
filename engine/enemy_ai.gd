@@ -6,12 +6,12 @@ extends RefCounted
 
 const PERSONALITIES := ["bruto", "cauteloso", "caotico"]
 const SPAWN := ["forca", "imitacao"]
-const OFFENSE := ["foto", "matematica", "obra", "sombras", "meteoro", "bola", "expectativa", "anatomia",
+const OFFENSE := ["foto", "matematica", "bigorna", "obra", "sombras", "meteoro", "bola", "expectativa", "anatomia",
 	"fisica", "velocidade", "bis", "banquete", "machadada", "peso", "plagio", "arrancar", "impulso", "corte",
-	"sacrificio", "mordida", "dardo", "estocada", "faisca"]
+	"sacrificio", "mordida", "dardo", "estocada", "faisca", "forjamento", "charada"]
 const DEBUFF := ["interrupcao", "chave", "meia_verdade", "roubar_cena"]
 const DEFENSE := ["esquiva_mais", "esquiva", "recuo", "espelho", "imune", "revide", "armadura", "escudo", "presenca",
-	"rasteira", "concentrar", "pose", "suor", "cerrar", "remendo", "transfusao", "improviso"]
+	"pele", "rasteira", "muralha", "mare_cheia", "concentrar", "pose", "suor", "cerrar", "remendo", "transfusao", "improviso"]
 
 
 static func choose(f: Fighter, foe: Fighter, rng: RandomNumberGenerator) -> TurnChoice:
@@ -203,7 +203,16 @@ static func estimate(f: Fighter, item: int, values: Array) -> float:
 			for e in f.hand:
 				if int(e.bag) != -2 and int(e.value) == 1:
 					ones += 1
+			if def.has("cap"):
+				ones = mini(ones, int(def.cap))
 			s = float(def.get("per", 1)) * ones
+		"pelt":
+			s = float(values.size())
+		"riddle":
+			var have := {}
+			for v in f.riddle_values(f.inventory.ids().find("charada")) + values:
+				have[int(v)] = true
+			s = float(Config.RIDDLE_DMG) if have.size() >= 6 else values.size() * 3.0
 		"top_x":
 			s = hi * mult
 		"encore":
@@ -220,6 +229,13 @@ static func estimate(f: Fighter, item: int, values: Array) -> float:
 			s = (1.0 if values.is_empty() else lo * hi) * mult * 0.7
 		"block_hand":
 			s = float(def.get("per", 1)) * f.hand.size() * 0.7
+		"tide_out":
+			s = 3.0 ## Três 1 na próxima mão: Peso, Espelho, Sacrifício e companhia.
+		"skin":
+			# Vale mais cedo na luta e enquanto não chegou ao teto.
+			s = 0.0 if f.skin >= Config.SKIN_CAP else 6.0 - f.skin
+		"block_count":
+			s = float(def.get("per", 1)) * Resolver.count_value(f, int(def.get("count", 1))) * 0.7
 		"heal":
 			s = total * mult * 0.5 if hurt else 0.0
 		"maxhp":
@@ -262,6 +278,12 @@ static func _priority(f: Fighter, foe: Fighter, id: String) -> int:
 	elif id in DEFENSE:
 		base = 50 - DEFENSE.find(id) * 2
 	match id:
+		"charada":
+			# Com os valores que faltam na mão, resolver a charada vem antes de tudo.
+			var have: Array = f.riddle_values(f.inventory.ids().find(id))
+			var hand_vals := f.hand_values()
+			if range(1, 7).all(func(v): return v in have or v in hand_vals):
+				return 300
 		"remendo", "cerrar":
 			# A Sede do Vampiro aproveita a cura com a vida cheia.
 			if f.hp >= f.max_hp and f.archetype != "vampire":
@@ -318,6 +340,16 @@ static func best_dice(f: Fighter, id: String, taken: Array, item := -1) -> Array
 				for j in range(i + 1, free.size()):
 					if f.hand[free[i]].value == f.hand[free[j]].value:
 						return [free[i], free[j]]
+		"riddle":
+			# Um dado de cada valor que ainda falta na Charada (os altos vão para as outras).
+			var have: Array = f.riddle_values(item) if item >= 0 else []
+			var out := []
+			for k in range(free.size() - 1, -1, -1):
+				var v := int(f.hand[free[k]].value)
+				if v >= 1 and v <= 6 and not (v in have):
+					have = have + [v]
+					out.append(free[k])
+			return out
 		"seq3":
 			for i in free.size():
 				var v := int(f.hand[free[i]].value)
@@ -350,6 +382,8 @@ static func best_dice(f: Fighter, id: String, taken: Array, item := -1) -> Array
 					out.append(h)
 					if out.size() == n:
 						return out
+			if bool(d.get("flex", false)) and not out.is_empty():
+				return out ## Forjamento: atira quantos 1 houver.
 	return []
 
 

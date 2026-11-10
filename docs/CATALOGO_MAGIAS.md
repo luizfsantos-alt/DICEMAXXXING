@@ -111,7 +111,7 @@ O inimigo compra deste catálogo com as mesmas regras. Ele usa as magias do grup
 | 15 | **Física Aplicada** | 3×1 | Assassino | 2 dados, um ≤ 3 | Dano = maior × menor (12 × 3 = 36). | sempre | rodada 2 |
 | 16 | **Arrancar das Mãos** | 1×2 | Assassino | dado ≤ 2 | Dano = valor. O dado mais forte da bolsa do inimigo (maior soma de faces) fica fora da bolsa dele até o fim da luta. Ósmio não sai. | 1× por luta | rodada 2 |
 | 17 | **Exibição de Velocidade** | 3×1 | Assassino | 3 dados ≤ 3 | 3 golpes separados, cada um = valor ×2. Esquiva e Espelho só param o primeiro. Se os 3 forem iguais: 6 golpes. | sempre | rodada 2 |
-| 18 | **Levantar Peso** | 1×1 | Assassino | um 1 | Dano = 4 × quantos dados de valor 1 há na sua mão (contando este). | sempre | rodada 2 |
+| 18 | **Levantar Peso** | 1×1 | Assassino | um 1 | Dano = 4 × quantos dados de valor 1 há na sua mão (contando este; **contam no máximo 3**, desde a 0.22.1). | **2× por luta** (desde a 0.22.1) | rodada 2 |
 | 19 | **Impulso Calculado** | 1×2 | Assassino | qualquer dado | Dano = valor. O dado volta obrigatoriamente na sua próxima mão, além da mão normal, com +2 em todas as faces, e é rolado. O +2 dura essa mão. | sempre | rodada 2 |
 | 20 | **Lição de Anatomia** | L (3) | Assassino | 2 dados iguais | Dano = soma ×2. Na próxima mão do inimigo, todo dado que cair na face mais alta vale 1. | 1× por luta | rodada 2 |
 | 21 | **Golpe para a Foto** | Reta 4 | Assassino | 4 dados ≥ 5 | Dano = o maior dado × 4 (um 24 dá 96). | 1× por luta | rodada 2 |
@@ -256,8 +256,13 @@ Vieram de `docs/PERSONAGENS.md`. Todas entram na Loja, na Escola e nas recompens
 | `banquete` | **Banquete** | Reta 3 | Vampiro | 3 dados quaisquer | Dano = soma; cura = o menor dos três. | sempre | Incomum |
 | `machadada` | **Machadada** | 1×2 | Bárbaro | dado ≥ 4 | Dano = valor ×2. | sempre | Comum |
 | `cerrar` | **Cerrar os Dentes** | 1×1 | Bárbaro | dado ≤ 3 | Cura = valor ×3. | 2× por luta | Comum |
+| `bigorna` | **Bigorna** | 2×1 | Bárbaro | 2 dados de valor exatamente 3 | Dano = soma ×3 (dois 3 = 18). | sempre | Incomum |
+| `pele` | **Pele de Ferro** | 1×2 | Bárbaro | dado = 3 | +1 de **Revestimento**: até o fim da luta, todo golpe recebido causa 1 a menos (acumula até −3; −4 e −5 evoluída; um golpe sempre causa ao menos 1). | sempre | Incomum |
+| `muralha` | **Muralha de Ferro** | 1×2 | Bárbaro | dado = 3 | Bloqueio = 4 × cada dado de valor 3 na mão (contando este e os já postos). | sempre | Comum |
 
 - **Exigência nova "trio"**: 3 dados iguais; os buracos mostram "=" entre eles.
+- **Revestimento** (status novo, 0.21.0): reduz cada golpe recebido (antes do bloqueio), nunca abaixo de 1; dura a luta; golpes que ignoram defesas passam. Ícone `assets/icons/status/skin.png` (placa de ferro rebitada, desenhada em código; pode ganhar arte de gerador).
+- **Magias do Ferro** (0.20.0): o Ferro sempre vale 3, então Bigorna e Muralha de Ferro sempre aceitam os Ferros. Outros dados servem quando caem em 3 (ou com Ajuste Fino, Nivelar etc.). "exact" aceita "n" dados.
 - A cura cresce com o nível, como o dano. A Fúria do Bárbaro e o Sacrifício somam em cada golpe.
 
 
@@ -292,6 +297,17 @@ Saíram da crítica de mecânicas (spec `docs/SPEC_v3.1.md` §1, hoje histórico
 | `escada` | **Escada** | L (3) | Feiticeiro | 3 dados | Sequência a partir do menor (2, 6, 6 → 2, 3, 4). | sempre | Incomum |
 | `tudo_nada` | **Tudo ou Nada** | 1×2 | Feiticeiro | dado que rola | Rola de novo: novo valor ×2, seja qual for. | sempre | Rara |
 | `lapidar` | **Lapidar** | 3×1 | qualquer | um 1 (dado da bolsa, face não travada) | A face vira 6 para sempre; o dado volta valendo 6. | 1× por luta | Rara |
+| `charada` | **Charada Fatal** (Lendária) | 2×2 | Feiticeiro | um dado de cada valor, 1 a 6 | Os dados postos ficam guardados na magia (fora da bolsa) de turno em turno; os guardados aparecem com contorno brasa. Com os seis, causa 40 de dano que ignora as defesas (60 / 80 evoluída) e os dados voltam para a bolsa. Na luta seguinte, recomeça. | sempre | Lendária |
+| `insight` | **Insight** | 1×2 | Feiticeiro | qualquer dado | O dado volta para a bolsa e saem dois dados dela, rolados na hora (pode sair ele mesmo). Aleatória: não se desfaz. Nível: +1 / +2 em cada. | sempre | Incomum |
+| `mare_baixa` | **Maré Baixa, Maré Cheia** | 1×2 | qualquer | qualquer dado | O dado é gasto e entram dois dados provisórios de valor 6 (7 / 8 evoluída). | 1× por luta | Incomum |
+| `forjamento` | **Forjamento** | 2×1 | Metalurgista (no kit inicial) | dados de valor 1, quantos quiser | Um buraco sempre vazio, com o contador (×N) ao lado: aceita um 1 por vez até passar o turno; a cada dado o cartão some e volta. Cada dado é um golpe de 1 (2 / 3 evoluída). | sempre | Comum |
+| `lingotamento` | **Lingotamento** | 2×1 | Metalurgista (no kit inicial) | dado ≤ 6 | O dado vira tantos dados de valor 1 quanto o valor (um 5 vira cinco 1; +1 / +2 evoluída). Cada lingote herda o elemento com 33% de chance (50% / 66% evoluída); os adesivos se perdem. Aleatória: não se desfaz. | 1× por luta | Incomum |
+
+Não é mexida, mas é da mesma família (Maré):
+
+| id | Magia | Formato | Grupo | Pede | Efeito | Uso | Raridade |
+|---|---|---|---|---|---|---|---|
+| `mare_cheia` | **Maré Cheia, Maré Baixa** | L (3) | qualquer | um 6 | Na sua próxima mão entram três dados de valor 1 a mais (quatro / cinco evoluída). | sempre | Comum |
 
 **Mexidas iniciais:** Feiticeiro (Segunda Chance), Assassino (Ajuste Fino), Bárbaro (Pico), Vampiro (Sangria), Metalurgista (Virar). Copista, Perfeccionista e Minimalista ficam sem.
 
