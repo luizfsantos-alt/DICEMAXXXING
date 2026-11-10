@@ -71,6 +71,11 @@ const LOOKS := {
 	"Sr": {"body": Color("#c8161d"), "body2": Color("#ff4a3d"), "ink": Color("#ffd23a"), "accent": Color("#ff6b5a"),
 		"finish": "marfim", "rough": 0.25, "metal": 0.0, "coat": 0.9, "alpha": 1.0, "rim": 0.0,
 		"glow": "", "emission": Color.BLACK, "energy": 0.0},
+	# Cobre: a pátina verde-água (o verdete) com o metal vivo aparecendo nas arestas gastas;
+	# pontinhos e algarismos em cobre polido.
+	"Cu": {"body": Color("#23806f"), "body2": Color("#c8682e"), "ink": Color("#e8834a"), "accent": Color("#5fe0cc"),
+		"finish": "patina", "rough": 0.6, "metal": 0.15, "coat": 0.0, "alpha": 1.0, "rim": 0.0,
+		"glow": "", "emission": Color.BLACK, "energy": 0.0},
 }
 ## Energia máxima do brilho com o estado ativo (heat = 1).
 ## Contidos de propósito: forte demais, o brilho estoura e o valor deixa de ser lido.

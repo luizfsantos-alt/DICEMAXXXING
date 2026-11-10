@@ -232,12 +232,12 @@ static func albedo_texture(value: int, element: String) -> ImageTexture:
 
 ## Ruído fixo (mesma semente sempre) para os acabamentos com textura.
 static func _noise(finish: String) -> FastNoiseLite:
-	if not (finish in ["fosco", "fibroso", "ferrugem"]):
+	if not (finish in ["fosco", "fibroso", "ferrugem", "patina"]):
 		return null
 	var n := FastNoiseLite.new()
 	n.seed = 7
 	n.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-	n.frequency = 0.06 if finish == "ferrugem" else 0.2
+	n.frequency = 0.06 if finish in ["ferrugem", "patina"] else 0.2
 	return n
 
 
@@ -268,6 +268,12 @@ static func _finish_color(finish: String, body: Color, body2: Color, u: float, v
 			var n := noise.get_noise_2d(u * TEX, v * TEX)
 			var c := body.lightened(maxf(0.0, n) * 0.25).darkened(maxf(0.0, -n) * 0.3)
 			var wear := 1.0 - smoothstep(0.03, 0.09 + n * 0.03, edge)
+			return c.lerp(body2, wear)
+		"patina":
+			# Verdete em manchas claras e escuras; o cobre aparece nas arestas gastas.
+			var n := noise.get_noise_2d(u * TEX * 0.35, v * TEX * 0.35)
+			var c := body.lightened(maxf(0.0, n) * 0.3).darkened(maxf(0.0, -n) * 0.3)
+			var wear := 1.0 - smoothstep(0.025, 0.07 + n * 0.04, edge)
 			return c.lerp(body2, wear)
 		"anodizado":
 			# Furta-cor do óxido: magenta, azul e dourado em faixas diagonais onduladas.
