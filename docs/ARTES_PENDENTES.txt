@@ -15,9 +15,7 @@ FORMATO DAS FOTOS (itens 1 a 5)
   largura (a foto é cortada nesse ponto em telas menores).
 - Pixel art detalhada, mesma luz e acabamento das fotos que já existem (Vampiro,
   Bárbaro, Porteiro de Chumbo).
-- Final comum para todos os prompts abaixo:
-  "detailed pixel art, three-quarter bust portrait, dramatic rim lighting, dark fantasy
-  roguelike character art, solid pure black background, no text, no frame"
+- Cada prompt abaixo já vem completo, numa linha só: é só copiar e colar.
 
 
 ------------------------------------------------------------------------
@@ -30,41 +28,30 @@ XAMÃ: o que vale para as 3 variações
   pintura de guerra nem de cara de luta. É místico e contido.
 - Cores dele no jogo: verde-água (#5fe0cc) e cobre (#c8682e).
 - Cada variação é uma pessoa diferente, como nas variações dos outros personagens.
-- Trecho comum para colar nas 3 (junto com o final comum das fotos):
-  "blind shaman, serious solemn expression, no smile, one hand raised with the index
-  finger pointing straight up, the other hand held low with the palm facing down,
-  as above so below pose, teal and copper color palette, copper with green verdigris
-  patina"
 
 
 ------------------------------------------------------------------------
 1. XAMÃ, variação 1
    Arquivo: assets/portraits/shaman_1.png
 ------------------------------------------------------------------------
-Prompt (+ trecho comum):
-middle-aged man, eyes covered by a woven cloth blindfold, copper bracelets and rings,
-hermetic pendant of two opposing triangles, robe of layered fabrics, faint teal glow
-around the raised finger
+Prompt:
+blind shaman, serious solemn expression, no smile, one hand raised with the index finger pointing straight up, the other hand held low with the palm facing down, as above so below pose, teal and copper color palette, copper with green verdigris patina, middle-aged man, eyes covered by a woven cloth blindfold, copper bracelets and rings, hermetic pendant of two opposing triangles, robe of layered fabrics, faint teal glow around the raised finger, detailed pixel art, three-quarter bust portrait, dramatic rim lighting, dark fantasy roguelike character art, solid pure black background, no text, no frame
 
 
 ------------------------------------------------------------------------
 2. XAMÃ, variação 2
    Arquivo: assets/portraits/shaman_2.png
 ------------------------------------------------------------------------
-Prompt (+ trecho comum):
-elderly woman, milky white unseeing eyes, long grey braids with copper rings,
-verdigris-stained copper torque necklace, faint teal mist flowing between the two
-hands
+Prompt:
+blind shaman, serious solemn expression, no smile, one hand raised with the index finger pointing straight up, the other hand held low with the palm facing down, as above so below pose, teal and copper color palette, copper with green verdigris patina, elderly woman, milky white unseeing eyes, long grey braids with copper rings, verdigris-stained copper torque necklace, faint teal mist flowing between the two hands, detailed pixel art, three-quarter bust portrait, dramatic rim lighting, dark fantasy roguelike character art, solid pure black background, no text, no frame
 
 
 ------------------------------------------------------------------------
 3. XAMÃ, variação 3
    Arquivo: assets/portraits/shaman_3.png
 ------------------------------------------------------------------------
-Prompt (+ trecho comum):
-young man, eyes bound with a strip of copper-embroidered cloth, hooded mantle, copper
-mask fragments with green patina on the cheeks, soft glowing runes on the skin of
-both hands
+Prompt:
+blind shaman, serious solemn expression, no smile, one hand raised with the index finger pointing straight up, the other hand held low with the palm facing down, as above so below pose, teal and copper color palette, copper with green verdigris patina, young man, eyes bound with a strip of copper-embroidered cloth, hooded mantle, copper mask fragments with green patina on the cheeks, soft glowing runes on the skin of both hands, detailed pixel art, three-quarter bust portrait, dramatic rim lighting, dark fantasy roguelike character art, solid pure black background, no text, no frame
 
 
 ------------------------------------------------------------------------
@@ -75,10 +62,7 @@ Hoje usa a foto do Copista. Bolsa cheia de Mercúrio; troca o seu maior dado com
 menor dela. Tom de chefe: mais imponente e ameaçadora que um inimigo comum.
 
 Prompt:
-the Alchemist, imposing female alchemist boss, silver liquid mercury flowing between
-her fingers and around her like a living ribbon, leather apron over an ornate dark
-coat, brass goggles pushed up on the forehead, glass vials of quicksilver on the belt,
-cold silver and purple palette, sly confident smile
+the Alchemist, imposing female alchemist boss, silver liquid mercury flowing between her fingers and around her like a living ribbon, leather apron over an ornate dark coat, brass goggles pushed up on the forehead, glass vials of quicksilver on the belt, cold silver and purple palette, sly confident smile, detailed pixel art, three-quarter bust portrait, dramatic rim lighting, dark fantasy roguelike character art, solid pure black background, no text, no frame
 
 
 ------------------------------------------------------------------------
@@ -89,10 +73,7 @@ Hoje usa a foto do Bárbaro. Bolsa cheia de Urânio; dado parado envenena quem r
 É o chefe final: o mais assustador de todos.
 
 Prompt:
-the Reactor, massive final boss, hulking figure in cracked iron and lead armor with a
-glowing uranium core in the chest, radioactive green light leaking from the cracks,
-toxic green fumes, scarred face lit from below by the green glow, menacing, sickly
-green and black palette
+the Reactor, massive final boss, hulking figure in cracked iron and lead armor with a glowing uranium core in the chest, radioactive green light leaking from the cracks, toxic green fumes, scarred face lit from below by the green glow, menacing, sickly green and black palette, detailed pixel art, three-quarter bust portrait, dramatic rim lighting, dark fantasy roguelike character art, solid pure black background, no text, no frame
 
 
 ------------------------------------------------------------------------
@@ -105,9 +86,7 @@ green and black palette
 - Hoje há um provisório (um alvo verde-água). Basta substituir o arquivo.
 
 Prompt:
-single pixel art game icon, a mystical open eye, teal iris (#5fe0cc) with a glowing
-copper pupil, thick dark outline, small rune marks around the eye, chunky pixel
-shading, transparent background, centered, readable at small size, no text
+single pixel art game icon, a mystical open eye, teal iris (#5fe0cc) with a glowing copper pupil, thick dark outline, small rune marks around the eye, chunky pixel shading, transparent background, centered, readable at small size, no text
 
 
 ------------------------------------------------------------------------
@@ -118,15 +97,13 @@ eu ligo no código (uma linha).
 
 7. Ícone da Síntese
    Arquivo: assets/icons/fx/synth.png (64 x 64, fundo transparente)
-   Prompt: single pixel art game icon, two hands cupped together holding a small
-   teal flame and a small copper shield merged into one, thick dark outline,
-   transparent background, no text
+   Prompt:
+single pixel art game icon, two hands cupped together holding a small teal flame and a small copper shield merged into one, thick dark outline, transparent background, no text
 
 8. Ícone da Antítese
    Arquivo: assets/icons/fx/antithesis.png (64 x 64, fundo transparente)
-   Prompt: single pixel art game icon, a double-headed arrow pointing up and down,
-   one head red, one head teal, cracked in the middle, thick dark outline,
-   transparent background, no text
+   Prompt:
+single pixel art game icon, a double-headed arrow pointing up and down, one head red, one head teal, cracked in the middle, thick dark outline, transparent background, no text
 
 
 ------------------------------------------------------------------------
