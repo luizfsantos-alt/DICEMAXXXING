@@ -21,30 +21,39 @@ FORMATO DAS FOTOS (itens 1 a 5)
 
 
 ------------------------------------------------------------------------
+XAMÃ: o que vale para as 3 variações
+------------------------------------------------------------------------
+- Cego e sério em todas: expressão grave, sem sorriso.
+- A mesma pose em todas, que é a frase dele ("assim como acima, abaixo"): uma mão com o
+  indicador apontando para cima e a outra com a palma voltada para baixo.
+- A diferença para o Bárbaro (que já tem dreads, pintura e crânio): nada de crânio, de
+  pintura de guerra nem de cara de luta. É místico e contido.
+- Cores dele no jogo: verde-água (#5fe0cc) e cobre (#c8682e).
+- Cada variação é uma pessoa diferente, como nas variações dos outros personagens.
+- Trecho comum para colar nas 3 (junto com o final comum das fotos):
+  "blind shaman, serious solemn expression, no smile, one hand raised with the index
+  finger pointing straight up, the other hand held low with the palm facing down,
+  as above so below pose, teal and copper color palette, copper with green verdigris
+  patina"
+
+
+------------------------------------------------------------------------
 1. XAMÃ, variação 1
    Arquivo: assets/portraits/shaman_1.png
 ------------------------------------------------------------------------
-Cego. A diferença para o Bárbaro (que já tem dreads, pintura e crânio): nada de
-crânio, de pintura de guerra nem de cara de luta. É calmo, místico, de olhos vendados.
-Cores dele no jogo: verde-água (#5fe0cc) e cobre (#c8682e).
-
-Prompt:
-blind shaman, serene expression, eyes covered by a woven cloth blindfold, copper
-jewelry and bracelets with green verdigris patina, teal and copper color palette,
-holding a small copper hourglass, hermetic symbol of two opposing triangles pendant,
-faint teal glow, robe of layered fabrics
+Prompt (+ trecho comum):
+middle-aged man, eyes covered by a woven cloth blindfold, copper bracelets and rings,
+hermetic pendant of two opposing triangles, robe of layered fabrics, faint teal glow
+around the raised finger
 
 
 ------------------------------------------------------------------------
 2. XAMÃ, variação 2
    Arquivo: assets/portraits/shaman_2.png
 ------------------------------------------------------------------------
-Mesmo personagem, outra versão (outra pessoa, como nas variações dos outros).
-
-Prompt:
-blind elderly shaman woman, milky white unseeing eyes, long grey braids with copper
-rings, verdigris-stained copper torque necklace, one hand raised palm up and the other
-palm down ("as above, so below"), teal and copper palette, faint teal mist between the
+Prompt (+ trecho comum):
+elderly woman, milky white unseeing eyes, long grey braids with copper rings,
+verdigris-stained copper torque necklace, faint teal mist flowing between the two
 hands
 
 
@@ -52,10 +61,10 @@ hands
 3. XAMÃ, variação 3
    Arquivo: assets/portraits/shaman_3.png
 ------------------------------------------------------------------------
-Prompt:
-young blind shaman, eyes bound with a strip of copper-embroidered cloth, hooded
-mantle, copper mask fragments with green patina, small brass-and-copper scale of
-balance hanging from the belt, teal and copper palette, soft glowing runes on the skin
+Prompt (+ trecho comum):
+young man, eyes bound with a strip of copper-embroidered cloth, hooded mantle, copper
+mask fragments with green patina on the cheeks, soft glowing runes on the skin of
+both hands
 
 
 ------------------------------------------------------------------------
