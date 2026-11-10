@@ -3,11 +3,11 @@ extends RefCounted
 ## Elementos e substâncias (docs/SPEC_v3.md §4.1, docs/PERSONAGENS.md §3.2 e §5).
 ## Química é tempero: cada um tem um efeito de uma linha.
 
-const ALL := ["H", "Os", "U", "Na", "Hg", "Pb", "Am", "C", "Fe", "Cs", "Au", "Li", "Ti", "Sr"]
-const SHOP := ["H", "Os", "U", "Na", "Hg", "Am", "C", "Cs", "Au", "Li", "Ti", "Sr"] ## Chumbo só vem dos inimigos (e do Metalurgista); Ferro, só do Bárbaro.
+const ALL := ["H", "Os", "U", "Na", "Hg", "Pb", "Am", "C", "Fe", "Cs", "Au", "Li", "Ti", "Sr", "Cu"]
+const SHOP := ["H", "Os", "U", "Na", "Hg", "Am", "C", "Cs", "Au", "Li", "Ti", "Sr", "Cu"] ## Chumbo só vem dos inimigos (e do Metalurgista); Ferro, só do Bárbaro.
 ## Raridade (docs/RARIDADE.md §4). Chumbo e Ferro ficam fora (não são sorteados): contam como Comum.
 const RARITY := {
-	"common": ["Na", "Am", "C", "Au", "Li", "Ti"],
+	"common": ["Na", "Am", "C", "Au", "Li", "Ti", "Cu"],
 	"uncommon": ["U", "Hg", "Cs", "Sr"],
 	"rare": ["H", "Os"],
 }
@@ -73,7 +73,7 @@ const LOOKS := {
 		"glow": "", "emission": Color.BLACK, "energy": 0.0},
 	# Cobre: a pátina verde-água (o verdete) com o metal vivo aparecendo nas arestas gastas;
 	# pontinhos e algarismos em cobre polido.
-	"Cu": {"body": Color("#23806f"), "body2": Color("#c8682e"), "ink": Color("#e8834a"), "accent": Color("#5fe0cc"),
+	"Cu": {"body": Color("#18655a"), "body2": Color("#c8682e"), "ink": Color("#ff9f5f"), "accent": Color("#5fe0cc"),
 		"finish": "patina", "rough": 0.6, "metal": 0.15, "coat": 0.0, "alpha": 1.0, "rim": 0.0,
 		"glow": "", "emission": Color.BLACK, "energy": 0.0},
 }
@@ -97,6 +97,7 @@ const COLORS := {
 	"Li": Color("#b8ff2e"),
 	"Ti": Color("#e08cf0"),
 	"Sr": Color("#ff6b5a"),
+	"Cu": Color("#5fe0cc"),
 }
 const SOLITARY_BAG := 7 ## Hidrogênio: ×2 com bolsa deste tamanho ou menor (menos de 8; a inicial tem 8).
 const SOLITARY_MULT := 2

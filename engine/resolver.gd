@@ -260,9 +260,12 @@ static func dmg_bonus(f: Fighter) -> int:
 
 
 ## Cura com a Sede do Vampiro (+1 de vida máxima por cura).
-static func _heal(f: Fighter, n: int, ev: Array) -> void:
+static func _heal(f: Fighter, n: int, ev: Array, src := "") -> void:
 	var r := f.heal_full(n)
-	push(ev, {"t": "heal", "side": side(f), "n": int(r.hp)})
+	var e := {"t": "heal", "side": side(f), "n": int(r.hp)}
+	if src != "":
+		e["src"] = src
+	push(ev, e)
 	if int(r.max) > 0:
 		push(ev, {"t": "maxhp", "side": side(f), "n": int(r.max), "thirst": true})
 
@@ -524,7 +527,7 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 
 ## Efeitos de um dado usado numa magia. Sódio: queima o inimigo. Césio: veneno
 ## (radiação) no inimigo, que não cai sozinho. Amianto: machuca quem usa (não é golpe).
-## Ouro: +1 moeda. Lítio: descarrega. Titânio: bloqueio para quem usa.
+## Ouro: +1 moeda. Lítio: descarrega. Titânio: bloqueio para quem usa. Cobre: cura quem usa.
 ## Adesivo de ouro na face que saiu: +1 moeda por adesivo.
 static func _die_effects(f: Fighter, foe: Fighter, h: int, ev: Array) -> void:
 	var e: Dictionary = f.hand[h]
@@ -551,6 +554,9 @@ static func _die_effects(f: Fighter, foe: Fighter, h: int, ev: Array) -> void:
 			if f.hp > 0:
 				f.block += Config.TITANIUM_BLOCK
 				push(ev, {"t": "block", "side": side(f), "n": Config.TITANIUM_BLOCK, "total": f.block, "src": "Ti"})
+		"Cu":
+			if f.hp > 0:
+				_heal(f, Config.COPPER_HEAL, ev, "Cu")
 	var face := int(e.get("face", -1))
 	if face >= 0 and face < 6 and int(d.gold[face]) > 0:
 		_coins(f, int(d.gold[face]) * Config.GOLD_COINS, ev, "gold")

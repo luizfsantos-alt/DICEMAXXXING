@@ -329,6 +329,10 @@
   "Sr": [
    "Estrôncio",
    "Fogos: se cair na face mais alta (qualquer uma empatada serve), estoura: rola mais uma vez e soma."
+  ],
+  "Cu": [
+   "Cobre",
+   "Bactericida: ao ser usado numa magia, você cura 2."
   ]
  },
  "masters": {
@@ -640,6 +644,7 @@
   "fx_el_Li": "Lítio descarrega = {v}",
   "fx_el_Sr": "Estrôncio estoura! = {v}",
   "fx_el_Ti": "Titânio: bloqueio +{n}",
+  "fx_el_Cu": "Cobre: +{n}",
   "fx_charge": "Lítio carrega +{n} ({total})",
   "fx_el_Na": "Sódio: queima {n}",
   "fx_el_U": "Urânio: veneno {n}",
@@ -731,6 +736,7 @@
   "el_Sr": "Estrôncio: {who} tira a face mais alta, estoura, rola de novo e soma {v}",
   "charge": "Lítio: a bateria de {who} carrega +{n} (agora +{total})",
   "block_ti": "Titânio: {who} ganha {n} de bloqueio",
+  "heal_cu": "Cobre: {who} cura {n}",
   "dead_weight": "Peso Morto: {who} puxa mais {n} dado(s)",
   "copy": "Inspiração: {who} copia {name} nesta luta",
   "copy_none": "Inspiração: nada do outro cabe nas casas livres de {who}",

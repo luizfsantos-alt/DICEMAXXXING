@@ -233,6 +233,35 @@ func test_titanio_da_bloqueio_ao_usar():
 	assert_true("Ti" in Elements.SHOP)
 
 
+func test_cobre_cura_ao_usar():
+	var a := H.fighter("a", ["faisca"])
+	var b := H.fighter("b", [])
+	a.hp = 30
+	a.bag[0] = Die.with_element("Cu")
+	H.hand(a, [3, 4])
+	var ev := H.cast(a, b, {"faisca": [0]})
+	assert_eq(a.hp, 30 + Config.COPPER_HEAL, "usado: cura")
+	assert_eq(b.hp, 40 - 3, "o dano da magia continua")
+	var src := ""
+	for e in ev:
+		if str(e.t) == "heal":
+			src = str(e.get("src", ""))
+	assert_eq(src, "Cu", "o evento diz que veio do Cobre")
+	a.hp = 30
+	a.bag[0] = Die.basic()
+	a.bag[1] = Die.with_element("Cu")
+	H.hand(a, [3, 4])
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(a.hp, 30, "Cobre parado não cura")
+	a.hp = a.max_hp
+	a.bag[0] = Die.with_element("Cu")
+	H.hand(a, [3, 4])
+	H.cast(a, b, {"faisca": [0]})
+	assert_eq(a.hp, a.max_hp, "não passa da vida máxima")
+	assert_eq(Elements.rarity("Cu"), "common")
+	assert_true("Cu" in Elements.SHOP)
+
+
 func test_ouro_da_moeda_por_uso_e_a_jornada_recebe():
 	var run := RunState.new_run(11)
 	for _k in 5:

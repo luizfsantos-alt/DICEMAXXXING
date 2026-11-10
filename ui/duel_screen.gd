@@ -1454,7 +1454,10 @@ func _apply_event(ev: Dictionary) -> void:
 			await _effect(s, Texts.t(bk, {"n": ev.n}), "fx", null if ev.get("recycled", false) else fx_src)
 			v.block = int(ev.total)
 		"heal":
-			await _effect(s, Texts.t("ui.fx_heal", {"n": ev.n}), "heal")
+			if str(ev.get("src", "")) == "Cu":
+				_burst(fx_src, Elements.COLORS.Cu, false)
+			var hk := "ui.fx_el_Cu" if str(ev.get("src", "")) == "Cu" else "ui.fx_heal"
+			await _effect(s, Texts.t(hk, {"n": ev.n}), "heal")
 			v.hp += int(ev.n)
 		"maxhp":
 			await _effect(s, Texts.t("ui.fx_thirst" if ev.get("thirst", false) else "ui.fx_maxhp", {"n": ev.n}), "heal")
@@ -1744,6 +1747,8 @@ func _describe(ev: Dictionary) -> String:
 				return Texts.t("ev.block_ti", {"who": w, "n": ev.n})
 			return Texts.t("ev.block", {"who": w, "n": ev.n})
 		"heal":
+			if str(ev.get("src", "")) == "Cu":
+				return Texts.t("ev.heal_cu", {"who": w, "n": ev.n})
 			return Texts.t("ev.heal", {"who": w, "n": ev.n})
 		"maxhp":
 			return Texts.t("ev.thirst" if ev.get("thirst", false) else "ev.maxhp", {"who": w, "n": ev.n})

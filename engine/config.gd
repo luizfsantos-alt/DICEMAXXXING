@@ -39,6 +39,7 @@ const ASBESTOS_DMG := 3 ## Amianto: dano em quem usa.
 const LITHIUM_STEP := 2 ## Lítio: carga ganha a cada turno parado na mão.
 const LITHIUM_CAP := 6 ## Lítio: carga máxima (somada na rolagem; zera ao ser usado).
 const TITANIUM_BLOCK := 2 ## Titânio: bloqueio ao ser usado numa magia.
+const COPPER_HEAL := 2 ## Cobre: cura ao ser usado numa magia.
 const RIDDLE_DMG := 40 ## Charada Fatal: dano ao completar (ignora as defesas).
 const LINGOT_INHERIT := [0.33, 0.5, 0.66] ## Lingotamento: chance de cada lingote herdar o elemento, por nível.
 const TIDE_ONES := 3 ## Maré Cheia: dados de valor 1 na próxima mão (+1 por nível).
