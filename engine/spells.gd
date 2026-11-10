@@ -18,7 +18,7 @@ extends RefCounted
 ## dmg (dano = soma + "plus", × "mult"; "pierce" ignora todas as defesas; "burn";
 ## "odd_twice"), product (produto × "mult"), lever (maior × menor), multi (um golpe
 ## por dado, valor × "mult"; o dobro se todos forem iguais), ones (dano = "per" ×
-## quantos 1 há na mão), top_x (maior dado × "mult"), encore (Bis!), steal_sticker
+## quantos 1 há na mão, até "cap"), pelt (um golpe de 1 por dado), top_x (maior dado × "mult"), encore (Bis!), steal_sticker
 ## (Plágio), bench (Arrancar das Mãos), spawn_half / spawn_copy (devolvem dados à mão
 ## na alocação), block ("mult"), block_product, block_hand ("per" × dados na mão),
 ## block_count ("per" × dados da mão de valor "count"), skin (Revestimento: −1 por golpe
@@ -36,9 +36,13 @@ extends RefCounted
 ##
 ## Raridade ("rarity"): common, uncommon, rare (docs/RARIDADE.md).
 ##
+## "flex": a magia aceita quantos dados couberem na exigência (Forjamento): um buraco
+## na tela, com contador; completa com qualquer quantidade a partir de 1.
+##
 ## Uso ("use"): always, once (1× por luta), twice (2× por luta). Sempre no máximo 1×
 ## por turno.
 
+const FLEX_MAX := 99 ## Teto técnico das magias "flex" (na prática, a mão inteira).
 const S1 := [Vector2i(0, 0)]
 const S_V2 := [Vector2i(0, 0), Vector2i(0, 1)] ## 1×2 (em pé).
 const S_H2 := [Vector2i(0, 0), Vector2i(1, 0)] ## 2×1.
@@ -85,7 +89,8 @@ const DATA := {
 	"fisica": {"shape": S_H3, "req": "low_one", "n": 2, "v": 3, "fx": "lever", "use": "always", "pool": "assassin", "rarity": "rare"},
 	"arrancar": {"shape": S_V2, "req": "max", "v": 2, "fx": "bench", "use": "once", "pool": "assassin", "rarity": "uncommon"},
 	"velocidade": {"shape": S_H3, "req": "max_n", "n": 3, "v": 3, "fx": "multi", "mult": 2, "use": "always", "pool": "assassin", "rarity": "uncommon"},
-	"peso": {"shape": S1, "req": "exact", "v": 1, "fx": "ones", "per": 4, "use": "always", "pool": "assassin", "rarity": "common"},
+	"peso": {"shape": S1, "req": "exact", "v": 1, "fx": "ones", "per": 4, "cap": 3, "use": "twice", "pool": "assassin", "rarity": "common"},
+	"forjamento": {"shape": S_H2, "req": "exact", "n": FLEX_MAX, "v": 1, "flex": true, "fx": "pelt", "use": "always", "pool": "metallurgist", "rarity": "common"},
 	"impulso": {"shape": S_V2, "req": "any", "n": 1, "fx": "dmg", "mark": "plus2", "use": "always", "pool": "assassin", "rarity": "common"},
 	"anatomia": {"shape": S_L3, "req": "pair", "fx": "dmg", "mult": 2, "hand_mod": "top_to_one", "use": "once", "pool": "assassin", "rarity": "uncommon"},
 	"foto": {"shape": S_H4, "req": "min_n", "n": 4, "v": 5, "fx": "top_x", "mult": 4, "use": "once", "pool": "assassin", "rarity": "rare"},
@@ -150,6 +155,10 @@ static func is_mod(id: String) -> bool:
 
 
 ## Mexida aleatória (rola o dado de novo): definitiva, não se desfaz.
+static func is_flex(id: String) -> bool:
+	return bool(get_def(id).get("flex", false))
+
+
 static func is_random_mod(id: String) -> bool:
 	return is_mod(id) and bool(get_def(id).get("random", false))
 
@@ -215,7 +224,7 @@ static func ids_of_rarity(r: String) -> Array:
 static func color_family(id: String) -> String:
 	var fx := str(get_def(id).get("fx", "dmg"))
 	match fx:
-		"product", "lever", "multi", "ones", "top_x", "encore", "steal_sticker", "bench", "spawn_half", "drain", "feast":
+		"product", "lever", "multi", "ones", "pelt", "top_x", "encore", "steal_sticker", "bench", "spawn_half", "drain", "feast":
 			return "dmg"
 		"block_product", "block_hand", "block_count", "riposte", "recycle", "skin":
 			return "block"
@@ -325,7 +334,8 @@ static func accepts_partial(id: String, placed: Array, v: int, top := false) -> 
 
 ## A magia está pronta para ser lançada com estes valores? tops: face mais alta, por dado.
 static func complete(id: String, values: Array, tops: Array = []) -> bool:
-	if values.size() != dice_needed(id):
+	var flex := bool(get_def(id).get("flex", false))
+	if (values.size() != dice_needed(id) and not flex) or values.is_empty() or values.size() > dice_needed(id):
 		return false
 	var placed := []
 	for k in values.size():

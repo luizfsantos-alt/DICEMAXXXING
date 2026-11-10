@@ -8,7 +8,7 @@ const PERSONALITIES := ["bruto", "cauteloso", "caotico"]
 const SPAWN := ["forca", "imitacao"]
 const OFFENSE := ["foto", "matematica", "bigorna", "obra", "sombras", "meteoro", "bola", "expectativa", "anatomia",
 	"fisica", "velocidade", "bis", "banquete", "machadada", "peso", "plagio", "arrancar", "impulso", "corte",
-	"sacrificio", "mordida", "dardo", "estocada", "faisca"]
+	"sacrificio", "mordida", "dardo", "estocada", "faisca", "forjamento"]
 const DEBUFF := ["interrupcao", "chave", "meia_verdade", "roubar_cena"]
 const DEFENSE := ["esquiva_mais", "esquiva", "recuo", "espelho", "imune", "revide", "armadura", "escudo", "presenca",
 	"pele", "rasteira", "muralha", "mare_cheia", "concentrar", "pose", "suor", "cerrar", "remendo", "transfusao", "improviso"]
@@ -203,7 +203,11 @@ static func estimate(f: Fighter, item: int, values: Array) -> float:
 			for e in f.hand:
 				if int(e.bag) != -2 and int(e.value) == 1:
 					ones += 1
+			if def.has("cap"):
+				ones = mini(ones, int(def.cap))
 			s = float(def.get("per", 1)) * ones
+		"pelt":
+			s = float(values.size())
 		"top_x":
 			s = hi * mult
 		"encore":
@@ -357,6 +361,8 @@ static func best_dice(f: Fighter, id: String, taken: Array, item := -1) -> Array
 					out.append(h)
 					if out.size() == n:
 						return out
+			if bool(d.get("flex", false)) and not out.is_empty():
+				return out ## Forjamento: atira quantos 1 houver.
 	return []
 
 

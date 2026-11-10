@@ -128,6 +128,10 @@
    "Maré Cheia, Maré Baixa",
    "Um 6. Na sua próxima mão, entram três dados de valor 1 a mais."
   ],
+  "forjamento": [
+   "Forjamento",
+   "Um buraco que aceita quantos dados de valor 1 você quiser, um por vez, até passar o turno (o contador mostra quantos). Cada um é atirado no inimigo: um golpe de 1 de dano por dado."
+  ],
   "lingotamento": [
    "Lingotamento",
    "Dado de valor 6 ou menos. Ele vira tantos dados de valor 1 quanto o valor dele (um 5 vira cinco 1). Mexida. Uma vez por luta."
@@ -142,7 +146,7 @@
   ],
   "peso": [
    "Levantar Peso",
-   "Um 1. Dano igual a 4 × quantos dados de valor 1 há na sua mão."
+   "Um 1. Dano igual a 4 × quantos dados de valor 1 há na sua mão (contam no máximo 3). Duas vezes por luta."
   ],
   "impulso": [
    "Impulso Calculado",
@@ -759,7 +763,8 @@
   "fisica": "Dano = maior × menor",
   "arrancar": "Dano = valor; tira o dado mais forte dele",
   "velocidade": "Um golpe por dado, valor ×2",
-  "peso": "Dano = 4 × cada 1 na mão",
+  "peso": "Dano = 4 × cada 1 na mão (até 3)",
+  "forjamento": "Um golpe de 1 por dado atirado",
   "impulso": "Dano = valor; volta com +2",
   "anatomia": "Soma ×2; face máxima dele vira 1",
   "foto": "Dano = maior × 4",
@@ -819,7 +824,8 @@
   "fisica": "Dano = maior × menor ×{1}",
   "arrancar": "Dano = valor ×{1}; tira o dado mais forte dele",
   "velocidade": "Um golpe por dado, valor ×{2}",
-  "peso": "Dano = {4} × cada 1 na mão",
+  "peso": "Dano = {4} × cada 1 na mão (até 3)",
+  "forjamento": ["Um golpe de 2 por dado atirado", "Um golpe de 3 por dado atirado"],
   "impulso": "Dano = valor ×{1}; volta com +2",
   "anatomia": "Soma ×{2}; face máxima dele vira 1",
   "foto": "Dano = maior × {4}",

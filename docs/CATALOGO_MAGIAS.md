@@ -111,7 +111,7 @@ O inimigo compra deste catálogo com as mesmas regras. Ele usa as magias do grup
 | 15 | **Física Aplicada** | 3×1 | Assassino | 2 dados, um ≤ 3 | Dano = maior × menor (12 × 3 = 36). | sempre | rodada 2 |
 | 16 | **Arrancar das Mãos** | 1×2 | Assassino | dado ≤ 2 | Dano = valor. O dado mais forte da bolsa do inimigo (maior soma de faces) fica fora da bolsa dele até o fim da luta. Ósmio não sai. | 1× por luta | rodada 2 |
 | 17 | **Exibição de Velocidade** | 3×1 | Assassino | 3 dados ≤ 3 | 3 golpes separados, cada um = valor ×2. Esquiva e Espelho só param o primeiro. Se os 3 forem iguais: 6 golpes. | sempre | rodada 2 |
-| 18 | **Levantar Peso** | 1×1 | Assassino | um 1 | Dano = 4 × quantos dados de valor 1 há na sua mão (contando este). | sempre | rodada 2 |
+| 18 | **Levantar Peso** | 1×1 | Assassino | um 1 | Dano = 4 × quantos dados de valor 1 há na sua mão (contando este; **contam no máximo 3**, desde a 0.22.1). | **2× por luta** (desde a 0.22.1) | rodada 2 |
 | 19 | **Impulso Calculado** | 1×2 | Assassino | qualquer dado | Dano = valor. O dado volta obrigatoriamente na sua próxima mão, além da mão normal, com +2 em todas as faces, e é rolado. O +2 dura essa mão. | sempre | rodada 2 |
 | 20 | **Lição de Anatomia** | L (3) | Assassino | 2 dados iguais | Dano = soma ×2. Na próxima mão do inimigo, todo dado que cair na face mais alta vale 1. | 1× por luta | rodada 2 |
 | 21 | **Golpe para a Foto** | Reta 4 | Assassino | 4 dados ≥ 5 | Dano = o maior dado × 4 (um 24 dá 96). | 1× por luta | rodada 2 |
@@ -299,6 +299,7 @@ Saíram da crítica de mecânicas (spec `docs/SPEC_v3.1.md` §1, hoje histórico
 | `lapidar` | **Lapidar** | 3×1 | qualquer | um 1 (dado da bolsa, face não travada) | A face vira 6 para sempre; o dado volta valendo 6. | 1× por luta | Rara |
 | `insight` | **Insight** | 1×2 | Feiticeiro | qualquer dado | O dado volta para a bolsa e saem dois dados dela, rolados na hora (pode sair ele mesmo). Aleatória: não se desfaz. Nível: +1 / +2 em cada. | sempre | Incomum |
 | `mare_baixa` | **Maré Baixa, Maré Cheia** | 1×2 | qualquer | qualquer dado | O dado é gasto e entram dois dados provisórios de valor 6 (7 / 8 evoluída). | 1× por luta | Incomum |
+| `forjamento` | **Forjamento** | 2×1 | Metalurgista (no kit inicial) | dados de valor 1, quantos quiser | Um buraco com contador (×N): aceita um 1 por vez até passar o turno. Cada dado é um golpe de 1 (2 / 3 evoluída). | sempre | Comum |
 | `lingotamento` | **Lingotamento** | 2×1 | Metalurgista (no kit inicial) | dado ≤ 6 | O dado vira tantos dados de valor 1 quanto o valor (um 5 vira cinco 1; +1 / +2 evoluída). | 1× por luta | Incomum |
 
 Não é mexida, mas é da mesma família (Maré):

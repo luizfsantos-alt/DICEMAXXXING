@@ -67,7 +67,7 @@ Escolhidos no início. O **formato do inventário** é a identidade; cada person
 | **Feiticeiro** | Grade **4×3** | **Erudito**: começa com 1 magia extra, à escolha entre 3. | 90 | 4 | 7 comuns + 1 Sódio | Faísca, Bola de Fogo, Segunda Chance (+1 do Erudito) |
 | **Assassino** | Cinto **6×1** | **Ágil**: cada golpe que ele esquiva dá +1 dado na próxima mão. | 85 | 4 | 7 comuns + 1 Mercúrio | Estocada, Corte Duplo, Esquiva Melhorada (um 2; 2× por luta), Ajuste Fino |
 | **Minimalista** | Grade **3×2** | **Voto de Pobreza**: destruir no Poço é grátis; a recompensa tem a opção "destruir 1 dado". | 70 | 3 | 2 comuns + 3 Hidrogênio | Faísca, Dardo Arcano |
-| **Metalurgista** | Esteira **5×2** | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado. Loja e Poço vendem Chumbo. | 100 | 4 | 5 comuns + 3 Chumbo | Levantar Peso (nv 2), Estocada, Virar |
+| **Metalurgista** | Esteira **5×2** | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado. Loja e Poço vendem Chumbo. | 100 | 4 | 5 comuns + 3 Chumbo | Levantar Peso (nv 2), Estocada, Virar, Lingotamento, Forjamento |
 | **Copista** | Grade **4×2** | **Inspiração**: no início da luta, copia uma magia aleatória do inimigo que caiba nas casas livres. | 80 | 4 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
 | **Perfeccionista** | **Moldura 4×3** sem o meio | **Ainda Não Está Bom**: guarda até 2 sobras no fim do turno; pode ter 2 marcas. | 80 | 4 | 7 comuns + 1 Ósmio | Dardo Arcano, Obra-Prima |
 | **Vampiro** | **Caixão 2×4** | **Sede**: toda cura dá +1 de vida máxima, vazia (até 3 por luta). Queima em dobro. | 70 | 4 | 7 comuns + 1 Sódio | Mordida, Banquete, Sangria |

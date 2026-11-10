@@ -107,6 +107,34 @@ func test_levantar_peso_conta_os_1():
 	H.hand(a, [1, 1, 5, 1])
 	H.cast(a, b, {"peso": [0]})
 	assert_eq(b.hp, 40 - 12)
+	var c := H.fighter("c", [])
+	H.hand(a, [1, 1, 1, 1, 1])
+	H.cast(a, c, {"peso": [0]})
+	assert_eq(c.hp, 40 - 12, "contam no máximo 3 dados de valor 1")
+	assert_eq(Spells.max_uses("peso"), 2, "duas vezes por luta")
+
+
+func test_forjamento_atira_os_1():
+	var a := H.fighter("a", ["forjamento"])
+	var b := H.fighter("b", [])
+	assert_false(Spells.complete("forjamento", []), "vazio não lança")
+	assert_true(Spells.complete("forjamento", [1]), "um dado já basta")
+	assert_true(Spells.complete("forjamento", [1, 1, 1, 1]), "qualquer quantidade")
+	assert_false(Spells.complete("forjamento", [1, 2]), "só dados de valor 1")
+	assert_true(Spells.complete("forjamento", [1, 1, 1, 1, 1, 1, 1, 1]), "sem limite de dados")
+	assert_eq(SpellCard.hole_count("forjamento"), 1, "um buraco só, com contador")
+	assert_false(SpellCard.two_slots("forjamento"))
+	assert_true(SpellCard.two_slots("ajuste"))
+	H.hand(a, [1, 1, 1, 4])
+	var ev := H.cast(a, b, {"forjamento": [0, 1, 2]})
+	assert_eq(b.hp, 40 - 3, "três golpes de 1")
+	assert_eq(ev.filter(func(e): return e.t == "hit").size(), 3)
+	var c := TurnChoice.new()
+	H.hand(a, [1, 1])
+	assert_true(c.place(a, 0, 0))
+	assert_true(c.incomplete_items(a).is_empty(), "com um dado já pode terminar o turno")
+	var pick := EnemyAI.best_dice(a, "forjamento", [])
+	assert_eq(pick.size(), 2, "a IA atira todos os 1")
 
 
 func test_golpe_para_a_foto():

@@ -102,12 +102,19 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 
 ## Buracos no cartão: um por dado pedido; o Ajuste Fino tem dois (+1 e −1), para um dado só.
 static func hole_count(spell: String) -> int:
-	return 2 if str(Spells.get_def(spell).get("mod", "")) == "nudge" else Spells.dice_needed(spell)
+	if Spells.is_flex(spell):
+		return 1 ## Forjamento: um buraco com contador.
+	return 2 if two_slots(spell) else Spells.dice_needed(spell)
+
+
+## Dois buracos para um dado só, cada um uma escolha (Ajuste Fino: +1 ou −1).
+static func two_slots(spell: String) -> bool:
+	return str(Spells.get_def(spell).get("mod", "")) == "nudge"
 
 
 func _joiner() -> Label:
 	var t := "=" if str(Spells.get_def(id).req) in ["pair", "trio"] else "›"
-	if hole_count(id) != Spells.dice_needed(id):
+	if two_slots(id):
 		t = Texts.t("ui.or")
 	var j := Kit.label(t, 20 if t.length() < 2 else 15, Hole.REQ_COLOR)
 	j.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -212,17 +219,21 @@ func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top
 	tag_label.text = "  ".join(tags)
 	tag_label.add_theme_color_override("font_color", Kit.MUTED if is_used else Kit.ACCENT)
 	var accepts := sel >= 0 and sel_ok and not is_used and Spells.accepts_partial(id, values, sel, sel_top)
-	var two := hole_count(id) != Spells.dice_needed(id) ## Ajuste Fino: os dois buracos acendem.
+	var two := two_slots(id) ## Ajuste Fino: os dois buracos acendem.
+	var flex := Spells.is_flex(id)
 	for k in holes.size():
 		var h: Hole = holes[k]
-		if k < values.size():
-			h.set_die(int(values[k]), elements[k] if k < elements.size() else "", float(heats[k]) if k < heats.size() else 0.0)
-			var mk: Array = marks[k] if k < marks.size() else [0, 0]
+		# Forjamento: o buraco mostra o último dado posto e o contador (×N).
+		var j := values.size() - 1 if flex else k
+		if j >= 0 and j < values.size():
+			h.set_die(int(values[j]), elements[j] if j < elements.size() else "", float(heats[j]) if j < heats.size() else 0.0)
+			var mk: Array = marks[j] if j < marks.size() else [0, 0]
 			h.set_marks(int(mk[0]), int(mk[1]))
 		else:
 			h.clear_die()
+		h.stack = values.size() if flex else 0
 		h.req = _req_text(values, k)
-		h.lit = accepts and (k == values.size() or two) and not (two and k == 1 and sel <= 1)
+		h.lit = accepts and (k == values.size() or two or flex) and not (two and k == 1 and sel <= 1)
 		h.queue_redraw()
 	var col: Color = FX_COLORS.get(Spells.color_family(id), Kit.TEXT)
 	var ready := Spells.complete(id, values, tops)
@@ -378,7 +389,12 @@ static func preview_text(f: Fighter, i: int, values: Array) -> String:
 			for e in f.hand:
 				if int(e.bag) != -2 and int(e.value) == 1:
 					ones += 1
+			if d.has("cap"):
+				ones = mini(ones, int(d.cap))
 			s = Texts.t("ui.pv_dmg", {"n": Config.scale(int(d.get("per", 1)) * ones, lvl) + bonus})
+		"pelt":
+			var each := lvl + bonus
+			s = Texts.t("ui.pv_multi", {"list": " + ".join(PackedStringArray(values.map(func(_x): return str(each))))})
 		"encore":
 			s = Texts.t("ui.pv_encore", {"n": Config.scale(total, lvl) + bonus})
 		"steal_sticker":

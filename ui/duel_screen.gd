@@ -786,6 +786,8 @@ func _refresh_tray() -> void:
 		var ins := choice.dice_in(c.item)
 		for k in c.holes.size():
 			c.holes[k].index = int(ins[k]) if k < ins.size() else -1
+			if Spells.is_flex(c.id) and not ins.is_empty():
+				c.holes[k].index = int(ins.back()) ## Tocar tira o último posto.
 		var sel_ok := selected >= 0 and choice.available(p, c.item) and TurnChoice.die_allowed(p, c.item, selected)
 		c.refresh(vals, els, sel if (dragging >= 0 or not (selected in used)) else -1, choice.tops_in(p, c.item), sel_top, heats,
 			sel_ok, sel_die, sel_plus, marks)
@@ -880,7 +882,7 @@ func _drop_card_slot(_at: Vector2, data: Variant, item: int, slot: int) -> void:
 ## Buraco k do cartão como "slot" do motor (só o Ajuste Fino usa).
 func _slot_for(item: int, k: int) -> int:
 	var id: String = duel.player.inventory.items[item].id
-	return k if SpellCard.hole_count(id) != Spells.dice_needed(id) else 0
+	return k if SpellCard.two_slots(id) else 0
 
 
 func _can_drop_tray(_at: Vector2, data: Variant) -> bool:
@@ -929,7 +931,8 @@ func move_die(h: int, item: int, slot := 0) -> bool:
 func _on_card_hole(hole: Hole, item: int) -> void:
 	if phase != "player" or busy or _just_dragged():
 		return
-	if hole.has_die and hole.index >= 0 and hole.index in choice.dice_in(item):
+	var flex := Spells.is_flex(duel.player.inventory.items[item].id)
+	if hole.has_die and hole.index >= 0 and hole.index in choice.dice_in(item) and not (flex and selected >= 0):
 		summary = []
 		choice.remove_die(hole.index, duel.player)
 		selected = -1
@@ -1029,7 +1032,7 @@ func _resolve_anim(item: int, dice: Array, prev: Array, slot: int) -> void:
 		_refresh_tray()
 		return
 	busy = true
-	var two := SpellCard.hole_count(c.id) != Spells.dice_needed(c.id)
+	var two := SpellCard.two_slots(c.id)
 	for k in dice.size():
 		var hk := slot if two else mini(k, c.holes.size() - 1)
 		var tv := _tray_view(int(dice[k]))
@@ -1479,7 +1482,7 @@ func _enemy_mod(ev: Dictionary) -> void:
 		+ " ".join(PackedStringArray(to.filter(func(x): return int(x) > 0).map(func(x): return str(x)))))
 	if ec == null:
 		return
-	var two := SpellCard.hole_count(ec.id) != Spells.dice_needed(ec.id)
+	var two := SpellCard.two_slots(ec.id)
 	var slot := 1 if two and not to.is_empty() and int(to[0]) < int(from[0]) else 0
 	for k in dice.size():
 		var h := int(dice[k])

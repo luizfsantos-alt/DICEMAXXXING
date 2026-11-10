@@ -389,7 +389,15 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 			for e in f.hand:
 				if int(e.bag) != -2 and int(e.value) == 1:
 					ones += 1
+			if def.has("cap"):
+				ones = mini(ones, int(def.cap)) ## Levantar Peso: até 3 dados contam.
 			hit(foe, f, Config.scale(int(def.get("per", 1)) * ones, lvl) + dmg_bonus(f), ev)
+		"pelt":
+			# Forjamento: cada dado de valor 1 é atirado no inimigo, 1 de dano por golpe.
+			for _v in values:
+				if foe.hp <= 0:
+					break
+				hit(foe, f, lvl + dmg_bonus(f), ev) ## 1 / 2 / 3 por golpe, pelo nível.
 		"top_x":
 			hit(foe, f, Config.scale(int(values.max()) * mult, lvl) + dmg_bonus(f), ev)
 		"encore":

@@ -25,7 +25,8 @@ const DATA := {
 	},
 	"metallurgist": {
 		"hp": 100, "grid": Vector2i(5, 2), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Pb", "Pb", "Pb"],
-		"spells": [["peso", 0, 0, 0, 2], ["estocada", 1, 0, 0, 1], ["virar", 2, 0, 0, 1], ["lingotamento", 3, 0, 0, 1]],
+		"spells": [["peso", 0, 0, 0, 2], ["estocada", 1, 0, 0, 1], ["virar", 2, 0, 0, 1], ["lingotamento", 3, 0, 0, 1],
+			["forjamento", 0, 1, 0, 1]],
 	},
 	"copyist": {
 		"hp": 80, "grid": Vector2i(4, 2), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Hg"],

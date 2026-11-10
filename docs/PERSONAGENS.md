@@ -396,3 +396,5 @@ A parada deixou de ser "escolha uma": as 3 paradas sorteadas ficam abertas até 
 Ajuste (0.17.1): a Cura da parada vale **metade para o Vampiro** (17,5% da vida máxima; a Sede continua dando +1). Vampiro no andar 10: 50 → 46% (andar 30: 10,5 → 9%).
 
 Ajuste (0.17.2): a vida máxima da **Sede vem vazia** (antes enchia junto). Vampiro: andar 10 46 → 40%, andar 20 28 → 26%, andar 30 9 → 10,5%.
+
+Ajuste (0.22.1): o Lingotamento (no kit) com o Levantar Peso levava o Metalurgista a 76% no andar 10. Levantar Peso passou a contar no máximo 3 dados de valor 1 e a valer 2× por luta; o **Forjamento** (no kit) atira quantos 1 houver, 1 de dano cada. Metalurgista no andar 10 (150 jornadas): 47% (0.21) → 76% (0.22.0) → 30% (0.22.1).
