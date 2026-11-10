@@ -27,8 +27,8 @@ extends RefCounted
 ## recebido, acumula até Config.SKIN_CAP + nível − 1), riposte, immune, cleanse, recycle, debuff (só "hand_mod"), dodge, mirror, heal,
 ## maxhp, sacrifice, drain (dano = valor, cura metade), feast (dano = soma, cura o
 ## menor). "heal" usa "mult". synth (Síntese: cura valor − 1 e bloqueio valor − 1),
-## antithesis (Antítese: dano = valor × "mult" no inimigo; valor de dano em quem usa, antes
-## de todas as magias do turno: "self_first").
+## antithesis (Antítese: dano = valor × "mult" no inimigo; valor × ANTITHESIS_SELF de dano em
+## quem usa, antes de todas as magias do turno: "self_first").
 ## mod: mexida (docs/SPEC_v3.1.md §1): resolve na alocação, quando o buraco fica completo
 ## (TurnChoice), e devolve o dado mexido à mão. "mod" diz qual: reroll_max, nudge, top,
 ## split3, flip, avg, polar, echo, double, fuse, stairs, gamble, polish, insight (o dado
@@ -148,6 +148,7 @@ const DATA := {
 ## Mexidas na próxima mão do inimigo (Resolver.apply_hand_mods).
 const HAND_MODS := ["steal_top", "idle_dmg", "even_to_one", "minus2", "minus1", "halve", "top_to_one"]
 const IDLE_DMG := 2 ## Expectativa Tóxica: dano por dado parado.
+const ANTITHESIS_SELF := 2 ## Antítese: dano em quem usa = valor × isto (calibrado: docs/XAMA.md §9).
 const ENCORE_MAX := 5 ## Bis!: no máximo 5 rolagens extras.
 
 ## Kits iniciais: engine/characters.gd.

@@ -226,7 +226,7 @@
   ],
   "antitese": [
    "Antítese",
-   "Dano igual ao valor ×2. Você perde vida igual ao valor, antes de todas as magias do turno (não é golpe; nunca deixa menos de 1)."
+   "Dano igual ao valor ×2. Você perde vida igual ao valor ×2, antes de todas as magias do turno (não é golpe; nunca deixa menos de 1)."
   ],
   "segunda": [
    "Segunda Chance",
@@ -829,7 +829,7 @@
   "muralha": "Bloqueio = 4 × cada 3 na mão",
   "cerrar": "Cura = valor ×3",
   "sintese": "Cura e bloqueio = valor −1",
-  "antitese": "Dano = valor ×2; você perde o valor",
+  "antitese": "Dano = valor ×2; você perde valor ×2",
   "segunda": "Rola de novo, fica o maior",
   "ajuste": "+1 ou −1 no dado",
   "pico": "Dado vai à face máxima",
@@ -891,7 +891,7 @@
   "muralha": "Bloqueio = {4} × cada 3 na mão",
   "cerrar": "Cura = valor ×{3}",
   "sintese": "Cura e bloqueio = (valor −1) ×{1}",
-  "antitese": "Dano = valor ×{2}; você perde o valor",
+  "antitese": "Dano = valor ×{2}; você perde valor ×2",
   "espelho": "Reflete o próximo golpe ×{1}",
   "esquiva": "Anula o próximo golpe; vira bloqueio ×{-1}",
   "esquiva_mais": "Anula o próximo golpe; vira bloqueio ×{-1}",

@@ -95,19 +95,19 @@ func test_antitese_fere_antes_de_tudo_e_ignora_o_proprio_bloqueio():
 	H.hand(s, [6, 4])
 	var ev := H.cast(s, e, {"sintese": [0], "antitese": [1]})
 	assert_eq(str(ev.filter(func(x): return x.t in ["self_dmg", "cast"])[0].t), "self_dmg", "o dano em si vem antes")
-	assert_eq(s.hp, 75, "perde 4 (ignora o bloqueio) e cura 5 depois")
-	# Inimigo: 4 da cura efetiva + 8 da Antítese + 5 da marca da Síntese (outro efeito).
-	assert_eq(e.hp, 60 - 4 - 8 - 5)
+	assert_eq(s.hp, 72, "perde 8 (4 ×2, ignora o bloqueio) e cura 5 depois")
+	# Inimigo: 5 da cura efetiva + 8 da Antítese + 5 da marca da Síntese (outro efeito).
+	assert_eq(e.hp, 60 - 5 - 8 - 5)
 	assert_eq(e.sigil, 0, "a Antítese quebrou a marca")
 
 
 func test_antitese_nunca_deixa_menos_de_1():
-	var p := _pair(3)
+	var p := _pair(10)
 	H.hand(p[0], [6])
 	var ev := H.cast(p[0], p[1], {"antitese": [0]})
-	assert_eq(p[0].hp, 1)
+	assert_eq(p[0].hp, 1, "perderia 12: fica com 1")
 	assert_eq(p[1].hp, 48, "12 de dano no inimigo")
-	assert_eq(int(ev.filter(func(x): return x.t == "self_dmg")[0].n), 2)
+	assert_eq(int(ev.filter(func(x): return x.t == "self_dmg")[0].n), 9)
 	p[0].hp = 1
 	H.hand(p[0], [5])
 	ev = H.cast(p[0], p[1], {"antitese": [0]})
@@ -171,6 +171,7 @@ func test_o_efeito_que_marcou_nao_quebra_a_propria_marca():
 	H.cast(s, e, {"antitese": [0]})
 	assert_eq(e.sigil, 0)
 	assert_eq(e.hp, 55 - 6 - 3)
+	assert_eq(s.hp, 55 - 6, "a Antítese tira 3 ×2 do Xamã")
 
 
 func test_veneno_e_queima_quebram_a_marca():
@@ -260,4 +261,4 @@ func test_previa_da_sintese_mostra_o_dano_efetivo():
 	assert_true("cura 5" in t, t)
 	assert_true("2 de dano" in t, "só faltam 2: " + t)
 	var a := SpellCard.preview_text(s, H.item(s, "antitese"), [4])
-	assert_true("8 de dano" in a and "você −4" in a, a)
+	assert_true("8 de dano" in a and "você −8" in a, a)

@@ -1,6 +1,9 @@
 ARTES PENDENTES (pacote do Xamã, versão 0.25.1)
 ================================================
 
+ENTREGUES na 0.25.1: itens 1 a 6 (fotos do Xamã, da Alquimista e do Reator e o ícone
+do Marcado). Faltam só os opcionais 7 e 8.
+
 Ao todo: 6 artes obrigatórias + 2 opcionais.
 Coloque cada arquivo no caminho indicado. As fotos do Xamã precisam de uma linha no código
 (tirar "shaman" de Portrait.PENDING_ART em ui/portrait.gd); o resto o jogo usa sozinho,

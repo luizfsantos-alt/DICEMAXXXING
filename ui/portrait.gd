@@ -15,7 +15,7 @@ const COLORS := {
 }
 const ART_DIR := "res://assets/portraits/"
 ## Arquétipos ainda sem as fotos (docs/ARTE_FALTANDO.md): usam a silhueta na cor de COLORS.
-const PENDING_ART := ["shaman"]
+const PENDING_ART := []
 const VARIATIONS := 3
 const BG := Color(0.0, 0.0, 0.0) ## Igual ao fundo da arte, para emendar.
 const FRAMES := {true: "frame_player.png", false: "frame_enemy.png"}

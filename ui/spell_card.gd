@@ -520,7 +520,7 @@ static func preview_text(f: Fighter, i: int, values: Array) -> String:
 				# Correspondência: só a cura efetiva (o que falta de vida agora) vira dano.
 				s += " · " + Texts.t("ui.pv_dmg", {"n": mini(sv, f.max_hp - f.hp)}).trim_prefix("→ ")
 		"antithesis":
-			s = Texts.t("ui.pv_dmg", {"n": Config.scale(total * mult, lvl) + bonus}) + " · " + Texts.t("ui.pv_self", {"n": mini(total, f.hp - 1)})
+			s = Texts.t("ui.pv_dmg", {"n": Config.scale(total * mult, lvl) + bonus}) + " · " + Texts.t("ui.pv_self", {"n": mini(total * Spells.ANTITHESIS_SELF, f.hp - 1)})
 		"drain":
 			s = Texts.t("ui.pv_dmg", {"n": Config.scale(total, lvl) + bonus}) + " · " + Texts.t("ui.pv_heal", {"n": Config.ceil_div(Config.scale(total, lvl), 2)}).trim_prefix("→ ")
 		"feast":

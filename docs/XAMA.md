@@ -142,3 +142,18 @@ segunda Síntese, outra magia, quebra.
 - **Várias marcas, um efeito:** o monte de marcas guarda o último efeito que pôs marca. Se um
   efeito novo marca por cima de marcas antigas que ainda não quebraram, só um efeito diferente
   quebra o monte todo.
+
+## 9. Calibração (0.25.1)
+
+Simulador (`sim/simulate.gd`, bot novo, porta pela vida), vitória até o andar:
+
+| Versão | Andar 10 | Andar 20 | Andar 30 |
+|---|---|---|---|
+| 0.25.0 (Antítese tira o valor) | 78,5% | 61% | 22,5% |
+| **0.25.1 (Antítese tira o valor ×2)** | **48%** | **38%** | **9%** |
+| Os outros 5 jogáveis | 25–50% | 6–18% | 1–5,5% |
+
+Decisão: o Xamã pode ser o melhor, mas não por 4× (era 22,5% contra 5,5% do Vampiro). Com o
+dano em si ×2 a Antítese tem custo de verdade e a Síntese é o que segura a vida. Testados e
+descartados: Síntese d − 2, Antítese ×1,5, vida 70 (juntos: 13%), Marcado só da Síntese
+(19%) ou com teto 10 (15%), Síntese dividida (1,3%) e Síntese 2× por luta (3,3%).

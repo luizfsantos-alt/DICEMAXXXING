@@ -340,7 +340,8 @@ static func cast_all(f: Fighter, foe: Fighter, choice: TurnChoice, ev: Array, rn
 		push(ev, {"t": "mod", "side": side(f), "spell": str(it.id), "item": item, "dice": m.dice.duplicate(),
 			"from": from, "to": to, "random": bool(m.random)})
 	used.append_array(choice.spent_dice())
-	# Antítese: o dano em quem usa vem antes de todas as magias (não é golpe; deixa 1).
+	# Antítese: o dano em quem usa (valor × 2) vem antes de todas as magias (não é golpe;
+	# deixa 1).
 	for item in choice.ready_items(f):
 		var sid := str(f.inventory.items[item].id)
 		if not bool(Spells.get_def(sid).get("self_first", false)):
@@ -348,7 +349,7 @@ static func cast_all(f: Fighter, foe: Fighter, choice: TurnChoice, ev: Array, rn
 		var n := 0
 		for h in choice.dice_in(item):
 			n += int(f.hand[h].value)
-		n = mini(n, f.hp - 1)
+		n = mini(n * Spells.ANTITHESIS_SELF, f.hp - 1)
 		if n > 0:
 			_new_effect()
 			f.hp -= n

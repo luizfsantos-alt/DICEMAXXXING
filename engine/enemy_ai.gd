@@ -246,7 +246,7 @@ static func estimate(f: Fighter, item: int, values: Array) -> float:
 				s += minf(sv, float(f.max_hp - f.hp)) + sv * 0.8
 		"antithesis":
 			# O dano em si é custo; pesa mais com pouca vida.
-			s = total * mult - total * (1.0 if f.hp * 2 < f.max_hp else 0.4)
+			s = total * mult - total * Spells.ANTITHESIS_SELF * (1.0 if f.hp * 2 < f.max_hp else 0.4)
 		"maxhp":
 			s = lo * 0.8
 		"dodge", "mirror":
