@@ -72,7 +72,7 @@ O **Vampiro** e o **Bárbaro** mexem os dois com vida, em direções opostas: o 
 
 | Regra | Como aparece aqui |
 |---|---|
-| **Ninguém começa com defesa** | Nenhum kit tem bloqueio, Esquiva ou Espelho. O Vampiro cura causando dano; o Bárbaro tem uma cura limitada (2× por luta). |
+| **Ninguém começa com defesa** (só os personagens desta rodada; o Xamã, `docs/XAMA.md`, começa com bloqueio de propósito) | Nenhum kit tem bloqueio, Esquiva ou Espelho. O Vampiro cura causando dano; o Bárbaro tem uma cura limitada (2× por luta). |
 | Passiva simples | Uma linha de regra cada (a do Metalurgista e a do Vampiro têm duas frases curtas). |
 | Inimigos com as mesmas regras | Cada arquétipo também aparece como inimigo, com a mesma passiva, a mesma bolsa e o mesmo inventário (seção 3). |
 | A loja é a mesma para todos | O formato do inventário filtra o que cabe. A única exceção é o Chumbo do Metalurgista. |
