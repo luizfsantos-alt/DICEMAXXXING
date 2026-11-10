@@ -786,8 +786,6 @@ func _refresh_tray() -> void:
 		var ins := choice.dice_in(c.item)
 		for k in c.holes.size():
 			c.holes[k].index = int(ins[k]) if k < ins.size() else -1
-			if Spells.is_flex(c.id) and not ins.is_empty():
-				c.holes[k].index = int(ins.back()) ## Tocar tira o último posto.
 		var sel_ok := selected >= 0 and choice.available(p, c.item) and TurnChoice.die_allowed(p, c.item, selected)
 		c.refresh(vals, els, sel if (dragging >= 0 or not (selected in used)) else -1, choice.tops_in(p, c.item), sel_top, heats,
 			sel_ok, sel_die, sel_plus, marks)
@@ -931,8 +929,7 @@ func move_die(h: int, item: int, slot := 0) -> bool:
 func _on_card_hole(hole: Hole, item: int) -> void:
 	if phase != "player" or busy or _just_dragged():
 		return
-	var flex := Spells.is_flex(duel.player.inventory.items[item].id)
-	if hole.has_die and hole.index >= 0 and hole.index in choice.dice_in(item) and not (flex and selected >= 0):
+	if hole.has_die and hole.index >= 0 and hole.index in choice.dice_in(item):
 		summary = []
 		choice.remove_die(hole.index, duel.player)
 		selected = -1
@@ -998,8 +995,28 @@ func place(h: int, item: int, slot := 0) -> bool:
 	if choice.mods.has(item) or choice.spawned.has(item):
 		_resolve_anim(item, before, prev, slot)
 		return true
+	if Spells.is_flex(id) and not fast and is_inside_tree():
+		_flex_bounce(_card_of(cards, item))
+		return true
 	_refresh_tray()
 	return true
+
+
+## Forjamento: ao receber um dado, o cartão some como se tivesse sido usado e volta
+## logo em seguida, com o buraco vazio e o contador atualizado.
+func _flex_bounce(c: SpellCard) -> void:
+	if c == null:
+		_refresh_tray()
+		return
+	var tw := c.create_tween()
+	tw.tween_property(c, "modulate:a", 0.0, 0.16)
+	await tw.finished
+	if not is_inside_tree():
+		return
+	_refresh_tray() ## O cartão volta com a transparência que o estado pede.
+	var target := c.modulate.a
+	c.modulate.a = 0.0
+	c.create_tween().tween_property(c, "modulate:a", target, 0.22)
 
 
 ## Nome da causa de um dado mexido: magia, elemento, mexida do inimigo ou Mestre.

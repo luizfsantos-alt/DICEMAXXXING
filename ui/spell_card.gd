@@ -25,6 +25,7 @@ var name_label: Label
 var tag_label: Label
 var fx_label: Label
 var preview: Label
+var count_label: Label ## Forjamento: quantos dados já foram postos (fora do buraco).
 var icon_rect: TextureRect
 var _hi := Color.TRANSPARENT ## Borda de destaque desenhada por cima da moldura (textura).
 var _hi_w := 0
@@ -64,6 +65,15 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 		var h := Hole.new().set_interactive(false).setup(hole_px)
 		hrow.add_child(h)
 		holes.append(h)
+	if Spells.is_flex(id):
+		# Forjamento: o buraco fica sempre vazio; o contador, ao lado, conta os dados postos.
+		count_label = Kit.label("", 26, Kit.ACCENT)
+		count_label.add_theme_font_override("font", Kit.num_font())
+		count_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+		count_label.add_theme_constant_override("outline_size", 5)
+		count_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		count_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hrow.add_child(count_label)
 	if compact:
 		var row := Kit.hbox(8)
 		add_child(row)
@@ -223,18 +233,18 @@ func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top
 	var flex := Spells.is_flex(id)
 	for k in holes.size():
 		var h: Hole = holes[k]
-		# Forjamento: o buraco mostra o último dado posto e o contador (×N).
-		var j := values.size() - 1 if flex else k
+		var j := -1 if flex else k ## Forjamento: o buraco fica vazio para o próximo dado.
 		if j >= 0 and j < values.size():
 			h.set_die(int(values[j]), elements[j] if j < elements.size() else "", float(heats[j]) if j < heats.size() else 0.0)
 			var mk: Array = marks[j] if j < marks.size() else [0, 0]
 			h.set_marks(int(mk[0]), int(mk[1]))
 		else:
 			h.clear_die()
-		h.stack = values.size() if flex else 0
-		h.req = _req_text(values, k)
+		h.req = _req_text(values, k) if not flex else str(int(Spells.get_def(id).v))
 		h.lit = accepts and (k == values.size() or two or flex) and not (two and k == 1 and sel <= 1)
 		h.queue_redraw()
+	if count_label != null:
+		count_label.text = "×%d" % values.size() if not values.is_empty() else ""
 	var col: Color = FX_COLORS.get(Spells.color_family(id), Kit.TEXT)
 	var ready := Spells.complete(id, values, tops)
 	modulate.a = 1.0

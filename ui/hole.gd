@@ -28,7 +28,6 @@ var floor_hidden := false ## Só o dado, sem o buraco (dado voando).
 var orig := -1
 var badge := ""
 var badge_color := Color(0.76, 0.65, 1.0)
-var stack := 0 ## Forjamento: quantos dados já estão no buraco (contador "×N" acima de 1).
 
 ## Selo curto de cada causa: mexidas do inimigo, Alquimista, elementos e as suas mexidas.
 const BADGES := {
@@ -103,7 +102,6 @@ func _process(_delta: float) -> void:
 
 func clear_die() -> void:
 	has_die = false
-	stack = 0
 	stickers = 0
 	gold = 0
 	orig = -1
@@ -164,13 +162,6 @@ func _draw() -> void:
 		draw_style_box(_sb(Color(0, 0, 0, 0.45), rad), Rect2(d.position + Vector2(0, s * 0.12), d.size))
 	DieFace.draw(self, d, value, element, 0.6 if faded else 0.0, heat, Time.get_ticks_msec() / 1000.0)
 	DieFace.marks(self, d, stickers, gold, 0.6 if faded else 0.0)
-	if stack > 1:
-		var fs2 := maxi(16, int(s * 0.36))
-		var t := "×%d" % stack
-		var w := font.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs2).x
-		var box := Rect2(d.position + Vector2(-4, -6), Vector2(w + 10, fs2 + 6))
-		draw_style_box(_sb(Kit.ACCENT.darkened(0.55), int((fs2 + 6) * 0.5), 2, Kit.ACCENT), box)
-		draw_string(font, box.position + Vector2(5, fs2 + 1), t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, Color.WHITE)
 	if raised:
 		draw_style_box(_sb(Color.TRANSPARENT, int(rad * 0.85) + 2, 4, Kit.ACCENT), d.grow(3))
 	_draw_cause(d, font, s)
