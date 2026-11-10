@@ -1,0 +1,127 @@
+ARTES PENDENTES (pacote do Xamã, versão 0.25.1)
+================================================
+
+Ao todo: 6 artes obrigatórias + 2 opcionais.
+Coloque cada arquivo no caminho indicado. As fotos do Xamã precisam de uma linha no código
+(tirar "shaman" de Portrait.PENDING_ART em ui/portrait.gd); o resto o jogo usa sozinho,
+assim que o arquivo existir.
+
+
+------------------------------------------------------------------------
+FORMATO DAS FOTOS (itens 1 a 5)
+------------------------------------------------------------------------
+- Uns 566 x 400 px, PNG RGB, fundo preto liso (o jogo emenda com preto).
+- Busto de três quartos. O rosto fica um pouco à esquerda do centro, em uns 45% da
+  largura (a foto é cortada nesse ponto em telas menores).
+- Pixel art detalhada, mesma luz e acabamento das fotos que já existem (Vampiro,
+  Bárbaro, Porteiro de Chumbo).
+- Final comum para todos os prompts abaixo:
+  "detailed pixel art, three-quarter bust portrait, dramatic rim lighting, dark fantasy
+  roguelike character art, solid pure black background, no text, no frame"
+
+
+------------------------------------------------------------------------
+1. XAMÃ, variação 1
+   Arquivo: assets/portraits/shaman_1.png
+------------------------------------------------------------------------
+Cego. A diferença para o Bárbaro (que já tem dreads, pintura e crânio): nada de
+crânio, de pintura de guerra nem de cara de luta. É calmo, místico, de olhos vendados.
+Cores dele no jogo: verde-água (#5fe0cc) e cobre (#c8682e).
+
+Prompt:
+blind shaman, serene expression, eyes covered by a woven cloth blindfold, copper
+jewelry and bracelets with green verdigris patina, teal and copper color palette,
+holding a small copper hourglass, hermetic symbol of two opposing triangles pendant,
+faint teal glow, robe of layered fabrics
+
+
+------------------------------------------------------------------------
+2. XAMÃ, variação 2
+   Arquivo: assets/portraits/shaman_2.png
+------------------------------------------------------------------------
+Mesmo personagem, outra versão (outra pessoa, como nas variações dos outros).
+
+Prompt:
+blind elderly shaman woman, milky white unseeing eyes, long grey braids with copper
+rings, verdigris-stained copper torque necklace, one hand raised palm up and the other
+palm down ("as above, so below"), teal and copper palette, faint teal mist between the
+hands
+
+
+------------------------------------------------------------------------
+3. XAMÃ, variação 3
+   Arquivo: assets/portraits/shaman_3.png
+------------------------------------------------------------------------
+Prompt:
+young blind shaman, eyes bound with a strip of copper-embroidered cloth, hooded
+mantle, copper mask fragments with green patina, small brass-and-copper scale of
+balance hanging from the belt, teal and copper palette, soft glowing runes on the skin
+
+
+------------------------------------------------------------------------
+4. A ALQUIMISTA (Mestre do andar 20)
+   Arquivo: assets/portraits/alquimista_1.png
+------------------------------------------------------------------------
+Hoje usa a foto do Copista. Bolsa cheia de Mercúrio; troca o seu maior dado com o
+menor dela. Tom de chefe: mais imponente e ameaçadora que um inimigo comum.
+
+Prompt:
+the Alchemist, imposing female alchemist boss, silver liquid mercury flowing between
+her fingers and around her like a living ribbon, leather apron over an ornate dark
+coat, brass goggles pushed up on the forehead, glass vials of quicksilver on the belt,
+cold silver and purple palette, sly confident smile
+
+
+------------------------------------------------------------------------
+5. O REATOR (Mestre do andar 30, último chefe)
+   Arquivo: assets/portraits/reator_1.png
+------------------------------------------------------------------------
+Hoje usa a foto do Bárbaro. Bolsa cheia de Urânio; dado parado envenena quem rolou.
+É o chefe final: o mais assustador de todos.
+
+Prompt:
+the Reactor, massive final boss, hulking figure in cracked iron and lead armor with a
+glowing uranium core in the chest, radioactive green light leaking from the cracks,
+toxic green fumes, scarred face lit from below by the green glow, menacing, sickly
+green and black palette
+
+
+------------------------------------------------------------------------
+6. ÍCONE DE STATUS: MARCADO (olho)
+   Arquivo: assets/icons/status/sigil.png
+------------------------------------------------------------------------
+- 64 x 64 px, PNG com fundo transparente (recortado).
+- Mesmo estilo dos outros ícones de status (o punho da Fúria, o dado do Guardado):
+  pixel art grossa, contorno escuro, um objeto só, legível pequeno.
+- Hoje há um provisório (um alvo verde-água). Basta substituir o arquivo.
+
+Prompt:
+single pixel art game icon, a mystical open eye, teal iris (#5fe0cc) with a glowing
+copper pupil, thick dark outline, small rune marks around the eye, chunky pixel
+shading, transparent background, centered, readable at small size, no text
+
+
+------------------------------------------------------------------------
+OPCIONAIS (o jogo funciona sem)
+------------------------------------------------------------------------
+Hoje a Síntese usa o ícone genérico de cura e a Antítese o de dano. Se fizer estes,
+eu ligo no código (uma linha).
+
+7. Ícone da Síntese
+   Arquivo: assets/icons/fx/synth.png (64 x 64, fundo transparente)
+   Prompt: single pixel art game icon, two hands cupped together holding a small
+   teal flame and a small copper shield merged into one, thick dark outline,
+   transparent background, no text
+
+8. Ícone da Antítese
+   Arquivo: assets/icons/fx/antithesis.png (64 x 64, fundo transparente)
+   Prompt: single pixel art game icon, a double-headed arrow pointing up and down,
+   one head red, one head teal, cracked in the middle, thick dark outline,
+   transparent background, no text
+
+
+------------------------------------------------------------------------
+DEPOIS DE GERAR
+------------------------------------------------------------------------
+- Fundo para recortar (ícones): tools/recortar_fundo.py.
+- Mande as imagens na conversa ou suba na branch nos caminhos acima.
