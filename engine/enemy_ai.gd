@@ -8,7 +8,7 @@ const PERSONALITIES := ["bruto", "cauteloso", "caotico"]
 const SPAWN := ["forca", "imitacao"]
 const OFFENSE := ["foto", "matematica", "bigorna", "obra", "sombras", "meteoro", "bola", "expectativa", "anatomia",
 	"fisica", "velocidade", "bis", "banquete", "machadada", "peso", "plagio", "arrancar", "impulso", "corte",
-	"sacrificio", "mordida", "dardo", "estocada", "faisca", "forjamento"]
+	"sacrificio", "mordida", "dardo", "estocada", "faisca", "forjamento", "charada"]
 const DEBUFF := ["interrupcao", "chave", "meia_verdade", "roubar_cena"]
 const DEFENSE := ["esquiva_mais", "esquiva", "recuo", "espelho", "imune", "revide", "armadura", "escudo", "presenca",
 	"pele", "rasteira", "muralha", "mare_cheia", "concentrar", "pose", "suor", "cerrar", "remendo", "transfusao", "improviso"]
@@ -208,6 +208,11 @@ static func estimate(f: Fighter, item: int, values: Array) -> float:
 			s = float(def.get("per", 1)) * ones
 		"pelt":
 			s = float(values.size())
+		"riddle":
+			var have := {}
+			for v in f.riddle_values(f.inventory.ids().find("charada")) + values:
+				have[int(v)] = true
+			s = float(Config.RIDDLE_DMG) if have.size() >= 6 else values.size() * 3.0
 		"top_x":
 			s = hi * mult
 		"encore":
@@ -273,6 +278,12 @@ static func _priority(f: Fighter, foe: Fighter, id: String) -> int:
 	elif id in DEFENSE:
 		base = 50 - DEFENSE.find(id) * 2
 	match id:
+		"charada":
+			# Com os valores que faltam na mão, resolver a charada vem antes de tudo.
+			var have: Array = f.riddle_values(f.inventory.ids().find(id))
+			var hand_vals := f.hand_values()
+			if range(1, 7).all(func(v): return v in have or v in hand_vals):
+				return 300
 		"remendo", "cerrar":
 			# A Sede do Vampiro aproveita a cura com a vida cheia.
 			if f.hp >= f.max_hp and f.archetype != "vampire":
@@ -329,6 +340,16 @@ static func best_dice(f: Fighter, id: String, taken: Array, item := -1) -> Array
 				for j in range(i + 1, free.size()):
 					if f.hand[free[i]].value == f.hand[free[j]].value:
 						return [free[i], free[j]]
+		"riddle":
+			# Um dado de cada valor que ainda falta na Charada (os altos vão para as outras).
+			var have: Array = f.riddle_values(item) if item >= 0 else []
+			var out := []
+			for k in range(free.size() - 1, -1, -1):
+				var v := int(f.hand[free[k]].value)
+				if v >= 1 and v <= 6 and not (v in have):
+					have = have + [v]
+					out.append(free[k])
+			return out
 		"seq3":
 			for i in free.size():
 				var v := int(f.hand[free[i]].value)

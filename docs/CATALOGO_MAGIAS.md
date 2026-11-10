@@ -297,10 +297,11 @@ Saíram da crítica de mecânicas (spec `docs/SPEC_v3.1.md` §1, hoje histórico
 | `escada` | **Escada** | L (3) | Feiticeiro | 3 dados | Sequência a partir do menor (2, 6, 6 → 2, 3, 4). | sempre | Incomum |
 | `tudo_nada` | **Tudo ou Nada** | 1×2 | Feiticeiro | dado que rola | Rola de novo: novo valor ×2, seja qual for. | sempre | Rara |
 | `lapidar` | **Lapidar** | 3×1 | qualquer | um 1 (dado da bolsa, face não travada) | A face vira 6 para sempre; o dado volta valendo 6. | 1× por luta | Rara |
+| `charada` | **Charada Fatal** (Lendária) | 2×2 | Feiticeiro | um dado de cada valor, 1 a 6 | Os dados postos ficam guardados na magia (fora da bolsa) de turno em turno; os guardados aparecem com contorno brasa. Com os seis, causa 40 de dano que ignora as defesas (60 / 80 evoluída) e os dados voltam para a bolsa. Na luta seguinte, recomeça. | sempre | Lendária |
 | `insight` | **Insight** | 1×2 | Feiticeiro | qualquer dado | O dado volta para a bolsa e saem dois dados dela, rolados na hora (pode sair ele mesmo). Aleatória: não se desfaz. Nível: +1 / +2 em cada. | sempre | Incomum |
 | `mare_baixa` | **Maré Baixa, Maré Cheia** | 1×2 | qualquer | qualquer dado | O dado é gasto e entram dois dados provisórios de valor 6 (7 / 8 evoluída). | 1× por luta | Incomum |
 | `forjamento` | **Forjamento** | 2×1 | Metalurgista (no kit inicial) | dados de valor 1, quantos quiser | Um buraco sempre vazio, com o contador (×N) ao lado: aceita um 1 por vez até passar o turno; a cada dado o cartão some e volta. Cada dado é um golpe de 1 (2 / 3 evoluída). | sempre | Comum |
-| `lingotamento` | **Lingotamento** | 2×1 | Metalurgista (no kit inicial) | dado ≤ 6 | O dado vira tantos dados de valor 1 quanto o valor (um 5 vira cinco 1; +1 / +2 evoluída). | 1× por luta | Incomum |
+| `lingotamento` | **Lingotamento** | 2×1 | Metalurgista (no kit inicial) | dado ≤ 6 | O dado vira tantos dados de valor 1 quanto o valor (um 5 vira cinco 1; +1 / +2 evoluída). Cada lingote herda o elemento com 33% de chance (50% / 66% evoluída); os adesivos se perdem. Aleatória: não se desfaz. | 1× por luta | Incomum |
 
 Não é mexida, mas é da mesma família (Maré):
 

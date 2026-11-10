@@ -154,4 +154,4 @@ Hoje: magia 10, dado 6 (+8 com elemento), elemento no Poço 8, venda pela metade
 
 | Tema | Pergunta |
 |---|---|
-| Lendária | Uma 4ª classe (1 a 2% das ofertas) para as magias no limite (Matemática Superior, Golpe para a Foto). Fica para depois. |
+| Lendária | **Implementada (0.23.0)** como 4ª classe, só de magias: 1% das ofertas nos andares 1–3 e 2% depois (`Config.RARITY_WEIGHTS`), preço 28, moldura vermelho-brasa (`assets/ui/card_legendary.png`). A primeira é a **Charada Fatal**. Não há elemento Lendário. A porta insana conta a Lendária como "Rara ou melhor". |

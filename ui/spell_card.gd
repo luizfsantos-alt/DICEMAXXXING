@@ -59,12 +59,24 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 	var hrow := Kit.hbox(6)
 	hrow.alignment = BoxContainer.ALIGNMENT_BEGIN
 	var n := hole_count(id)
-	for k in n:
-		if k > 0:
-			hrow.add_child(_joiner())
-		var h := Hole.new().set_interactive(false).setup(hole_px)
-		hrow.add_child(h)
-		holes.append(h)
+	if riddle():
+		# Charada Fatal: seis buracos, um para cada valor (1 a 6), em duas fileiras.
+		var grid := GridContainer.new()
+		grid.columns = 3
+		grid.add_theme_constant_override("h_separation", 4)
+		grid.add_theme_constant_override("v_separation", 4)
+		for k in n:
+			var h := Hole.new().set_interactive(false).setup(int(hole_px * 0.72))
+			grid.add_child(h)
+			holes.append(h)
+		hrow.add_child(grid)
+	else:
+		for k in n:
+			if k > 0:
+				hrow.add_child(_joiner())
+			var h := Hole.new().set_interactive(false).setup(hole_px)
+			hrow.add_child(h)
+			holes.append(h)
 	if Spells.is_flex(id):
 		# Forjamento: o buraco fica sempre vazio; o contador, ao lado, conta os dados postos.
 		count_label = Kit.label("", 26, Kit.ACCENT)
@@ -115,6 +127,11 @@ static func hole_count(spell: String) -> int:
 	if Spells.is_flex(spell):
 		return 1 ## Forjamento: um buraco com contador.
 	return 2 if two_slots(spell) else Spells.dice_needed(spell)
+
+
+## Charada Fatal: um buraco por valor, os dados guardados de turno em turno.
+func riddle() -> bool:
+	return str(Spells.get_def(id).get("req", "")) == "riddle"
 
 
 ## Dois buracos para um dado só, cada um uma escolha (Ajuste Fino: +1 ou −1).
@@ -179,6 +196,29 @@ func _draw() -> void:
 		draw_style_box(sb, Rect2(Vector2(3, 3), size - Vector2(6, 6)))
 
 
+## Charada Fatal: o buraco k é o do valor k + 1. Mostra o dado posto agora (aceso) ou o
+## guardado de turnos anteriores (apagado); vazio, acende se o selecionado for esse valor.
+func _refresh_riddle(values: Array, elements: Array, heats: Array, marks: Array, stored: Array, sel: int, accepts: bool) -> void:
+	var kept := {}
+	for x in stored:
+		kept[int(x.value)] = str(x.get("element", ""))
+	for k in holes.size():
+		var h: Hole = holes[k]
+		var v := k + 1
+		var j := values.find(v)
+		h.clear_die()
+		h.req = str(v)
+		if j >= 0:
+			h.set_die(v, elements[j] if j < elements.size() else "", float(heats[j]) if j < heats.size() else 0.0)
+			var mk: Array = marks[j] if j < marks.size() else [0, 0]
+			h.set_marks(int(mk[0]), int(mk[1]))
+		elif kept.has(v):
+			h.set_die(v, kept[v])
+			h.kept = true ## Guardado: fica na magia até completar.
+		h.lit = accepts and sel == v and j < 0 and not kept.has(v)
+		h.queue_redraw()
+
+
 ## Texto no fundo do buraco k.
 func _req_text(placed: Array, k: int) -> String:
 	var d := Spells.get_def(id)
@@ -213,7 +253,7 @@ func _req_text(placed: Array, k: int) -> String:
 ## sel_plus: o dado selecionado, para a prévia das mexidas (chance de subir). marks: [+2, ouro]
 ## da face de cada dado posto (selos dos adesivos).
 func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top := false, heats: Array = [],
-		sel_ok := true, sel_die: Die = null, sel_plus := 0, marks: Array = []) -> void:
+		sel_ok := true, sel_die: Die = null, sel_plus := 0, marks: Array = [], stored: Array = []) -> void:
 	var is_used := used()
 	var lvl := int(fighter.inventory.items[item].level)
 	fx_label.text = spell_fx(id, lvl) ## O efeito acompanha o nível (evoluir muda o texto).
@@ -231,7 +271,11 @@ func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top
 	var accepts := sel >= 0 and sel_ok and not is_used and Spells.accepts_partial(id, values, sel, sel_top)
 	var two := two_slots(id) ## Ajuste Fino: os dois buracos acendem.
 	var flex := Spells.is_flex(id)
+	if riddle():
+		_refresh_riddle(values, elements, heats, marks, stored, sel, accepts)
 	for k in holes.size():
+		if riddle():
+			break
 		var h: Hole = holes[k]
 		var j := -1 if flex else k ## Forjamento: o buraco fica vazio para o próximo dado.
 		if j >= 0 and j < values.size():
@@ -402,6 +446,16 @@ static func preview_text(f: Fighter, i: int, values: Array) -> String:
 			if d.has("cap"):
 				ones = mini(ones, int(d.cap))
 			s = Texts.t("ui.pv_dmg", {"n": Config.scale(int(d.get("per", 1)) * ones, lvl) + bonus})
+		"riddle":
+			var have: Array = f.riddle_values(i) + values
+			var miss := []
+			for v in range(1, 7):
+				if not (v in have):
+					miss.append(str(v))
+			if miss.is_empty():
+				s = Texts.t("ui.pv_dmg", {"n": Config.scale(Config.RIDDLE_DMG, lvl) + bonus}) + " · " + Texts.t("ui.pv_pierce")
+			else:
+				s = Texts.t("ui.pv_riddle", {"list": " · ".join(PackedStringArray(miss))})
 		"pelt":
 			var each := lvl + bonus
 			s = Texts.t("ui.pv_multi", {"list": " + ".join(PackedStringArray(values.map(func(_x): return str(each))))})

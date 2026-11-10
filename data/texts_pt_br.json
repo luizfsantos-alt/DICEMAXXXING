@@ -116,6 +116,10 @@
    "Bigorna",
    "Dois dados de valor exatamente 3. Dano igual à soma ×3 (dois 3 = 18). O Ferro sempre vale 3."
   ],
+  "charada": [
+   "Charada Fatal",
+   "Um dado de cada valor, de 1 a 6. Os dados postos ficam guardados na magia (fora da bolsa) de turno em turno. Quando os seis estão lá, causa 40 de dano que ignora as defesas e os dados voltam para a bolsa."
+  ],
   "insight": [
    "Insight",
    "Um dado. Ele volta para a bolsa e saem dois dados dela, rolados na hora (pode sair ele mesmo). Mexida: os dois novos ficam livres para outras magias. Não se desfaz."
@@ -134,7 +138,7 @@
   ],
   "lingotamento": [
    "Lingotamento",
-   "Dado de valor 6 ou menos. Ele vira tantos dados de valor 1 quanto o valor dele (um 5 vira cinco 1). Mexida. Uma vez por luta."
+   "Dado de valor 6 ou menos. Ele vira tantos dados de valor 1 quanto o valor dele (um 5 vira cinco 1). Cada lingote tem 33% de chance de herdar o elemento do dado; os adesivos se perdem. Mexida (não se desfaz). Uma vez por luta."
   ],
   "pele": [
    "Pele de Ferro",
@@ -608,6 +612,7 @@
   "pv_riposte": "revide {n}",
   "pv_skin": "→ revestimento −{n} por golpe",
   "pv_insight": "→ 2 dados da bolsa",
+  "pv_riddle": "faltam: {list}",
   "pv_tide_out": "→ próxima mão: +{n} dados de valor 1",
   "pv_immune": "anula o próximo efeito",
   "pv_cleanse": "→ limpa efeitos",
@@ -617,6 +622,8 @@
   "fx_riposte": "revide!",
   "fx_skin": "Revestimento −{n}",
   "fx_tide_out": "Maré: +{n} dados de 1",
+  "fx_riddle_store": "Charada {n}/6",
+  "fx_riddle_done": "Charada resolvida!",
   "fx_immune": "imune!",
   "pick_master": "Mestre vencido: escolha uma recompensa",
   "pick_master_rare": "Escolha uma magia Rara",
@@ -699,6 +706,8 @@
   "riposte_up": "{who} se prepara para revidar ({n})",
   "skin_up": "{who} ganha revestimento (golpes −{n})",
   "tide_out": "Maré Cheia: {who} terá {n} dados de valor 1 a mais na próxima mão",
+  "riddle_store": "Charada Fatal: {who} guarda os dados ({n}/6)",
+  "riddle_done": "Charada Fatal: {who} resolve a charada",
   "skin": "(revestimento −{n})",
   "immune_up": "{who} fica imune a críticas",
   "immune_block": "{who} ignora o efeito do inimigo",
@@ -784,9 +793,10 @@
   "bigorna": "Dois 3: dano = soma ×3",
   "pele": "Revestimento +1 (golpes −1, até −3)",
   "insight": "Volta à bolsa; saem 2 dados dela",
+  "charada": "1 a 6, guardados: 40 que ignora defesas",
   "mare_baixa": "Vira dois 6 provisórios",
   "mare_cheia": "Próxima mão: +três 1",
-  "lingotamento": "Vira um 1 por ponto do valor",
+  "lingotamento": "Um 1 por ponto; 33% herdam o elemento",
   "muralha": "Bloqueio = 4 × cada 3 na mão",
   "cerrar": "Cura = valor ×3",
   "segunda": "Rola de novo, fica o maior",
@@ -842,10 +852,11 @@
   "machadada": "Dano = valor ×{2}",
   "bigorna": "Dois 3: dano = soma ×{3}",
   "pele": ["Revestimento +1 (golpes −1, até −4)", "Revestimento +1 (golpes −1, até −5)"],
+  "charada": "1 a 6, guardados: {40} que ignora defesas",
   "insight": ["Volta à bolsa; saem 2 dados dela (+1 cada)", "Volta à bolsa; saem 2 dados dela (+2 cada)"],
   "mare_baixa": ["Vira dois 7 provisórios", "Vira dois 8 provisórios"],
   "mare_cheia": ["Próxima mão: +quatro 1", "Próxima mão: +cinco 1"],
-  "lingotamento": ["Vira um 1 por ponto do valor, +1", "Vira um 1 por ponto do valor, +2"],
+  "lingotamento": ["Um 1 por ponto, +1; 50% herdam o elemento", "Um 1 por ponto, +2; 66% herdam o elemento"],
   "muralha": "Bloqueio = {4} × cada 3 na mão",
   "cerrar": "Cura = valor ×{3}",
   "espelho": "Reflete o próximo golpe ×{1}",
@@ -926,7 +937,8 @@
  "rarity": {
   "common": "Comum",
   "uncommon": "Incomum",
-  "rare": "Rara"
+  "rare": "Rara",
+  "legendary": "Lendária"
  },
  "status": {
   "block": [

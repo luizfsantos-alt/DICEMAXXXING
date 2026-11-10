@@ -34,6 +34,9 @@ var once_used: Array = [] ## Índices do inventário usados nesta luta (um por u
 var turns_taken: int = 0
 var riposte: int = 0 ## Revide Elegante: dano devolvido por golpe enquanto houver bloqueio.
 var immune: int = 0 ## Imune a Críticas: anula os próximos efeitos negativos do inimigo.
+## Charada Fatal: dados guardados na magia, por item: [{bag, temp, value}]. Fora da
+## bolsa até a magia completar (ou a luta acabar).
+var riddle: Dictionary = {}
 var skin: int = 0 ## Revestimento: cada golpe recebido causa isto a menos (mínimo 1); dura a luta.
 var recycle: bool = false ## Improviso Brilhante: sobras viram bloqueio neste turno.
 ## Nível da magia que deu o Espelho, a Esquiva e o Improviso (o ganho vem na hora de usar).
@@ -99,6 +102,7 @@ func reset_fight_state() -> void:
 	riposte = 0
 	immune = 0
 	skin = 0
+	riddle = {}
 	recycle = false
 	mirror_lvl = 1
 	dodge_lvl = 1
@@ -276,6 +280,11 @@ func _roll_entry(e: Dictionary, rng: RandomNumberGenerator) -> void:
 		e.value += d.charge
 
 
+## Valores já guardados na Charada Fatal do item.
+func riddle_values(item: int) -> Array:
+	return riddle.get(item, []).map(func(x): return int(x.value))
+
+
 ## Cura. Vampiro (Sede): toda cura também dá +1 de vida máxima, até THIRST_CAP por luta.
 ## A vida máxima ganha vem vazia (só a cura enche).
 ## Retorna {hp: vida recuperada, max: vida máxima ganha}.
@@ -339,8 +348,9 @@ func discard_hand() -> void:
 		held.append(int(k.bag))
 	for e in hand:
 		var b := int(e.bag)
-		# Insight devolve o dado à pilha de compra ("returned"): ele não vai também ao descarte.
-		if e.get("returned", false):
+		# Insight devolve o dado à pilha de compra ("returned"); a Charada Fatal guarda o
+		# dado ("stored"): nenhum dos dois vai ao descarte.
+		if e.get("returned", false) or e.get("stored", false):
 			continue
 		if b >= 0 and not (b in held) and not (b in benched) and not (b in discard):
 			discard.append(b)
@@ -374,7 +384,7 @@ func to_dict() -> Dictionary:
 		"draw_pile": draw_pile, "discard": discard, "hand": hand_d, "last_hand": last_hand,
 		"block": block, "mirror": mirror, "dodge": dodge, "poison": poison, "burn": burn, "coins_won": coins_won,
 		"sacrifice_bonus": sacrifice_bonus, "once_used": once_used, "turns_taken": turns_taken,
-		"riposte": riposte, "immune": immune, "skin": skin, "recycle": recycle, "marked": marked,
+		"riposte": riposte, "immune": immune, "skin": skin, "riddle": riddle, "recycle": recycle, "marked": marked,
 		"mirror_lvl": mirror_lvl, "dodge_lvl": dodge_lvl, "recycle_lvl": recycle_lvl,
 		"extra_next": extra_next, "benched": benched, "fight_mods": fight_mods,
 		"hand_mods": hand_mods, "turn_mods": turn_mods, "keeps": keeps, "thirst_used": thirst_used, "dodge_bonus": dodge_bonus,
@@ -436,6 +446,10 @@ static func from_dict(d: Dictionary) -> Fighter:
 	f.riposte = int(d.get("riposte", 0))
 	f.immune = int(d.get("immune", 0))
 	f.skin = int(d.get("skin", 0))
+	f.riddle = {}
+	var rd: Dictionary = d.get("riddle", {})
+	for k in rd:
+		f.riddle[int(k)] = rd[k]
 	f.recycle = bool(d.get("recycle", false))
 	f.mirror_lvl = int(d.get("mirror_lvl", 1))
 	f.dodge_lvl = int(d.get("dodge_lvl", 1))

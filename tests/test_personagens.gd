@@ -383,16 +383,18 @@ func test_todas_as_magias_tem_raridade():
 	assert_eq(Spells.ids_of_rarity("common").size(), 26, "19 + 7 mexidas (com a Muralha de Ferro, a Maré Cheia e o Forjamento)")
 	assert_eq(Spells.ids_of_rarity("uncommon").size(), 29, "22 + 7 mexidas (com a Bigorna, a Pele de Ferro, Insight, Maré Baixa e Lingotamento)")
 	assert_eq(Spells.ids_of_rarity("rare").size(), 11, "9 + 2 mexidas")
+	assert_eq(Spells.ids_of_rarity("legendary"), ["charada"], "a Charada Fatal é a primeira Lendária")
 	assert_eq(Elements.rarity("Os"), "rare")
 	assert_eq(Elements.rarity("Am"), "common")
 
 
 func test_tabela_por_andar():
 	var r := H.rng(4)
-	var count := {"common": 0, "uncommon": 0, "rare": 0}
+	var count := {"common": 0, "uncommon": 0, "rare": 0, "legendary": 0}
 	for _k in 3000:
 		count[Shop.roll_rarity(r, Shop.band(1))] += 1
-	assert_almost_eq(count.common / 3000.0, 0.70, 0.04)
+	assert_almost_eq(count.common / 3000.0, 0.69, 0.04)
+	assert_almost_eq(count.legendary / 3000.0, 0.01, 0.01, "Lendária: 1% no começo")
 	assert_almost_eq(count.rare / 3000.0, 0.05, 0.02)
 	assert_eq(Shop.band(3), 0)
 	assert_eq(Shop.band(4), 1)
@@ -425,7 +427,7 @@ func test_escola_cobra_evoluir_rara():
 func test_porta_insana_garante_rara():
 	for s in 30:
 		var opts := Shop.reward(EnemyFactory.base("barbarian"), H.rng(s), 1, "insana")
-		assert_true(opts.any(func(o): return o.kind == "spell" and Spells.rarity(o.id) == "rare"))
+		assert_true(opts.any(func(o): return o.kind == "spell" and Spells.rarity(o.id) in ["rare", "legendary"]))
 
 
 func test_inimigo_sem_rara_antes_do_andar_4():

@@ -417,3 +417,67 @@ func test_mare_cheia_tres_1_na_proxima_mao():
 	a.draw_hand(H.rng())
 	assert_eq(a.hand_values().filter(func(v): return v == 1).size() >= 3, true, "três 1 a mais na mão")
 	assert_eq(a.hand.size(), a.hand_size + 3)
+
+
+func test_lingotamento_heranca_pelo_nivel():
+	var total := 0
+	var heirs := 0
+	for s in 40:
+		var f := _f(["lingotamento"], [6])
+		f.bag[0] = Die.with_element("Na")
+		f.bag[0].add_sticker(0)
+		f.bag[0].add_gold(0)
+		var c := TurnChoice.new()
+		c.rng = H.rng(s)
+		assert_true(_place(f, c, "lingotamento", [0]))
+		for e in f.hand.slice(1):
+			total += 1
+			var d: Die = e.temp
+			assert_eq(d.sticker_count(), 0, "adesivos se perdem")
+			assert_eq(int(d.gold.reduce(func(a, x): return a + int(x), 0)), 0, "adesivo de ouro também")
+			if d.element == "Na":
+				heirs += 1
+			else:
+				assert_eq(d.element, "", "ou herda o elemento, ou é comum")
+	assert_almost_eq(float(heirs) / total, 0.33, 0.08, "um terço herda no nível 1")
+	assert_false(TurnChoice.new().undo_mod(_f(["lingotamento"], [1]), 0), "sorteio: não se desfaz")
+	assert_eq(Config.LINGOT_INHERIT, [0.33, 0.5, 0.66])
+
+
+func test_charada_fatal_guarda_e_resolve():
+	var a := H.fighter("a", ["charada"], 40, true)
+	var b := H.fighter("b", [], 120)
+	b.block = 50
+	var it := H.item(a, "charada")
+	# Turno 1: guarda 1, 3 e 5 (saem da bolsa).
+	a.draw_pile = [] ## A mão já saiu da pilha, como na luta.
+	H.hand(a, [1, 3, 5, 5])
+	var c := TurnChoice.new()
+	assert_true(c.place(a, it, 0))
+	assert_true(c.place(a, it, 1))
+	assert_true(c.place(a, it, 2))
+	assert_false(c.place(a, it, 3), "um dado de cada valor")
+	assert_true(c.incomplete_items(a).is_empty(), "pode passar o turno com a charada pela metade")
+	var ev := []
+	var used := Resolver.cast_all(a, b, c, ev)
+	Resolver.end_turn(a, used, ev)
+	assert_eq(a.riddle_values(it), [1, 3, 5])
+	assert_eq(b.hp, 120, "ainda sem dano")
+	assert_false(0 in a.discard or 1 in a.discard or 2 in a.discard, "os guardados não vão ao descarte")
+	assert_true(3 in a.discard, "o que sobrou vai")
+	# Turno 2: o 3 já está guardado; completa com 2, 4 e 6.
+	H.hand(a, [3, 2, 4, 6])
+	for k in 4:
+		a.hand[k].bag = 4 + k
+	c = TurnChoice.new()
+	assert_false(c.place(a, it, 0), "o 3 já está na charada")
+	for h in [1, 2, 3]:
+		assert_true(c.place(a, it, h))
+	ev = []
+	Resolver.cast_all(a, b, c, ev)
+	assert_eq(b.hp, 120 - Config.RIDDLE_DMG, "40 que ignora o bloqueio")
+	assert_eq(b.block, 50)
+	assert_true(a.riddle_values(it).is_empty(), "a charada recomeça")
+	for k in [0, 1, 2]:
+		assert_true(k in a.discard, "os guardados voltam para a bolsa")
+	assert_eq(Spells.rarity("charada"), "legendary")

@@ -13,6 +13,8 @@ extends RefCounted
 ## - pair:    2 dados iguais.
 ## - seq3:    3 dados em sequência (ex.: 3-4-5).
 ## - trio:    3 dados iguais.
+## - riddle:  um dado de cada valor, de 1 a 6 (Charada Fatal): os dados postos ficam
+##            guardados na magia (fora da bolsa) de turno em turno até completar.
 ##
 ## Efeitos ("fx"), resolvidos em Resolver.cast:
 ## dmg (dano = soma + "plus", × "mult"; "pierce" ignora todas as defesas; "burn";
@@ -73,6 +75,8 @@ const DATA := {
 	"corte": {"shape": S_H2, "req": "any", "n": 2, "fx": "dmg", "odd_twice": true, "use": "always", "pool": "assassin", "rarity": "common"},
 	"sombras": {"shape": S_H3, "req": "exact", "v": 6, "fx": "dmg", "pierce": true, "use": "once", "pool": "assassin", "rarity": "uncommon"},
 	# Rodada 1 (Feiticeiro).
+	# Lendária: um dado de cada valor, guardados de turno em turno até completar.
+	"charada": {"shape": S_SQ, "req": "riddle", "n": 6, "fx": "riddle", "use": "always", "pool": "sorcerer", "rarity": "legendary"},
 	"bis": {"shape": S_H3, "req": "top", "fx": "encore", "use": "always", "pool": "sorcerer", "rarity": "rare"},
 	"plagio": {"shape": S_V2, "req": "max", "v": 2, "fx": "steal_sticker", "use": "once", "pool": "sorcerer", "rarity": "uncommon"},
 	"roubar_cena": {"shape": S1, "req": "exact", "v": 2, "fx": "debuff", "hand_mod": "steal_top", "use": "once", "pool": "sorcerer", "rarity": "uncommon"},
@@ -129,7 +133,7 @@ const DATA := {
 	"tudo_nada": {"shape": S_V2, "req": "any", "n": 1, "fx": "mod", "mod": "gamble", "random": true, "use": "always", "pool": "sorcerer", "rarity": "rare"},
 	"insight": {"shape": S_V2, "req": "any", "n": 1, "fx": "mod", "mod": "insight", "random": true, "use": "always", "pool": "sorcerer", "rarity": "uncommon"},
 	"mare_baixa": {"shape": S_V2, "req": "any", "n": 1, "fx": "mod", "mod": "tide_low", "use": "once", "pool": "any", "rarity": "uncommon"},
-	"lingotamento": {"shape": S_H2, "req": "max", "v": 6, "fx": "mod", "mod": "lingot", "use": "once", "pool": "metallurgist", "rarity": "uncommon"},
+	"lingotamento": {"shape": S_H2, "req": "max", "v": 6, "fx": "mod", "mod": "lingot", "random": true, "use": "once", "pool": "metallurgist", "rarity": "uncommon"},
 	"lapidar": {"shape": S_H3, "req": "exact", "v": 1, "fx": "mod", "mod": "polish", "use": "once", "pool": "any", "rarity": "rare"},
 }
 
@@ -224,7 +228,7 @@ static func ids_of_rarity(r: String) -> Array:
 static func color_family(id: String) -> String:
 	var fx := str(get_def(id).get("fx", "dmg"))
 	match fx:
-		"product", "lever", "multi", "ones", "pelt", "top_x", "encore", "steal_sticker", "bench", "spawn_half", "drain", "feast":
+		"product", "lever", "multi", "ones", "pelt", "riddle", "top_x", "encore", "steal_sticker", "bench", "spawn_half", "drain", "feast":
 			return "dmg"
 		"block_product", "block_hand", "block_count", "riposte", "recycle", "skin":
 			return "block"
@@ -323,6 +327,8 @@ static func accepts_partial(id: String, placed: Array, v: int, top := false) -> 
 			return false
 		"pair", "trio":
 			return placed.is_empty() or int(placed[0]) == v
+		"riddle":
+			return v >= 1 and v <= 6 and not (v in placed)
 		"seq3":
 			if v in placed:
 				return false

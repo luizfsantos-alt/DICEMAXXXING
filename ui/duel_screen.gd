@@ -787,8 +787,15 @@ func _refresh_tray() -> void:
 		for k in c.holes.size():
 			c.holes[k].index = int(ins[k]) if k < ins.size() else -1
 		var sel_ok := selected >= 0 and choice.available(p, c.item) and TurnChoice.die_allowed(p, c.item, selected)
+		if c.riddle():
+			# Charada Fatal: o buraco de cada valor guarda o índice do dado posto com ele.
+			for k in c.holes.size():
+				c.holes[k].index = -1
+				for h in ins:
+					if int(p.hand[h].value) == k + 1:
+						c.holes[k].index = int(h)
 		c.refresh(vals, els, sel if (dragging >= 0 or not (selected in used)) else -1, choice.tops_in(p, c.item), sel_top, heats,
-			sel_ok, sel_die, sel_plus, marks)
+			sel_ok, sel_die, sel_plus, marks, p.riddle.get(c.item, []))
 	_refresh_undo()
 	if phase != "player":
 		return
@@ -1472,6 +1479,10 @@ func _apply_event(ev: Dictionary) -> void:
 			await _effect(s, Texts.t("ui.fx_skin", {"n": ev.n}), "fx")
 		"tide_out":
 			await _effect(s, Texts.t("ui.fx_tide_out", {"n": ev.n}), "fx")
+		"riddle_store":
+			await _effect(s, Texts.t("ui.fx_riddle_store", {"n": ev.n}), "fx")
+		"riddle_done":
+			_float(s, Texts.t("ui.fx_riddle_done"), Kit.RARITY_COLORS.legendary)
 		"cleanse":
 			await _effect(s, Texts.t("ui.fx_cleanse"), "fx")
 		"recycle_up":
@@ -1776,6 +1787,10 @@ func _describe(ev: Dictionary) -> String:
 			return Texts.t("ev.skin_up", {"who": w, "n": ev.n})
 		"tide_out":
 			return Texts.t("ev.tide_out", {"who": w, "n": ev.n})
+		"riddle_store":
+			return Texts.t("ev.riddle_store", {"who": w, "n": ev.n})
+		"riddle_done":
+			return Texts.t("ev.riddle_done", {"who": w})
 		"immune_block":
 			return Texts.t("ev.immune_block", {"who": w})
 		"cleanse":

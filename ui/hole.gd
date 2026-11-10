@@ -18,6 +18,7 @@ var element := ""
 var lit := false ## Aceita o dado selecionado.
 var raised := false ## Dado selecionado: levantado.
 var faded := false ## Dado já lançado neste turno.
+var kept := false ## Charada Fatal: dado guardado de um turno anterior (contorno brasa).
 var _glows := false ## O dado encaixado brilha (pulsa: redesenha a cada quadro).
 var heat := 0.0 ## Estado do brilho do dado (Elements.heat): 0 repouso, 1 ativo.
 var stickers := 0 ## Adesivos +2 na face que saiu (selo vermelho).
@@ -102,6 +103,7 @@ func _process(_delta: float) -> void:
 
 func clear_die() -> void:
 	has_die = false
+	kept = false
 	stickers = 0
 	gold = 0
 	orig = -1
@@ -160,7 +162,9 @@ func _draw() -> void:
 	if raised:
 		d.position.y -= s * 0.14
 		draw_style_box(_sb(Color(0, 0, 0, 0.45), rad), Rect2(d.position + Vector2(0, s * 0.12), d.size))
-	DieFace.draw(self, d, value, element, 0.6 if faded else 0.0, heat, Time.get_ticks_msec() / 1000.0)
+	DieFace.draw(self, d, value, element, 0.6 if faded else (0.2 if kept else 0.0), heat, Time.get_ticks_msec() / 1000.0)
+	if kept:
+		draw_style_box(_sb(Color.TRANSPARENT, int(rad * 0.85) + 2, 3, Kit.RARITY_COLORS.legendary), d.grow(2))
 	DieFace.marks(self, d, stickers, gold, 0.6 if faded else 0.0)
 	if raised:
 		draw_style_box(_sb(Color.TRANSPARENT, int(rad * 0.85) + 2, 4, Kit.ACCENT), d.grow(3))

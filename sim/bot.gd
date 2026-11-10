@@ -33,6 +33,8 @@ func score(o: Dictionary, h: Fighter) -> float:
 					s += 4.0
 				"rare":
 					s += 8.0
+				"legendary":
+					s += 12.0
 			var ids := h.inventory.ids()
 			if is_mod_spell(id) and not ids.any(func(x): return is_mod_spell(str(x))):
 				s += 6.0

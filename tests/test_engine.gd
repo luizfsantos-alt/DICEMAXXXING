@@ -861,7 +861,7 @@ func test_recompensa_tem_opcoes_pela_porta():
 	assert_eq(Shop.reward(h, H.rng(), 3, "dificil").size(), 3)
 	var ins := Shop.reward(h, H.rng(), 3, "insana")
 	assert_eq(ins.size(), 4)
-	assert_true(ins.any(func(o): return o.kind == "spell" and Spells.rarity(o.id) == "rare"))
+	assert_true(ins.any(func(o): return o.kind == "spell" and Spells.rarity(o.id) in ["rare", "legendary"]))
 	assert_true(RunState.door_coins("dificil") > RunState.door_coins("normal"))
 
 

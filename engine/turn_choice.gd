@@ -161,6 +161,8 @@ func accepts(f: Fighter, item: int, h: int, slot := 0) -> bool:
 	if not die_allowed(f, item, h, slot):
 		return false
 	var e: Dictionary = f.hand[h]
+	if str(Spells.get_def(f.inventory.items[item].id).get("req", "")) == "riddle" and int(e.value) in f.riddle_values(item):
+		return false ## Charada Fatal: esse valor já está guardado.
 	return Spells.accepts_partial(f.inventory.items[item].id, values_in(f, item), int(e.value), bool(e.get("top", false)))
 
 
@@ -304,11 +306,24 @@ func _resolve_mod(f: Fighter, item: int) -> void:
 				f.hand.append({"bag": -1, "temp": Die.basic(), "face": 5, "value": Config.TIDE_LOW_VALUE + b,
 					"top": false, "fixed": true, "plus": 0, "spawn": item, "orig": int(vals[0]), "cause": id})
 		"lingot":
-			# Lingotamento: o dado vira tantos dados de valor 1 quanto o valor dele.
+			# Lingotamento: o dado vira tantos dados de valor 1 quanto o valor dele. Cada
+			# lingote herda o elemento com uma chance (sobe com o nível); os adesivos se perdem.
 			m.prev[0].spent = true
-			for k in int(vals[0]) + b:
+			var se: Dictionary = f.hand[dice[0]]
+			var src := f.die_of(se)
+			var n := int(vals[0]) + b
+			var chance: float = Config.LINGOT_INHERIT[clampi(lvl, 1, Config.LINGOT_INHERIT.size()) - 1]
+			var sim := expect or forced_face >= 0 ## IA: herdam os primeiros, pela média.
+			if not sim and rng == null:
+				rng = RandomNumberGenerator.new()
+				rng.randomize()
+			for k in n:
+				var heir := src != null and src.element != "" and (k < roundi(n * chance) if sim else rng.randf() < chance)
+				var d := Die.basic()
+				if heir:
+					d.element = src.element ## Só o elemento: faces, adesivos e carga não vêm.
 				m.spawn.append(f.hand.size())
-				f.hand.append({"bag": -1, "temp": Die.basic(), "face": 0, "value": 1,
+				f.hand.append({"bag": -1, "temp": d, "face": 0, "value": 1,
 					"top": false, "fixed": true, "plus": 0, "spawn": item, "orig": int(vals[0]), "cause": id})
 		"insight":
 			_insight(f, item, m, b)
@@ -547,7 +562,13 @@ func ready_items(f: Fighter) -> Array:
 	for item in f.inventory.order():
 		if casts.has(item) and Spells.complete(f.inventory.items[item].id, values_in(f, item), tops_in(f, item)):
 			out.append(item)
+		elif casts.has(item) and not casts[item].is_empty() and is_riddle(f, item):
+			out.append(item) ## Charada Fatal: guarda os dados mesmo sem completar.
 	return out
+
+
+static func is_riddle(f: Fighter, item: int) -> bool:
+	return str(Spells.get_def(f.inventory.items[item].id).get("req", "")) == "riddle"
 
 
 ## Mexidas resolvidas, na ordem do inventário.
@@ -565,7 +586,7 @@ func mod_items(f: Fighter) -> Array:
 func incomplete_items(f: Fighter) -> Array:
 	var out := []
 	for item in f.inventory.order():
-		if casts.has(item) and not casts[item].is_empty() and Spells.dice_needed(f.inventory.items[item].id) > 1 \
+		if casts.has(item) and not casts[item].is_empty() and Spells.dice_needed(f.inventory.items[item].id) > 1 and not is_riddle(f, item) \
 				and not Spells.complete(f.inventory.items[item].id, values_in(f, item), tops_in(f, item)):
 			out.append(item)
 	return out

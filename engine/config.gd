@@ -39,6 +39,8 @@ const ASBESTOS_DMG := 3 ## Amianto: dano em quem usa.
 const LITHIUM_STEP := 2 ## Lítio: carga ganha a cada turno parado na mão.
 const LITHIUM_CAP := 6 ## Lítio: carga máxima (somada na rolagem; zera ao ser usado).
 const TITANIUM_BLOCK := 2 ## Titânio: bloqueio ao ser usado numa magia.
+const RIDDLE_DMG := 40 ## Charada Fatal: dano ao completar (ignora as defesas).
+const LINGOT_INHERIT := [0.33, 0.5, 0.66] ## Lingotamento: chance de cada lingote herdar o elemento, por nível.
 const TIDE_ONES := 3 ## Maré Cheia: dados de valor 1 na próxima mão (+1 por nível).
 const TIDE_LOW_VALUE := 6 ## Maré Baixa: valor dos dois dados provisórios.
 const SKIN_CAP := 3 ## Revestimento (Pele de Ferro): redução máxima por golpe no nível 1 (+1 por nível).
@@ -80,11 +82,12 @@ const PRICE_SPELL := 10 ## Referência (sem raridade).
 const PRICE_DIE := 6
 
 # Raridade (docs/RARIDADE.md).
-const RARITIES := ["common", "uncommon", "rare"]
+const RARITIES := ["common", "uncommon", "rare", "legendary"]
 ## Chance de cada classe por faixa de andares: 1–3, 4–6, 7+.
-const RARITY_WEIGHTS := [[70, 25, 5], [55, 32, 13], [45, 35, 20]]
+## A Lendária (só magias) sai em 1 a 2% das ofertas.
+const RARITY_WEIGHTS := [[69, 25, 5, 1], [54, 32, 12, 2], [43, 35, 20, 2]]
 const RARITY_BAND_FLOORS := [3, 6] ## Último andar das faixas 0 e 1.
-const PRICE_SPELL_BY_RARITY := {"common": 8, "uncommon": 12, "rare": 18}
+const PRICE_SPELL_BY_RARITY := {"common": 8, "uncommon": 12, "rare": 18, "legendary": 28}
 const PRICE_DIE_BY_RARITY := {"common": 8, "uncommon": 11, "rare": 15}
 const PRICE_ELEMENT_BY_RARITY := {"common": 6, "uncommon": 9, "rare": 13}
 const PRICE_EVOLVE_RARE := 18 ## Escola: evoluir uma magia Rara.

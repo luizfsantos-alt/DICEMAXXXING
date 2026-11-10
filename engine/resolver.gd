@@ -348,6 +348,9 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 	for h in dice:
 		values.append(int(f.hand[h].value))
 		total += int(f.hand[h].value)
+	if str(def.fx) == "riddle" and not _riddle_done(f, item, values):
+		_riddle_store(f, item, dice, ev)
+		return
 	if Spells.is_once(id):
 		f.once_used.append(item)
 	push(ev, {"t": "cast", "side": side(f), "spell": id, "item": item, "dice": dice.duplicate(), "values": values})
@@ -368,6 +371,15 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 					times[h] = 2
 			if def.has("burn") and foe.hp > 0:
 				_burn(foe, int(def.burn), ev)
+		"riddle":
+			# Charada Fatal completa: dano que ignora as defesas; os guardados voltam à bolsa.
+			hit(foe, f, Config.scale(Config.RIDDLE_DMG, lvl) + dmg_bonus(f), ev, false, true)
+			for x in f.riddle.get(item, []):
+				var b := int(x.bag)
+				if b >= 0 and b < f.bag.size() and not (b in f.discard) and not (b in f.draw_pile):
+					f.discard.append(b)
+			f.riddle.erase(item)
+			push(ev, {"t": "riddle_done", "side": side(f)})
 		"product":
 			hit(foe, f, Config.scale(_product(values) * mult, lvl) + dmg_bonus(f), ev)
 		"lever":
@@ -542,6 +554,30 @@ static func _die_effects(f: Fighter, foe: Fighter, h: int, ev: Array) -> void:
 	var face := int(e.get("face", -1))
 	if face >= 0 and face < 6 and int(d.gold[face]) > 0:
 		_coins(f, int(d.gold[face]) * Config.GOLD_COINS, ev, "gold")
+
+
+## A Charada Fatal fica completa com os guardados e os postos agora (1 a 6, um de cada)?
+static func _riddle_done(f: Fighter, item: int, values: Array) -> bool:
+	var have := {}
+	for v in f.riddle_values(item) + values:
+		have[int(v)] = true
+	for v in range(1, 7):
+		if not have.has(v):
+			return false
+	return true
+
+
+## Guarda na Charada Fatal os dados postos neste turno (saem da bolsa até completar).
+static func _riddle_store(f: Fighter, item: int, dice: Array, ev: Array) -> void:
+	if not f.riddle.has(item):
+		f.riddle[item] = []
+	for h in dice:
+		var e: Dictionary = f.hand[h]
+		var d := f.die_of(e)
+		f.riddle[item].append({"bag": int(e.bag), "temp": d.to_dict() if int(e.bag) < 0 and d != null else {},
+			"value": int(e.value), "element": d.element if d != null else ""})
+		e["stored"] = true
+	push(ev, {"t": "riddle_store", "side": side(f), "n": f.riddle[item].size(), "values": f.riddle_values(item)})
 
 
 ## Moedas ganhas na luta (só o jogador junta: o inimigo não tem jornada).
