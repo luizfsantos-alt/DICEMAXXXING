@@ -22,6 +22,7 @@ const STYLE := {
 	"thirst": ["SE", Color(0.7, 0.15, 0.25)],
 	"skin": ["RV", Color(0.62, 0.66, 0.72)], ## Revestimento.
 	"hand_mod": ["PM", Color(0.75, 0.45, 0.85)],
+	"sigil": ["MA", Color(0.37, 0.88, 0.8)], ## Marcado (Xamã).
 }
 
 var id := ""

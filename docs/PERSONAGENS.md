@@ -72,7 +72,7 @@ O **Vampiro** e o **Bárbaro** mexem os dois com vida, em direções opostas: o 
 
 | Regra | Como aparece aqui |
 |---|---|
-| **Ninguém começa com defesa** | Nenhum kit tem bloqueio, Esquiva ou Espelho. O Vampiro cura causando dano; o Bárbaro tem uma cura limitada (2× por luta). |
+| **Ninguém começa com defesa** (só os personagens desta rodada; o Xamã, `docs/XAMA.md`, começa com bloqueio de propósito) | Nenhum kit tem bloqueio, Esquiva ou Espelho. O Vampiro cura causando dano; o Bárbaro tem uma cura limitada (2× por luta). |
 | Passiva simples | Uma linha de regra cada (a do Metalurgista e a do Vampiro têm duas frases curtas). |
 | Inimigos com as mesmas regras | Cada arquétipo também aparece como inimigo, com a mesma passiva, a mesma bolsa e o mesmo inventário (seção 3). |
 | A loja é a mesma para todos | O formato do inventário filtra o que cabe. A única exceção é o Chumbo do Metalurgista. |
@@ -94,6 +94,7 @@ Para comparar: o **Feiticeiro** tem 90 de vida, mão de 4 e causa uns **6 a 8 de
 | **Perfeccionista** | **Moldura 4×3** sem as 2 casas do meio (10 casas) | **Ainda Não Está Bom**: no fim do turno, até 2 dados que sobraram na mão ficam marcados. Você pode ter 2 marcas. | 80 | 4 | 7 comuns + 1 Ósmio | **Dardo Arcano** (nova), **Obra-Prima** (nova) |
 | **Vampiro** | **Caixão 2×4** (2 de largura, 4 de altura) | **Sede**: toda cura que você recebe também dá +1 de vida máxima vazia, para sempre (até 3 por luta). Queima causa o dobro de dano em você. | **70** | 4 | 7 comuns + 1 Sódio | **Mordida** (nova), **Banquete** (nova) |
 | **Bárbaro** | Grade **3×3** (9 casas) | **Fúria**: com metade da vida ou menos, toda magia de dano causa +1 por golpe para cada 10 de vida que você perdeu. | **90** | 4 | 6 comuns + 2 **Ferro** (sempre 3) | **Machadada** (nova), **Cerrar os Dentes** (nova) |
+| **Xamã** (`docs/XAMA.md`) | **Ampulheta 4×4** sem as pontas das 2 linhas do meio (12 casas) | **Correspondência**: toda cura efetiva que você recebe causa o mesmo dano no inimigo; todo bloqueio que você ganha põe o mesmo tanto de Marcado nele. | 75 | 4 | 6 comuns + 2 **Cobre** | **Síntese**, **Antítese** (novas), Polarizar |
 
 ### 1.1 Formatos
 

@@ -220,6 +220,14 @@
    "Cerrar os Dentes",
    "Um dado ≤ 3. Cura igual ao valor ×3. 2× por luta."
   ],
+  "sintese": [
+   "Síntese",
+   "Um dado ≥ 2. Cura igual ao valor −1 e bloqueio igual ao valor −1."
+  ],
+  "antitese": [
+   "Antítese",
+   "Dano igual ao valor ×2. Você perde vida igual ao valor ×2, antes de todas as magias do turno (não é golpe; nunca deixa menos de 1)."
+  ],
   "segunda": [
    "Segunda Chance",
    "Um dado que rola. Rola de novo e fica com o maior dos dois valores. Mexida: o dado volta à mão para outra magia."
@@ -397,6 +405,12 @@
    "Fúria",
    "Com metade da vida ou menos, toda magia de dano causa +1 por golpe para cada 10 de vida que você perdeu.",
    "\"Li um livro uma vez. Depois bati em quem escreveu.\""
+  ],
+  "shaman": [
+   "Xamã",
+   "Correspondência",
+   "Sua cura vira dano no inimigo; seu bloqueio vira Marcado nele (na próxima vez que a vida dele baixar, perde esse tanto a mais).",
+   "\"Assim como acima, abaixo. O que entra em mim, sai em você.\""
   ]
  },
  "archetypes": {
@@ -407,7 +421,8 @@
   "copyist": "Copista",
   "perfectionist": "Perfeccionista",
   "vampire": "Vampiro",
-  "barbarian": "Bárbaro"
+  "barbarian": "Bárbaro",
+  "shaman": "Xamã"
  },
  "variants": {
   "lixeiro": "Lixeiro: põe Chumbo na sua bolsa",
@@ -582,6 +597,7 @@
   "pv_dodge": "→ esquiva",
   "pv_mirror": "→ reflete",
   "pv_heal": "→ cura {n}",
+  "pv_self": "você −{n}",
   "pv_maxhp": "→ +{n} vida máx.",
   "pv_sacrifice": "→ +{n} de dano na luta",
   "new_tag": "NOVA",
@@ -638,6 +654,9 @@
   "fury": "Fúria +{n}",
   "thirst": "Sede {n}/{max}",
   "fx_asbestos": "Amianto −{n}",
+  "fx_self_dmg": "Antítese −{n}",
+  "fx_sigil_up": "Marcado +{n}",
+  "fx_sigil_break": "Marca −{n}",
   "fx_el_H": "Hidrogênio ×2 = {v}",
   "fx_el_Hg": "Mercúrio copiou {v}",
   "fx_el_C": "Carbono em cadeia = {v}",
@@ -728,6 +747,10 @@
   "recycled": "{who} transforma uma sobra em {n} de bloqueio",
   "pierce": "(ignora defesas)",
   "lead_convert": "O Fundidor transforma um dado seu em Chumbo (até o fim da luta)!",
+  "self_dmg": "{spell}: {who} perde {n}",
+  "echo": "Correspondência: {who} recebe {n} de dano",
+  "sigil_up": "{who} fica Marcado +{n} (total {total})",
+  "sigil_break": "A marca quebra: {who} perde {n} a mais",
   "asbestos": "Amianto: {who} perde {n}",
   "el_H": "Hidrogênio: {who} rola ×2 ({v})",
   "el_Hg": "Mercúrio: {who} copia o valor {v}",
@@ -805,6 +828,8 @@
   "lingotamento": "Um 1 por ponto; 33% herdam o elemento",
   "muralha": "Bloqueio = 4 × cada 3 na mão",
   "cerrar": "Cura = valor ×3",
+  "sintese": "Cura e bloqueio = valor −1",
+  "antitese": "Dano = valor ×2; você perde valor ×2",
   "segunda": "Rola de novo, fica o maior",
   "ajuste": "+1 ou −1 no dado",
   "pico": "Dado vai à face máxima",
@@ -865,6 +890,8 @@
   "lingotamento": ["Um 1 por ponto, +1; 50% herdam o elemento", "Um 1 por ponto, +2; 66% herdam o elemento"],
   "muralha": "Bloqueio = {4} × cada 3 na mão",
   "cerrar": "Cura = valor ×{3}",
+  "sintese": "Cura e bloqueio = (valor −1) ×{1}",
+  "antitese": "Dano = valor ×{2}; você perde valor ×2",
   "espelho": "Reflete o próximo golpe ×{1}",
   "esquiva": "Anula o próximo golpe; vira bloqueio ×{-1}",
   "esquiva_mais": "Anula o próximo golpe; vira bloqueio ×{-1}",
@@ -982,6 +1009,10 @@
   "marked": [
    "Dado guardado",
    "Esses dados entram na próxima mão sem rolar."
+  ],
+  "sigil": [
+   "Marcado",
+   "Na próxima vez que a vida baixar, as marcas quebram e causam esse dano a mais (direto na vida). O efeito que pôs a marca não a quebra."
   ],
   "fury": [
    "Fúria",

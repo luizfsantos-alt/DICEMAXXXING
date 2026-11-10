@@ -11,8 +11,11 @@ const COLORS := {
 	"sorcerer": Color(0.45, 0.4, 0.85), "assassin": Color(0.75, 0.3, 0.35),
 	"minimalist": Color(0.85, 0.85, 0.9), "metallurgist": Color(0.5, 0.52, 0.58), "copyist": Color(0.75, 0.6, 0.3),
 	"perfectionist": Color(0.35, 0.7, 0.65), "vampire": Color(0.6, 0.12, 0.2), "barbarian": Color(0.75, 0.45, 0.2),
+	"shaman": Color(0.37, 0.88, 0.8),
 }
 const ART_DIR := "res://assets/portraits/"
+## Arquétipos ainda sem as fotos (docs/ARTE_FALTANDO.md): usam a silhueta na cor de COLORS.
+const PENDING_ART := []
 const VARIATIONS := 3
 const BG := Color(0.0, 0.0, 0.0) ## Igual ao fundo da arte, para emendar.
 const FRAMES := {true: "frame_player.png", false: "frame_enemy.png"}

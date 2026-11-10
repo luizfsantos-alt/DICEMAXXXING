@@ -1,0 +1,120 @@
+ARTES PENDENTES (pacote do Xamã, versão 0.25.1)
+================================================
+
+ENTREGUES na 0.25.1: itens 1 a 6 (fotos do Xamã, da Alquimista e do Reator e o ícone
+do Marcado). Faltam só os opcionais 7 e 8.
+
+Ao todo: 6 artes obrigatórias + 2 opcionais.
+Coloque cada arquivo no caminho indicado. As fotos do Xamã precisam de uma linha no código
+(tirar "shaman" de Portrait.PENDING_ART em ui/portrait.gd); o resto o jogo usa sozinho,
+assim que o arquivo existir.
+
+
+------------------------------------------------------------------------
+FORMATO DAS FOTOS (itens 1 a 5)
+------------------------------------------------------------------------
+- Uns 566 x 400 px, PNG RGB, fundo preto liso (o jogo emenda com preto).
+- Busto de três quartos. O rosto fica um pouco à esquerda do centro, em uns 45% da
+  largura (a foto é cortada nesse ponto em telas menores).
+- Estética de jogo antigo (16 bits, anos 90): poucas cores, pixels grandes e visíveis,
+  sombra chapada, contorno escuro e poucos detalhes. Os prompts pedem isso de forma
+  explícita, porque o gerador tende a encher a imagem de detalhes.
+- Se ainda sair complicado: gere menor (uns 280 x 200) e amplie 2x sem suavizar
+  ("vizinho mais próximo"), o que força os pixels grandes.
+- Cada prompt abaixo já vem completo, numa linha só: é só copiar e colar.
+
+
+------------------------------------------------------------------------
+XAMÃ: o que vale para as 3 variações
+------------------------------------------------------------------------
+- Cego e sério em todas: expressão grave, sem sorriso.
+- A mesma pose em todas, que é a frase dele ("assim como acima, abaixo"): uma mão com o
+  indicador apontando para cima e a outra com a palma voltada para baixo.
+- A diferença para o Bárbaro (que já tem dreads, pintura e crânio): nada de crânio, de
+  pintura de guerra nem de cara de luta. É místico e contido.
+- Cores dele no jogo: verde-água (#5fe0cc) e cobre (#c8682e).
+- Cada variação é uma pessoa diferente, como nas variações dos outros personagens.
+
+
+------------------------------------------------------------------------
+1. XAMÃ, variação 1
+   Arquivo: assets/portraits/shaman_1.png
+------------------------------------------------------------------------
+Prompt:
+blind shaman, serious solemn expression, one hand raised with the index finger pointing up, the other hand low with the palm facing down, teal and copper colors, middle-aged man, simple cloth blindfold, plain robe, retro 16-bit pixel art, low resolution sprite portrait upscaled with hard pixel edges, limited palette of about 16 colors, chunky visible pixels, simple flat shading with 2 or 3 tones per color, bold dark outlines, simple readable shapes, few details, no gradients, no realistic textures, no painterly effects, classic 90s console RPG character portrait, three-quarter bust, solid pure black background, no text, no frame
+
+
+------------------------------------------------------------------------
+2. XAMÃ, variação 2
+   Arquivo: assets/portraits/shaman_2.png
+------------------------------------------------------------------------
+Prompt:
+blind shaman, serious solemn expression, one hand raised with the index finger pointing up, the other hand low with the palm facing down, teal and copper colors, elderly woman, white blank eyes, grey braids, retro 16-bit pixel art, low resolution sprite portrait upscaled with hard pixel edges, limited palette of about 16 colors, chunky visible pixels, simple flat shading with 2 or 3 tones per color, bold dark outlines, simple readable shapes, few details, no gradients, no realistic textures, no painterly effects, classic 90s console RPG character portrait, three-quarter bust, solid pure black background, no text, no frame
+
+
+------------------------------------------------------------------------
+3. XAMÃ, variação 3
+   Arquivo: assets/portraits/shaman_3.png
+------------------------------------------------------------------------
+Prompt:
+blind shaman, serious solemn expression, one hand raised with the index finger pointing up, the other hand low with the palm facing down, teal and copper colors, young man with a hood, copper band over the eyes, retro 16-bit pixel art, low resolution sprite portrait upscaled with hard pixel edges, limited palette of about 16 colors, chunky visible pixels, simple flat shading with 2 or 3 tones per color, bold dark outlines, simple readable shapes, few details, no gradients, no realistic textures, no painterly effects, classic 90s console RPG character portrait, three-quarter bust, solid pure black background, no text, no frame
+
+
+------------------------------------------------------------------------
+4. A ALQUIMISTA (Mestre do andar 20)
+   Arquivo: assets/portraits/alquimista_1.png
+------------------------------------------------------------------------
+Hoje usa a foto do Copista. Bolsa cheia de Mercúrio; troca o seu maior dado com o
+menor dela. Tom de chefe: mais imponente e ameaçadora que um inimigo comum.
+
+Prompt:
+the Alchemist boss, stern woman in a dark coat, a ribbon of silver liquid mercury floating over her hand, silver and purple colors, retro 16-bit pixel art, low resolution sprite portrait upscaled with hard pixel edges, limited palette of about 16 colors, chunky visible pixels, simple flat shading with 2 or 3 tones per color, bold dark outlines, simple readable shapes, few details, no gradients, no realistic textures, no painterly effects, classic 90s console RPG character portrait, three-quarter bust, solid pure black background, no text, no frame
+
+
+------------------------------------------------------------------------
+5. O REATOR (Mestre do andar 30, último chefe)
+   Arquivo: assets/portraits/reator_1.png
+------------------------------------------------------------------------
+Hoje usa a foto do Bárbaro. Bolsa cheia de Urânio; dado parado envenena quem rolou.
+É o chefe final: o mais assustador de todos.
+
+Prompt:
+the Reactor final boss, huge brute in heavy grey armor with a glowing green core in the chest, green glow on the face, green and black colors, retro 16-bit pixel art, low resolution sprite portrait upscaled with hard pixel edges, limited palette of about 16 colors, chunky visible pixels, simple flat shading with 2 or 3 tones per color, bold dark outlines, simple readable shapes, few details, no gradients, no realistic textures, no painterly effects, classic 90s console RPG character portrait, three-quarter bust, solid pure black background, no text, no frame
+
+
+------------------------------------------------------------------------
+6. ÍCONE DE STATUS: MARCADO (olho)
+   Arquivo: assets/icons/status/sigil.png
+------------------------------------------------------------------------
+- 64 x 64 px, PNG com fundo transparente (recortado).
+- Mesmo estilo dos outros ícones de status (o punho da Fúria, o dado do Guardado):
+  pixel art grossa, contorno escuro, um objeto só, legível pequeno. Se sair complicado,
+  gere em 32 x 32 e amplie 2x sem suavizar.
+- Hoje há um provisório (um alvo verde-água). Basta substituir o arquivo.
+
+Prompt:
+a single open eye, teal iris with a copper pupil, retro 16-bit pixel art game icon, 32x32 sprite upscaled with hard pixel edges, limited palette of 6 to 8 colors, bold dark outline, flat shading with 2 tones, one simple object, centered, transparent background, no gradients, no text
+
+
+------------------------------------------------------------------------
+OPCIONAIS (o jogo funciona sem)
+------------------------------------------------------------------------
+Hoje a Síntese usa o ícone genérico de cura e a Antítese o de dano. Se fizer estes,
+eu ligo no código (uma linha).
+
+7. Ícone da Síntese
+   Arquivo: assets/icons/fx/synth.png (64 x 64, fundo transparente)
+Prompt:
+two cupped hands holding a small teal flame, retro 16-bit pixel art game icon, 32x32 sprite upscaled with hard pixel edges, limited palette of 6 to 8 colors, bold dark outline, flat shading with 2 tones, one simple object, centered, transparent background, no gradients, no text
+
+8. Ícone da Antítese
+   Arquivo: assets/icons/fx/antithesis.png (64 x 64, fundo transparente)
+Prompt:
+a double-headed arrow pointing up and down, one end red and one end teal, retro 16-bit pixel art game icon, 32x32 sprite upscaled with hard pixel edges, limited palette of 6 to 8 colors, bold dark outline, flat shading with 2 tones, one simple object, centered, transparent background, no gradients, no text
+
+
+------------------------------------------------------------------------
+DEPOIS DE GERAR
+------------------------------------------------------------------------
+- Fundo para recortar (ícones): tools/recortar_fundo.py.
+- Mande as imagens na conversa ou suba na branch nos caminhos acima.

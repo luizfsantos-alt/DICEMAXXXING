@@ -35,14 +35,18 @@ static func start_turn(f: Fighter, ev: Array) -> void:
 	f.dodge_lvl = 1
 	f.recycle_lvl = 1
 	if f.poison > 0:
+		_new_effect()
 		f.hp -= f.poison
 		push(ev, {"t": "poison", "side": side(f), "n": f.poison})
+		_break_sigil(f, f.poison, ev)
 	if f.burn > 0:
 		# Vampiro: a queima causa o dobro.
 		var n := f.burn * (2 if f.archetype == "vampire" else 1)
+		_new_effect()
 		f.hp -= n
 		f.burn -= 1
 		push(ev, {"t": "burn", "side": side(f), "n": n})
+		_break_sigil(f, n, ev)
 
 
 ## Efeito negativo vindo do adversário: Imune a Críticas anula o próximo.
@@ -260,6 +264,7 @@ static func dmg_bonus(f: Fighter) -> int:
 
 
 ## Cura com a Sede do Vampiro (+1 de vida máxima por cura).
+## Xamã (Correspondência): a cura efetiva vira dano no adversário.
 static func _heal(f: Fighter, n: int, ev: Array, src := "") -> void:
 	var r := f.heal_full(n)
 	var e := {"t": "heal", "side": side(f), "n": int(r.hp)}
@@ -268,6 +273,41 @@ static func _heal(f: Fighter, n: int, ev: Array, src := "") -> void:
 	push(ev, e)
 	if int(r.max) > 0:
 		push(ev, {"t": "maxhp", "side": side(f), "n": int(r.max), "thirst": true})
+	if f.archetype == "shaman" and int(r.hp) > 0:
+		var foe := f.foe()
+		if foe != null and foe.hp > 0:
+			_echo(foe, int(r.hp), ev)
+
+
+## Dano da Correspondência: não é golpe (sem Esquiva, Espelho, Revestimento nem bônus);
+## o bloqueio absorve.
+static func _echo(t: Fighter, n: int, ev: Array) -> void:
+	var absorbed := mini(t.block, n)
+	t.block -= absorbed
+	var dmg := n - absorbed
+	t.hp -= dmg
+	push(ev, {"t": "echo", "side": side(t), "n": n, "absorbed": absorbed, "dmg": dmg})
+	_break_sigil(t, dmg, ev)
+
+
+## Efeito em andamento (uma magia lançada, uma queima...): a marca guarda o efeito que a
+## pôs, e esse efeito não a quebra (docs/XAMA.md §4).
+static var effect := 0
+
+
+static func _new_effect() -> void:
+	effect += 1
+
+
+## A vida de t baixou n: as marcas quebram (+X direto na vida), se vierem de outro efeito.
+static func _break_sigil(t: Fighter, n: int, ev: Array) -> void:
+	if n <= 0 or t.sigil <= 0 or t.sigil_src == effect:
+		return
+	var x := t.sigil
+	t.sigil = 0
+	t.sigil_src = -1
+	t.hp -= x
+	push(ev, {"t": "sigil_break", "side": side(t), "n": x})
 
 
 ## 4. Resolução: magias prontas, na ordem do inventário. Para se alguém morrer.
@@ -300,6 +340,21 @@ static func cast_all(f: Fighter, foe: Fighter, choice: TurnChoice, ev: Array, rn
 		push(ev, {"t": "mod", "side": side(f), "spell": str(it.id), "item": item, "dice": m.dice.duplicate(),
 			"from": from, "to": to, "random": bool(m.random)})
 	used.append_array(choice.spent_dice())
+	# Antítese: o dano em quem usa (valor × 2) vem antes de todas as magias (não é golpe;
+	# deixa 1).
+	for item in choice.ready_items(f):
+		var sid := str(f.inventory.items[item].id)
+		if not bool(Spells.get_def(sid).get("self_first", false)):
+			continue
+		var n := 0
+		for h in choice.dice_in(item):
+			n += int(f.hand[h].value)
+		n = mini(n * Spells.ANTITHESIS_SELF, f.hp - 1)
+		if n > 0:
+			_new_effect()
+			f.hp -= n
+			push(ev, {"t": "self_dmg", "side": side(f), "spell": sid, "item": item, "n": n})
+			_break_sigil(f, n, ev)
 	for item in choice.ready_items(f):
 		if f.hp <= 0 or foe.hp <= 0:
 			break
@@ -356,6 +411,7 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 		return
 	if Spells.is_once(id):
 		f.once_used.append(item)
+	_new_effect()
 	push(ev, {"t": "cast", "side": side(f), "spell": id, "item": item, "dice": dice.duplicate(), "values": values})
 	var mult := int(def.get("mult", 1))
 	# Quantas vezes cada dado bateu: os efeitos do dado (elemento, adesivo de ouro) valem
@@ -488,6 +544,14 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 			push(ev, {"t": "mirror_up", "side": side(f)})
 		"heal":
 			_heal(f, Config.scale(total * mult, lvl), ev)
+		"synth":
+			# Síntese: primeiro a cura, depois o bloqueio (docs/XAMA.md §3).
+			var v := Config.scale(maxi(0, total - 1), lvl)
+			if v > 0:
+				_heal(f, v, ev)
+				_block(f, v, ev)
+		"antithesis":
+			hit(foe, f, Config.scale(total * mult, lvl) + dmg_bonus(f), ev)
 		"drain":
 			var raw := Config.scale(total, lvl)
 			hit(foe, f, raw + dmg_bonus(f), ev)
@@ -546,14 +610,14 @@ static func _die_effects(f: Fighter, foe: Fighter, h: int, ev: Array) -> void:
 			if f.hp > 0:
 				f.hp -= Config.ASBESTOS_DMG
 				push(ev, {"t": "asbestos", "side": side(f), "n": Config.ASBESTOS_DMG})
+				_break_sigil(f, Config.ASBESTOS_DMG, ev)
 		"Au":
 			_coins(f, Config.GOLD_COINS, ev, "Au")
 		"Li":
 			d.charge = 0 ## A bateria descarrega ao ser usada.
 		"Ti":
 			if f.hp > 0:
-				f.block += Config.TITANIUM_BLOCK
-				push(ev, {"t": "block", "side": side(f), "n": Config.TITANIUM_BLOCK, "total": f.block, "src": "Ti"})
+				_block(f, Config.TITANIUM_BLOCK, ev, "Ti")
 		"Cu":
 			if f.hp > 0:
 				_heal(f, Config.COPPER_HEAL, ev, "Cu")
@@ -594,9 +658,20 @@ static func _coins(f: Fighter, n: int, ev: Array, src: String) -> void:
 	push(ev, {"t": "coin", "side": side(f), "n": n, "total": f.coins_won, "src": src})
 
 
-static func _block(f: Fighter, b: int, ev: Array) -> void:
+## Xamã (Correspondência): cada ponto de bloqueio marca o adversário.
+static func _block(f: Fighter, b: int, ev: Array, src := "", extra := {}) -> void:
 	f.block += b
-	push(ev, {"t": "block", "side": side(f), "n": b, "total": f.block})
+	var e := {"t": "block", "side": side(f), "n": b, "total": f.block}
+	if src != "":
+		e["src"] = src
+	e.merge(extra)
+	push(ev, e)
+	if f.archetype == "shaman" and b > 0:
+		var foe := f.foe()
+		if foe != null and foe.hp > 0 and negative(foe, ev):
+			foe.sigil += b
+			foe.sigil_src = effect
+			push(ev, {"t": "sigil_up", "side": side(foe), "n": b, "total": foe.sigil})
 
 
 static func _burn(f: Fighter, n: int, ev: Array, src := "") -> void:
@@ -712,6 +787,7 @@ static func hit(target: Fighter, attacker: Fighter, n: int, ev: Array, reflected
 	target.hp -= dmg
 	push(ev, {"t": "hit", "side": side(target), "n": n, "absorbed": absorbed, "dmg": dmg, "reflected": reflected, "pierce": pierce,
 		"skin": skin})
+	_break_sigil(target, dmg, ev)
 	if not pierce and not reflected and had_block and target.riposte > 0 and target.hp > 0 and attacker.hp > 0:
 		push(ev, {"t": "riposte", "side": side(target), "n": target.riposte})
 		hit(attacker, target, target.riposte, ev, true)
@@ -720,6 +796,7 @@ static func hit(target: Fighter, attacker: Fighter, n: int, ev: Array, reflected
 ## 5. Fim: dados parados (Expectativa Tóxica, Improviso Brilhante, Urânio); o
 ## Perfeccionista guarda até 2 sobras (keep); a mão vai para o descarte.
 static func end_turn(f: Fighter, used: Array, ev: Array, keep: Array = [], reactor := false) -> void:
+	_new_effect()
 	if f.archetype == "perfectionist":
 		_keep(f, used, keep, ev)
 	var idle := "idle_dmg" in f.turn_mods
@@ -730,6 +807,7 @@ static func end_turn(f: Fighter, used: Array, ev: Array, keep: Array = [], react
 		if idle:
 			f.hp -= Spells.IDLE_DMG
 			push(ev, {"t": "idle_dmg", "side": side(f), "n": Spells.IDLE_DMG})
+			_break_sigil(f, Spells.IDLE_DMG, ev)
 		var dl := f.die_of(e)
 		if dl != null and dl.element == "Li" and dl.charge < Config.LITHIUM_CAP:
 			# Lítio parado: a bateria carrega para a próxima rolagem.
@@ -738,8 +816,7 @@ static func end_turn(f: Fighter, used: Array, ev: Array, keep: Array = [], react
 			push(ev, {"t": "charge", "side": side(f), "n": add, "total": dl.charge})
 		if f.recycle:
 			var rb := Config.scale(int(e.value), f.recycle_lvl)
-			f.block += rb
-			push(ev, {"t": "block", "side": side(f), "n": rb, "total": f.block, "recycled": true})
+			_block(f, rb, ev, "", {"recycled": true})
 			continue
 		if f.die_of(e).element == "U":
 			f.poison += Config.URANIUM_POISON

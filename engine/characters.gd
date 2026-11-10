@@ -7,8 +7,8 @@ extends RefCounted
 ## bag: elementos dos dados que não são comuns; o resto da bolsa é de dados comuns.
 ## spells: [id, x, y, rot, nível]. Cada jogável começa com uma mexida (docs/SPEC_v3.1.md §1.8).
 
-const PLAYABLE := ["sorcerer", "assassin", "metallurgist", "vampire", "barbarian"] ## O Minimalista sai por ora (fraco com a mão menor).
-const ALL := ["sorcerer", "assassin", "minimalist", "metallurgist", "copyist", "perfectionist", "vampire", "barbarian"]
+const PLAYABLE := ["sorcerer", "assassin", "metallurgist", "vampire", "barbarian", "shaman"] ## O Minimalista sai por ora (fraco com a mão menor).
+const ALL := ["sorcerer", "assassin", "minimalist", "metallurgist", "copyist", "perfectionist", "vampire", "barbarian", "shaman"]
 
 const DATA := {
 	"sorcerer": {
@@ -43,6 +43,12 @@ const DATA := {
 	"barbarian": {
 		"hp": 90, "grid": Vector2i(3, 3), "blocked": [], "hand": 4, "bag_size": 8, "bag": ["Fe", "Fe"],
 		"spells": [["machadada", 0, 0, 0, 1], ["cerrar", 1, 0, 0, 1], ["pico", 2, 0, 0, 1]],
+	},
+	# Xamã (docs/XAMA.md): Ampulheta 4×4, sem as pontas das 2 linhas do meio.
+	"shaman": {
+		"hp": 75, "grid": Vector2i(4, 4), "blocked": [Vector2i(0, 1), Vector2i(3, 1), Vector2i(0, 2), Vector2i(3, 2)],
+		"hand": 4, "bag_size": 8, "bag": ["Cu", "Cu"],
+		"spells": [["antitese", 1, 1, 0, 1], ["sintese", 2, 1, 0, 1], ["polarizar", 0, 0, 0, 1]],
 	},
 }
 

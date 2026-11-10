@@ -194,6 +194,21 @@ func _draw() -> void:
 		sb.set_border_width_all(_hi_w)
 		sb.border_color = _hi
 		draw_style_box(sb, Rect2(Vector2(3, 3), size - Vector2(6, 6)))
+	if bool(Spells.get_def(id).get("self_first", false)):
+		_draw_priority()
+
+
+## Selo de prioridade (Antítese): o dano em quem usa vem antes de todas as magias do turno.
+func _draw_priority() -> void:
+	var r := 13.0 if compact else 16.0
+	var c := Vector2(size.x - r - 5.0, r + 5.0)
+	draw_circle(c, r + 2.0, Color(0.05, 0.04, 0.07))
+	draw_circle(c, r, Color(1.0, 0.78, 0.2))
+	var font := ThemeDB.fallback_font ## A fonte dos números não tem o "º".
+	var fs := int(r * 1.0)
+	var t := "1º"
+	var w := font.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	draw_string(font, c + Vector2(-w / 2.0, fs * 0.36), t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.12, 0.08, 0.04))
 
 
 ## Charada Fatal: o buraco k é o do valor k + 1. Mostra o dado posto agora (aceso) ou o
@@ -498,6 +513,14 @@ static func preview_text(f: Fighter, i: int, values: Array) -> String:
 			s = Texts.t("ui.pv_mirror")
 		"heal":
 			s = Texts.t("ui.pv_heal", {"n": Config.scale(total * mult, lvl)})
+		"synth":
+			var sv := Config.scale(maxi(0, total - 1), lvl)
+			s = Texts.t("ui.pv_heal", {"n": sv}) + " · " + Texts.t("ui.pv_block", {"n": sv}).trim_prefix("→ ")
+			if f.archetype == "shaman":
+				# Correspondência: só a cura efetiva (o que falta de vida agora) vira dano.
+				s += " · " + Texts.t("ui.pv_dmg", {"n": mini(sv, f.max_hp - f.hp)}).trim_prefix("→ ")
+		"antithesis":
+			s = Texts.t("ui.pv_dmg", {"n": Config.scale(total * mult, lvl) + bonus}) + " · " + Texts.t("ui.pv_self", {"n": mini(total * Spells.ANTITHESIS_SELF, f.hp - 1)})
 		"drain":
 			s = Texts.t("ui.pv_dmg", {"n": Config.scale(total, lvl) + bonus}) + " · " + Texts.t("ui.pv_heal", {"n": Config.ceil_div(Config.scale(total, lvl), 2)}).trim_prefix("→ ")
 		"feast":

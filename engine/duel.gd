@@ -19,6 +19,7 @@ func setup(p: Fighter, e: Fighter, duel_seed: int) -> void:
 	enemy = e
 	for f in [p, e]:
 		f.reset_fight_state()
+	Fighter.link(p, e)
 	rng.seed = duel_seed
 	turn_events = []
 	Resolver.watch = [p, e]
@@ -130,6 +131,7 @@ static func from_dict(d: Dictionary) -> Duel:
 	var du := Duel.new()
 	du.player = Fighter.from_dict(d.get("player", {}))
 	du.enemy = Fighter.from_dict(d.get("enemy", {}))
+	Fighter.link(du.player, du.enemy)
 	du.turn = int(d.get("turn", 0))
 	du.rng.seed = int(str(d.get("seed", "0")))
 	du.rng.state = int(str(d.get("rng_state", "0")))
