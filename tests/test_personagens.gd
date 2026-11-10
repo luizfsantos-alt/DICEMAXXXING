@@ -380,8 +380,8 @@ func test_aviso_do_carbono_em_cadeia():
 func test_todas_as_magias_tem_raridade():
 	for id in Spells.DATA:
 		assert_true(Spells.rarity(id) in Config.RARITIES, id)
-	assert_eq(Spells.ids_of_rarity("common").size(), 24, "17 + 7 mexidas (com a Muralha de Ferro)")
-	assert_eq(Spells.ids_of_rarity("uncommon").size(), 26, "22 + 4 mexidas (com a Bigorna e a Pele de Ferro)")
+	assert_eq(Spells.ids_of_rarity("common").size(), 25, "18 + 7 mexidas (com a Muralha de Ferro e a Maré Cheia)")
+	assert_eq(Spells.ids_of_rarity("uncommon").size(), 29, "22 + 7 mexidas (com a Bigorna, a Pele de Ferro, Insight, Maré Baixa e Lingotamento)")
 	assert_eq(Spells.ids_of_rarity("rare").size(), 11, "9 + 2 mexidas")
 	assert_eq(Elements.rarity("Os"), "rare")
 	assert_eq(Elements.rarity("Am"), "common")

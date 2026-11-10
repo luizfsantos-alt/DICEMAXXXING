@@ -363,3 +363,57 @@ func test_save_no_meio_do_turno_com_duas_mexidas():
 	assert_eq(t.mods[H.item(f, "sangria")].spawn.size(), 3)
 	assert_true(t.undo_mod(f, H.item(f, "virar")))
 	assert_eq(int(f.hand[0].value), 2)
+
+
+# ------------------------------------------------------------ Mexidas que criam dados
+func test_mare_baixa_vira_dois_6_provisorios():
+	var f := _f(["mare_baixa"], [2, 4])
+	var c := TurnChoice.new()
+	assert_true(_place(f, c, "mare_baixa", [0]))
+	assert_eq(_vals(f), [2, 4, 6, 6], "dois 6 entram no fim da mão")
+	assert_true(0 in c.used_dice(), "o dado que entrou foi gasto")
+	assert_eq(int(f.hand[2].bag), -1, "provisórios (não vão para a bolsa)")
+	assert_true(c.undo_mod(f, H.item(f, "mare_baixa")), "desfaz")
+	assert_eq(_vals(f), [2, 4])
+	assert_eq(Spells.max_uses("mare_baixa"), 1)
+
+
+func test_lingotamento_vira_um_1_por_ponto():
+	var f := _f(["lingotamento"], [5, 3])
+	var c := TurnChoice.new()
+	assert_true(_place(f, c, "lingotamento", [0]))
+	assert_eq(_vals(f), [5, 3, 1, 1, 1, 1, 1], "um 5 vira cinco 1")
+	assert_false(TurnChoice.new().accepts(_f(["lingotamento"], [7]), 0, 0), "pede dado ≤ 6")
+	assert_eq(Spells.max_uses("lingotamento"), 1)
+	assert_true("lingotamento" in Characters.get_def("metallurgist").spells.map(func(s): return s[0]), "o Metalurgista começa com ela")
+
+
+func test_insight_devolve_o_dado_e_tira_dois_da_bolsa():
+	var f := _f(["insight"], [3])
+	f.draw_pile = [5, 6]
+	f.discard = []
+	var c := TurnChoice.new()
+	c.rng = H.rng(4)
+	assert_true(_place(f, c, "insight", [0]))
+	assert_eq(f.hand.size(), 3, "o dado gasto + dois novos")
+	assert_true(bool(f.hand[0].get("returned", false)), "o dado que entrou voltou para a bolsa")
+	var drawn := [int(f.hand[1].bag), int(f.hand[2].bag)]
+	drawn.sort()
+	assert_eq(f.draw_pile.size(), 1, "saíram 2 da bolsa, com ele dentro")
+	assert_true(int(f.hand[1].value) >= 1 and int(f.hand[2].value) >= 1, "rolados")
+	assert_false(c.undo_mod(f, H.item(f, "insight")), "não se desfaz")
+	f.discard_hand()
+	assert_eq(f.discard.size(), 2, "só os dois tirados vão ao descarte")
+	for b in f.draw_pile:
+		assert_false(b in f.discard, "sem dado duplicado entre a bolsa e o descarte")
+
+
+func test_mare_cheia_tres_1_na_proxima_mao():
+	var a := H.fighter("a", ["mare_cheia"])
+	var b := H.fighter("b", [])
+	H.hand(a, [6])
+	H.cast(a, b, {"mare_cheia": [0]})
+	assert_eq(a.extra_next.size(), Config.TIDE_ONES)
+	a.draw_hand(H.rng())
+	assert_eq(a.hand_values().filter(func(v): return v == 1).size() >= 3, true, "três 1 a mais na mão")
+	assert_eq(a.hand.size(), a.hand_size + 3)

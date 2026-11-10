@@ -297,6 +297,15 @@ Saíram da crítica de mecânicas (spec `docs/SPEC_v3.1.md` §1, hoje histórico
 | `escada` | **Escada** | L (3) | Feiticeiro | 3 dados | Sequência a partir do menor (2, 6, 6 → 2, 3, 4). | sempre | Incomum |
 | `tudo_nada` | **Tudo ou Nada** | 1×2 | Feiticeiro | dado que rola | Rola de novo: novo valor ×2, seja qual for. | sempre | Rara |
 | `lapidar` | **Lapidar** | 3×1 | qualquer | um 1 (dado da bolsa, face não travada) | A face vira 6 para sempre; o dado volta valendo 6. | 1× por luta | Rara |
+| `insight` | **Insight** | 1×2 | Feiticeiro | qualquer dado | O dado volta para a bolsa e saem dois dados dela, rolados na hora (pode sair ele mesmo). Aleatória: não se desfaz. Nível: +1 / +2 em cada. | sempre | Incomum |
+| `mare_baixa` | **Maré Baixa, Maré Cheia** | 1×2 | qualquer | qualquer dado | O dado é gasto e entram dois dados provisórios de valor 6 (7 / 8 evoluída). | 1× por luta | Incomum |
+| `lingotamento` | **Lingotamento** | 2×1 | Metalurgista (no kit inicial) | dado ≤ 6 | O dado vira tantos dados de valor 1 quanto o valor (um 5 vira cinco 1; +1 / +2 evoluída). | 1× por luta | Incomum |
+
+Não é mexida, mas é da mesma família (Maré):
+
+| id | Magia | Formato | Grupo | Pede | Efeito | Uso | Raridade |
+|---|---|---|---|---|---|---|---|
+| `mare_cheia` | **Maré Cheia, Maré Baixa** | L (3) | qualquer | um 6 | Na sua próxima mão entram três dados de valor 1 a mais (quatro / cinco evoluída). | sempre | Comum |
 
 **Mexidas iniciais:** Feiticeiro (Segunda Chance), Assassino (Ajuste Fino), Bárbaro (Pico), Vampiro (Sangria), Metalurgista (Virar). Copista, Perfeccionista e Minimalista ficam sem.
 

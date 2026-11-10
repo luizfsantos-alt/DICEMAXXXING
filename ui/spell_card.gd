@@ -295,6 +295,12 @@ static func mod_preview(f: Fighter, i: int, values: Array, sel_die: Die = null, 
 			return "→ %d" % (v * 2 + b)
 		"polish":
 			return "→ %d" % (5 + lvl)
+		"tide_low":
+			return "→ %d · %d" % [Config.TIDE_LOW_VALUE + b, Config.TIDE_LOW_VALUE + b]
+		"lingot":
+			return "→ %d × 1" % (v + b)
+		"insight":
+			return Texts.t("ui.pv_insight")
 		"avg":
 			if values.size() == 2:
 				var a := Config.ceil_div(int(values[0]) + int(values[1]), 2) + b
@@ -394,6 +400,8 @@ static func preview_text(f: Fighter, i: int, values: Array) -> String:
 			s = Texts.t("ui.pv_block", {"n": Config.scale(int(d.get("per", 1)) * Resolver._hand_count(f), lvl)})
 		"skin":
 			s = Texts.t("ui.pv_skin", {"n": mini(f.skin + 1, Config.SKIN_CAP + lvl - 1)})
+		"tide_out":
+			s = Texts.t("ui.pv_tide_out", {"n": Config.TIDE_ONES + lvl - 1})
 		"block_count":
 			s = Texts.t("ui.pv_block", {"n": Config.scale(int(d.get("per", 1)) * Resolver.count_value(f, int(d.get("count", 1))), lvl)})
 		"riposte":

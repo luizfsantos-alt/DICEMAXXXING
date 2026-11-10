@@ -32,7 +32,31 @@
 
 ---
 
-## 2. Outros itens já registrados
+## 2. Personagem: o Pescador
+
+**Ideia:** um mago que vive de **sorte**. Passa turnos jogando a linha e pescando quase nada, e de repente puxa um peixe enorme: **dano imenso, mas inconstante**. A emoção é a da pescaria: espera, puxão, e às vezes a linha arrebenta.
+
+**Eventos de sorte (rascunho para a proposta):**
+- **Fisgada:** cada turno sem acertar o "peixe" aumenta a chance (ou o tamanho) do próximo. A tensão cresce até soltar.
+- **Peixe grande:** quando a pesca vinga, o golpe multiplica (×3, ×4), passando dos limites normais do jogo.
+- **Linha arrebentada:** às vezes o golpe grande vira nada, ou volta contra o próprio Pescador.
+- **Isca:** gastar dados agora para melhorar a chance da próxima pescaria (combina com as mexidas e com a família da Maré: Maré Baixa / Maré Cheia).
+
+**Encaixe:** dados de Estrôncio (estouram na face mais alta) e Hidrogênio servem de "isca de sorte"; a família da Maré já trabalha com ondas de dados altos e baixos.
+
+**Perguntas para a proposta:**
+
+| Tema | Pergunta |
+|---|---|
+| Passiva | A sorte é um contador visível (a linha esticando) ou escondido? |
+| Variância | Quanto o dano pode oscilar sem a luta ficar decidida só no dado? Há um piso? |
+| Kit | Quais magias começam no kit (uma de pesca, uma de isca, uma de sobrevivência)? |
+| Leitura | Como mostrar a chance da fisgada na tela (bóia afundando, linha tremendo)? |
+| Inimigo | O Pescador inimigo vai ser justo ou frustrante (golpe gigante do nada)? |
+
+---
+
+## 3. Outros itens já registrados
 
 | Item | Onde |
 |---|---|

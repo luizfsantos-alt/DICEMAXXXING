@@ -339,6 +339,9 @@ func discard_hand() -> void:
 		held.append(int(k.bag))
 	for e in hand:
 		var b := int(e.bag)
+		# Insight devolve o dado à pilha de compra ("returned"): ele não vai também ao descarte.
+		if e.get("returned", false):
+			continue
 		if b >= 0 and not (b in held) and not (b in benched) and not (b in discard):
 			discard.append(b)
 	hand = []

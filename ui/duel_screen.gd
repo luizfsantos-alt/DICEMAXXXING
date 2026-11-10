@@ -1450,6 +1450,8 @@ func _apply_event(ev: Dictionary) -> void:
 			await _effect(s, Texts.t("status.immune.0"), "fx")
 		"skin_up":
 			await _effect(s, Texts.t("ui.fx_skin", {"n": ev.n}), "fx")
+		"tide_out":
+			await _effect(s, Texts.t("ui.fx_tide_out", {"n": ev.n}), "fx")
 		"cleanse":
 			await _effect(s, Texts.t("ui.fx_cleanse"), "fx")
 		"recycle_up":
@@ -1752,6 +1754,8 @@ func _describe(ev: Dictionary) -> String:
 			return Texts.t("ev.immune_up", {"who": w})
 		"skin_up":
 			return Texts.t("ev.skin_up", {"who": w, "n": ev.n})
+		"tide_out":
+			return Texts.t("ev.tide_out", {"who": w, "n": ev.n})
 		"immune_block":
 			return Texts.t("ev.immune_block", {"who": w})
 		"cleanse":

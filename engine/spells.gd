@@ -27,7 +27,10 @@ extends RefCounted
 ## menor). "heal" usa "mult".
 ## mod: mexida (docs/SPEC_v3.1.md §1): resolve na alocação, quando o buraco fica completo
 ## (TurnChoice), e devolve o dado mexido à mão. "mod" diz qual: reroll_max, nudge, top,
-## split3, flip, avg, polar, echo, double, fuse, stairs, gamble, polish.
+## split3, flip, avg, polar, echo, double, fuse, stairs, gamble, polish, insight (o dado
+## volta à bolsa e saem 2 dela, rolados), tide_low (o dado vira dois 6 provisórios) e
+## lingot (o dado vira tantos 1 quanto o valor).
+## tide_out (Maré Cheia): três dados de valor 1 entram na sua próxima mão.
 ## Opcionais: "hand_mod" (mexe na próxima mão do inimigo) e "mark" (marca o dado
 ## para a sua próxima mão: same, six, sum, plus2).
 ##
@@ -100,6 +103,7 @@ const DATA := {
 	"mordida": {"shape": S1, "req": "any", "n": 1, "fx": "drain", "use": "always", "pool": "vampire", "rarity": "common"},
 	"banquete": {"shape": S_H3, "req": "any", "n": 3, "fx": "feast", "use": "always", "pool": "vampire", "rarity": "uncommon"},
 	"machadada": {"shape": S_V2, "req": "min", "v": 4, "fx": "dmg", "mult": 2, "use": "always", "pool": "barbarian", "rarity": "common"},
+	"mare_cheia": {"shape": S_L3, "req": "exact", "v": 6, "fx": "tide_out", "use": "always", "pool": "any", "rarity": "common"},
 	"cerrar": {"shape": S1, "req": "max", "v": 3, "fx": "heal", "mult": 3, "use": "twice", "pool": "barbarian", "rarity": "common"},
 	# Magias do Ferro (sempre 3): pedem 3 exato e crescem com os 3 da mão.
 	"bigorna": {"shape": S_H2, "req": "exact", "n": 2, "v": 3, "fx": "dmg", "mult": 3, "use": "always", "pool": "barbarian", "rarity": "uncommon"},
@@ -118,6 +122,9 @@ const DATA := {
 	"juntar": {"shape": S_H2, "req": "any", "n": 2, "fx": "mod", "mod": "fuse", "use": "always", "pool": "assassin", "rarity": "uncommon"},
 	"escada": {"shape": S_L3, "req": "any", "n": 3, "fx": "mod", "mod": "stairs", "use": "always", "pool": "sorcerer", "rarity": "uncommon"},
 	"tudo_nada": {"shape": S_V2, "req": "any", "n": 1, "fx": "mod", "mod": "gamble", "random": true, "use": "always", "pool": "sorcerer", "rarity": "rare"},
+	"insight": {"shape": S_V2, "req": "any", "n": 1, "fx": "mod", "mod": "insight", "random": true, "use": "always", "pool": "sorcerer", "rarity": "uncommon"},
+	"mare_baixa": {"shape": S_V2, "req": "any", "n": 1, "fx": "mod", "mod": "tide_low", "use": "once", "pool": "any", "rarity": "uncommon"},
+	"lingotamento": {"shape": S_H2, "req": "max", "v": 6, "fx": "mod", "mod": "lingot", "use": "once", "pool": "metallurgist", "rarity": "uncommon"},
 	"lapidar": {"shape": S_H3, "req": "exact", "v": 1, "fx": "mod", "mod": "polish", "use": "once", "pool": "any", "rarity": "rare"},
 }
 
@@ -218,6 +225,8 @@ static func color_family(id: String) -> String:
 			return "heal"
 		"spawn_copy":
 			return "sacrifice"
+		"tide_out":
+			return "mod"
 		"mod":
 			return "mod"
 	return fx
@@ -232,7 +241,7 @@ static func icon_key(id: String) -> String:
 			return "fx/" + fx
 		"feast":
 			return "fx/drain"
-		"encore", "lever", "spawn_half", "spawn_copy", "steal_sticker", "bench", "mod":
+		"encore", "lever", "spawn_half", "spawn_copy", "steal_sticker", "bench", "mod", "tide_out":
 			return "fx/dice"
 		"block", "block_hand", "block_product", "block_count", "recycle":
 			return "status/block"

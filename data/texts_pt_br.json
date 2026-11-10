@@ -116,6 +116,22 @@
    "Bigorna",
    "Dois dados de valor exatamente 3. Dano igual à soma ×3 (dois 3 = 18). O Ferro sempre vale 3."
   ],
+  "insight": [
+   "Insight",
+   "Um dado. Ele volta para a bolsa e saem dois dados dela, rolados na hora (pode sair ele mesmo). Mexida: os dois novos ficam livres para outras magias. Não se desfaz."
+  ],
+  "mare_baixa": [
+   "Maré Baixa, Maré Cheia",
+   "Um dado. Ele sai e você recebe dois dados provisórios de valor 6 (somem depois do turno). Mexida. Uma vez por luta."
+  ],
+  "mare_cheia": [
+   "Maré Cheia, Maré Baixa",
+   "Um 6. Na sua próxima mão, entram três dados de valor 1 a mais."
+  ],
+  "lingotamento": [
+   "Lingotamento",
+   "Dado de valor 6 ou menos. Ele vira tantos dados de valor 1 quanto o valor dele (um 5 vira cinco 1). Mexida. Uma vez por luta."
+  ],
   "pele": [
    "Pele de Ferro",
    "Um 3. Ganha 1 de Revestimento: até o fim da luta, todo golpe que você recebe causa 1 a menos (acumula a cada uso, até −3; um golpe sempre causa pelo menos 1)."
@@ -587,6 +603,8 @@
   "pv_spawn": "+2 dados de {v}",
   "pv_riposte": "revide {n}",
   "pv_skin": "→ revestimento −{n} por golpe",
+  "pv_insight": "→ 2 dados da bolsa",
+  "pv_tide_out": "→ próxima mão: +{n} dados de valor 1",
   "pv_immune": "anula o próximo efeito",
   "pv_cleanse": "→ limpa efeitos",
   "pv_recycle": "→ sobras viram bloqueio",
@@ -594,6 +612,7 @@
   "fx_idle_dmg": "parado −{n}",
   "fx_riposte": "revide!",
   "fx_skin": "Revestimento −{n}",
+  "fx_tide_out": "Maré: +{n} dados de 1",
   "fx_immune": "imune!",
   "pick_master": "Mestre vencido: escolha uma recompensa",
   "pick_master_rare": "Escolha uma magia Rara",
@@ -675,6 +694,7 @@
   "riposte": "{who} revida ({n})",
   "riposte_up": "{who} se prepara para revidar ({n})",
   "skin_up": "{who} ganha revestimento (golpes −{n})",
+  "tide_out": "Maré Cheia: {who} terá {n} dados de valor 1 a mais na próxima mão",
   "skin": "(revestimento −{n})",
   "immune_up": "{who} fica imune a críticas",
   "immune_block": "{who} ignora o efeito do inimigo",
@@ -758,6 +778,10 @@
   "machadada": "Dano = valor ×2",
   "bigorna": "Dois 3: dano = soma ×3",
   "pele": "Revestimento +1 (golpes −1, até −3)",
+  "insight": "Volta à bolsa; saem 2 dados dela",
+  "mare_baixa": "Vira dois 6 provisórios",
+  "mare_cheia": "Próxima mão: +três 1",
+  "lingotamento": "Vira um 1 por ponto do valor",
   "muralha": "Bloqueio = 4 × cada 3 na mão",
   "cerrar": "Cura = valor ×3",
   "segunda": "Rola de novo, fica o maior",
@@ -812,6 +836,10 @@
   "machadada": "Dano = valor ×{2}",
   "bigorna": "Dois 3: dano = soma ×{3}",
   "pele": ["Revestimento +1 (golpes −1, até −4)", "Revestimento +1 (golpes −1, até −5)"],
+  "insight": ["Volta à bolsa; saem 2 dados dela (+1 cada)", "Volta à bolsa; saem 2 dados dela (+2 cada)"],
+  "mare_baixa": ["Vira dois 7 provisórios", "Vira dois 8 provisórios"],
+  "mare_cheia": ["Próxima mão: +quatro 1", "Próxima mão: +cinco 1"],
+  "lingotamento": ["Vira um 1 por ponto do valor, +1", "Vira um 1 por ponto do valor, +2"],
   "muralha": "Bloqueio = {4} × cada 3 na mão",
   "cerrar": "Cura = valor ×{3}",
   "espelho": "Reflete o próximo golpe ×{1}",

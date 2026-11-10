@@ -431,6 +431,12 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 			if f.skin < cap:
 				f.skin += 1
 			push(ev, {"t": "skin_up", "side": side(f), "n": f.skin})
+		"tide_out":
+			# Maré Cheia: dados de valor 1 entram na próxima mão.
+			var n := Config.TIDE_ONES + lvl - 1
+			for _k in n:
+				f.extra_next.append({"temp": Die.basic().to_dict(), "value": 1})
+			push(ev, {"t": "tide_out", "side": side(f), "n": n})
 		"immune":
 			_block(f, Config.scale(total * mult, lvl), ev)
 			f.immune = maxi(f.immune, 1)

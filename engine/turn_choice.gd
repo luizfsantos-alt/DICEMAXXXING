@@ -296,6 +296,22 @@ func _resolve_mod(f: Fighter, item: int) -> void:
 			var lo := int(vals.min())
 			for k in dice.size():
 				_set_val(f, f.hand[dice[k]], lo + k + b)
+		"tide_low":
+			# Maré Baixa: o dado sai e entram dois dados provisórios valendo 6.
+			m.prev[0].spent = true
+			for k in 2:
+				m.spawn.append(f.hand.size())
+				f.hand.append({"bag": -1, "temp": Die.basic(), "face": 5, "value": Config.TIDE_LOW_VALUE + b,
+					"top": false, "fixed": true, "plus": 0, "spawn": item, "orig": int(vals[0]), "cause": id})
+		"lingot":
+			# Lingotamento: o dado vira tantos dados de valor 1 quanto o valor dele.
+			m.prev[0].spent = true
+			for k in int(vals[0]) + b:
+				m.spawn.append(f.hand.size())
+				f.hand.append({"bag": -1, "temp": Die.basic(), "face": 0, "value": 1,
+					"top": false, "fixed": true, "plus": 0, "spawn": item, "orig": int(vals[0]), "cause": id})
+		"insight":
+			_insight(f, item, m, b)
 		"polish":
 			var e: Dictionary = f.hand[dice[0]]
 			var nv := 5 + lvl ## A face vira 6 / 7 / 8.
@@ -351,6 +367,37 @@ func _reroll(f: Fighter, e: Dictionary) -> Dictionary:
 	var raw := d.value(face)
 	var extra := d.value(rng.randi_range(0, 5)) if Elements.bursts(d, face) else 0 ## Estrôncio.
 	return {"face": face, "value": (raw + int(e.get("plus", 0))) * mult + extra + chain, "top": raw == d.max_value()}
+
+
+## Insight: o dado volta para a bolsa (pilha de compra) e saem dois dados dela, rolados
+## na hora (podendo ser ele mesmo). A IA (expect / forced_face) simula com dados comuns
+## sem mexer na bolsa.
+func _insight(f: Fighter, item: int, m: Dictionary, b: int) -> void:
+	var e: Dictionary = f.hand[int(m.dice[0])]
+	m.prev[0].spent = true
+	var out := []
+	if expect or forced_face >= 0:
+		for k in 2:
+			out.append({"bag": -1, "temp": Die.basic(), "face": maxi(0, forced_face), "value": (forced_face + 1 if forced_face >= 0 else 4),
+				"top": false, "fixed": false, "plus": 0})
+	else:
+		if rng == null:
+			rng = RandomNumberGenerator.new()
+			rng.randomize()
+		if int(e.bag) >= 0 and not (int(e.bag) in f.draw_pile):
+			f.draw_pile.append(int(e.bag))
+			e["returned"] = true
+		for k in 2:
+			var x := f.draw_one(rng)
+			if x.is_empty():
+				break
+			f._roll_entry(x, rng)
+			out.append(x)
+	for x in out:
+		x.value = int(x.value) + b
+		x["spawn"] = item
+		m.spawn.append(f.hand.size())
+		f.hand.append(x)
 
 
 func _set_val(f: Fighter, e: Dictionary, v: int) -> void:
