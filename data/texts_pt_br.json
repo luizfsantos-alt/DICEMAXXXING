@@ -116,6 +116,10 @@
    "Bigorna",
    "Dois dados de valor exatamente 3. Dano igual à soma ×3 (dois 3 = 18). O Ferro sempre vale 3."
   ],
+  "pele": [
+   "Pele de Ferro",
+   "Um 3. Ganha 1 de Revestimento: até o fim da luta, todo golpe que você recebe causa 1 a menos (acumula a cada uso, até −3; um golpe sempre causa pelo menos 1)."
+  ],
   "muralha": [
    "Muralha de Ferro",
    "Um 3. Bloqueio igual a 4 × quantos dados de valor 3 há na sua mão (contando este)."
@@ -582,12 +586,14 @@
   "pv_bench": "tira o dado mais forte dele",
   "pv_spawn": "+2 dados de {v}",
   "pv_riposte": "revide {n}",
+  "pv_skin": "→ revestimento −{n} por golpe",
   "pv_immune": "anula o próximo efeito",
   "pv_cleanse": "→ limpa efeitos",
   "pv_recycle": "→ sobras viram bloqueio",
   "pv_mark": "volta na próxima mão",
   "fx_idle_dmg": "parado −{n}",
   "fx_riposte": "revide!",
+  "fx_skin": "Revestimento −{n}",
   "fx_immune": "imune!",
   "pick_master": "Mestre vencido: escolha uma recompensa",
   "pick_master_rare": "Escolha uma magia Rara",
@@ -668,6 +674,8 @@
   "idle_dmg": "Dados parados: {who} perde {n}",
   "riposte": "{who} revida ({n})",
   "riposte_up": "{who} se prepara para revidar ({n})",
+  "skin_up": "{who} ganha revestimento (golpes −{n})",
+  "skin": "(revestimento −{n})",
   "immune_up": "{who} fica imune a críticas",
   "immune_block": "{who} ignora o efeito do inimigo",
   "cleanse": "{who} remove os efeitos negativos",
@@ -749,6 +757,7 @@
   "banquete": "Dano = soma; cura o menor",
   "machadada": "Dano = valor ×2",
   "bigorna": "Dois 3: dano = soma ×3",
+  "pele": "Revestimento +1 (golpes −1, até −3)",
   "muralha": "Bloqueio = 4 × cada 3 na mão",
   "cerrar": "Cura = valor ×3",
   "segunda": "Rola de novo, fica o maior",
@@ -802,6 +811,7 @@
   "banquete": "Dano = soma ×{1}; cura o menor ×{1}",
   "machadada": "Dano = valor ×{2}",
   "bigorna": "Dois 3: dano = soma ×{3}",
+  "pele": ["Revestimento +1 (golpes −1, até −4)", "Revestimento +1 (golpes −1, até −5)"],
   "muralha": "Bloqueio = {4} × cada 3 na mão",
   "cerrar": "Cura = valor ×{3}",
   "espelho": "Reflete o próximo golpe ×{1}",
@@ -908,6 +918,10 @@
   "riposte": [
    "Revide",
    "Devolve esse dano a cada golpe recebido enquanto houver bloqueio."
+  ],
+  "skin": [
+   "Revestimento",
+   "Cada golpe recebido causa esse tanto a menos (nunca menos de 1). Dura até o fim da luta. Golpes que ignoram defesas passam."
   ],
   "immune": [
    "Imune",

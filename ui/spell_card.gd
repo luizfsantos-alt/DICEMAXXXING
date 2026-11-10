@@ -392,6 +392,8 @@ static func preview_text(f: Fighter, i: int, values: Array) -> String:
 			s = Texts.t("ui.pv_block", {"n": Config.scale(prod * mult, lvl)})
 		"block_hand":
 			s = Texts.t("ui.pv_block", {"n": Config.scale(int(d.get("per", 1)) * Resolver._hand_count(f), lvl)})
+		"skin":
+			s = Texts.t("ui.pv_skin", {"n": mini(f.skin + 1, Config.SKIN_CAP + lvl - 1)})
 		"block_count":
 			s = Texts.t("ui.pv_block", {"n": Config.scale(int(d.get("per", 1)) * Resolver.count_value(f, int(d.get("count", 1))), lvl)})
 		"riposte":

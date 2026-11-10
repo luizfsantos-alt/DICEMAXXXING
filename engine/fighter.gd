@@ -34,6 +34,7 @@ var once_used: Array = [] ## Índices do inventário usados nesta luta (um por u
 var turns_taken: int = 0
 var riposte: int = 0 ## Revide Elegante: dano devolvido por golpe enquanto houver bloqueio.
 var immune: int = 0 ## Imune a Críticas: anula os próximos efeitos negativos do inimigo.
+var skin: int = 0 ## Revestimento: cada golpe recebido causa isto a menos (mínimo 1); dura a luta.
 var recycle: bool = false ## Improviso Brilhante: sobras viram bloqueio neste turno.
 ## Nível da magia que deu o Espelho, a Esquiva e o Improviso (o ganho vem na hora de usar).
 var mirror_lvl: int = 1
@@ -97,6 +98,7 @@ func reset_fight_state() -> void:
 	turns_taken = 0
 	riposte = 0
 	immune = 0
+	skin = 0
 	recycle = false
 	mirror_lvl = 1
 	dodge_lvl = 1
@@ -369,7 +371,7 @@ func to_dict() -> Dictionary:
 		"draw_pile": draw_pile, "discard": discard, "hand": hand_d, "last_hand": last_hand,
 		"block": block, "mirror": mirror, "dodge": dodge, "poison": poison, "burn": burn, "coins_won": coins_won,
 		"sacrifice_bonus": sacrifice_bonus, "once_used": once_used, "turns_taken": turns_taken,
-		"riposte": riposte, "immune": immune, "recycle": recycle, "marked": marked,
+		"riposte": riposte, "immune": immune, "skin": skin, "recycle": recycle, "marked": marked,
 		"mirror_lvl": mirror_lvl, "dodge_lvl": dodge_lvl, "recycle_lvl": recycle_lvl,
 		"extra_next": extra_next, "benched": benched, "fight_mods": fight_mods,
 		"hand_mods": hand_mods, "turn_mods": turn_mods, "keeps": keeps, "thirst_used": thirst_used, "dodge_bonus": dodge_bonus,
@@ -383,7 +385,7 @@ func to_dict() -> Dictionary:
 func status_state() -> Dictionary:
 	return {
 		"block": block, "poison": poison, "burn": burn, "mirror": mirror, "dodge": dodge,
-		"riposte": riposte, "immune": immune, "kept": (0 if marked.is_empty() else 1) + keeps.size(),
+		"riposte": riposte, "immune": immune, "skin": skin, "kept": (0 if marked.is_empty() else 1) + keeps.size(),
 		"fury": Characters.fury(self), "archetype": archetype, "thirst_used": thirst_used,
 		"hand_mods": hand_mods.duplicate(),
 	}
@@ -430,6 +432,7 @@ static func from_dict(d: Dictionary) -> Fighter:
 	f.turns_taken = int(d.get("turns_taken", 0))
 	f.riposte = int(d.get("riposte", 0))
 	f.immune = int(d.get("immune", 0))
+	f.skin = int(d.get("skin", 0))
 	f.recycle = bool(d.get("recycle", false))
 	f.mirror_lvl = int(d.get("mirror_lvl", 1))
 	f.dodge_lvl = int(d.get("dodge_lvl", 1))

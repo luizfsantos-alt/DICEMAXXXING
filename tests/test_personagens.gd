@@ -157,6 +157,35 @@ func test_bigorna_e_muralha_de_ferro():
 	assert_eq(Spells.color_family("muralha"), "block")
 
 
+func test_pele_de_ferro_da_revestimento():
+	var a := H.fighter("A", ["pele"], 40, true)
+	a.bag[0] = Die.with_element("Fe")
+	var b := H.fighter("B", [], 80)
+	for t in 5:
+		H.hand(a, [3])
+		H.cast(a, b, {"pele": [0]})
+	assert_eq(a.skin, Config.SKIN_CAP, "acumula até o teto (−3 no nível 1)")
+	var ev := []
+	Resolver.hit(a, b, 10, ev)
+	assert_eq(a.hp, 40 - 7, "golpe de 10 causa 7")
+	assert_eq(int(ev[0].skin), 3)
+	Resolver.hit(a, b, 2, ev)
+	assert_eq(a.hp, 33 - 1, "nunca menos de 1")
+	Resolver.hit(a, b, 6, ev, false, true)
+	assert_eq(a.hp, 32 - 6, "golpe que ignora defesas passa")
+	a.block = 5
+	Resolver.hit(a, b, 6, ev)
+	assert_eq(a.block, 2, "o Revestimento reduz antes do bloqueio")
+	H.item(a, "pele")
+	a.inventory.items[0].level = 3
+	H.hand(a, [3])
+	H.cast(a, b, {"pele": [0]})
+	assert_eq(a.skin, Config.SKIN_CAP + 1, "evoluída: teto maior")
+	a.reset_fight_state()
+	assert_eq(a.skin, 0, "dura só a luta")
+	assert_eq(Spells.color_family("pele"), "block")
+
+
 # ------------------------------------------------------------------ Passivas
 func test_furia_so_com_metade_da_vida():
 	var f := EnemyFactory.base("barbarian")
@@ -352,7 +381,7 @@ func test_todas_as_magias_tem_raridade():
 	for id in Spells.DATA:
 		assert_true(Spells.rarity(id) in Config.RARITIES, id)
 	assert_eq(Spells.ids_of_rarity("common").size(), 24, "17 + 7 mexidas (com a Muralha de Ferro)")
-	assert_eq(Spells.ids_of_rarity("uncommon").size(), 25, "21 + 4 mexidas (com a Bigorna)")
+	assert_eq(Spells.ids_of_rarity("uncommon").size(), 26, "22 + 4 mexidas (com a Bigorna e a Pele de Ferro)")
 	assert_eq(Spells.ids_of_rarity("rare").size(), 11, "9 + 2 mexidas")
 	assert_eq(Elements.rarity("Os"), "rare")
 	assert_eq(Elements.rarity("Am"), "common")

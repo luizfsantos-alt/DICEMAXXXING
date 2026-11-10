@@ -257,9 +257,11 @@ Vieram de `docs/PERSONAGENS.md`. Todas entram na Loja, na Escola e nas recompens
 | `machadada` | **Machadada** | 1×2 | Bárbaro | dado ≥ 4 | Dano = valor ×2. | sempre | Comum |
 | `cerrar` | **Cerrar os Dentes** | 1×1 | Bárbaro | dado ≤ 3 | Cura = valor ×3. | 2× por luta | Comum |
 | `bigorna` | **Bigorna** | 2×1 | Bárbaro | 2 dados de valor exatamente 3 | Dano = soma ×3 (dois 3 = 18). | sempre | Incomum |
+| `pele` | **Pele de Ferro** | 1×2 | Bárbaro | dado = 3 | +1 de **Revestimento**: até o fim da luta, todo golpe recebido causa 1 a menos (acumula até −3; −4 e −5 evoluída; um golpe sempre causa ao menos 1). | sempre | Incomum |
 | `muralha` | **Muralha de Ferro** | 1×2 | Bárbaro | dado = 3 | Bloqueio = 4 × cada dado de valor 3 na mão (contando este e os já postos). | sempre | Comum |
 
 - **Exigência nova "trio"**: 3 dados iguais; os buracos mostram "=" entre eles.
+- **Revestimento** (status novo, 0.21.0): reduz cada golpe recebido (antes do bloqueio), nunca abaixo de 1; dura a luta; golpes que ignoram defesas passam. Ícone `assets/icons/status/skin.png` (placa de ferro rebitada, desenhada em código; pode ganhar arte de gerador).
 - **Magias do Ferro** (0.20.0): o Ferro sempre vale 3, então Bigorna e Muralha de Ferro sempre aceitam os Ferros. Outros dados servem quando caem em 3 (ou com Ajuste Fino, Nivelar etc.). "exact" aceita "n" dados.
 - A cura cresce com o nível, como o dano. A Fúria do Bárbaro e o Sacrifício somam em cada golpe.
 

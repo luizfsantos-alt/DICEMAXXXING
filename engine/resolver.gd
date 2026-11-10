@@ -425,6 +425,12 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 			_block(f, Config.scale(total * mult, lvl), ev)
 			f.riposte = maxi(f.riposte, Config.scale(total, lvl))
 			push(ev, {"t": "riposte_up", "side": side(f), "n": f.riposte})
+		"skin":
+			# Pele de Ferro: +1 de Revestimento, até SKIN_CAP (+1 por nível).
+			var cap := Config.SKIN_CAP + lvl - 1
+			if f.skin < cap:
+				f.skin += 1
+			push(ev, {"t": "skin_up", "side": side(f), "n": f.skin})
 		"immune":
 			_block(f, Config.scale(total * mult, lvl), ev)
 			f.immune = maxi(f.immune, 1)
@@ -638,12 +644,18 @@ static func hit(target: Fighter, attacker: Fighter, n: int, ev: Array, reflected
 			# Espelho evoluído devolve o golpe mais forte (×1,5 no nível 2, ×2 no 3).
 			hit(attacker, target, Config.scale(n, target.mirror_lvl), ev, true)
 			return
+	# Revestimento: cada golpe causa menos (nunca menos de 1). Golpes que ignoram defesas passam.
+	var skin := 0
+	if not pierce and target.skin > 0 and n > 1:
+		skin = mini(target.skin, n - 1)
+		n -= skin
 	var had_block := target.block > 0
 	var absorbed := 0 if pierce else mini(target.block, n)
 	target.block -= absorbed
 	var dmg := n - absorbed
 	target.hp -= dmg
-	push(ev, {"t": "hit", "side": side(target), "n": n, "absorbed": absorbed, "dmg": dmg, "reflected": reflected, "pierce": pierce})
+	push(ev, {"t": "hit", "side": side(target), "n": n, "absorbed": absorbed, "dmg": dmg, "reflected": reflected, "pierce": pierce,
+		"skin": skin})
 	if not pierce and not reflected and had_block and target.riposte > 0 and target.hp > 0 and attacker.hp > 0:
 		push(ev, {"t": "riposte", "side": side(target), "n": target.riposte})
 		hit(attacker, target, target.riposte, ev, true)

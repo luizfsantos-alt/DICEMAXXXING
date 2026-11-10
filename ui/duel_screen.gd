@@ -430,6 +430,8 @@ static func statuses(st: Dictionary) -> Array:
 		out.append(_st("riposte", int(st.riposte)))
 	if int(st.immune) > 0:
 		out.append(_st("immune", int(st.immune)))
+	if int(st.get("skin", 0)) > 0:
+		out.append(_st("skin", int(st.skin)))
 	if int(st.kept) > 0:
 		out.append(_st("marked", int(st.kept)))
 	if int(st.fury) > 0:
@@ -1446,6 +1448,8 @@ func _apply_event(ev: Dictionary) -> void:
 			await _effect(s, "%s %d" % [Texts.t("status.riposte.0"), int(ev.n)], "fx")
 		"immune_up":
 			await _effect(s, Texts.t("status.immune.0"), "fx")
+		"skin_up":
+			await _effect(s, Texts.t("ui.fx_skin", {"n": ev.n}), "fx")
 		"cleanse":
 			await _effect(s, Texts.t("ui.fx_cleanse"), "fx")
 		"recycle_up":
@@ -1697,6 +1701,8 @@ func _describe(ev: Dictionary) -> String:
 				t += " " + Texts.t("ev.reflected")
 			if ev.get("pierce", false):
 				t += " " + Texts.t("ev.pierce")
+			if int(ev.get("skin", 0)) > 0:
+				t += " " + Texts.t("ev.skin", {"n": ev.skin})
 			return t
 		"block":
 			if ev.get("recycled", false):
@@ -1744,6 +1750,8 @@ func _describe(ev: Dictionary) -> String:
 			return Texts.t("ev.riposte_up", {"who": w, "n": ev.n})
 		"immune_up":
 			return Texts.t("ev.immune_up", {"who": w})
+		"skin_up":
+			return Texts.t("ev.skin_up", {"who": w, "n": ev.n})
 		"immune_block":
 			return Texts.t("ev.immune_block", {"who": w})
 		"cleanse":

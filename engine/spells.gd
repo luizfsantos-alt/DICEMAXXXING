@@ -21,7 +21,8 @@ extends RefCounted
 ## quantos 1 há na mão), top_x (maior dado × "mult"), encore (Bis!), steal_sticker
 ## (Plágio), bench (Arrancar das Mãos), spawn_half / spawn_copy (devolvem dados à mão
 ## na alocação), block ("mult"), block_product, block_hand ("per" × dados na mão),
-## block_count ("per" × dados da mão de valor "count"), riposte, immune, cleanse, recycle, debuff (só "hand_mod"), dodge, mirror, heal,
+## block_count ("per" × dados da mão de valor "count"), skin (Revestimento: −1 por golpe
+## recebido, acumula até Config.SKIN_CAP + nível − 1), riposte, immune, cleanse, recycle, debuff (só "hand_mod"), dodge, mirror, heal,
 ## maxhp, sacrifice, drain (dano = valor, cura metade), feast (dano = soma, cura o
 ## menor). "heal" usa "mult".
 ## mod: mexida (docs/SPEC_v3.1.md §1): resolve na alocação, quando o buraco fica completo
@@ -102,6 +103,7 @@ const DATA := {
 	"cerrar": {"shape": S1, "req": "max", "v": 3, "fx": "heal", "mult": 3, "use": "twice", "pool": "barbarian", "rarity": "common"},
 	# Magias do Ferro (sempre 3): pedem 3 exato e crescem com os 3 da mão.
 	"bigorna": {"shape": S_H2, "req": "exact", "n": 2, "v": 3, "fx": "dmg", "mult": 3, "use": "always", "pool": "barbarian", "rarity": "uncommon"},
+	"pele": {"shape": S_V2, "req": "exact", "v": 3, "fx": "skin", "use": "always", "pool": "barbarian", "rarity": "uncommon"},
 	"muralha": {"shape": S_V2, "req": "exact", "v": 3, "fx": "block_count", "count": 3, "per": 4, "use": "always", "pool": "barbarian", "rarity": "common"},
 	# Mexidas (docs/SPEC_v3.1.md §1.3): mudam os próprios dados na alocação.
 	"segunda": {"shape": S1, "req": "any", "n": 1, "fx": "mod", "mod": "reroll_max", "random": true, "use": "always", "pool": "sorcerer", "rarity": "common"},
@@ -208,7 +210,7 @@ static func color_family(id: String) -> String:
 	match fx:
 		"product", "lever", "multi", "ones", "top_x", "encore", "steal_sticker", "bench", "spawn_half", "drain", "feast":
 			return "dmg"
-		"block_product", "block_hand", "block_count", "riposte", "recycle":
+		"block_product", "block_hand", "block_count", "riposte", "recycle", "skin":
 			return "block"
 		"immune", "debuff":
 			return "mirror"
@@ -234,6 +236,8 @@ static func icon_key(id: String) -> String:
 			return "fx/dice"
 		"block", "block_hand", "block_product", "block_count", "recycle":
 			return "status/block"
+		"skin":
+			return "status/skin"
 		"dodge", "mirror", "riposte", "immune":
 			return "status/" + fx
 		"debuff":
