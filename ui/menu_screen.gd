@@ -59,9 +59,10 @@ func setup() -> MenuScreen:
 	nt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	# Com o logo grande, o convite vai na coluna da direita para os cartões caberem na tela.
 	(tv if title_art else v).add_child(nt)
-	var row := Kit.hbox(12)
+	var row := Kit.hbox(ROW_GAP)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.add_child(row)
+	card_w = card_width(Characters.PLAYABLE.size())
 	for id in Characters.PLAYABLE:
 		row.add_child(_card(id))
 	add_child(_version_label())
@@ -109,13 +110,23 @@ static func version_text(version: String, debug: bool) -> String:
 ## Cartão compacto do personagem: retrato (variação 1) em cima, nome, passiva e números.
 const CARD := Vector2(232, 404)
 const CARD_PORTRAIT_H := 128
+const ROW_GAP := 8
+const SIDE := 12 ## Folga das bordas da tela.
+var card_w := CARD.x
+
+
+## Largura dos cartões para todos caberem na largura mínima da tela (a base do projeto;
+## o "expand" só alarga).
+static func card_width(n: int) -> float:
+	var w := float(ProjectSettings.get_setting("display/window/size/viewport_width", 1280))
+	return minf(CARD.x, floorf((w - SIDE * 2 - ROW_GAP * (n - 1)) / maxf(1, n)))
 
 
 func _card(id: String) -> Button:
 	var info := Texts.character(id)
 	var c := Characters.get_def(id)
 	var b := Button.new()
-	b.custom_minimum_size = CARD
+	b.custom_minimum_size = Vector2(card_w, CARD.y)
 	b.focus_mode = Control.FOCUS_NONE
 	b.clip_contents = true
 	var col := Portrait.COLORS.get(id, Kit.PANEL_HI) as Color
@@ -145,9 +156,9 @@ func _card(id: String) -> Button:
 		spells.append(Texts.spell_name(s[0]))
 	var lines := [
 		[str(info[0]), 26, Kit.ACCENT],
-		["%s: %s" % [info[1], info[2]], 16, Kit.TEXT],
-		[Texts.t("ui.char_stats", {"hp": c.hp, "hand": c.hand, "bag": c.bag_size}), 15, Kit.MUTED],
-		[Texts.t("ui.char_spells", {"list": ", ".join(spells)}), 15, Kit.MUTED],
+		["%s: %s" % [info[1], info[2]], 16 if card_w >= CARD.x else 14, Kit.TEXT],
+		[Texts.t("ui.char_stats", {"hp": c.hp, "hand": c.hand, "bag": c.bag_size}), 15 if card_w >= CARD.x else 13, Kit.MUTED],
+		[Texts.t("ui.char_spells", {"list": ", ".join(spells)}), 15 if card_w >= CARD.x else 13, Kit.MUTED],
 	]
 	for k in lines.size():
 		var ln: Array = lines[k]

@@ -1,6 +1,9 @@
 # Xamã (spec)
 
-> **Status: spec para aprovação.** Personagem jogável novo, que também aparece como inimigo.
+> **Status: implementado (0.25.0).** Personagem jogável novo, que também aparece como inimigo.
+> Mudanças pedidas na aprovação do plano: a Síntese só aceita dado ≥ 2, e o cartão da
+> Antítese tem um selo de prioridade ("1º"). No código, o Marcado é `Fighter.sigil`
+> (`marked` já era a marca do Perfeccionista).
 > Segue o padrão de `docs/PERSONAGENS.md`: formato do inventário, uma passiva, vida, mão,
 > bolsa e magias iniciais. Números iniciais: o simulador ajusta (seção 7).
 
@@ -32,7 +35,7 @@
 
 | Magia | Forma | Exige | Efeito | Uso | Raridade |
 |---|---|---|---|---|---|
-| **Síntese** | 1×2 em pé | 1 dado, qualquer | Cura **d − 1** e dá **d − 1** de bloqueio (cada um × nível). Com d = 1, nada. | sempre | comum |
+| **Síntese** | 1×2 em pé | 1 dado ≥ 2 | Cura **d − 1** e dá **d − 1** de bloqueio (cada um × nível). | sempre | comum |
 | **Antítese** | 1×2 em pé | 1 dado, qualquer | **d × 2** de dano no inimigo (× nível) e **d** de dano em você (não escala com o nível). | sempre | comum |
 
 O Polarizar já existe (mexida: dado ≤ 3 vira 1, dado ≥ 4 vira 6).
@@ -101,8 +104,7 @@ segunda Síntese, outra magia, quebra.
 ## 6. Critérios de aceite
 
 1. O Xamã aparece na escolha de personagem com ficha, frase e retrato.
-2. A Síntese com d = 1 não cura nem dá bloqueio. Com d = 6 no nível 1: cura até 5 e dá 5 de
-   bloqueio.
+2. A Síntese não aceita dado 1. Com d = 6 no nível 1: cura até 5 e dá 5 de bloqueio.
 3. Cura com vida cheia não causa dano no inimigo. Cura parcial (faltam 3, cura 5) causa 3.
 4. O dano da Antítese em você ignora o seu bloqueio e acontece antes das outras magias, com
    qualquer ordem no inventário. Nunca deixa você com menos de 1.
@@ -130,9 +132,13 @@ segunda Síntese, outra magia, quebra.
 - Mestre Xamã.
 - Arte final do retrato (entra a pauta em `docs/ARTE_FALTANDO.md`, com um retrato provisório).
 
-## 8. Em aberto
+## 8. Decisões
 
-- **Veneno e queima quebram a marca?** O spec segue a regra literal ("a vida diminuiu"), e com ela
-  um Xamã com Sódio quebra as marcas na queima. A alternativa: só o dano de magia quebra.
-- **A Antítese pode matar o próprio Xamã?** O spec diz que não (fica com 1), para evitar morrer do
-  próprio feitiço antes das outras magias resolverem. O Amianto, hoje, pode matar.
+- **Veneno e queima quebram a marca** (aprovado): a regra é a literal, "a vida diminuiu". Também
+  quebram o Amianto e a Expectativa Tóxica (dado parado), que tiram vida do próprio dono.
+- **A Antítese não mata o próprio Xamã** (aprovado): deixa no mínimo 1.
+- **Imune a Críticas anula a marca** (decisão da implementação): a marca é um efeito do
+  adversário, como a queima e o veneno.
+- **Várias marcas, um efeito:** o monte de marcas guarda o último efeito que pôs marca. Se um
+  efeito novo marca por cima de marcas antigas que ainda não quebraram, só um efeito diferente
+  quebra o monte todo.

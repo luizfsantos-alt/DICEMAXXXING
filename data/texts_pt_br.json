@@ -409,7 +409,7 @@
   "shaman": [
    "Xamã",
    "Correspondência",
-   "Toda cura que você recebe causa o mesmo dano no inimigo. Todo bloqueio que você ganha põe o mesmo tanto de Marcado nele: na próxima vez que a vida dele baixar, ele perde esse tanto a mais.",
+   "Sua cura vira dano no inimigo; seu bloqueio vira Marcado nele (na próxima vez que a vida dele baixar, perde esse tanto a mais).",
    "\"Assim como acima, abaixo. O que entra em mim, sai em você.\""
   ]
  },

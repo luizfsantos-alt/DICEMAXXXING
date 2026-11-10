@@ -204,8 +204,8 @@ func _draw_priority() -> void:
 	var c := Vector2(size.x - r - 5.0, r + 5.0)
 	draw_circle(c, r + 2.0, Color(0.05, 0.04, 0.07))
 	draw_circle(c, r, Color(1.0, 0.78, 0.2))
-	var font := Kit.num_font()
-	var fs := int(r * 1.05)
+	var font := ThemeDB.fallback_font ## A fonte dos números não tem o "º".
+	var fs := int(r * 1.0)
 	var t := "1º"
 	var w := font.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	draw_string(font, c + Vector2(-w / 2.0, fs * 0.36), t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.12, 0.08, 0.04))
