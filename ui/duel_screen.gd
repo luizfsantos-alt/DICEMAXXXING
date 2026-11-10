@@ -23,6 +23,10 @@ extends Control
 signal finished
 signal stage_changed(side: String) ## O palco passou a mostrar as magias de "side".
 
+## Mexidas que rolam o dado de novo: ele reaparece na coluna rolando.
+const ROLL_MODS := ["reroll_max", "gamble", "insight"]
+## Tempo de cada número na rolagem da coluna (vai desacelerando até parar).
+const ROLL_STEPS := [0.04, 0.04, 0.045, 0.05, 0.055, 0.06, 0.07, 0.08, 0.095, 0.115, 0.14]
 const DIE := 92 ## Buraco da mão (tamanho padrão; a coluna encolhe se não couber).
 const HOLE := 50 ## Buraco no cartão de magia.
 const CARD := Vector2(240, 236) ## Cartão de magia no tamanho padrão.
@@ -73,6 +77,7 @@ var dice_side := "player" ## De quem são os dados na coluna da direita.
 var peeking := false ## Segurando a foto do inimigo.
 var _stage_shown := ""
 var busy := false ## Animação de uma mexida em andamento: o toque espera.
+var _rolling := 0 ## Dados da coluna ainda rolando (rerolagem de uma mexida).
 var undo_btn: Button ## "Desfazer [mexida]" com um dado mexido selecionado.
 
 var hud: Label
@@ -734,13 +739,10 @@ func _item_of(h: int) -> int:
 	return -1
 
 
-func _refresh_tray() -> void:
+## Estado dos buracos da coluna a partir da mão: quais dados estão em magias (vazios,
+## com o nome da magia), valores, causas, brilho e adesivos.
+func _paint_tray() -> void:
 	var p := duel.player
-	# Dados devolvidos entram e saem da mão durante a alocação.
-	if phase == "player" and p.hand.size() != tray_views.size():
-		if selected >= p.hand.size():
-			selected = -1
-		_build_tray()
 	var used := choice.used_dice()
 	for v in tray_views:
 		var hv: Hole = v
@@ -765,6 +767,17 @@ func _refresh_tray() -> void:
 			hv.gold = int(mk[1])
 		hv.raised = hv.index == selected
 		hv.queue_redraw()
+
+
+func _refresh_tray() -> void:
+	var p := duel.player
+	# Dados devolvidos entram e saem da mão durante a alocação.
+	if phase == "player" and p.hand.size() != tray_views.size():
+		if selected >= p.hand.size():
+			selected = -1
+		_build_tray()
+	_paint_tray()
+	var used := choice.used_dice()
 	var sel := int(p.hand[selected].value) if selected >= 0 else -1
 	var sel_top := bool(p.hand[selected].get("top", false)) if selected >= 0 else false
 	var sel_die: Die = p.die_of(p.hand[selected]) if selected >= 0 else null
@@ -1043,9 +1056,11 @@ func _resolve_anim(item: int, dice: Array, prev: Array, slot: int) -> void:
 	var c := _card_of(cards, item)
 	var targets := []
 	var random := false
+	var rolls := false
 	if choice.mods.has(item):
 		var m: Dictionary = choice.mods[item]
 		random = bool(m.random)
+		rolls = str(Spells.get_def(p.inventory.items[item].id).get("mod", "")) in ROLL_MODS
 		for q in m.prev:
 			if not bool(q.spent):
 				targets.append(int(q.h))
@@ -1071,6 +1086,27 @@ func _resolve_anim(item: int, dice: Array, prev: Array, slot: int) -> void:
 		c.holes[hk].set_die(int(prev[k]), el)
 		if tv:
 			c.holes[hk].set_marks(tv.stickers, tv.gold)
+	if rolls:
+		# Rerolagem: o dado entra no buraco e reaparece na coluna rolando (os números
+		# passam rápido até parar no valor novo); o cartão sai enquanto isso.
+		await _wait(0.12)
+		if not is_inside_tree():
+			busy = false
+			return
+		for c2 in c.holes:
+			c2.clear_die()
+		_build_tray()
+		_paint_tray()
+		_rolling = targets.size()
+		for t in targets:
+			_roll_in_tray(int(t))
+		await _leave_card(c, cards)
+		while _rolling > 0 and not fast and not skip and is_inside_tree():
+			await get_tree().process_frame
+		_rolling = 0
+		busy = false
+		_refresh_tray()
+		return
 	if random:
 		var hk2 := slot if two else 0
 		for _t in 8:
@@ -1086,8 +1122,10 @@ func _resolve_anim(item: int, dice: Array, prev: Array, slot: int) -> void:
 	if not is_inside_tree():
 		busy = false
 		return
-	# Volta para a mão (a coluna se refaz com os dados novos).
+	# Volta para a mão (a coluna se refaz com os dados novos; os que estão em outras
+	# magias seguem fora dela).
 	_build_tray()
+	_paint_tray()
 	for t in targets:
 		var tv := _tray_view(int(t))
 		if tv:
@@ -1108,6 +1146,41 @@ func _resolve_anim(item: int, dice: Array, prev: Array, slot: int) -> void:
 	await _leave_card(c, cards)
 	busy = false
 	_refresh_tray()
+
+
+## Dado h da coluna rolando: faces do dado passam cada vez mais devagar até parar no
+## valor que ficou na mão, com um pulinho no fim.
+func _roll_in_tray(h: int) -> void:
+	var tv := _tray_view(h)
+	var p := duel.player
+	if tv == null or h >= p.hand.size():
+		_rolling -= 1
+		return
+	var e: Dictionary = p.hand[h]
+	var d := p.die_of(e)
+	var faces: Array = d.faces if d else [1, 2, 3, 4, 5, 6]
+	var final := int(e.value)
+	tv.set_cause(-1, "")
+	var last := -1
+	for k in ROLL_STEPS.size():
+		var v := int(faces[randi() % faces.size()])
+		if v == last or (k == ROLL_STEPS.size() - 1 and v == final):
+			v = int(faces[(faces.find(v) + 1) % faces.size()])
+		last = v
+		tv.value = v
+		tv.queue_redraw()
+		await _wait(float(ROLL_STEPS[k]))
+		if not is_inside_tree():
+			return
+	tv.value = final
+	tv.set_cause(int(e.get("orig", -1)), str(e.get("cause", "")))
+	if not fast and not skip:
+		tv.pivot_offset = tv.size / 2.0
+		var tw := tv.create_tween()
+		tw.tween_property(tv, "scale", Vector2.ONE * 1.18, 0.07).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(tv, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		await tw.finished
+	_rolling -= 1
 
 
 func _tray_view(h: int) -> Hole:
