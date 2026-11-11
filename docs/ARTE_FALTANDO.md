@@ -18,7 +18,7 @@ toda jornada, **C** detalhe/polimento.
 | Interface 9-slice: painel, botão, moldura da barra de vida, moldura do cartão de magia por raridade | `assets/ui/panel.png`, `button.png`, `hp_frame.png`, `card_<raridade>.png` (`Kit.nine`, bordas em `Kit.NINE`) |
 | Ícones de status (os 12): bloqueio, veneno, queima, espelho, esquiva, revide, imune, dado guardado, fúria, sede, próxima mão, marcado (olho) | `assets/icons/status/<id>.png` (64×64) |
 | Ícones de efeito nos cartões de magia: dano, cura, vida máxima, dreno, truque de dados, sacrifício, limpeza (bloqueio, esquiva, espelho, revide, imune e mexida na mão usam os de status) | `assets/icons/fx/<id>.png` (64×64); `Spells.icon_key` escolhe |
-| Torre: portas (Fácil, Normal, Difícil, Insana, Mestre), paradas (Loja, Cura, Escola, Poço), todas as ofertas e as 3 recompensas do Mestre | `assets/tower/door_<id>.png`, `stop_<id>.png` (128×128); `assets/icons/offer/<kind>.png` (64×64) |
+| Torre: portas (Fácil, Normal, Difícil, Insana, Mestre), paradas (Loja, Cura, Escola, Poço; "Vender magias" usa a moeda até ganhar `stop_sell.png`), todas as ofertas e as 3 recompensas do Mestre | `assets/tower/door_<id>.png`, `stop_<id>.png` (128×128); `assets/icons/offer/<kind>.png` (64×64) |
 | Fontes: números (vida, dano, contagens) e títulos | `assets/fonts/Bungee-Regular.ttf`, `assets/fonts/PixelifySans.ttf` (`Kit.num_font`, `Kit.title_font`, `Kit.title`) |
 | Dados 3D e 2D | gerados em código de propósito (`ui/dice_3d.gd`, `ui/die_face.gd`, `docs/DADOS_VISUAL.md`); não precisam de arquivo |
 

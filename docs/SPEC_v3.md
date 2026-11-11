@@ -40,10 +40,12 @@
 - **A vida persiste entre as lutas.** Cada vitória fora dos Mestres recupera **10%** da vida máxima (`Config.WIN_HEAL_FRACTION`, sem a Sede do Vampiro); a Cura da parada recupera **35%**.
 - **Portas** (antes de cada luta): normalmente **2**, às vezes **3** (a terceira é uma porta "insana", que paga muito). Cada porta mostra a dificuldade, a recompensa e o **nome do arquétipo do inimigo** (e a variante); a build dele só aparece na luta. O inimigo nasce com as portas (`RunState._door_enemies`).
 - **Prêmio das portas** (`Config.DOORS`, `Config.REWARD_CHOICES`): Fácil 3 moedas e recompensa 1 de 2; Normal 7 e 1 de 3; Difícil 12, 1 de 3 com a faixa de raridade acima; Insana 20, 1 de 4 com uma Rara garantida.
-- **Parada sem luta, a cada 3 lutas.** Aparecem 3 das 4 paradas abaixo e dá para usar **todas**: entra-se numa, volta-se quando quiser (mesmo depois de comprar) e entra-se em outra; "Seguir" vai para as portas. Loja e Poço guardam as ofertas entre as visitas (o que foi comprado não volta); a Cura e a Escola valem uma vez por parada.
-  - **Loja**: magias, dados, vida máxima.
+- **Mercado (parada sem luta), a cada 3 lutas.** Aparecem 3 das 4 paradas abaixo e, sempre, **Vender magias**; dá para usar **todas**: entra-se numa, volta-se quando quiser (mesmo depois de comprar) e entra-se em outra; "Seguir" vai para as portas. Loja, Escola e Poço guardam as ofertas entre as visitas; a Cura vale uma vez por mercado.
+  - **Loja**: 1 dado com elemento e 1 adesivo (o +2 ou o de ouro), cada um com estoque de 1 a 3; em metade das visitas, também copiar um dado **ou** +vida máxima (estoque 1). Não vende magias. Compra-se até esgotar; a vaga esgotada fica esgotada até sair do mercado.
+  - **Troca de ofertas** (Loja e Escola): sorteia ofertas e estoque de novo, menos as vagas esgotadas. Loja: a 1ª é grátis, depois 3, 5, 7... Escola: 5, 8, 11... O custo volta ao início no próximo mercado.
+  - **Vender magias**: o grimório com o preço de cada peça (`Spells.sell_price`, metade do preço vezes o nível); marca várias e vende. Só no mercado (e no encaixe de uma magia ganha, abaixo).
   - **Cura**: recupera 35% da vida máxima por **8 moedas** (`Config.PRICE_HEAL_STOP`); para o Vampiro, metade (17,5%, `Config.VAMPIRE_HEAL_STOP_MULT`).
-  - **Escola de Magia**: aprender uma magia ou **evoluir** uma conhecida (uma escolha).
+  - **Escola de Magia**: 2 magias (preço da raridade) e 2 evoluções, **tudo pago** e com estoque 1. Evoluir do nível 1 para o 2 custa 8; do 2 para o 3, 14; Rara e Lendária, +6.
   - **Poço de Modificação**: aplicar elemento, adesivo +2, editar face, destruir dado.
 - **Recompensa pós-luta:** escolher 1 entre 2, 3 ou 4 conforme a porta (dado, adesivo, magia ou vida máxima), ou pular e levar moedas.
 - **Mestre de Andar** nos andares 10, 20 e 30 (seção 8.3). A recompensa é escolher uma: **+casas no inventário** ou **+1 dado na mão**.
@@ -67,7 +69,7 @@ Escolhidos no início. O **formato do inventário** é a identidade; cada person
 | **Feiticeiro** | Grade **4×3** | **Erudito**: começa com 1 magia extra, à escolha entre 3. | 90 | 4 | 7 comuns + 1 Sódio | Faísca, Bola de Fogo, Segunda Chance (+1 do Erudito) |
 | **Assassino** | Cinto **6×1** | **Ágil**: cada golpe que ele esquiva dá +1 dado na próxima mão. | 85 | 4 | 7 comuns + 1 Mercúrio | Estocada, Corte Duplo, Esquiva Melhorada (um 2; 2× por luta), Ajuste Fino |
 | **Minimalista** | Grade **3×2** | **Voto de Pobreza**: destruir no Poço é grátis; a recompensa tem a opção "destruir 1 dado". | 70 | 3 | 2 comuns + 3 Hidrogênio | Faísca, Dardo Arcano |
-| **Metalurgista** | Esteira **5×2** | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado. Loja e Poço vendem Chumbo. | 100 | 4 | 5 comuns + 3 Chumbo | Levantar Peso (nv 2), Estocada, Virar, Lingotamento, Forjamento |
+| **Metalurgista** | Esteira **5×2** | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado. O Poço vende Chumbo. | 100 | 4 | 5 comuns + 3 Chumbo | Levantar Peso (nv 2), Estocada, Virar, Lingotamento, Forjamento |
 | **Copista** | Grade **4×2** | **Inspiração**: no início da luta, copia uma magia aleatória do inimigo que caiba nas casas livres. | 80 | 4 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
 | **Perfeccionista** | **Moldura 4×3** sem o meio | **Ainda Não Está Bom**: guarda até 2 sobras no fim do turno; pode ter 2 marcas. | 80 | 4 | 7 comuns + 1 Ósmio | Dardo Arcano, Obra-Prima |
 | **Vampiro** | **Caixão 2×4** | **Sede**: toda cura dá +1 de vida máxima, vazia (até 3 por luta). Queima em dobro. | 70 | 4 | 7 comuns + 1 Sódio | Mordida, Banquete, Sangria |
@@ -189,7 +191,7 @@ Os lados se alternam. **O jogador começa** *(inicial; o simulador avalia se o p
 ### 8.1 Princípios
 - **Mesmos arquétipos** dos personagens (Feiticeiro e Assassino no protótipo), **inclusive o formato do inventário**.
 - **Bolsa (composição), inventário, vida e bloqueios visíveis**, consultáveis a qualquer momento.
-- **Montados como um jogador:** um inimigo do andar N recebe o orçamento de recompensas de uma jornada de N andares e "compra" na mesma loja, com as mesmas regras. A dificuldade da porta escala esse orçamento *(inicial: fácil 80%, normal 100%, insana 130%)*.
+- **Montados como um jogador (jornada fantasma, `EnemyFactory.journey`):** o inimigo do andar N recebe o que um jogador teria juntado vencendo os andares 1 a N−1 pelas mesmas regras: uma recompensa por andar (`Shop.reward`, porta normal; nos Mestres, uma Rara do grupo ou +1 coluna), as moedas da porta normal (20 nos Mestres) e, a cada 3 andares, um mercado com os preços e estoques do jogador (Loja, Escola paga, Poço). Só escolhe magias do grupo dele, troca o Ouro por outro elemento e não vende. A porta multiplica os andares da jornada (`Config.DOOR_JOURNEY`: fácil 0,8, normal 1, difícil 1,2, insana 1,4) e, como antes, a vida (`Config.DOORS`). Os Mestres têm kit fixo. Determinístico pelo rng da jornada.
 - A vantagem do jogador é a **sinergia**: o inimigo monta de forma genérica.
 - Variantes de conteúdo dentro do arquétipo: o **Lixeiro** (Assassino que põe Chumbo na sua bolsa), o **Piromante** (Feiticeiro de Sódio e Bola de Fogo) etc.
 - IA: reaproveita as personalidades da v2 (Bruto, Cauteloso, Caótico), adaptadas para escolher magias.
@@ -287,4 +289,4 @@ Paisagem, 1280×720 (stretch `canvas_items`/`expand`). Três colunas, da esquerd
 - É o **único lugar onde o formato importa**. Grade grande à esquerda; à direita, o cartão da peça tocada (nome, descrição, casas e a ordem em que acontece na luta).
 - Cada peça mostra um **número**: a ordem de resolução (de cima para baixo, da esquerda para a direita).
 - Toque numa peça para levantá-la, "Girar" para girar, toque numa casa para soltar.
-- **Sempre que o jogador ganha uma magia** (Loja, Escola, recompensa, Erudito), o grimório abre sozinho com a peça nova marcada **NOVA**, já encaixada onde couber, para ele reorganizar antes de seguir.
+- **Sempre que o jogador ganha ou compra uma magia** (Escola, recompensa, Rara do Mestre, Erudito), cada cartão mostra o formato da peça em cima; ao tocar, o grimório abre com a peça **na mão**: dá para mover e girar as outras, vender (no mercado, na Escola e na recompensa) e confirmar onde ela entra. Cancelar não cobra nada e a oferta continua. Fora dessas telas, o botão Grimório permite descartar uma magia (sem recompensa).

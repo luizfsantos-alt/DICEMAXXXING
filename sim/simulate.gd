@@ -170,7 +170,7 @@ func _simulate(char_id: String, runs: int, seed0: int, door_pref: String) -> voi
 					var did := str(run.options[pick].id)
 					doors_taken[did] = doors_taken.get(did, 0) + 1
 					run.choose(pick)
-				"rest":
+				"market":
 					var pick := 0
 					var low := run.hero.hp * 2 < run.hero.max_hp
 					for j in run.options.size():

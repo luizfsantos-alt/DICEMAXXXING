@@ -89,7 +89,7 @@ Para comparar: o **Feiticeiro** tem 90 de vida, mão de 4 e causa uns **6 a 8 de
 | Personagem | Inventário | Passiva | Vida | Mão | Bolsa inicial | Magias iniciais |
 |---|---|---|---|---|---|---|
 | **Minimalista** | Grade **3×2** (6 casas) | **Voto de Pobreza**: destruir dado no Poço é grátis, e toda recompensa pós-luta tem a opção "destruir 1 dado". | 70 | **3** | **5 dados**: 3 Hidrogênio + 2 comuns | Faísca, **Dardo Arcano** (nova) |
-| **Metalurgista** | Esteira **5×2** (10 casas) | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado da bolsa para a mão. A Loja e o Poço vendem Chumbo para você. | 100 | 4 | 8 dados: 5 comuns + 3 Chumbo | Levantar Peso (nível 2), Estocada |
+| **Metalurgista** | Esteira **5×2** (10 casas) | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado da bolsa para a mão. O Poço vende Chumbo para você. | 100 | 4 | 8 dados: 5 comuns + 3 Chumbo | Levantar Peso (nível 2), Estocada |
 | **Copista** | Grade **4×2** (8 casas) | **Inspiração**: no início de cada luta, uma magia aleatória do inimigo que caiba nas suas casas livres é copiada nelas, no mesmo nível, até o fim da luta. | 80 | 4 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
 | **Perfeccionista** | **Moldura 4×3** sem as 2 casas do meio (10 casas) | **Ainda Não Está Bom**: no fim do turno, até 2 dados que sobraram na mão ficam marcados. Você pode ter 2 marcas. | 80 | 4 | 7 comuns + 1 Ósmio | **Dardo Arcano** (nova), **Obra-Prima** (nova) |
 | **Vampiro** | **Caixão 2×4** (2 de largura, 4 de altura) | **Sede**: toda cura que você recebe também dá +1 de vida máxima vazia, para sempre (até 3 por luta). Queima causa o dobro de dano em você. | **70** | 4 | 7 comuns + 1 Sódio | **Mordida** (nova), **Banquete** (nova) |
@@ -125,7 +125,7 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro   Bárbaro
 
 - **Plano:** o dado que todo mundo odeia é o combustível. O Chumbo (faces 1, 1, 1, 2, 2, 3) sai com 1 metade das vezes; cada 1 dele puxa mais um dado. Levantar Peso causa dano = **6 × quantos 1 há na mão** (nível 2). A Estocada usa o melhor dado comum.
 - **Por que se vira:** uns 2 dados de valor 1 por turno, e a mão chega a 6 ou 7 dados: **12 de Levantar Peso + 5 a 6 de Estocada ≈ 17 por turno**. A vida alta (100) segura as lutas de 2 a 3 turnos.
-- **Como cresce:** compra Chumbo (na Loja, como dado novo; no Poço, como elemento aplicado em um dado). Mais Chumbo, mais 1, mais dados na mão. Os adesivos vão nos dados comuns, para a Estocada.
+- **Como cresce:** compra Chumbo no Poço (elemento aplicado em um dado). Mais Chumbo, mais 1, mais dados na mão. Os adesivos vão nos dados comuns, para a Estocada.
 - **Inventário:** reto e comprido, como um cinto largo: cabem as magias retas e as de 2 linhas (1×2, 2×2, L de 3).
 - **Matchups:** o **Lixeiro** e o **Porteiro de Chumbo** viram presentes. O Chumbo do Lixeiro fica na bolsa, e o do Porteiro sai na mão todo turno.
 - **Ponto fraco:** dano baixo contra inimigos com muita vida no fim da torre: ele precisa evoluir o Levantar Peso. A **Interrupção Rude** e a **Rasteira** (mão menor) cortam os 1. Em compensação, a **Meia Verdade** e a **Chave de Braço** quase não o atrapalham (1 continua 1).
@@ -203,7 +203,7 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro   Bárbaro
 | Regra | Onde | O que muda |
 |---|---|---|
 | **Destruir na recompensa** | Minimalista | A tela de recompensa pós-luta ganha uma 4ª opção: "destruir 1 dado". |
-| **Chumbo à venda** | Metalurgista | A Loja oferece "dado de Chumbo" e o Poço oferece "aplicar Chumbo". Só para ele. |
+| **Chumbo à venda** | Metalurgista | O Poço oferece "aplicar Chumbo". Só para ele. (A Loja deixou de vender o dado de Chumbo extra.) |
 | **Cópia nas casas livres** | Copista | A cópia ocupa casas livres do inventário até o fim da luta. Ela não pode ser vendida, evoluída nem movida; o resto do grimório não se mexe para abrir espaço. |
 | **Fúria** | Bárbaro | Liga com a vida em metade da máxima ou menos, e desliga se a cura passar disso. "+1 por golpe": cada golpe de uma magia de vários golpes ganha o bônus (como o Sacrifício). Conta no momento do golpe. |
 | **Cura vira vida máxima** | Vampiro | Cada cura que ele recebe (maior que zero) dá +1 de vida máxima e +1 de vida, até 3 por luta. Vale para toda cura dele (Mordida, Banquete, Remendo, a parada de Cura). |

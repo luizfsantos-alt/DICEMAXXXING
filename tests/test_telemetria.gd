@@ -32,7 +32,7 @@ func _play(run_seed: int) -> RunState:
 				run.finish_duel()
 			"doors":
 				run.choose(bot.pick_door(run))
-			"rest":
+			"market":
 				var j: int = bot.pick_stop(run)
 				if j < 0 or run.choose(j) != "":
 					run.leave()
