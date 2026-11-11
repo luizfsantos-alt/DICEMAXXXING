@@ -141,8 +141,11 @@ func test_organizar_move_peca():
 	var o := Organizer.open(parent, inv)
 	await wait_process_frames(1)
 	var g: GrimoireView = _find(o, GrimoireView)
-	g.cell_tapped.emit(Vector2i(0, 0), 0)
-	g.cell_tapped.emit(Vector2i(3, 2), -1)
+	# Tocar e segurar levanta; arrastar e soltar muda de casa.
+	g.press_at(g.cell_center(Vector2i(0, 0)))
+	g.hold_now()
+	g.move_to(g.cell_center(Vector2i(3, 2)))
+	g.release_at(g.cell_center(Vector2i(3, 2)))
 	assert_eq([inv.items[0].x, inv.items[0].y], [3, 2])
 
 

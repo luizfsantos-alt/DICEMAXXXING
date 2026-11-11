@@ -74,6 +74,7 @@ godot --headless -s res://sim/telemetria.gd -- --file=jornadas.json   # resumo d
 xvfb-run godot -s res://sim/shot_duel.gd -- --out=/tmp   # capturas: menu e rolagem 3D (precisa de vídeo)
 xvfb-run godot --fixed-fps 30 -s res://sim/shot_shake.gd -- --out=/tmp   # quadros da tremida em cada faixa de dano
 xvfb-run godot -s res://sim/shot_mexidas.gd -- --out=/tmp   # mexida antes e depois (o cartão sai do palco)
+xvfb-run godot -s res://sim/shot_grimorio.gd -- --out=/tmp   # grimório: organizar, Moldura, magia nova na mão, venda e miniaturas
 ```
 
 ## APK
