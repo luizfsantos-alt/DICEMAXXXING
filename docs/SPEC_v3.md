@@ -152,6 +152,7 @@ Cada magia tem **formato** (no inventário), **exigência** (quais dados aceita)
 - Se nenhuma magia aceita os dados da mão, **o turno passa em branco**.
 - **Formatos que não combinam** são o custo das magias fortes.
 - O inventário **se mantém** entre as lutas; reorganizar é opcional, antes de cada luta. Ele **só cresce pelos Mestres de Andar**.
+- **Grimório fora da luta** (`ui/organizer.gd`, `ui/grimoire_view.gd`): a borda do inventário (e dos buracos) vem desenhada, cada peça tem o nome e um (i) que mostra o que ela faz. **Tocar e segurar** (~0,35 s) levanta a peça; arrastando, ela muda de casa, e "Girar" gira a levantada. Toque curto não move nada. Fora da luta dá para **descartar** uma magia, sem recompensa. A magia nova entra "na mão": o jogador escolhe a casa e confirma (pode mover as outras e vender ali mesmo). A venda marca várias peças de uma vez. Dentro da luta nada disso muda.
 - **Evolução: 3 níveis.** Cada nível melhora uma coisa: efeito, exigência ou formato (Escola de Magia).
 - Magias podem ser **vendidas** por metade do preço.
 

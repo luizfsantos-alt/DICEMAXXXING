@@ -85,6 +85,14 @@ func add(id: String, level: int = 1) -> bool:
 	return true
 
 
+## Põe a peça exatamente em (x, y) com a rotação rot. false se não cabe ali.
+func add_at(id: String, x: int, y: int, rot: int, level := 1) -> bool:
+	if not can_place(id, rot, x, y):
+		return false
+	items.append({"id": id, "level": level, "x": x, "y": y, "rot": rot})
+	return true
+
+
 ## Busca um arranjo para as peças atuais + a nova. Retorna as posições na ordem
 ## de `items` (a nova por último), ou [] se não existe.
 func _repack(id: String) -> Array:
