@@ -7,7 +7,8 @@ extends RefCounted
 ## na luta. Abre sozinho sempre que o jogador ganha uma magia, com ela marcada.
 
 
-static func open(parent: Control, inv: Inventory, on_done: Callable = Callable(), new_item := -1) -> Overlay:
+static func open(parent: Control, inv: Inventory, on_done: Callable = Callable(), opts_or_item = -1) -> Overlay: # STUB contrato (aceita opts)
+	var new_item: int = int(opts_or_item.get("new_item", -1)) if opts_or_item is Dictionary else int(opts_or_item) # STUB contrato
 	var title := Texts.t("ui.grimoire")
 	if new_item >= 0:
 		title = Texts.t("ui.new_spell_title", {"name": Texts.spell_name(inv.items[new_item].id)})
@@ -96,3 +97,32 @@ static func _preview(g: GrimoireView, inv: Inventory, state: Dictionary, x: int,
 	g.ghost = {"id": id, "rot": int(state.rot), "x": x, "y": y,
 		"ok": inv.can_place(id, int(state.rot), x, y, g.selected_item)}
 	g.refresh()
+
+
+# STUB contrato: o Agente A implementa place_new e open_sell de verdade. Estes só existem
+# para compilar e testar a torre nesta cópia; o coordenador troca pelos reais na mesclagem.
+static func place_new(parent: Control, inv: Inventory, id: String, _level: int, on_result: Callable, _opts := {}) -> Overlay: # STUB contrato
+	var o := Overlay.open(parent, Texts.spell_name(id), Texts.t("ui.cancel"), 760)
+	var state := {"done": false}
+	var spot := inv.find_spot(id)
+	var ok := Kit.button(Texts.t("ui.done"), func():
+		state.done = true
+		o.close()
+		on_result.call(spot), Kit.PANEL_HI, 24)
+	ok.disabled = spot.is_empty()
+	o.footer.add_child(ok)
+	o.closed.connect(func():
+		if not state.done:
+			state.done = true
+			on_result.call({}))
+	return o
+
+
+static func open_sell(parent: Control, inv: Inventory, price_of: Callable, on_sell: Callable) -> Overlay: # STUB contrato
+	var o := Overlay.open(parent, Texts.t("stops.sell.0"), Texts.t("ui.done"), 760)
+	for k in inv.items.size():
+		var idx := k
+		o.body.add_child(Kit.button("%s (+%d)" % [Texts.spell_name(inv.items[k].id), int(price_of.call(k))], func():
+			on_sell.call([idx])
+			o.close(), Kit.PANEL, 20))
+	return o

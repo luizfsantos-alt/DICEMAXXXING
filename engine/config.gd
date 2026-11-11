@@ -48,13 +48,15 @@ const SKIN_CAP := 3 ## Revestimento (Pele de Ferro): redução máxima por golpe
 const HEAL_STOP_FRACTION := 0.35
 const WIN_HEAL_FRACTION := 0.1 ## Vitória fora dos Mestres recupera esta fração da vida máxima (sem a Sede).
 
-# Portas: [id, multiplicador do orçamento do inimigo, moedas].
+# Portas: [id, multiplicador da vida do inimigo, moedas].
 const DOORS := {
 	"facil": [0.8, 3],
 	"normal": [1.0, 7],
 	"dificil": [1.3, 12],
 	"insana": [1.7, 20],
 }
+## Andares a mais (ou a menos) na jornada fantasma do inimigo, pela porta (EnemyFactory.journey).
+const DOOR_JOURNEY := {"facil": -1, "normal": 0, "dificil": 2, "insana": 4}
 ## Opções da recompensa pós-luta por porta (docs/SPEC_v3.1.md §2.2).
 const REWARD_CHOICES := {"facil": 2, "normal": 3, "dificil": 3, "insana": 4}
 
@@ -69,11 +71,9 @@ const MINIMALIST_ENEMY_HP_MULT := 0.8 ## Compensa o Hidrogênio.
 const MONK_FLOOR := 5 ## Monge do Silêncio: a partir deste andar.
 const VARIANT_CHANCE := 0.2
 const RARE_ENEMY_FLOOR := 4 ## Nada Raro nos inimigos antes deste andar.
-const ENEMY_UPGRADES_PER_FLOOR := 0.4 ## Melhorias do inimigo por andar (orçamento).
 ## Depois do primeiro Mestre, os inimigos crescem mais devagar (o herói já tem a recompensa dele).
 const LATE_FLOOR := 10
 const ENEMY_HP_PER_FLOOR_LATE := 3
-const ENEMY_UPGRADES_PER_FLOOR_LATE := 0.35
 const ENEMY_STICKER_STACK := 0.5 ## Chance do adesivo do inimigo ir na face que já tem mais adesivos.
 const MASTER_HEAL_FRACTION := 0.3 ## Vencer um Mestre recupera esta fração da vida máxima.
 
@@ -91,7 +91,9 @@ const RARITY_BAND_FLOORS := [3, 6] ## Último andar das faixas 0 e 1.
 const PRICE_SPELL_BY_RARITY := {"common": 8, "uncommon": 12, "rare": 18, "legendary": 28}
 const PRICE_DIE_BY_RARITY := {"common": 8, "uncommon": 11, "rare": 15}
 const PRICE_ELEMENT_BY_RARITY := {"common": 6, "uncommon": 9, "rare": 13}
-const PRICE_EVOLVE_RARE := 18 ## Escola: evoluir uma magia Rara.
+## Escola: evoluir do nível 1 para o 2 e do 2 para o 3; Rara e Lendária custam mais.
+const PRICE_EVOLVE := [8, 14]
+const PRICE_EVOLVE_RARE_EXTRA := 6
 const PRICE_HP := 7
 const PRICE_HEAL_STOP := 8 ## Parada de Cura (35% da vida máxima), uma vez por parada.
 const VAMPIRE_HEAL_STOP_MULT := 0.5 ## Vampiro: a Cura da parada vale metade (ele já cura com a Sede).
@@ -103,6 +105,17 @@ const PRICE_GOLD_STICKER := 8 ## Adesivo de ouro (Loja e Poço).
 const PRICE_COPY_DIE := 12 ## Loja: copiar um dado da bolsa.
 const PRICE_DESTROY := 10 ## + 10 por uso na jornada.
 const PRICE_DESTROY_STEP := 10
+
+# Loja e Escola (estoque e troca de ofertas).
+const SHOP_STOCK := [1, 3] ## Estoque sorteado do dado e do adesivo da Loja.
+const SHOP_EXTRA_CHANCE := 0.5 ## Chance da Loja ter também cópia de dado ou +vida máxima (estoque 1).
+## Troca de ofertas: a 1ª da Loja é grátis, depois 3, 5, 7...; a da Escola, 5, 8, 11...
+## O custo volta ao início a cada parada.
+const SHOP_REROLL_FREE := 1
+const SHOP_REROLL_BASE := 3
+const SHOP_REROLL_STEP := 2
+const SCHOOL_REROLL_BASE := 5
+const SCHOOL_REROLL_STEP := 3
 
 
 static func ceil_div(a: int, b: int) -> int:

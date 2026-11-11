@@ -2,8 +2,10 @@ class_name RunState
 extends RefCounted
 ## Uma jornada na torre (docs/SPEC_v3.md §2). A vida do herói persiste entre as lutas.
 ##
-## Fases: start_pick (Erudito), doors, duel, reward, master_reward, master_rare, rest,
-## shop, school, well, victory, defeat. As fases de escolha usam `options` e `choose()`.
+## Fases: start_pick (Erudito), doors, duel, reward, master_reward, master_rare, market
+## (a parada sem luta), shop, school, well, victory, defeat. As fases de escolha usam
+## `options` e `choose()`. Ofertas de magia aceitam o lugar escolhido no grimório:
+## choose(i, {x, y, rot}); só cobra quando a peça coube ali.
 
 var character: String = "sorcerer"
 var hero: Fighter
@@ -15,11 +17,15 @@ var since_rest: int = 0
 var door: String = "normal"
 var phase: String = "start_pick"
 var options: Array = []
-## Parada (rest): as paradas sorteadas ficam abertas até seguir para as portas. Loja, Poço e
-## Escola guardam as ofertas entre as visitas (stop_offers: id -> opções); rest_options são
-## as paradas (com "used" na Cura/Escola já usadas e "visited" nas visitadas).
+## Mercado (market): as paradas sorteadas ficam abertas até seguir para as portas. Loja,
+## Poço e Escola guardam as ofertas entre as visitas (stop_offers: id -> opções);
+## rest_options são as paradas (com "used" na Cura já usada e "visited" nas visitadas).
+## rerolls: trocas de ofertas feitas neste mercado (id -> n); o custo volta ao início no próximo.
 var rest_options: Array = []
 var stop_offers: Dictionary = {}
+var rerolls: Dictionary = {}
+## Onde dá para vender magias: o mercado (e as paradas dele) e o encaixe de uma magia ganha.
+const SELL_PHASES := ["market", "shop", "school", "well", "reward", "master_rare"]
 var duel: Duel
 var rng := RandomNumberGenerator.new()
 var stats := {"wins": 0, "dealt": 0, "taken": 0, "coins": 0}
@@ -102,7 +108,7 @@ func choose(i: int, target: Dictionary = {}) -> String:
 			door = o.id if o.id != "mestre" else "normal"
 			start_duel(o.get("enemy", {}))
 			return ""
-		"rest":
+		"market":
 			return _enter_stop(i)
 		"master_reward":
 			if o.kind == "rare_pick":
@@ -121,18 +127,16 @@ func choose(i: int, target: Dictionary = {}) -> String:
 	match phase:
 		"start_pick":
 			_to_doors()
-		"school":
-			# Uma escolha por Escola: ela fica marcada e você volta para a parada.
-			_mark_stop("school", "used")
-			_back_to_rest()
 		"reward", "master_reward", "master_rare":
 			_advance()
-		"shop":
+		"shop", "school":
 			if o.kind == "maxhp":
 				hp_bought += 1
-				o.price = Config.PRICE_HP + hp_bought * Config.PRICE_HP_STEP
-			else:
-				options.remove_at(i)
+			# Compra até esgotar; a vaga esgotada fica até sair do mercado.
+			o.stock = int(o.get("stock", 1)) - 1
+			if int(o.stock) <= 0:
+				o.stock = 0
+				o["sold_out"] = true
 			stop_offers[phase] = options
 		"well":
 			if o.kind == "destroy":
@@ -170,7 +174,7 @@ func leave() -> void:
 	elif phase in ["shop", "well", "school"]:
 		stop_offers[phase] = options
 		_back_to_rest()
-	elif phase == "rest":
+	elif phase == "market":
 		if not tlog.is_empty():
 			var fr := Telemetry.floor_entry(tlog, floor_n)
 			fr.stop_options = options.map(func(x): return str(x.id))
@@ -178,15 +182,91 @@ func leave() -> void:
 			fr.stop_pick = ",".join(PackedStringArray(seen))
 		rest_options = []
 		stop_offers = {}
+		rerolls = {}
 		_to_doors()
 
 
-func sell_spell(item: int) -> bool:
-	if phase != "shop" or item < 0 or item >= hero.inventory.items.size():
+## Pode vender magias agora? No mercado e ao encaixar uma magia ganha (Escola, recompensa).
+func can_sell() -> bool:
+	return phase in SELL_PHASES
+
+
+## Vende os itens (índices do inventário do herói) por Spells.sell_price. Devolve as moedas.
+func sell_spells(items: Array) -> int:
+	if not can_sell():
+		return 0
+	var idx := []
+	for k in items:
+		var n := int(k)
+		if n >= 0 and n < hero.inventory.items.size() and not (n in idx):
+			idx.append(n)
+	idx.sort()
+	idx.reverse()
+	var total := 0
+	for k in idx:
+		var it: Dictionary = _remove_item(k)
+		total += Spells.sell_price(str(it.id), int(it.level))
+		if not tlog.is_empty():
+			Telemetry.floor_entry(tlog, floor_n).buys.append("sell:" + str(it.id))
+	coins += total
+	return total
+
+
+## Tira a magia sem recompensa (fora da luta).
+func discard_spell(item: int) -> bool:
+	if phase == "duel" or item < 0 or item >= hero.inventory.items.size():
 		return false
-	var it: Dictionary = hero.inventory.remove(item)
-	coins += Spells.sell_price(str(it.id), int(it.level))
+	_remove_item(item)
 	return true
+
+
+## Remove o item k e acerta as evoluções oferecidas (o índice dos itens depois dele muda;
+## a evolução da magia que saiu esgota).
+func _remove_item(k: int) -> Dictionary:
+	var it: Dictionary = hero.inventory.remove(k)
+	var lists := [options]
+	for key in stop_offers:
+		lists.append(stop_offers[key])
+	var seen := {}
+	for l in lists:
+		for o in l:
+			if str(o.get("kind", "")) != "evolve" or seen.has(o.get_instance_id()):
+				continue
+			seen[o.get_instance_id()] = true
+			var j := int(o.item)
+			if j == k:
+				o["sold_out"] = true
+				o.stock = 0
+				o.item = -1
+			elif j > k:
+				o.item = j - 1
+	return it
+
+
+## Custo da próxima troca de ofertas na Loja ou na Escola (-1 se não dá para trocar aqui).
+func reroll_price() -> int:
+	if not (phase in ["shop", "school"]):
+		return -1
+	return Shop.reroll_price(phase, int(rerolls.get(phase, 0)))
+
+
+## Troca as ofertas da Loja ou da Escola (as vagas esgotadas continuam esgotadas).
+func reroll() -> String:
+	var p := reroll_price()
+	if p < 0:
+		return "ui.invalid"
+	if coins < p:
+		return "ui.not_enough"
+	coins -= p
+	rerolls[phase] = int(rerolls.get(phase, 0)) + 1
+	if phase == "shop":
+		options = Shop.shop(hero, rng, hp_bought, floor_n, options)
+	else:
+		options = Shop.school(hero, rng, floor_n, options)
+	stop_offers[phase] = options
+	if not tlog.is_empty():
+		Telemetry.floor_entry(tlog, floor_n).buys.append(phase + ":reroll")
+	return ""
 
 
 ## Entra na parada i: a Cura cura na hora (paga, uma vez); Loja, Poço e Escola abrem as
@@ -196,6 +276,9 @@ func _enter_stop(i: int) -> String:
 	var id := str(o.id)
 	if o.get("used", false):
 		return "ui.stop_used"
+	if id == "sell":
+		o["visited"] = true ## A tela abre a venda (Organizer.open_sell); o mercado continua.
+		return ""
 	if id == "heal":
 		if hero.hp >= hero.max_hp:
 			return "ui.hp_full"
@@ -233,14 +316,8 @@ static func heal_stop_amount(h: Fighter) -> int:
 
 
 func _back_to_rest() -> void:
-	phase = "rest"
+	phase = "market"
 	options = rest_options
-
-
-func _mark_stop(id: String, flag: String) -> void:
-	for o in rest_options:
-		if str(o.id) == id:
-			o[flag] = true
 
 
 func start_duel(enemy_d: Dictionary = {}) -> void:
@@ -308,7 +385,8 @@ func _advance() -> void:
 	since_rest += 1
 	if since_rest >= Config.REST_EVERY:
 		since_rest = 0
-		phase = "rest"
+		phase = "market"
+		rerolls = {}
 		options = Shop.rest_stops(rng)
 	else:
 		_to_doors()
@@ -319,7 +397,7 @@ func to_dict() -> Dictionary:
 		"version": 3, "character": character, "hero": hero.to_dict(), "floor": floor_n,
 		"coins": coins, "hp_bought": hp_bought, "destroys_used": destroys_used,
 		"since_rest": since_rest, "door": door, "phase": phase, "options": options,
-		"rest_options": rest_options, "stop_offers": stop_offers,
+		"rest_options": rest_options, "stop_offers": stop_offers, "rerolls": rerolls,
 		"stats": stats, "last_reward": last_reward,
 		"seed": str(rng.seed), "rng_state": str(rng.state),
 		"duel": duel.to_dict() if duel else {},
@@ -337,6 +415,10 @@ static func _offers(a: Array) -> Array:
 			oo.item = int(oo.item)
 		if oo.has("coins"):
 			oo.coins = int(oo.coins)
+		if oo.has("stock"):
+			oo.stock = int(oo.stock)
+		if oo.has("slot"):
+			oo.slot = int(oo.slot)
 		out.append(oo)
 	return out
 
@@ -354,14 +436,19 @@ static func from_dict(d: Dictionary) -> RunState:
 	r.since_rest = int(d.get("since_rest", 0))
 	r.door = str(d.get("door", "normal"))
 	r.phase = str(d.get("phase", "doors"))
+	if r.phase == "rest":
+		r.phase = "market" ## Save de antes do mercado.
 	r.options = _offers(d.get("options", []))
 	r.rest_options = _offers(d.get("rest_options", []))
 	r.stop_offers = {}
+	var rr: Dictionary = d.get("rerolls", {})
+	for k in rr:
+		r.rerolls[str(k)] = int(rr[k])
 	var so: Dictionary = d.get("stop_offers", {})
 	for k in so:
 		r.stop_offers[str(k)] = _offers(so[k])
 	# A parada e o lugar aberto apontam para as mesmas listas (as compras ficam guardadas).
-	if r.phase == "rest" and not r.rest_options.is_empty():
+	if r.phase == "market" and not r.rest_options.is_empty():
 		r.options = r.rest_options
 	elif r.phase in ["shop", "well", "school"] and r.stop_offers.has(r.phase):
 		r.options = r.stop_offers[r.phase]

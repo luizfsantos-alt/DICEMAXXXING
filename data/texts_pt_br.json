@@ -440,7 +440,7 @@
  "stops": {
   "shop": [
    "Loja",
-   "Magias, dados e vida máxima."
+   "Dados e adesivos. Às vezes, cópia de dado ou vida máxima. Compre até esgotar."
   ],
   "heal": [
    "Cura",
@@ -449,7 +449,11 @@
   "heal_vampire": "Recupera metade do normal para o Vampiro: {n} de vida (17,5% da máxima). Uma vez por parada.",
   "school": [
    "Escola de Magia",
-   "Aprender uma magia ou evoluir uma que você tem."
+   "Aprenda magias novas e evolua as que você tem. Tudo pago."
+  ],
+  "sell": [
+   "Vender magias",
+   "Troque magias do grimório por moedas. Volte quantas vezes quiser."
   ],
   "well": [
    "Poço de Modificação",
@@ -505,6 +509,12 @@
   "pick_rest": "Parada: entre e volte quando quiser",
   "leave": "Seguir",
   "back_to_rest": "Voltar",
+  "market": "Mercado",
+  "reroll": "Trocar ofertas ({n} moedas)",
+  "reroll_free": "Trocar ofertas (grátis)",
+  "sold_out": "Esgotado",
+  "stock": "Restam {n}",
+  "sold": "Vendido. +{n} moedas.",
   "stop_used": "Já usada",
   "hp_full": "Vida cheia",
   "free": "Grátis",

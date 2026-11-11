@@ -1,9 +1,10 @@
 class_name Shop
 extends RefCounted
 ## Ofertas da torre: recompensa pós-luta, Loja, Escola de Magia, Poço de Modificação e
-## recompensa do Mestre. Loja: copiar um dado da bolsa e adesivo de ouro; Poço: adesivo
-## de ouro. Uma oferta é {kind, id, price, needs}. needs: "" (aplica
+## recompensa do Mestre. Uma oferta é {kind, id, price, needs}. needs: "" (aplica
 ## direto), "die" (escolher um dado da bolsa) ou "face" (escolher uma face de um dado).
+## Loja e Escola têm vagas ("slot") com estoque ("stock"); a vaga que esgota ("sold_out")
+## fica esgotada até sair do mercado, mesmo trocando as ofertas.
 ## Magias e dados seguem a raridade (docs/RARIDADE.md): sorteia a classe, depois o item.
 
 const STOPS := ["shop", "heal", "school", "well"]
@@ -103,35 +104,87 @@ static func reward(hero: Fighter, rng: RandomNumberGenerator, floor_n := 1, door
 	return out
 
 
-static func shop(hero: Fighter, rng: RandomNumberGenerator, hp_bought: int, floor_n := 1) -> Array:
+static func sticker_offer() -> Dictionary:
+	return {"kind": "sticker", "id": "", "price": Config.PRICE_STICKER, "needs": "face"}
+
+
+static func maxhp_offer(hp_bought: int) -> Dictionary:
+	return {"kind": "maxhp", "id": "", "price": Config.PRICE_HP + hp_bought * Config.PRICE_HP_STEP, "needs": ""}
+
+
+static func _stock(rng: RandomNumberGenerator) -> int:
+	return rng.randi_range(int(Config.SHOP_STOCK[0]), int(Config.SHOP_STOCK[1]))
+
+
+## Loja: 1 dado com elemento e 1 adesivo (o +2 ou o de ouro), com estoque de 1 a 3; em
+## metade das visitas, também copiar um dado ou +vida máxima (estoque 1). Não vende magias.
+## prev: as ofertas de antes da troca (as vagas esgotadas continuam esgotadas).
+static func shop(_hero: Fighter, rng: RandomNumberGenerator, hp_bought: int, floor_n := 1, prev: Array = []) -> Array:
 	var b := band(floor_n)
-	var a := pick_spell(rng, b)
-	var c := pick_spell(rng, b, func(x): return x != a)
-	var out := [spell_offer(a, true), spell_offer(c, true), die_offer(pick_element(rng, b), true)]
-	if hero.archetype == "metallurgist":
-		out.append(die_offer("Pb", true))
-	out.append(copy_die_offer())
-	out.append(gold_sticker_offer())
-	out.append({"kind": "maxhp", "id": "", "price": Config.PRICE_HP + hp_bought * Config.PRICE_HP_STEP, "needs": ""})
-	return out
+	var d := die_offer(pick_element(rng, b), true)
+	d.stock = _stock(rng)
+	var st := sticker_offer() if rng.randf() < 0.5 else gold_sticker_offer()
+	st.stock = _stock(rng)
+	var out := [d, st]
+	if rng.randf() < Config.SHOP_EXTRA_CHANCE:
+		var x := copy_die_offer() if rng.randf() < 0.5 else maxhp_offer(hp_bought)
+		x.stock = 1
+		out.append(x)
+	return _keep_sold_out(out, prev)
 
 
-## Escola: 2 magias (a 2ª no mínimo Incomum) e até 3 evoluções. Evoluir uma Rara custa.
-static func school(hero: Fighter, rng: RandomNumberGenerator, floor_n := 1) -> Array:
+## Escola: 2 magias (a 2ª no mínimo Incomum), pelo preço da raridade, e até 2 evoluções
+## pagas (Config.PRICE_EVOLVE). Cada oferta tem estoque 1.
+static func school(hero: Fighter, rng: RandomNumberGenerator, floor_n := 1, prev: Array = []) -> Array:
 	var b := band(floor_n)
 	var a := pick_spell(rng, b)
 	var c := pick_spell(rng, b, func(x): return x != a, "", "uncommon")
-	var out := [spell_offer(a, false), spell_offer(c, false)]
+	var out := [spell_offer(a, true), spell_offer(c, true)]
 	var evolvable := []
 	for i in hero.inventory.items.size():
-		if int(hero.inventory.items[i].level) < Config.MAX_LEVEL:
+		if int(hero.inventory.items[i].level) < Config.MAX_LEVEL and not hero.inventory.items[i].get("temp", false):
 			evolvable.append(i)
 	Fighter._shuffle(evolvable, rng)
-	for i in evolvable.slice(0, 3):
-		var id: String = hero.inventory.items[i].id
-		var p := Config.PRICE_EVOLVE_RARE if Spells.rarity(id) in ["rare", "legendary"] else 0
-		out.append({"kind": "evolve", "id": id, "item": i, "price": p, "needs": ""})
+	for i in evolvable.slice(0, 2):
+		var it: Dictionary = hero.inventory.items[i]
+		out.append({"kind": "evolve", "id": it.id, "item": i, "price": evolve_price(str(it.id), int(it.level)), "needs": ""})
+	for o in out:
+		o.stock = 1
+	return _keep_sold_out(out, prev)
+
+
+## Preço de evoluir a magia que está no nível "level".
+static func evolve_price(id: String, level: int) -> int:
+	var p := int(Config.PRICE_EVOLVE[clampi(level, 1, Config.PRICE_EVOLVE.size()) - 1])
+	if Spells.rarity(id) in ["rare", "legendary"]:
+		p += Config.PRICE_EVOLVE_RARE_EXTRA
+	return p
+
+
+## Numera as vagas das ofertas novas e mantém as vagas que esgotaram antes da troca.
+static func _keep_sold_out(fresh: Array, prev: Array) -> Array:
+	for k in fresh.size():
+		fresh[k].slot = k
+	var n := fresh.size()
+	for o in prev:
+		n = maxi(n, int(o.get("slot", 0)) + 1)
+	var out := []
+	for k in n:
+		var old: Array = prev.filter(func(o): return int(o.get("slot", -1)) == k and o.get("sold_out", false))
+		if not old.is_empty():
+			out.append(old[0])
+		elif k < fresh.size():
+			out.append(fresh[k])
 	return out
+
+
+## Custo da troca de ofertas número n (0 = a primeira) na Loja ou na Escola.
+static func reroll_price(place: String, n: int) -> int:
+	if place == "school":
+		return Config.SCHOOL_REROLL_BASE + Config.SCHOOL_REROLL_STEP * n
+	if n < Config.SHOP_REROLL_FREE:
+		return 0
+	return Config.SHOP_REROLL_BASE + Config.SHOP_REROLL_STEP * (n - Config.SHOP_REROLL_FREE)
 
 
 ## Poço: adesivo, 2 elementos pela tabela e destruir (grátis para o Minimalista).
@@ -157,12 +210,14 @@ static func well(rng: RandomNumberGenerator, floor_n := 1, hero: Fighter = null)
 	return out
 
 
+## Mercado: 3 das 4 paradas e, sempre, Vender magias (por último).
 static func rest_stops(rng: RandomNumberGenerator) -> Array:
 	var s := STOPS.duplicate()
 	Fighter._shuffle(s, rng)
 	var out := []
 	for id in s.slice(0, 3):
 		out.append({"kind": "stop", "id": id, "price": Config.PRICE_HEAL_STOP if id == "heal" else 0, "needs": ""})
+	out.append({"kind": "stop", "id": "sell", "price": 0, "needs": ""})
 	return out
 
 
@@ -212,10 +267,20 @@ static func price_of(o: Dictionary, hero: Fighter, target: Dictionary, destroys_
 
 ## Pode aplicar? "" se sim, ou a chave do texto do erro.
 static func check(o: Dictionary, hero: Fighter, target: Dictionary) -> String:
+	if o.get("sold_out", false):
+		return "ui.sold_out"
 	match str(o.kind):
 		"spell":
-			if not hero.inventory.fits(o.id):
+			if target.has("x"):
+				if not hero.inventory.can_place(o.id, posmod(int(target.get("rot", 0)), 4), int(target.x), int(target.y)):
+					return "ui.no_room"
+			elif not hero.inventory.fits(o.id):
 				return "ui.no_room"
+		"evolve":
+			var k := int(o.get("item", -1))
+			var items := hero.inventory.items
+			if k < 0 or k >= items.size() or str(items[k].id) != str(o.id) or int(items[k].level) >= Config.MAX_LEVEL:
+				return "ui.invalid"
 		"sticker", "gold_sticker":
 			if not target.has("face"):
 				return "ui.pick_face"
@@ -232,7 +297,10 @@ static func check(o: Dictionary, hero: Fighter, target: Dictionary) -> String:
 static func apply(o: Dictionary, hero: Fighter, target: Dictionary) -> void:
 	match str(o.kind):
 		"spell":
-			hero.inventory.add(o.id)
+			if target.has("x"):
+				hero.inventory.add_at(o.id, int(target.x), int(target.y), int(target.get("rot", 0)))
+			else:
+				hero.inventory.add(o.id) ## Sem lugar escolhido (bot, testes): encaixa onde couber.
 		"die":
 			hero.bag.append(Die.with_element(o.id) if o.id != "" else Die.basic())
 		"sticker":

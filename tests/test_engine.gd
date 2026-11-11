@@ -331,9 +331,8 @@ func test_loja_copiar_dado_e_adesivo_de_ouro():
 	run.hero.bag[3] = Die.with_element("Cs")
 	run.hero.bag[3].add_sticker(5)
 	run.phase = "shop"
-	run.options = Shop.shop(run.hero, run.rng, 0)
-	var ci := run.options.map(func(o): return o.kind).find("copy_die")
-	assert_gt(ci, -1, "a Loja vende copiar um dado")
+	run.options = [Shop.copy_die_offer(), Shop.gold_sticker_offer()]
+	var ci := 0
 	assert_eq(run.choose(ci, {}), "ui.pick_die")
 	var n := run.hero.bag.size()
 	assert_eq(run.choose(ci, {"die": 3}), "")
@@ -341,8 +340,7 @@ func test_loja_copiar_dado_e_adesivo_de_ouro():
 	assert_eq(run.hero.bag.back().element, "Cs")
 	assert_eq(run.hero.bag.back().value(5), 8, "copia os adesivos")
 	assert_eq(run.coins, 100 - Config.PRICE_COPY_DIE)
-	var gi := run.options.map(func(o): return o.kind).find("gold_sticker")
-	assert_gt(gi, -1, "a Loja vende adesivo de ouro")
+	var gi := 1
 	assert_eq(run.choose(gi, {"die": 0, "face": 1}), "")
 	assert_eq(int(run.hero.bag[0].gold[1]), 1)
 	var d := Die.from_dict(run.hero.bag[0].to_dict())
@@ -642,9 +640,10 @@ func test_masmorra_1_paradas_e_mestres_no_10_20_30():
 		else:
 			run.leave()
 		if n % Config.REST_EVERY == 0:
-			assert_eq(run.phase, "rest")
+			assert_eq(run.phase, "market")
+			assert_eq(str(run.options.back().id), "sell", "o mercado sempre tem Vender magias")
 			run.choose(run.options.map(func(o): return o.id).find("heal"))
-			if run.phase == "rest":
+			if run.phase == "market":
 				run.choose(0)
 			while run.phase != "doors":
 				run.leave() ## Volta para a parada e segue.
@@ -736,16 +735,19 @@ func test_loja_poco_e_escola():
 	assert_eq(run.choose(4, {"die": 0}), "")
 	assert_eq(run.hero.bag.size(), 7)
 	run.leave()
-	assert_eq(run.phase, "rest", "volta para a parada")
+	assert_eq(run.phase, "market", "volta para o mercado")
 	run.leave()
 	assert_eq(run.phase, "doors")
 	run.phase = "school"
 	run.options = Shop.school(run.hero, run.rng)
 	var ev := run.options.map(func(o): return o.kind).find("evolve")
 	var item: int = run.options[ev].item
-	run.choose(ev)
+	var before := run.coins
+	assert_eq(run.choose(ev), "")
 	assert_eq(int(run.hero.inventory.items[item].level), 2)
-	assert_eq(run.phase, "rest", "a Escola volta para a parada")
+	assert_eq(run.coins, before - Config.PRICE_EVOLVE[0], "evoluir é pago")
+	assert_eq(run.phase, "school", "a Escola continua aberta (pode comprar mais)")
+	assert_eq(run.choose(ev), "ui.sold_out", "a evolução comprada esgota")
 
 
 func test_salvar_e_carregar_no_meio_do_duelo():
@@ -932,14 +934,14 @@ func test_recompensa_tem_opcoes_pela_porta():
 func test_cura_da_parada_e_do_mestre():
 	var run := RunState.new_run(13, "barbarian")
 	run.hero.hp = 10
-	run.phase = "rest"
+	run.phase = "market"
 	run.options = [{"kind": "stop", "id": "heal", "price": Config.PRICE_HEAL_STOP, "needs": ""}]
 	assert_eq(run.choose(0), "ui.not_enough", "a Cura custa moedas")
 	run.coins = Config.PRICE_HEAL_STOP
 	assert_eq(run.choose(0), "")
 	assert_eq(run.hero.hp, 10 + int(ceil(run.hero.max_hp * Config.HEAL_STOP_FRACTION)))
 	assert_eq(run.coins, 0)
-	assert_eq(run.phase, "rest", "continua na parada")
+	assert_eq(run.phase, "market", "continua no mercado")
 	assert_eq(run.choose(0), "ui.stop_used", "uma vez por parada")
 
 
@@ -947,7 +949,7 @@ func test_cura_da_parada_vale_metade_para_o_vampiro():
 	var run := RunState.new_run(13, "vampire")
 	run.hero.hp = 10
 	run.coins = Config.PRICE_HEAL_STOP
-	run.phase = "rest"
+	run.phase = "market"
 	run.options = [{"kind": "stop", "id": "heal", "price": Config.PRICE_HEAL_STOP, "needs": ""}]
 	var n := int(ceil(run.hero.max_hp * Config.HEAL_STOP_FRACTION * 0.5))
 	assert_eq(RunState.heal_stop_amount(run.hero), n)
@@ -962,7 +964,7 @@ func test_parada_entra_e_volta_quando_quiser():
 	run.choose(0)
 	run.coins = 200
 	run.hero.hp = 10
-	run.phase = "rest"
+	run.phase = "market"
 	run.options = [
 		{"kind": "stop", "id": "well", "price": 0, "needs": ""},
 		{"kind": "stop", "id": "heal", "price": Config.PRICE_HEAL_STOP, "needs": ""},
@@ -973,26 +975,30 @@ func test_parada_entra_e_volta_quando_quiser():
 	var well := run.options.duplicate(true)
 	assert_eq(run.choose(0, {"die": 1, "face": 5}), "", "compra no Poço")
 	run.leave()
-	assert_eq(run.phase, "rest", "volta depois de comprar")
+	assert_eq(run.phase, "market", "volta depois de comprar")
 	assert_eq(run.choose(1), "", "e usa a Cura")
 	assert_gt(run.hero.hp, 10)
 	assert_eq(run.choose(2), "")
 	assert_eq(run.phase, "shop")
 	var shop_n := run.options.size()
-	assert_eq(run.choose(0), "")
+	var stock := int(run.options[0].stock)
+	for _k in stock:
+		assert_eq(run.choose(0), "")
+	assert_eq(run.choose(0), "ui.sold_out", "compra até esgotar")
 	run.leave()
 	# Voltar ao Poço: as mesmas ofertas de antes (não sorteia de novo).
 	assert_eq(run.choose(0), "")
 	assert_eq(run.options.map(func(o): return o.kind), well.map(func(o): return o.kind))
 	run.leave()
 	assert_eq(run.choose(2), "")
-	assert_eq(run.options.size(), shop_n - 1, "a magia comprada não volta à Loja")
+	assert_eq(run.options.size(), shop_n)
+	assert_true(run.options[0].get("sold_out", false), "o dado esgotado continua esgotado")
 	# Salvar e carregar dentro da Loja mantém a parada.
 	var back := RunState.from_dict(JSON.parse_string(JSON.stringify(run.to_dict())))
 	assert_eq(back.phase, "shop")
-	assert_eq(back.options.size(), shop_n - 1)
+	assert_true(back.options[0].get("sold_out", false))
 	back.leave()
-	assert_eq(back.phase, "rest")
+	assert_eq(back.phase, "market")
 	assert_eq(back.options.size(), 3)
 	assert_true(back.options[1].get("used", false), "a Cura já usada continua marcada")
 	back.leave()

@@ -403,7 +403,7 @@ func test_tabela_por_andar():
 
 func test_precos_pela_raridade():
 	var h := EnemyFactory.base("vampire")
-	var opts := Shop.shop(h, H.rng(2), 0, 1)
+	var opts := Shop.shop(h, H.rng(2), 0, 1) + Shop.school(h, H.rng(2), 1)
 	for o in opts:
 		if o.kind == "spell":
 			assert_eq(int(o.price), Config.PRICE_SPELL_BY_RARITY[Spells.rarity(o.id)])
@@ -414,14 +414,24 @@ func test_precos_pela_raridade():
 	assert_eq(Spells.sell_price("faisca", 2), 8)
 
 
-func test_escola_cobra_evoluir_rara():
+func test_escola_cobra_tudo():
 	var h := EnemyFactory.base("copyist") ## Imitação Barata é Rara.
+	h.inventory.items[0].level = 2
 	for s in 20:
 		var opts := Shop.school(h, H.rng(s), 1)
 		assert_ne(Spells.rarity(opts[1].id), "common", "2ª magia no mínimo Incomum")
+		assert_eq(opts.filter(func(o): return o.kind == "spell").size(), 2)
+		assert_eq(opts.filter(func(o): return o.kind == "evolve").size(), 2, "2 evoluções")
 		for o in opts:
 			if o.kind == "evolve":
-				assert_eq(int(o.price), Config.PRICE_EVOLVE_RARE if o.id == "imitacao" else 0)
+				var lvl := int(h.inventory.items[int(o.item)].level)
+				var p: int = Config.PRICE_EVOLVE[lvl - 1] + (Config.PRICE_EVOLVE_RARE_EXTRA if o.id == "imitacao" else 0)
+				assert_eq(int(o.price), p)
+			else:
+				assert_eq(int(o.price), Spells.price(o.id))
+	assert_eq(Shop.evolve_price("faisca", 1), 8)
+	assert_eq(Shop.evolve_price("faisca", 2), 14)
+	assert_eq(Shop.evolve_price("imitacao", 1), 14)
 
 
 func test_porta_insana_garante_rara():
@@ -432,13 +442,16 @@ func test_porta_insana_garante_rara():
 
 func test_inimigo_sem_rara_antes_do_andar_4():
 	var r := H.rng(11)
-	for _k in 200:
-		var f := EnemyFactory.base("sorcerer")
-		for _u in 6:
-			EnemyFactory.upgrade(f, r, 3)
-		for it in f.inventory.items.slice(2):
+	for _k in 60:
+		var f := EnemyFactory.create(3, "insana", r)
+		var start: int = Characters.get_def(f.archetype).spells.size()
+		for it in f.inventory.items.slice(start):
 			assert_ne(Spells.rarity(it.id), "rare", it.id)
-		for d in f.bag:
+		var base := EnemyFactory.base(f.archetype)
+		for i in f.bag.size():
+			if i < base.bag.size() and base.bag[i].element != "":
+				continue ## Kit inicial.
+			var d: Die = f.bag[i]
 			assert_ne(Elements.rarity(d.element), "rare") if d.element != "" else null
 
 
@@ -450,7 +463,8 @@ func test_ofertas_dos_passivos():
 	var well := Shop.well(H.rng(), 1, mini)
 	assert_eq(int(well[well.size() - 1].price), 0, "destruir no Poço é grátis")
 	var met := EnemyFactory.base("metallurgist")
-	assert_true(Shop.shop(met, H.rng(), 0, 1).any(func(o): return o.kind == "die" and o.id == "Pb"))
+	for s in 20:
+		assert_false(Shop.shop(met, H.rng(s), 0, 1).any(func(o): return o.kind == "die" and o.id == "Pb"), "a Loja não vende Chumbo extra")
 	assert_true(Shop.well(H.rng(), 1, met).any(func(o): return o.kind == "element" and o.id == "Pb"))
 
 
@@ -515,7 +529,7 @@ func test_jornada_inteira_de_cada_jogavel():
 						run.finish_duel()
 					"doors":
 						run.choose(0)
-					"rest":
+					"market":
 						if run.options.is_empty() or run.options[0].get("visited", false) or run.choose(0) != "":
 							run.leave()
 					_:

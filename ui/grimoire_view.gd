@@ -254,3 +254,19 @@ func _draw_piece(i: int, it: Dictionary, font: Font) -> void:
 		var p := Vector2(anchor) * cell + Vector2(6 + k * (sq + 4), cell - sq - 6)
 		draw_style_box(Kit.box(Color(0.93, 0.91, 0.86), 5, 0), Rect2(p, Vector2(sq, sq)))
 		draw_string(font, p + Vector2(0, sq * 0.72), str(placed[k]), HORIZONTAL_ALIGNMENT_CENTER, sq, int(sq * 0.6), Color(0.1, 0.09, 0.12))
+
+
+## STUB contrato: o Agente A implementa a prévia de verdade (o coordenador troca na mesclagem).
+static func shape_preview(id: String, rot := 0, cell_px := 18) -> Control: # STUB contrato
+	var c := Control.new()
+	var cells := Spells.shape(id, rot)
+	var w := 1
+	var h := 1
+	for v in cells:
+		w = maxi(w, v.x + 1)
+		h = maxi(h, v.y + 1)
+	c.custom_minimum_size = Vector2(w * cell_px, h * cell_px)
+	c.draw.connect(func():
+		for v in cells:
+			c.draw_rect(Rect2(Vector2(v) * cell_px, Vector2(cell_px - 2, cell_px - 2)), Kit.ACCENT))
+	return c
