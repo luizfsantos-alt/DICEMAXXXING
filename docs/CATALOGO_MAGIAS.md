@@ -240,13 +240,13 @@ Todas as magias estão em `engine/spells.gd` (dados), `engine/resolver.gd` (efei
   - **Mexidas** (Roubar a Cena, Meia Verdade, Interrupção Rude, Chave de Braço) também causam dano = valor no nível 2 e valor ×2 no 3.
 - **Revide Elegante**: vale enquanto houver bloqueio no começo do golpe; o revide não é refletido nem revidado.
 - **Hélio** ainda não existe no jogo; quando entrar, os efeitos acima devem pular dados de Hélio.
-- **Loja e Escola** oferecem todas as magias ao jogador. **Inimigos** só compram do próprio grupo (Feiticeiro ou Assassino) e as de "qualquer".
+- **Escola e recompensas** oferecem todas as magias ao jogador (a Loja não vende magias). **Inimigos** só compram do próprio grupo (Feiticeiro ou Assassino) e as de "qualquer".
 
 ---
 
 ## 10. Magias dos personagens novos (implementadas)
 
-Vieram de `docs/PERSONAGENS.md`. Todas entram na Loja, na Escola e nas recompensas para qualquer personagem.
+Vieram de `docs/PERSONAGENS.md`. Todas entram na Escola e nas recompensas para qualquer personagem.
 
 | id | Magia | Formato | Grupo | Pede | Efeito | Uso | Raridade |
 |---|---|---|---|---|---|---|---|

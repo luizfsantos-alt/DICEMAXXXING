@@ -56,7 +56,7 @@ static func create(floor_n: int, door: String, rng: RandomNumberGenerator) -> Fi
 	if is_master(floor_n):
 		f.max_hp = int(round(f.max_hp * Config.MASTER_HP_MULT))
 	if not is_master(floor_n):
-		journey(f, floor_n + int(Config.DOOR_JOURNEY.get(door, 0)), rng, floor_n < Config.RARE_ENEMY_FLOOR)
+		journey(f, journey_floor(floor_n, door), rng, floor_n < Config.RARE_ENEMY_FLOOR)
 	f.max_hp = maxi(1, int(round(f.max_hp * Config.ENEMY_HP_MULT)))
 	f.hp = f.max_hp
 	return f
@@ -104,6 +104,11 @@ static func base(archetype: String) -> Fighter:
 
 
 # ------------------------------------------------------------------ Jornada fantasma
+## Andar a que a jornada fantasma chega, pela porta (Config.DOOR_JOURNEY).
+static func journey_floor(floor_n: int, door: String) -> int:
+	return 1 + int(round((floor_n - 1) * float(Config.DOOR_JOURNEY.get(door, 1.0))))
+
+
 ## Dá ao inimigo o que um jogador juntaria vencendo os andares 1 a floor_n - 1: em cada
 ## andar, as moedas da porta normal (ou do Mestre) e uma recompensa (Shop.reward, ou a do
 ## Mestre); a cada Config.REST_EVERY andares, um mercado onde gasta as moedas. Escolhe só

@@ -55,25 +55,28 @@ const DOORS := {
 	"dificil": [1.3, 12],
 	"insana": [1.7, 20],
 }
-## Andares a mais (ou a menos) na jornada fantasma do inimigo, pela porta (EnemyFactory.journey).
-const DOOR_JOURNEY := {"facil": -1, "normal": 0, "dificil": 2, "insana": 4}
+## Jornada fantasma do inimigo pela porta (EnemyFactory.journey): os andares vencidos da
+## jornada (andar - 1) vezes este fator, arredondado. A porta difícil vale andares a mais.
+const DOOR_JOURNEY := {"facil": 0.8, "normal": 1.0, "dificil": 1.2, "insana": 1.4}
 ## Opções da recompensa pós-luta por porta (docs/SPEC_v3.1.md §2.2).
 const REWARD_CHOICES := {"facil": 2, "normal": 3, "dificil": 3, "insana": 4}
 
 # Inimigos.
 const ENEMY_HP_BASE := 31
-const ENEMY_HP_PER_FLOOR := 5
-const ENEMY_HP_MULT := 1.035 ## Calibrado com o bot novo e as mexidas (spec v3.1 §10): era 0,9.
-const MASTER_HP_MULT := 2.6 ## Calibrado: o Mestre é a luta mais difícil do ato.
+## Vida por andar quase parada: a jornada fantasma já faz o inimigo crescer (vida máxima,
+## adesivos, magias). Calibrado com o mercado novo (docs/SPEC_v3.1.md §13): era 5 e ×1,035.
+const ENEMY_HP_PER_FLOOR := 1
+const ENEMY_HP_MULT := 0.72
+const MASTER_HP_MULT := 3.5 ## Calibrado: o Mestre é a luta mais difícil do ato (era 2,6).
 const MASTER_COINS := 20
 const REACTOR_POISON := 1 ## O Reator: cada dado parado no fim do turno envenena quem o rolou.
 const MINIMALIST_ENEMY_HP_MULT := 0.8 ## Compensa o Hidrogênio.
 const MONK_FLOOR := 5 ## Monge do Silêncio: a partir deste andar.
 const VARIANT_CHANCE := 0.2
 const RARE_ENEMY_FLOOR := 4 ## Nada Raro nos inimigos antes deste andar.
-## Depois do primeiro Mestre, os inimigos crescem mais devagar (o herói já tem a recompensa dele).
+## Depois do primeiro Mestre, a vida base não cresce mais (era 3 por andar).
 const LATE_FLOOR := 10
-const ENEMY_HP_PER_FLOOR_LATE := 3
+const ENEMY_HP_PER_FLOOR_LATE := 0
 const ENEMY_STICKER_STACK := 0.5 ## Chance do adesivo do inimigo ir na face que já tem mais adesivos.
 const MASTER_HEAL_FRACTION := 0.3 ## Vencer um Mestre recupera esta fração da vida máxima.
 
