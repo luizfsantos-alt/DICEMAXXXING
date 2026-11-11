@@ -56,7 +56,26 @@
 
 ---
 
-## 3. Outros itens já registrados
+## 3. Refletir acumula como os outros efeitos
+
+**Ideia:** o Espelho (refletir) passa a **acumular** como bloqueio, veneno ou queimadura. Lançar Espelho duas vezes guarda **dois reflexos**, e cada golpe recebido gasta um.
+
+**Como é hoje:** `Fighter.mirror` é só ligado/desligado (`engine/fighter.gd`). Um segundo Espelho no mesmo turno não soma nada: só sobe `mirror_lvl` para o maior nível (`engine/resolver.gd`, efeito `"mirror"`), e o primeiro golpe recebido consome o reflexo (`Resolver.hit`).
+
+**Perguntas para a proposta:**
+
+| Tema | Pergunta |
+|---|---|
+| Contador | `mirror` vira número (cargas)? Há teto, como o Revestimento (`Config.SKIN_CAP`)? |
+| Nível | Cada carga guarda o próprio nível (×1, ×1,5, ×2) ou vale o maior entre elas? |
+| Duração | As cargas que sobram passam para o próximo turno ou somem no fim da rodada? |
+| Ordem | Com Esquiva e Espelho ativos, qual gasta primeiro? Um golpe com vários acertos gasta uma carga por acerto? |
+| Leitura | Como mostrar as cargas na tela (ícone com número, como bloqueio)? |
+| Inimigo | A IA (`engine/enemy_ai.gd`) deve empilhar Espelho? Vale o mesmo para a Esquiva? |
+
+---
+
+## 4. Outros itens já registrados
 
 | Item | Onde |
 |---|---|
