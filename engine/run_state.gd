@@ -227,12 +227,12 @@ func _remove_item(k: int) -> Dictionary:
 	var lists := [options]
 	for key in stop_offers:
 		lists.append(stop_offers[key])
-	var seen := {}
+	var seen := []
 	for l in lists:
 		for o in l:
-			if str(o.get("kind", "")) != "evolve" or seen.has(o.get_instance_id()):
+			if str(o.get("kind", "")) != "evolve" or seen.any(func(x): return is_same(x, o)):
 				continue
-			seen[o.get_instance_id()] = true
+			seen.append(o)
 			var j := int(o.item)
 			if j == k:
 				o["sold_out"] = true

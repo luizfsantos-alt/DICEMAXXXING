@@ -28,7 +28,11 @@ func test_nova_jornada_pela_raiz():
 	await wait_process_frames(2)
 	assert_true(main.current is TowerScreen, "começa na escolha do Erudito")
 	var t: TowerScreen = main.current
-	t._pick(0)
+	t._pick(0) ## Magia: abre o grimório com a peça na mão.
+	await wait_process_frames(1)
+	var id := str(main.run.options[0].id)
+	t.place_result(0, main.run.hero.inventory.find_spot(id))
+	t.organizer.close()
 	await wait_process_frames(2)
 	assert_true(main.current is TowerScreen, "portas")
 	assert_eq(main.run.phase, "doors")
@@ -124,13 +128,39 @@ func test_torre_loja_poco_bolsa_e_grimorio():
 	assert_true(o.is_inside_tree())
 	BagPanel.open(t, run.hero.bag)
 	t._leave()
-	assert_eq(run.phase, "rest", "Voltar leva à parada")
+	assert_eq(run.phase, "market", "Voltar leva ao mercado")
 	run.leave()
 	assert_eq(run.phase, "doors")
 	run.phase = "shop"
 	run.options = Shop.shop(run.hero, run.rng, 0)
 	t.refresh()
-	assert_gt(t.sell_row.get_child_count(), 1, "pode vender magias na loja")
+	var coins := run.coins
+	t._reroll()
+	assert_eq(run.coins, coins, "a 1ª troca da Loja é grátis")
+	t._reroll()
+	assert_eq(run.coins, coins - Config.SHOP_REROLL_BASE)
+
+
+func test_mercado_vende_magias():
+	var run := RunState.new_run(5, "barbarian")
+	run.phase = "market"
+	run.options = Shop.rest_stops(run.rng)
+	var t := TowerScreen.new().setup(run)
+	add_child_autofree(t)
+	await wait_process_frames(2)
+	assert_true(t.title.visible, "Mercado")
+	var si := run.options.map(func(o): return o.id).find("sell")
+	assert_gt(si, -1, "sempre tem Vender magias")
+	t._pick(si)
+	await wait_process_frames(1)
+	assert_true(is_instance_valid(t.organizer) and t.organizer.is_inside_tree(), "abre a venda")
+	t.organizer.close()
+	var n := run.hero.inventory.items.size()
+	var it: Dictionary = run.hero.inventory.items[0]
+	assert_eq(run.sell_spells([0]), Spells.sell_price(str(it.id), int(it.level)))
+	assert_eq(run.hero.inventory.items.size(), n - 1)
+	assert_eq(run.phase, "market")
+	t.open_grimoire().close()
 
 
 func test_organizar_move_peca():
@@ -279,14 +309,20 @@ func test_ganhar_magia_abre_o_grimorio():
 	await wait_process_frames(2)
 	assert_eq(run.phase, "start_pick")
 	var n := run.hero.inventory.items.size()
-	t._apply(0, {})
+	t._pick(0)
 	await wait_process_frames(1)
+	assert_true(is_instance_valid(t.organizer) and t.organizer.is_inside_tree(), "grimório abre com a magia na mão")
+	t.organizer.close() ## Cancelar: nada muda e a oferta continua.
+	await wait_process_frames(1)
+	assert_eq(run.hero.inventory.items.size(), n)
+	assert_eq(run.phase, "start_pick")
+	var id := str(run.options[0].id)
+	var spot := run.hero.inventory.find_spot(id)
+	t.place_result(0, spot)
 	assert_eq(run.hero.inventory.items.size(), n + 1)
-	assert_true(is_instance_valid(t.organizer) and t.organizer.is_inside_tree(), "grimório abre com a magia nova")
-	var g: GrimoireView = _find(t.organizer, GrimoireView)
-	assert_eq(g.new_item, n, "a nova magia vem marcada")
+	var it: Dictionary = run.hero.inventory.items[n]
+	assert_eq([int(it.x), int(it.y), int(it.rot)], [int(spot.x), int(spot.y), int(spot.rot)], "entra onde o jogador pôs")
 	assert_eq(run.phase, "doors", "a escolha já valeu")
-	t.organizer.close()
 
 
 func test_inimigo_encaixa_dados_nas_magias_dele():
@@ -854,7 +890,7 @@ func test_recompensa_sem_titulo_e_com_icone_grande():
 	await wait_process_frames(2)
 	assert_false(t.title.visible, "sem \"Recompensa: escolha uma\"")
 	assert_eq(t.cards.get_child_count(), run.options.size())
-	var icon: Button = t.cards.get_child(0).get_child(0)
+	var icon: Button = t.cards.get_child(0).get_children().filter(func(x): return x is Button)[0]
 	assert_gte(icon.custom_minimum_size.x, 200.0, "o ícone é o elemento principal")
 	assert_true(icon.get_theme_stylebox("normal") is StyleBoxEmpty, "sem retângulo atrás")
 	run.phase = "shop"

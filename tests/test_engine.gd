@@ -1035,3 +1035,110 @@ func test_adesivo_do_inimigo_pode_acumular():
 		if int(g.bag[0].stickers[5]) == 2:
 			stacked = true
 	assert_true(stacked)
+
+
+# ------------------------------------------------------------ Mercado (loja nova)
+func test_loja_tem_dado_adesivo_e_as_vezes_um_extra():
+	var extra := 0
+	for s in 40:
+		var opts := Shop.shop(EnemyFactory.base("sorcerer"), H.rng(s), 0, 3)
+		assert_eq(str(opts[0].kind), "die")
+		assert_ne(str(opts[0].id), "")
+		assert_true(str(opts[1].kind) in ["sticker", "gold_sticker"])
+		for k in 2:
+			assert_between(int(opts[k].stock), 1, 3)
+		assert_false(opts.any(func(o): return o.kind == "spell"), "a Loja não vende magias")
+		if opts.size() == 3:
+			extra += 1
+			assert_true(str(opts[2].kind) in ["copy_die", "maxhp"])
+			assert_eq(int(opts[2].stock), 1)
+	assert_between(extra, 8, 32, "cópia ou vida em cerca de metade das visitas")
+
+
+func test_troca_de_ofertas_custo_e_vaga_esgotada():
+	var run := RunState.new_run(31, "barbarian")
+	run.coins = 100
+	run.phase = "market"
+	run.options = Shop.rest_stops(run.rng)
+	run.options[0] = {"kind": "stop", "id": "shop", "price": 0, "needs": ""}
+	run.choose(0)
+	assert_eq(run.phase, "shop")
+	assert_eq(run.reroll_price(), 0, "1ª troca grátis")
+	while not run.options[0].get("sold_out", false):
+		assert_eq(run.choose(0), "")
+	var spent := 100 - run.coins
+	assert_eq(run.reroll(), "")
+	assert_true(run.options[0].get("sold_out", false), "o dado esgotado não volta na troca")
+	assert_eq(run.coins, 100 - spent)
+	assert_eq(run.reroll_price(), 3)
+	run.reroll()
+	assert_eq(run.reroll_price(), 5)
+	run.leave()
+	run.choose(0)
+	assert_eq(run.reroll_price(), 5, "o custo vale para o mercado inteiro")
+	run.leave()
+	run.leave()
+	assert_eq(run.phase, "doors")
+	assert_true(run.rerolls.is_empty(), "no próximo mercado o custo volta ao início")
+	assert_eq(Shop.reroll_price("school", 0), 5)
+	assert_eq(Shop.reroll_price("school", 2), 11)
+
+
+func test_escola_paga_encaixa_no_lugar_e_vende():
+	var run := RunState.new_run(12, "barbarian")
+	run.coins = 100
+	run.phase = "school"
+	run.options = Shop.school(run.hero, run.rng, 5)
+	var sp: Dictionary = run.options[0]
+	var inv := run.hero.inventory
+	var n := inv.items.size()
+	# Lugar ocupado: não cobra nem adiciona.
+	var it0: Dictionary = inv.items[0]
+	assert_eq(run.choose(0, {"x": int(it0.x), "y": int(it0.y), "rot": 0}), "ui.no_room")
+	assert_eq(run.coins, 100)
+	var spot := inv.find_spot(str(sp.id))
+	if not spot.is_empty():
+		assert_eq(run.choose(0, spot), "")
+		assert_eq(inv.items.size(), n + 1)
+		assert_eq([int(inv.items[n].x), int(inv.items[n].y)], [int(spot.x), int(spot.y)])
+		assert_eq(run.coins, 100 - Spells.price(str(sp.id)))
+		assert_true(sp.get("sold_out", false))
+	# Vender acerta o índice das evoluções oferecidas.
+	var ev: Array = run.options.filter(func(o): return o.kind == "evolve")
+	var target: Dictionary = ev[0]
+	var tid := str(target.id)
+	var k := 0 if int(target.item) != 0 else 1
+	var c := run.coins
+	var got := run.sell_spells([k])
+	assert_gt(got, 0)
+	assert_eq(run.coins, c + got)
+	assert_eq(str(inv.items[int(target.item)].id), tid, "a evolução continua apontando para a mesma magia")
+	assert_eq(run.choose(run.options.find(target)), "")
+	run.phase = "doors"
+	assert_eq(run.sell_spells([0]), 0, "fora do mercado não vende")
+	assert_true(run.discard_spell(0), "descartar vale fora da luta")
+
+
+func test_inimigo_jornada_fantasma():
+	var a := EnemyFactory.create(12, "normal", H.rng(4))
+	var b := EnemyFactory.create(12, "normal", H.rng(4))
+	assert_eq(JSON.stringify(a.to_dict()), JSON.stringify(b.to_dict()), "determinístico pelo rng")
+	var power := func(f: Fighter) -> int:
+		var p := f.max_hp / 5 + f.bag.size()
+		for d in f.bag:
+			p += d.sticker_count()
+		for it in f.inventory.items:
+			p += int(it.level) * 2
+		return p
+	var lo := 0
+	var hi := 0
+	for s in 20:
+		lo += power.call(EnemyFactory.create(8, "facil", H.rng(s)))
+		hi += power.call(EnemyFactory.create(8, "insana", H.rng(s)))
+	assert_gt(hi, lo, "a porta difícil vale andares a mais de jornada")
+	for s in 20:
+		var f := EnemyFactory.create(15, "normal", H.rng(s))
+		var start: int = Characters.get_def(f.archetype).spells.size()
+		for it in f.inventory.items.slice(start):
+			assert_true(Spells.in_pool(str(it.id), f.archetype), "%s é do grupo do %s" % [it.id, f.archetype])
+		assert_false(f.bag.any(func(d): return d.element == "Au"), "Ouro trocado")
