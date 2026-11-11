@@ -1,7 +1,9 @@
 class_name SimBot
 extends RefCounted
 ## Bot "new" do simulador (docs/SPEC_v3.1.md §5.1): heurística de valor nas portas,
-## recompensas, paradas, Loja, Escola e Poço. Na luta, usa a IA cautelosa (EnemyAI).
+## recompensas, mercado, Loja, Escola e Poço. Na luta, usa a IA cautelosa (EnemyAI).
+## Economia do mercado: compra até esgotar, troca as ofertas quando nada serve (a 1ª
+## troca da Loja é grátis) e vende a magia mais fraca para caber uma melhor.
 ## O bot "old" (o de antes) continua em sim/simulate.gd.
 
 ## Usos de cada magia (id) nesta jornada, para a Escola evoluir a mais usada.
@@ -21,11 +23,13 @@ static func is_defense(id: String) -> bool:
 
 
 ## Pontuação de uma oferta (sem preço). < 0 = não serve.
-func score(o: Dictionary, h: Fighter) -> float:
+func score(o: Dictionary, h: Fighter, can_sell := false) -> float:
+	if o.get("sold_out", false):
+		return -1.0
 	match str(o.kind):
 		"spell":
 			var id := str(o.id)
-			if id == "" or not h.inventory.fits(id):
+			if id == "" or not (h.inventory.fits(id) or (can_sell and sell_for(h, id) >= 0)):
 				return -1.0
 			var s := 8.0
 			match Spells.rarity(id):
@@ -43,6 +47,10 @@ func score(o: Dictionary, h: Fighter) -> float:
 			return s
 		"sticker":
 			return 10.0 if sticker_target(h).has("face") else -1.0
+		"gold_sticker":
+			return 5.5 if sticker_target(h).has("face") else -1.0
+		"copy_die":
+			return 6.0 - 2.0 * maxi(0, h.bag.size() - 10)
 		"die":
 			return 4.0 - 2.0 * maxi(0, h.bag.size() - 10)
 		"maxhp":
@@ -84,6 +92,39 @@ static func _free_face(d: Die) -> int:
 	return f
 
 
+static func best_die(h: Fighter) -> int:
+	var b := 0
+	for i in h.bag.size():
+		if h.bag[i].face_sum() > h.bag[b].face_sum():
+			b = i
+	return b
+
+
+## Valor de uma magia que o herói já tem (para escolher qual vender).
+static func keep_value(it: Dictionary) -> float:
+	var s: float = 8.0 + {"common": 0.0, "uncommon": 4.0, "rare": 8.0, "legendary": 12.0}.get(Spells.rarity(str(it.id)), 0.0)
+	return s + 3.0 * (int(it.level) - 1)
+
+
+## Magia a vender para a nova (id) caber: a de menor valor, se valer menos que a nova e
+## se, sem ela, a nova couber. -1 se não há.
+static func sell_for(h: Fighter, id: String) -> int:
+	var new_v := keep_value({"id": id, "level": 1})
+	var best := -1
+	var best_v := new_v
+	for k in h.inventory.items.size():
+		var it: Dictionary = h.inventory.items[k]
+		var v := keep_value(it)
+		if v >= best_v:
+			continue
+		var inv := h.inventory.copy()
+		inv.remove(k)
+		if inv.fits(id):
+			best = k
+			best_v = v
+	return best
+
+
 static func plain_die(h: Fighter) -> int:
 	for i in h.bag.size():
 		if h.bag[i].element == "":
@@ -110,6 +151,8 @@ func target_for(o: Dictionary, h: Fighter) -> Dictionary:
 		"die":
 			if str(o.kind) == "destroy":
 				return {"die": worst_plain(h)}
+			if str(o.kind) == "copy_die":
+				return {"die": best_die(h)}
 			return {"die": plain_die(h)}
 	return {}
 
@@ -146,7 +189,7 @@ func pick_stop(run: RunState) -> int:
 		want.append("heal")
 	if h.inventory.items.any(func(it): return int(it.level) < Config.MAX_LEVEL):
 		want.append("school")
-	if run.coins >= 12:
+	if run.coins >= 8:
 		want.append("shop")
 	want.append("well")
 	if hp_frac(h) < 0.8 and run.coins >= Config.PRICE_HEAL_STOP:
@@ -170,22 +213,37 @@ func shop_phase(run: RunState) -> void:
 	if phase == "well":
 		_well(run)
 		return
-	for _k in 6:
+	var swaps := 0
+	for _k in 12:
 		var best := -1
 		var best_s := 4.99
 		for j in run.options.size():
 			var o: Dictionary = run.options[j]
-			var s := score(o, run.hero)
+			var s := score(o, run.hero, run.can_sell())
 			var tgt := target_for(o, run.hero)
-			if s <= best_s or Shop.check(o, run.hero, tgt) != "":
+			if s <= best_s:
+				continue
+			var err := Shop.check(o, run.hero, tgt)
+			if err != "" and not (err == "ui.no_room" and run.can_sell()):
 				continue
 			if Shop.price_of(o, run.hero, tgt, run.destroys_used) > run.coins:
 				continue
 			best_s = s
 			best = j
 		if best < 0:
+			# Nada serve: troca as ofertas (Loja grátis; Escola se sobrar dinheiro), uma vez ou duas.
+			var rp := run.reroll_price()
+			if rp >= 0 and swaps < 2 and (rp == 0 or run.coins >= rp + 14):
+				swaps += 1
+				if run.reroll() == "":
+					continue
 			break
 		var o: Dictionary = run.options[best]
+		if str(o.kind) == "spell" and not run.hero.inventory.fits(str(o.id)):
+			var k := sell_for(run.hero, str(o.id))
+			if k < 0:
+				break
+			run.sell_spells([k])
 		if run.choose(best, target_for(o, run.hero)) != "":
 			break
 		if run.phase != phase:

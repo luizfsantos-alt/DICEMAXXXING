@@ -64,7 +64,7 @@ const DATA := {
 	# Base.
 	"faisca": {"shape": S1, "req": "any", "n": 1, "fx": "dmg", "use": "always", "pool": "sorcerer", "rarity": "common"},
 	"escudo": {"shape": S_V2, "req": "max", "v": 3, "fx": "block", "mult": 3, "use": "always", "pool": "sorcerer", "rarity": "common"},
-	"bola": {"shape": S_SQ, "req": "pair", "fx": "dmg", "mult": 2, "burn": 3, "use": "once", "pool": "sorcerer", "rarity": "uncommon"},
+	"bola": {"shape": S_SQ, "req": "pair", "fx": "dmg", "mult": 2, "burn": 3, "use": "always", "pool": "sorcerer", "rarity": "uncommon"},
 	"meteoro": {"shape": S_L4, "req": "seq3", "fx": "dmg", "plus": 10, "use": "once", "pool": "sorcerer", "rarity": "uncommon"},
 	"espelho": {"shape": S1, "req": "exact", "v": 1, "fx": "mirror", "use": "always", "pool": "sorcerer", "rarity": "uncommon"},
 	"sacrificio": {"shape": S1, "req": "exact", "v": 1, "fx": "sacrifice", "use": "always", "pool": "sorcerer", "rarity": "rare"},
@@ -231,6 +231,16 @@ static func rarity(id: String) -> String:
 
 static func ids_of_rarity(r: String) -> Array:
 	return DATA.keys().filter(func(x): return rarity(x) == r and not DATA[x].get("start_only", false))
+
+
+## Efeitos que golpeiam o inimigo (o que vem no golpe, como Sódio e Césio, só pega neles).
+const STRIKE_FX := ["dmg", "riddle", "product", "lever", "multi", "ones", "pelt", "top_x", "encore", "steal_sticker",
+	"bench", "spawn_half", "antithesis", "drain", "feast"]
+
+
+static func strikes(id: String) -> bool:
+	var d := get_def(id)
+	return str(d.get("fx", "")) in STRIKE_FX
 
 
 ## Família de cor do efeito na interface: dmg, block, dodge, mirror, heal, maxhp, sacrifice.

@@ -25,6 +25,10 @@ var stickers := 0 ## Adesivos +2 na face que saiu (selo vermelho).
 var gold := 0 ## Adesivos de ouro na face que saiu (selo dourado).
 var interactive := true
 var floor_hidden := false ## Só o dado, sem o buraco (dado voando).
+var painted := false ## Nos cartões da luta: quadro riscado no feltro em vez de buraco.
+var ink := Color(0.93, 0.89, 0.8) ## Tinta do quadro pintado.
+var paint_material: Material ## Tinta no feltro (SpellCard.paint_material): só no quadro vazio.
+var die_material: Material ## Com dado posto: só a perspectiva da mesa (FeltPaint.warp_only).
 ## Dado mexido (docs/SPEC_v3.1.md §8): valor de antes, riscado no alto, e a causa num selo.
 var orig := -1
 var badge := ""
@@ -113,6 +117,12 @@ func clear_die() -> void:
 	queue_redraw()
 
 
+## Nos cartões (pintado no feltro), o toque vale onde o buraco aparece na perspectiva.
+func _has_point(p: Vector2) -> bool:
+	var q := FeltPaint.local_hit(self, p) if painted else p
+	return Rect2(Vector2.ZERO, size).has_point(q)
+
+
 func _gui_input(e: InputEvent) -> void:
 	if interactive and e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT and not e.pressed:
 		tapped.emit(self)
@@ -134,24 +144,39 @@ func _draw() -> void:
 	var o := Vector2((size.x - s) * 0.5, (size.y - s) * 0.5)
 	var r := Rect2(o, Vector2(s, s))
 	var rad := int(s * 0.2)
+	if painted:
+		# O dado posto não é tinta: o material só vale com o quadro vazio.
+		var want: Material = die_material if has_die else paint_material
+		if material != want:
+			material = want
 	if floor_hidden and has_die:
 		var p0 := s * 0.06
 		var dr := Rect2(r.position + Vector2(p0, p0), Vector2(s - p0 * 2, s - p0 * 2))
 		DieFace.draw(self, dr, value, element, 0.0, heat, Time.get_ticks_msec() / 1000.0)
 		DieFace.marks(self, dr, stickers, gold)
 		return
-	# Afundado: borda de cima mais escura, fundo um pouco mais claro embaixo.
-	draw_style_box(_sb(FLOOR, rad), r)
-	var lip := maxf(3.0, s * 0.07)
-	draw_style_box(_sb(FLOOR_LO, rad), Rect2(r.position + Vector2(2, lip), r.size - Vector2(4, lip + 2)))
-	draw_line(r.position + Vector2(rad, s - 1), r.position + Vector2(s - rad, s - 1), Color(1, 1, 1, 0.07), 1.0)
-	if lit:
+	if painted:
+		# Quadro pintado no feltro: um traço de tinta, o pano só um pouco mais escuro dentro.
+		var q := r.grow(-2.5)
+		draw_rect(q, Color(0.0, 0.0, 0.0, 0.08))
+		var pts := PackedVector2Array([q.position, Vector2(q.end.x, q.position.y), q.end, Vector2(q.position.x, q.end.y)])
+		SpellCard.paint_stroke(self, pts, SpellCard.GOLD_PAINT if lit else ink, 3.5 if lit else 2.0)
+	else:
+		# Afundado: borda de cima mais escura, fundo um pouco mais claro embaixo.
+		draw_style_box(_sb(FLOOR, rad), r)
+		var lip := maxf(3.0, s * 0.07)
+		draw_style_box(_sb(FLOOR_LO, rad), Rect2(r.position + Vector2(2, lip), r.size - Vector2(4, lip + 2)))
+		draw_line(r.position + Vector2(rad, s - 1), r.position + Vector2(s - rad, s - 1), Color(1, 1, 1, 0.07), 1.0)
+	if lit and not painted:
 		draw_style_box(_sb(Color.TRANSPARENT, rad, 3, Kit.ACCENT), r)
 	var font := ThemeDB.fallback_font
 	if not has_die:
 		if req != "":
 			var fs := int(s * 0.32)
-			draw_string(font, o + Vector2(0, s * 0.5 + fs * 0.35), req, HORIZONTAL_ALIGNMENT_CENTER, s, fs, Kit.ACCENT if lit else REQ_COLOR)
+			var rc := Kit.ACCENT if lit else REQ_COLOR
+			if painted:
+				rc = SpellCard.GOLD_PAINT if lit else ink
+			draw_string(font, o + Vector2(0, s * 0.5 + fs * 0.35), req, HORIZONTAL_ALIGNMENT_CENTER, s, fs, rc)
 		if caption != "":
 			var cs := maxi(12, int(s * 0.15))
 			draw_string(font, o + Vector2(2, s * 0.5 + cs * 0.35), caption, HORIZONTAL_ALIGNMENT_CENTER, s - 4, cs, REQ_COLOR)

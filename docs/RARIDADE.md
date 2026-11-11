@@ -9,7 +9,7 @@
 | Tema | Decisão |
 |---|---|
 | Classes | **Mantidas** as três (Comum, Incomum, Rara). A Lendária fica para depois. |
-| Evolução de Rara | Custa o **preço de uma magia Rara** (18) na Escola. |
+| Evolução | Paga na Escola: 8 (nível 1→2) e 14 (2→3); Rara e Lendária +6. |
 | Recompensa do Mestre | Ganha a opção "magia Rara". |
 | Ósmio | Passa a sair **em toda mão** (`docs/PERSONAGENS.md` §5.3) e sobe para **Raro**. |
 
@@ -52,7 +52,7 @@
 
 | Magia | Por quê |
 |---|---|
-| Bola de Fogo, Meteoro, Golpe nas Sombras, Lição de Anatomia, Expectativa Tóxica | Pico forte, 1× por luta ou exigência difícil. |
+| Meteoro, Golpe nas Sombras, Lição de Anatomia, Expectativa Tóxica | Pico forte, 1× por luta ou exigência difícil. |
 | **Obra-Prima**, **Banquete**, Exibição de Velocidade | Muitos dados ou trio. |
 | Plágio, Roubar a Cena, Arrancar das Mãos | Mexem na bolsa ou na mão do inimigo. |
 | Meia Verdade, Interrupção Rude, Rasteira Humilhante | Enfraquecem a próxima mão do inimigo. |
@@ -124,7 +124,7 @@ Cada oferta de magia ou dado sorteia primeiro a **classe** e depois um item dent
 
 ## 6. Preço
 
-| Classe | Magia (Loja) | Dado com elemento (Loja) | Aplicar elemento (Poço) | Venda da magia |
+| Classe | Magia (Escola) | Dado com elemento (Loja) | Aplicar elemento (Poço) | Venda da magia |
 |---|---|---|---|---|
 | Comum | 8 | 8 | 6 | 4 |
 | Incomum | 12 | 11 | 9 | 6 |
@@ -147,7 +147,7 @@ Hoje: magia 10, dado 6 (+8 com elemento), elemento no Poço 8, venda pela metade
 
 | Tema | Decisão |
 |---|---|
-| Evolução | Na Escola, evoluir uma magia **Rara custa 18** (o preço dela na Loja). Comum e Incomum continuam grátis. |
+| Evolução | Na Escola, evoluir custa 8 (nível 1→2) e 14 (2→3); Rara e Lendária custam +6 (`Config.PRICE_EVOLVE`). |
 | Recompensa do Mestre | Três opções, escolher uma: **+casas no inventário**, **+1 dado na mão** ou **uma magia Rara** (escolhida entre 3). |
 
 ## 9. Em aberto

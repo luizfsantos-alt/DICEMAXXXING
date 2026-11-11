@@ -47,8 +47,6 @@ const FX_COLORS := {
 const BOLT_TIME := 0.34
 const CHAIN_BOLT_TIME := 0.2 ## Voo das ações seguintes da mesma magia.
 const CHAIN_DELAY := 0.1 ## Pausa entre ações da mesma magia (vários efeitos de um item).
-const BACKGROUND := "res://assets/backgrounds/tavern.jpg"
-const BACKGROUND_SHADE := 0.68 ## Escurece bastante o fundo.
 const FX_SIZE := 30 ## Números sobre as fotos.
 const FX_OUTLINE := 12
 const FX_EDGE := 6.0 ## Folga mínima dos números até a borda da tela.
@@ -111,6 +109,7 @@ var tip_icon: StatusIcon
 var stage_panel: PanelContainer
 const FLY_TO_TRAY := 0.32 ## Voo de cada dado da mesa até a coluna, em segundos.
 var roller: DiceRoll3D ## Rolagem 3D em andamento (por cima do palco).
+var felt: FeltTable ## Fundo: a mesa de feltro 3D, com as luzes e as sombras dos dados.
 var fx_src = null ## Ponto (camada de efeitos) de onde saem os efeitos: o cartão da última magia.
 var fx_bounce = null ## Golpe devolvido (Espelho, Revide): sai da foto de quem devolveu.
 var bolts := 0 ## Efeitos disparados (testes).
@@ -173,9 +172,37 @@ func _build() -> void:
 	add_child(catcher)
 
 
-## Fundo: a taverna cobrindo a tela inteira, escurecida para os painéis e textos lerem bem.
+## Fundo: a mesa de feltro rubro cobrindo a tela inteira (FeltTable). A câmera dela é
+## enquadrada no palco, onde os dados rolam, para as sombras caírem embaixo deles.
 func _build_background() -> void:
-	Kit.background(self, BACKGROUND, BACKGROUND_SHADE)
+	felt = FeltTable.new().setup()
+	add_child(felt)
+	move_child(felt, 0)
+
+
+func _frame_felt() -> void:
+	if felt != null and stage_panel != null:
+		felt.frame(Rect2(stage_panel.global_position - felt.global_position, stage_panel.size))
+	if stage_panel != null and stage_panel.is_inside_tree():
+		# As magias são pintadas na mesa: a perspectiva vale para o palco todo.
+		FeltPaint.set_stage(stage_panel.get_global_rect())
+
+
+func _exit_tree() -> void:
+	FeltPaint.set_stage(Rect2())
+
+
+func _enter_tree() -> void:
+	_frame_felt.call_deferred()
+
+
+## Ponto local de c como aparece na tela (coordenadas globais): dentro do palco, as
+## magias estão na perspectiva da mesa (FeltPaint.warp).
+func _on_screen(c: Control, local: Vector2) -> Vector2:
+	var g := c.get_global_transform() * local
+	if stage_panel != null and stage_panel.is_ancestor_of(c):
+		return FeltPaint.warp(g)
+	return g
 
 
 ## Coluna 1: foto do inimigo + status, as duas barras, sua foto + status, moedas.
@@ -281,9 +308,13 @@ func _build_stage() -> VBoxContainer:
 		head.add_child(hb)
 	var stage := PanelContainer.new()
 	stage.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	stage.add_theme_stylebox_override("panel", Kit.box(PANEL_BG, 18, 10))
+	# Sem painel: as magias são pintadas direto no feltro (SpellCard).
+	var stage_box := StyleBoxEmpty.new()
+	stage_box.set_content_margin_all(10)
+	stage.add_theme_stylebox_override("panel", stage_box)
 	col.add_child(stage)
 	stage_panel = stage
+	stage.resized.connect(_frame_felt)
 
 	var p := duel.player
 	player_grid = FitGrid.new().setup(CARD, 10)
@@ -427,10 +458,10 @@ static func statuses(st: Dictionary) -> Array:
 		out.append(_st("poison", int(st.poison)))
 	if int(st.burn) > 0:
 		out.append(_st("burn", int(st.burn)))
-	if st.mirror:
-		out.append(_st("mirror", 1))
-	if st.dodge:
-		out.append(_st("dodge", 1))
+	if int(st.mirror) > 0:
+		out.append(_st("mirror", int(st.mirror)))
+	if int(st.dodge) > 0:
+		out.append(_st("dodge", int(st.dodge)))
 	if int(st.riposte) > 0:
 		out.append(_st("riposte", int(st.riposte)))
 	if int(st.immune) > 0:
@@ -531,7 +562,7 @@ func _refresh_bars() -> void:
 func _status(f: Fighter) -> String:
 	var p := []
 	for st in statuses(f.status_state()):
-		p.append(st.name if st.id in ["mirror", "dodge", "immune", "marked"] or str(st.id).begins_with("mod_") else "%s %d" % [st.name, st.n])
+		p.append(st.name if st.id in ["immune", "marked"] or (st.id in ["mirror", "dodge"] and int(st.n) == 1) or str(st.id).begins_with("mod_") else "%s %d" % [st.name, st.n])
 	return " · ".join(p)
 
 
@@ -628,7 +659,8 @@ func _roll_tray(ev: Dictionary) -> void:
 	for d in dice:
 		DieSnapshot.prepare(int(d.value), str(d.element), float(d.heat))
 	var r := Rect2(stage_panel.global_position - fx_layer.global_position, stage_panel.size)
-	roller = DiceRoll3D.new().setup(r.size)
+	_frame_felt()
+	roller = DiceRoll3D.new().setup(r.size, felt)
 	roller.position = r.position
 	fx_layer.add_child(roller)
 	roller.skip_check = func() -> bool: return skip
@@ -726,13 +758,14 @@ func _fly(from: Hole, to: Hole) -> void:
 	var fs := _visual_px(from)
 	var g := Hole.new().set_interactive(false).setup(int(fs))
 	g.copy_die(from)
-	g.position = from.global_position - fx_layer.global_position
+	g.position = _on_screen(from, from.size * 0.5) - Vector2(fs, fs) * 0.5 - fx_layer.global_position
 	fx_layer.add_child(g)
 	from.has_die = false
 	from.queue_redraw()
 	var sc := _visual_px(to) / maxf(1.0, fs)
 	var tw := g.create_tween()
-	tw.tween_property(g, "position", to.global_position - fx_layer.global_position, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	var tp := _visual_px(to)
+	tw.tween_property(g, "position", _on_screen(to, to.size * 0.5) - Vector2(tp, tp) * 0.5 - fx_layer.global_position, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 	tw.parallel().tween_property(g, "scale", Vector2(sc, sc), 0.3)
 	await _wait(0.32)
 	g.queue_free()
@@ -1399,8 +1432,8 @@ func _apply_event(ev: Dictionary) -> void:
 			if status_view.has(s):
 				var sv: Dictionary = status_view[s]
 				sv.block = 0
-				sv.mirror = false
-				sv.dodge = false
+				sv.mirror = 0
+				sv.dodge = 0
 				sv.riposte = 0
 			fx_src = null
 			fx_bounce = null
@@ -1567,6 +1600,9 @@ func _apply_event(ev: Dictionary) -> void:
 			await _effect(s, Texts.t("ui.fx_mirror"), "fx")
 			fx_bounce = _portrait_point(s)
 			_note(s, Texts.t("ui.fx_mirror"))
+		"fx_back":
+			await _effect(s, Texts.t("ui.fx_back"), "fx")
+			_note(s, Texts.t("ui.fx_back"))
 		"dodge_up":
 			await _effect(s, Texts.t("status.dodge.0"), "fx")
 		"mirror_up":
@@ -1796,7 +1832,7 @@ func _impact(s: String, t: int) -> void:
 
 ## Centro de um controle na camada de efeitos.
 func _center(c: Control) -> Vector2:
-	return c.get_global_transform() * (c.size * 0.5) - fx_layer.global_position
+	return _on_screen(c, c.size * 0.5) - fx_layer.global_position
 
 
 func _portrait_point(s: String) -> Vector2:
@@ -1875,6 +1911,8 @@ func _describe(ev: Dictionary) -> String:
 			return Texts.t("ev.dodged", {"who": w})
 		"mirrored":
 			return Texts.t("ev.mirrored", {"who": w})
+		"fx_back":
+			return Texts.t("ev.fx_back", {"who": w})
 		"sacrifice":
 			return Texts.t("ev.sacrifice", {"who": w, "n": ev.bonus})
 		"idle_dmg":

@@ -8,8 +8,13 @@ extends SubViewportContainer
 ## heat (estado do brilho, 0 a 1; opcional), stickers e gold (adesivos por face, 6
 ## valores; opcionais)}.
 ##
-## Visual (docs/DADOS_VISUAL.md): os metais refletem a taverna (céu só de reflexo, o
-## fundo continua transparente) e os dados que brilham projetam um halo na mesa.
+## Visual (docs/DADOS_VISUAL.md): os metais refletem um ambiente quente com a lâmpada
+## da mesa (céu só de reflexo, o fundo continua transparente).
+##
+## Com a mesa de feltro (FeltTable, o fundo da luta), os dados vivem no mundo dela: a
+## mesa os vê e recebe as sombras de verdade e a luz dos que brilham (uma OmniLight3D
+## fraca por dado aceso); esta vista, por cima da interface, mostra só os dados. Sem a
+## mesa (capturas, testes), a rolagem tem mundo próprio, sombra e halo desenhados.
 
 signal done
 
@@ -31,18 +36,29 @@ var _shadows: Array = [] ## MeshInstance3D
 var _halos: Array = [] ## MeshInstance3D ou null (dado sem brilho)
 var _glow: Array = [] ## Por dado: {el, heat, mats (6 materiais)}
 var _clock := 0.0
+var _frames_started := false ## Pediu à mesa para redesenhar a cada quadro.
 var _cam: Camera3D
 var _sim: DicePhysics
+var table: FeltTable ## Mesa de feltro compartilhada (ou null: mundo próprio).
+var _lamps: Array = [] ## OmniLight3D ou null, por dado (com a mesa).
+
+const LAMP_RANGE := 2.6 ## Alcance da luz de um dado aceso no feltro, em arestas.
+const LAMP_ENERGY := 1.3
 
 
-func setup(px: Vector2) -> DiceRoll3D:
+func setup(px: Vector2, felt: FeltTable = null) -> DiceRoll3D:
 	set_process(false)
 	stretch = true
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	size = px
+	table = felt
 	vp = SubViewport.new()
 	vp.transparent_bg = true
-	vp.own_world_3d = true
+	if table != null:
+		vp.own_world_3d = false
+		vp.world_3d = table.vp.world_3d
+	else:
+		vp.own_world_3d = true
 	vp.msaa_3d = Viewport.MSAA_4X
 	vp.size = Vector2i(px)
 	add_child(vp)
@@ -50,19 +66,35 @@ func setup(px: Vector2) -> DiceRoll3D:
 	vp.add_child(world)
 	_cam = Camera3D.new()
 	world.add_child(_cam)
-	stage(world, _cam, VIEW)
+	# Com a mesa, as luzes já estão no mundo dela, e esta câmera não vê o feltro.
+	stage(world, _cam, VIEW, table == null)
+	if table != null:
+		_cam.cull_mask &= ~FeltTable.FELT_LAYER
 	return self
+
+
+func _exit_tree() -> void:
+	if table != null and _frames_started:
+		_frames_started = false
+		table.end_live()
 
 
 ## Câmera, ambiente e luzes da mesa. Os dados da coluna (DieSnapshot) usam a mesma
 ## montagem, para o dado ter a mesma cara na mesa e na coluna.
-static func stage(world: Node3D, cam: Camera3D, view: float) -> void:
+## lights: pôr as luzes (a mesa compartilhada já as tem); shadows: a luz principal faz
+## sombra (só a mesa, que tem o chão de feltro).
+static func stage(world: Node3D, cam: Camera3D, view: float, lights := true, shadows := false) -> void:
 	cam.projection = Camera3D.PROJECTION_ORTHOGONAL
 	cam.size = view
+	# Profundidade justa (a câmera fica a 30 da mesa): a sombra do feltro usa esse
+	# intervalo para caber no mapa de sombra com boa resolução.
+	cam.near = 20.0
+	cam.far = 40.0
 	var t := deg_to_rad(TILT)
 	cam.environment = environment()
 	cam.look_at_from_position(Vector3(0, 30 * cos(t), 30 * sin(t)), Vector3.ZERO, Vector3.FORWARD)
-	add_lights(world)
+	if lights:
+		add_lights(world, shadows)
 
 
 static func environment() -> Environment:
@@ -71,21 +103,53 @@ static func environment() -> Environment:
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(0.85, 0.82, 0.95)
 	env.ambient_light_energy = 0.6
-	# Céu só para reflexo: sem ele os metais (Mercúrio, Ósmio) não têm o que refletir.
-	# Mais forte que a foto: a taverna é escura e o metal sumiria no fundo.
-	var pano := PanoramaSkyMaterial.new()
-	pano.panorama = load("res://assets/backgrounds/tavern.jpg")
-	pano.energy_multiplier = 1.6
+	# Céu só para reflexo: sem ele os metais (Mercúrio, Ósmio, Ouro) não têm o que
+	# refletir. Uma sala quente e escura, o feltro rubro embaixo e a lâmpada da mesa
+	# (um ponto forte na direção da luz principal).
 	env.sky = Sky.new()
-	env.sky.sky_material = pano
+	env.sky.sky_material = reflection_sky()
+	env.sky.radiance_size = Sky.RADIANCE_SIZE_64
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	return env
 
 
+static var _sky: ShaderMaterial
+
+const SKY_SHADER := """
+shader_type sky;
+uniform vec3 lamp_dir = vec3(-0.35, 0.86, -0.26);
+uniform vec3 side_dir = vec3(-0.93, 0.33, 0.14);
+
+void sky() {
+	vec3 d = EYEDIR;
+	vec3 top = vec3(0.30, 0.25, 0.21);
+	vec3 horizon = vec3(0.62, 0.50, 0.38);
+	vec3 felt = vec3(0.42, 0.05, 0.06);
+	vec3 c = d.y > 0.0 ? mix(horizon, top, sqrt(d.y)) : mix(horizon * 0.7, felt, sqrt(-d.y));
+	float s = max(dot(d, normalize(lamp_dir)), 0.0);
+	float w = max(dot(d, normalize(side_dir)), 0.0);
+	c += vec3(5.0, 4.5, 3.8) * pow(s, 90.0) + vec3(0.7, 0.6, 0.48) * pow(s, 6.0);
+	c += vec3(1.6, 1.45, 1.25) * pow(w, 40.0);
+	COLOR = c;
+}
+"""
+
+
+## Céu do reflexo (um só material para a mesa, a rolagem e as fotos da coluna).
+static func reflection_sky() -> ShaderMaterial:
+	if _sky == null:
+		var sh := Shader.new()
+		sh.code = SKY_SHADER
+		_sky = ShaderMaterial.new()
+		_sky.shader = sh
+	return _sky
+
+
 ## Luz principal do alto à esquerda (a mesma das faces 2D), uma luz suave de cima, uma
 ## lateral baixa vinda da esquerda (desenha as arestas e o brilho dos metais) e um
-## preenchimento fraco do outro lado.
-static func add_lights(world: Node3D) -> void:
+## preenchimento fraco do outro lado. shadows: só a principal faz sombra no feltro (um
+## mapa de sombra só, para pesar pouco no celular).
+static func add_lights(world: Node3D, shadows := false) -> void:
 	for l in [
 		[Vector3(-4, 10, -3), 1.1],
 		[Vector3(0.6, 10, 1.5), 0.35],
@@ -94,6 +158,12 @@ static func add_lights(world: Node3D) -> void:
 	]:
 		var d := DirectionalLight3D.new()
 		d.light_energy = l[1]
+		if shadows and float(l[1]) > 1.0:
+			d.shadow_enabled = true
+			d.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
+			d.directional_shadow_max_distance = 40.0
+			d.shadow_blur = 2.0
+			d.shadow_opacity = 0.9
 		world.add_child(d)
 		d.look_at_from_position(l[0], Vector3.ZERO, Vector3.UP)
 
@@ -113,6 +183,9 @@ func roll(dice: Array, rng: RandomNumberGenerator = null) -> void:
 	var sim := plan(dice, arena(), rng)
 	_sim = sim
 	_build_nodes(dice, sim)
+	if table != null and not _frames_started:
+		_frames_started = true
+		table.begin_live()
 	await _play(sim)
 
 
@@ -148,12 +221,13 @@ static func face_labels(sim: DicePhysics, i: int, d: Dictionary) -> Array:
 
 
 func _build_nodes(dice: Array, sim: DicePhysics) -> void:
-	for c in _dice + _shadows + _halos:
+	for c in _dice + _shadows + _halos + _lamps:
 		if c != null:
 			c.queue_free()
 	_dice = []
 	_shadows = []
 	_halos = []
+	_lamps = []
 	_glow = []
 	var shadow_mesh := QuadMesh.new()
 	shadow_mesh.size = Vector2(1.5, 1.5)
@@ -196,16 +270,31 @@ func _build_nodes(dice: Array, sim: DicePhysics) -> void:
 					mi.add_child(mk)
 		var lk := Elements.look(el)
 		var halo: MeshInstance3D = null
-		if str(lk.glow) != "":
+		var lamp: OmniLight3D = null
+		if str(lk.glow) != "" and table != null:
+			# Luz de verdade no feltro (e nos vizinhos); fica no centro do dado, que não
+			# se ilumina por dentro.
+			lamp = OmniLight3D.new()
+			lamp.light_color = lk.emission
+			lamp.omni_range = LAMP_RANGE
+			lamp.omni_attenuation = 1.6
+			lamp.light_energy = 0.0
+			lamp.light_specular = 0.0
+			world.add_child(lamp)
+		elif str(lk.glow) != "":
 			halo = MeshInstance3D.new()
 			halo.mesh = _halo_mesh(lk.emission)
 			world.add_child(halo)
 		_halos.append(halo)
+		_lamps.append(lamp)
 		world.add_child(mi)
 		_dice.append(mi)
-		var sh := MeshInstance3D.new()
-		sh.mesh = shadow_mesh
-		world.add_child(sh)
+		var sh: MeshInstance3D = null
+		if table == null:
+			# Sem a mesa não há chão: a sombra é um disco desenhado.
+			sh = MeshInstance3D.new()
+			sh.mesh = shadow_mesh
+			world.add_child(sh)
 		_shadows.append(sh)
 
 
@@ -251,6 +340,8 @@ func _update_glow() -> void:
 		var p := glow_pulse(str(g.el), float(g.heat), _clock)
 		for m: StandardMaterial3D in g.mats:
 			m.emission_energy_multiplier = base * p
+		if _lamps[i] != null:
+			_lamps[i].light_energy = LAMP_ENERGY * clampf(base, 0.3, 1.2) * p
 		if _halos[i] != null:
 			var a := clampf(base, 0.25, 1.0) * p
 			var hm: StandardMaterial3D = (_halos[i].mesh as QuadMesh).material
@@ -277,7 +368,7 @@ func dice_on_screen() -> Array:
 
 ## Esconde os dados (e sombras e halos): quem segue é a cópia que voa até a coluna.
 func hide_dice() -> void:
-	for c in _dice + _shadows + _halos:
+	for c in _dice + _shadows + _halos + _lamps:
 		if c != null:
 			c.visible = false
 
@@ -288,9 +379,12 @@ func _show_frame(fr: Array) -> void:
 		var q: Quaternion = fr[i][1]
 		_dice[i].transform = Transform3D(Basis(q), p)
 		var hgt := maxf(0.0, p.y - DicePhysics.H)
-		_shadows[i].position = Vector3(p.x + hgt * 0.25, 0.01, p.z + hgt * 0.2)
-		var s := 1.0 + hgt * 0.25
-		_shadows[i].scale = Vector3(s, 1, s)
+		if _shadows[i] != null:
+			_shadows[i].position = Vector3(p.x + hgt * 0.25, 0.01, p.z + hgt * 0.2)
+			var s := 1.0 + hgt * 0.25
+			_shadows[i].scale = Vector3(s, 1, s)
+		if _lamps[i] != null:
+			_lamps[i].position = p
 		if _halos[i] != null:
 			# Mais alto, luz mais espalhada e mais fraca na mesa.
 			_halos[i].position = Vector3(p.x, 0.005, p.z)

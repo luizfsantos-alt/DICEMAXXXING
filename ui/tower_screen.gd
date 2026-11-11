@@ -1,8 +1,9 @@
 class_name TowerScreen
 extends Control
-## Tela da torre fora das lutas: portas, recompensa, parada, Loja, Escola, Poço e
-## a escolha inicial do Erudito. Cada opção é um ícone grande com o nome curto embaixo e
-## um "i" para os detalhes; algumas pedem um dado ou face.
+## Tela da torre fora das lutas: portas, recompensa, mercado (a parada), Loja, Escola,
+## Poço e a escolha inicial do Erudito. Cada opção é um ícone grande com o nome curto
+## embaixo e um "i" para os detalhes; algumas pedem um dado ou face. Magia ganha ou
+## comprada abre o grimório com a peça na mão (Organizer.place_new); só cobra ao confirmar.
 
 signal finished
 
@@ -17,8 +18,7 @@ var title: Label
 var cards: HBoxContainer
 var info: Label
 var bottom: HBoxContainer
-var sell_row: HBoxContainer
-var organizer: Overlay ## Aberto após ganhar uma magia (testes).
+var organizer: Overlay ## Grimório aberto para encaixar uma magia nova, ou a venda (testes).
 var details: Overlay ## Janela de detalhes aberta pelo "i" (testes).
 
 ## Lado do ícone de cada opção: o elemento principal do cartão. Encolhe com muitas opções.
@@ -27,7 +27,7 @@ const ROW_W := 1200
 const CARD_GAP := 36
 ## Fases cujo título é o nome do lugar (as outras não têm título: as opções falam por si).
 const NAME_H := 62 ## Altura do nome embaixo da ilustração (duas linhas).
-const PLACE_TITLES := {"shop": "stops.shop.0", "school": "stops.school.0", "well": "stops.well.0"}
+const PLACE_TITLES := {"shop": "stops.shop.0", "school": "stops.school.0", "well": "stops.well.0", "market": "ui.market"}
 
 
 func setup(r: RunState) -> TowerScreen:
@@ -50,8 +50,6 @@ func setup(r: RunState) -> TowerScreen:
 	info = Kit.label("", 22, Kit.DANGER)
 	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(info)
-	sell_row = Kit.hbox(10)
-	root.add_child(sell_row)
 	bottom = Kit.hbox(16)
 	bottom.alignment = BoxContainer.ALIGNMENT_CENTER
 	root.add_child(bottom)
@@ -69,24 +67,17 @@ func refresh() -> void:
 	var px := icon_px(run.options.size())
 	for i in run.options.size():
 		cards.add_child(_card(i, run.options[i], px))
-	Kit.clear(sell_row)
-	if run.phase == "shop" and not h.inventory.items.is_empty():
-		sell_row.add_child(Kit.label(Texts.t("ui.sell_title"), 20, Kit.MUTED))
-		for k in h.inventory.items.size():
-			var it: Dictionary = h.inventory.items[k]
-			var idx := k
-			var b := Kit.button(Texts.t("ui.sell", {"name": Texts.spell_name(it.id), "n": Spells.sell_price(str(it.id), int(it.level))}),
-				func(): _sell(idx), Kit.PANEL, 18)
-			b.custom_minimum_size = Vector2(0, 48)
-			sell_row.add_child(b)
 	Kit.clear(bottom)
 	_bottom_btn(Texts.t("ui.bag", {"n": h.bag.size()}), func(): BagPanel.open(self, h.bag))
-	_bottom_btn(Texts.t("ui.grimoire"), func(): Organizer.open(self, h.inventory, _save))
+	_bottom_btn(Texts.t("ui.grimoire"), open_grimoire)
 	if run.phase == "reward":
 		_bottom_btn(Texts.t("ui.skip_reward", {"n": Config.SKIP_REWARD_COINS}), _leave)
 	elif run.phase in ["shop", "well", "school"]:
-		_bottom_btn(Texts.t("ui.back_to_rest"), _leave) ## Volta para a parada, mesmo depois de comprar.
-	elif run.phase == "rest":
+		var rp := run.reroll_price()
+		if rp >= 0:
+			_bottom_btn(Texts.t("ui.reroll_free") if rp == 0 else Texts.t("ui.reroll", {"n": rp}), _reroll)
+		_bottom_btn(Texts.t("ui.back_to_rest"), _leave) ## Volta para o mercado, mesmo depois de comprar.
+	elif run.phase == "market":
 		_bottom_btn(Texts.t("ui.leave"), _leave) ## Segue para as portas.
 	elif run.phase == "master_rare":
 		_bottom_btn(Texts.t("ui.cancel"), _leave)
@@ -110,7 +101,10 @@ func _blocked(o: Dictionary, price: int) -> String:
 			return Texts.t("ui.stop_used")
 		if o.id == "heal" and run.hero.hp >= run.hero.max_hp:
 			return Texts.t("ui.hp_full")
-	if o.kind == "spell" and not run.hero.inventory.fits(o.id):
+	if o.get("sold_out", false):
+		return Texts.t("ui.sold_out")
+	# Onde dá para vender, a peça pode caber depois de vender outra (no próprio encaixe).
+	if o.kind == "spell" and not run.can_sell() and not run.hero.inventory.fits(o.id):
 		return Texts.t("ui.fits_no")
 	if price > run.coins:
 		return Texts.t("ui.not_enough")
@@ -124,6 +118,8 @@ func _card(i: int, o: Dictionary, px: int) -> Control:
 	var blocked := _blocked(o, price)
 	var v := Kit.vbox(6)
 	v.custom_minimum_size = Vector2(px, 0)
+	if str(o.kind) == "spell" and str(o.id) != "":
+		v.add_child(_shape_of(str(o.id)))
 	var b := Button.new()
 	b.custom_minimum_size = Vector2(px, px)
 	b.focus_mode = Control.FOCUS_NONE
@@ -147,7 +143,7 @@ func _card(i: int, o: Dictionary, px: int) -> Control:
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	var rar := offer_rarity(o)
 	var col: Color = Kit.TEXT if rar in ["", "common"] else Kit.RARITY_COLORS[rar]
-	var name := Kit.label(short_name(o), 24, col, true)
+	var name := Kit.label(short_name(o), 24 if run.options.size() < 5 else 20, col, true) ## 5 cartões (mercado): fonte menor para "Modificação" caber.
 	name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	# Sempre a altura de duas linhas: os preços ficam todos na mesma altura.
@@ -184,7 +180,7 @@ func _card(i: int, o: Dictionary, px: int) -> Control:
 				if l is Label:
 					_outline(l)
 		v.add_child(sub)
-	elif run.phase != "rest" or int(o.price) > 0:
+	elif run.phase != "market" or int(o.price) > 0:
 		var p: Control
 		if price == 0:
 			p = Kit.label(Texts.t("ui.free"), 22, Kit.ACCENT)
@@ -197,6 +193,11 @@ func _card(i: int, o: Dictionary, px: int) -> Control:
 			if l is Label:
 				_outline(l)
 		v.add_child(p)
+	if int(o.get("stock", 0)) > 1 and not o.get("sold_out", false):
+		var sl := Kit.label(Texts.t("ui.stock", {"n": int(o.stock)}), 19, Kit.MUTED)
+		sl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_outline(sl)
+		v.add_child(sl)
 	return v
 
 
@@ -333,6 +334,8 @@ static func art_path(o: Dictionary) -> String:
 		"door":
 			return "res://assets/tower/door_%s.png" % o.id
 		"stop":
+			if str(o.id) == "sell":
+				return "res://assets/icons/coin.png" ## Vender magias: moedas (sem cena própria ainda).
 			return "res://assets/tower/stop_%s.png" % o.id
 		"gold_sticker":
 			return "res://assets/icons/coin.png"
@@ -402,6 +405,13 @@ static func evolve_text(id: String, lvl: int) -> String:
 
 func _pick(i: int) -> void:
 	var o: Dictionary = run.options[i]
+	if run.phase == "market" and str(o.get("id", "")) == "sell":
+		run.choose(i)
+		open_sell()
+		return
+	if str(o.kind) == "spell":
+		place_spell(i)
+		return
 	match str(o.needs):
 		"face":
 			BagPanel.open(self, run.hero.bag, "face", func(d, f): _apply(i, {"die": d, "face": f}))
@@ -413,28 +423,71 @@ func _pick(i: int) -> void:
 
 func _apply(i: int, target: Dictionary) -> void:
 	var phase := run.phase
-	var o: Dictionary = run.options[i]
-	var had := run.hero.inventory.items.size()
 	var err := run.choose(i, target)
 	info.text = Texts.t(err) if err != "" else ""
 	_save()
-	var after := func():
+	if run.phase != phase:
+		finished.emit()
+
+
+# ------------------------------------------------------------------ Grimório
+# As chamadas à interface do grimório (Organizer, GrimoireView) ficam todas aqui.
+
+## Formato da peça, mostrado em cima do cartão da magia.
+static func _shape_of(id: String) -> Control:
+	var c := GrimoireView.shape_preview(id, 0, 28)
+	c.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return c
+
+
+## Magia oferecida (Escola, recompensa, Mestre, Erudito): abre o grimório com a peça na mão.
+## Confirmar encaixa e cobra (RunState.choose com o lugar); cancelar não cobra nada.
+func place_spell(i: int) -> Overlay:
+	var o: Dictionary = run.options[i]
+	var opts := {}
+	if run.can_sell():
+		opts.sell = func(item: int) -> int:
+			var n := run.sell_spells([item])
+			_save()
+			return n
+	organizer = Organizer.place_new(self, run.hero.inventory, str(o.id), 1, func(target: Dictionary): place_result(i, target), opts)
+	return organizer
+
+
+## Resposta do encaixe: {} cancela (a oferta continua); {x, y, rot} compra ali.
+func place_result(i: int, target: Dictionary) -> void:
+	if target.is_empty() or i >= run.options.size():
 		_save()
-		if run.phase != phase:
-			finished.emit()
-		else:
-			refresh()
-	# Ganhou uma magia: sempre dá a chance de organizar o grimório, com ela marcada.
-	if err == "" and o.kind == "spell" and run.hero.inventory.items.size() > had:
-		organizer = Organizer.open(self, run.hero.inventory, after, run.hero.inventory.items.size() - 1)
 		return
-	after.call()
+	_apply(i, target)
 
 
-func _sell(k: int) -> void:
-	run.sell_spell(k)
+## Venda do mercado: o grimório com o preço de cada peça; vende as marcadas.
+func open_sell() -> Overlay:
+	organizer = Organizer.open_sell(self, run.hero.inventory,
+		func(item: int) -> int:
+			var it: Dictionary = run.hero.inventory.items[item]
+			return Spells.sell_price(str(it.id), int(it.level)),
+		func(items: Array):
+			var n := run.sell_spells(items)
+			info.text = Texts.t("ui.sold", {"n": n}) if n > 0 else ""
+			_save())
+	return organizer
+
+
+## Botão Grimório: organizar e descartar magias (sem recompensa).
+func open_grimoire() -> Overlay:
+	return Organizer.open(self, run.hero.inventory, _save, {"allow_discard": true,
+		"on_discard": func(item: int):
+			run.discard_spell(item)
+			_save()})
+
+
+func _reroll() -> void:
+	var err := run.reroll()
+	info.text = Texts.t(err) if err != "" else ""
 	_save()
-	refresh()
 
 
 func _leave() -> void:

@@ -80,7 +80,7 @@ O **Vampiro** e o **Bárbaro** mexem os dois com vida, em direções opostas: o 
 
 ### 0.3 Referência de força
 
-Para comparar: o **Feiticeiro** tem 90 de vida, mão de 4 e causa uns **6 a 8 de dano por turno** com a Faísca, mais um pico de 14 a 20 com a Bola de Fogo (1× por luta). O inimigo do andar 1 tem **31 de vida** (porta normal). Os números de "por que se vira" abaixo são médias aproximadas para o andar 1, sem melhorias.
+Para comparar: o **Feiticeiro** tem 90 de vida, mão de 4 e causa uns **6 a 8 de dano por turno** com a Faísca, mais um pico de 14 a 20 com a Bola de Fogo (sem limite por luta desde a 0.26.0; antes, 1× por luta). O inimigo do andar 1 tem **31 de vida** (porta normal). Os números de "por que se vira" abaixo são médias aproximadas para o andar 1, sem melhorias.
 
 ---
 
@@ -89,7 +89,7 @@ Para comparar: o **Feiticeiro** tem 90 de vida, mão de 4 e causa uns **6 a 8 de
 | Personagem | Inventário | Passiva | Vida | Mão | Bolsa inicial | Magias iniciais |
 |---|---|---|---|---|---|---|
 | **Minimalista** | Grade **3×2** (6 casas) | **Voto de Pobreza**: destruir dado no Poço é grátis, e toda recompensa pós-luta tem a opção "destruir 1 dado". | 70 | **3** | **5 dados**: 3 Hidrogênio + 2 comuns | Faísca, **Dardo Arcano** (nova) |
-| **Metalurgista** | Esteira **5×2** (10 casas) | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado da bolsa para a mão. A Loja e o Poço vendem Chumbo para você. | 100 | 4 | 8 dados: 5 comuns + 3 Chumbo | Levantar Peso (nível 2), Estocada |
+| **Metalurgista** | Esteira **5×2** (10 casas) | **Peso Morto**: cada Chumbo que sai com 1 puxa mais um dado da bolsa para a mão. O Poço vende Chumbo para você. | 100 | 4 | 8 dados: 5 comuns + 3 Chumbo | Levantar Peso (nível 2), Estocada |
 | **Copista** | Grade **4×2** (8 casas) | **Inspiração**: no início de cada luta, uma magia aleatória do inimigo que caiba nas suas casas livres é copiada nelas, no mesmo nível, até o fim da luta. | 80 | 4 | 7 comuns + 1 Mercúrio | Faísca, Imitação Barata |
 | **Perfeccionista** | **Moldura 4×3** sem as 2 casas do meio (10 casas) | **Ainda Não Está Bom**: no fim do turno, até 2 dados que sobraram na mão ficam marcados. Você pode ter 2 marcas. | 80 | 4 | 7 comuns + 1 Ósmio | **Dardo Arcano** (nova), **Obra-Prima** (nova) |
 | **Vampiro** | **Caixão 2×4** (2 de largura, 4 de altura) | **Sede**: toda cura que você recebe também dá +1 de vida máxima vazia, para sempre (até 3 por luta). Queima causa o dobro de dano em você. | **70** | 4 | 7 comuns + 1 Sódio | **Mordida** (nova), **Banquete** (nova) |
@@ -125,7 +125,7 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro   Bárbaro
 
 - **Plano:** o dado que todo mundo odeia é o combustível. O Chumbo (faces 1, 1, 1, 2, 2, 3) sai com 1 metade das vezes; cada 1 dele puxa mais um dado. Levantar Peso causa dano = **6 × quantos 1 há na mão** (nível 2). A Estocada usa o melhor dado comum.
 - **Por que se vira:** uns 2 dados de valor 1 por turno, e a mão chega a 6 ou 7 dados: **12 de Levantar Peso + 5 a 6 de Estocada ≈ 17 por turno**. A vida alta (100) segura as lutas de 2 a 3 turnos.
-- **Como cresce:** compra Chumbo (na Loja, como dado novo; no Poço, como elemento aplicado em um dado). Mais Chumbo, mais 1, mais dados na mão. Os adesivos vão nos dados comuns, para a Estocada.
+- **Como cresce:** compra Chumbo no Poço (elemento aplicado em um dado). Mais Chumbo, mais 1, mais dados na mão. Os adesivos vão nos dados comuns, para a Estocada.
 - **Inventário:** reto e comprido, como um cinto largo: cabem as magias retas e as de 2 linhas (1×2, 2×2, L de 3).
 - **Matchups:** o **Lixeiro** e o **Porteiro de Chumbo** viram presentes. O Chumbo do Lixeiro fica na bolsa, e o do Porteiro sai na mão todo turno.
 - **Ponto fraco:** dano baixo contra inimigos com muita vida no fim da torre: ele precisa evoluir o Levantar Peso. A **Interrupção Rude** e a **Rasteira** (mão menor) cortam os 1. Em compensação, a **Meia Verdade** e a **Chave de Braço** quase não o atrapalham (1 continua 1).
@@ -203,7 +203,7 @@ Minimalista   Metalurgista   Copista   Perfeccionista   Vampiro   Bárbaro
 | Regra | Onde | O que muda |
 |---|---|---|
 | **Destruir na recompensa** | Minimalista | A tela de recompensa pós-luta ganha uma 4ª opção: "destruir 1 dado". |
-| **Chumbo à venda** | Metalurgista | A Loja oferece "dado de Chumbo" e o Poço oferece "aplicar Chumbo". Só para ele. |
+| **Chumbo à venda** | Metalurgista | O Poço oferece "aplicar Chumbo". Só para ele. (A Loja deixou de vender o dado de Chumbo extra.) |
 | **Cópia nas casas livres** | Copista | A cópia ocupa casas livres do inventário até o fim da luta. Ela não pode ser vendida, evoluída nem movida; o resto do grimório não se mexe para abrir espaço. |
 | **Fúria** | Bárbaro | Liga com a vida em metade da máxima ou menos, e desliga se a cura passar disso. "+1 por golpe": cada golpe de uma magia de vários golpes ganha o bônus (como o Sacrifício). Conta no momento do golpe. |
 | **Cura vira vida máxima** | Vampiro | Cada cura que ele recebe (maior que zero) dá +1 de vida máxima e +1 de vida, até 3 por luta. Vale para toda cura dele (Mordida, Banquete, Remendo, a parada de Cura). |
@@ -249,10 +249,10 @@ Cada dado pode ter **um** elemento, que dá uma regra de uma linha a ele. No jog
 | **Hidrogênio** | Vale ×2, mas só com a bolsa de menos de 8 dados (a bolsa inicial tem 8: só funciona em bolsa enxugada). |
 | **Ósmio** | Âncora: sai sempre na primeira mão da luta. Também **não pode ser roubado nem arrancado** (Roubar a Cena e Arrancar das Mãos o pulam). O valor rola normalmente: é um dado comum que você sabe que vem. **Proposta (rodada 5): sai em toda mão** (ver 5.3). |
 | **Urânio** | Faces de 3 a 8. Se sobrar na mão sem uso, envenena **você** em 2 (o veneno não cai durante a luta). |
-| **Sódio** | Ao ser usado numa magia, queima o inimigo em 2. |
+| **Sódio** | Num golpe que acerta, queima o inimigo em 3 (era 2 até a 0.26.0). Esquivado, não pega; refletido, volta para quem atacou. Em magia que não golpeia, não faz nada. |
 | **Mercúrio** | Ao rolar, vale o maior valor entre a sua mão e a última mão do inimigo. |
 | **Ouro** | Ao ser usado numa magia, você ganha 1 moeda (no fim da luta, as moedas vão para a jornada). O inimigo não recebe Ouro. Faces comuns. Comum. |
-| **Césio** | Radiação: ao ser usado numa magia, envenena o **inimigo** em 1 por dado. O veneno é o mesmo do Urânio: dá dano todo começo de turno, acumula e não cai sozinho (só sai com magia de limpeza, como o Suor de Campeão). Faces comuns (1 a 6). Incomum. |
+| **Césio** | Radiação: num golpe que acerta, envenena o **inimigo** em 2 por dado (era 1 até a 0.26.0; esquivado não pega, refletido volta). O veneno é o mesmo do Urânio: dá dano todo começo de turno, acumula e não cai sozinho (só sai com magia de limpeza, como o Suor de Campeão). Faces comuns (1 a 6). Incomum. |
 | **Chumbo** | Lixo: três faces 1 travadas. Só vem do inimigo. |
 
 ### 5.2 Diagnóstico

@@ -28,7 +28,11 @@ func test_nova_jornada_pela_raiz():
 	await wait_process_frames(2)
 	assert_true(main.current is TowerScreen, "começa na escolha do Erudito")
 	var t: TowerScreen = main.current
-	t._pick(0)
+	t._pick(0) ## Magia: abre o grimório com a peça na mão.
+	await wait_process_frames(1)
+	var id := str(main.run.options[0].id)
+	t.place_result(0, main.run.hero.inventory.find_spot(id))
+	t.organizer.close()
 	await wait_process_frames(2)
 	assert_true(main.current is TowerScreen, "portas")
 	assert_eq(main.run.phase, "doors")
@@ -124,13 +128,39 @@ func test_torre_loja_poco_bolsa_e_grimorio():
 	assert_true(o.is_inside_tree())
 	BagPanel.open(t, run.hero.bag)
 	t._leave()
-	assert_eq(run.phase, "rest", "Voltar leva à parada")
+	assert_eq(run.phase, "market", "Voltar leva ao mercado")
 	run.leave()
 	assert_eq(run.phase, "doors")
 	run.phase = "shop"
 	run.options = Shop.shop(run.hero, run.rng, 0)
 	t.refresh()
-	assert_gt(t.sell_row.get_child_count(), 1, "pode vender magias na loja")
+	var coins := run.coins
+	t._reroll()
+	assert_eq(run.coins, coins, "a 1ª troca da Loja é grátis")
+	t._reroll()
+	assert_eq(run.coins, coins - Config.SHOP_REROLL_BASE)
+
+
+func test_mercado_vende_magias():
+	var run := RunState.new_run(5, "barbarian")
+	run.phase = "market"
+	run.options = Shop.rest_stops(run.rng)
+	var t := TowerScreen.new().setup(run)
+	add_child_autofree(t)
+	await wait_process_frames(2)
+	assert_true(t.title.visible, "Mercado")
+	var si := run.options.map(func(o): return o.id).find("sell")
+	assert_gt(si, -1, "sempre tem Vender magias")
+	t._pick(si)
+	await wait_process_frames(1)
+	assert_true(is_instance_valid(t.organizer) and t.organizer.is_inside_tree(), "abre a venda")
+	t.organizer.close()
+	var n := run.hero.inventory.items.size()
+	var it: Dictionary = run.hero.inventory.items[0]
+	assert_eq(run.sell_spells([0]), Spells.sell_price(str(it.id), int(it.level)))
+	assert_eq(run.hero.inventory.items.size(), n - 1)
+	assert_eq(run.phase, "market")
+	t.open_grimoire().close()
 
 
 func test_organizar_move_peca():
@@ -141,8 +171,11 @@ func test_organizar_move_peca():
 	var o := Organizer.open(parent, inv)
 	await wait_process_frames(1)
 	var g: GrimoireView = _find(o, GrimoireView)
-	g.cell_tapped.emit(Vector2i(0, 0), 0)
-	g.cell_tapped.emit(Vector2i(3, 2), -1)
+	# Tocar e segurar levanta; arrastar e soltar muda de casa.
+	g.press_at(g.cell_center(Vector2i(0, 0)))
+	g.hold_now()
+	g.move_to(g.cell_center(Vector2i(3, 2)))
+	g.release_at(g.cell_center(Vector2i(3, 2)))
 	assert_eq([inv.items[0].x, inv.items[0].y], [3, 2])
 
 
@@ -276,14 +309,20 @@ func test_ganhar_magia_abre_o_grimorio():
 	await wait_process_frames(2)
 	assert_eq(run.phase, "start_pick")
 	var n := run.hero.inventory.items.size()
-	t._apply(0, {})
+	t._pick(0)
 	await wait_process_frames(1)
+	assert_true(is_instance_valid(t.organizer) and t.organizer.is_inside_tree(), "grimório abre com a magia na mão")
+	t.organizer.close() ## Cancelar: nada muda e a oferta continua.
+	await wait_process_frames(1)
+	assert_eq(run.hero.inventory.items.size(), n)
+	assert_eq(run.phase, "start_pick")
+	var id := str(run.options[0].id)
+	var spot := run.hero.inventory.find_spot(id)
+	t.place_result(0, spot)
 	assert_eq(run.hero.inventory.items.size(), n + 1)
-	assert_true(is_instance_valid(t.organizer) and t.organizer.is_inside_tree(), "grimório abre com a magia nova")
-	var g: GrimoireView = _find(t.organizer, GrimoireView)
-	assert_eq(g.new_item, n, "a nova magia vem marcada")
+	var it: Dictionary = run.hero.inventory.items[n]
+	assert_eq([int(it.x), int(it.y), int(it.rot)], [int(spot.x), int(spot.y), int(spot.rot)], "entra onde o jogador pôs")
 	assert_eq(run.phase, "doors", "a escolha já valeu")
-	t.organizer.close()
 
 
 func test_inimigo_encaixa_dados_nas_magias_dele():
@@ -726,8 +765,128 @@ func test_moldura_e_fonte_dos_numeros_existem():
 	assert_true(ResourceLoader.exists("res://assets/fonts/Bungee-Regular.ttf"), "fonte dos números")
 
 
-func test_fundo_da_batalha_existe():
-	assert_true(ResourceLoader.exists(DuelScreen.BACKGROUND), "fundo da taverna")
+func test_fundo_da_batalha_e_a_mesa_de_feltro():
+	var run := _run_at_duel(77)
+	var d := DuelScreen.new().setup(run)
+	d.fast = true
+	add_child_autofree(d)
+	await wait_process_frames(2)
+	assert_not_null(d.felt, "fundo é a mesa de feltro")
+	assert_eq(d.get_child(0), d.felt, "atrás de tudo")
+	assert_eq(d.felt.felt.layers, FeltTable.FELT_LAYER)
+	assert_false(d.felt.live(), "parada, a mesa não redesenha a cada quadro")
+	# A rolagem usa o mundo da mesa (sombras e luz no feltro) e não vê o feltro.
+	var r := DiceRoll3D.new().setup(Vector2(400, 300), d.felt)
+	add_child_autofree(r)
+	assert_eq(r.vp.world_3d, d.felt.vp.world_3d, "mesmo mundo 3D")
+	assert_eq(r._cam.cull_mask & FeltTable.FELT_LAYER, 0, "a câmera da rolagem não vê o feltro")
+
+
+func test_perspectiva_da_mesa_converte_coordenadas():
+	FeltPaint.set_stage(Rect2(100, 50, 1000, 500))
+	var k := FeltPaint.KEYSTONE
+	# Embaixo nada muda; em cima a borda encolhe KEYSTONE para o centro.
+	assert_eq(FeltPaint.warp(Vector2(100, 550)), Vector2(100, 550), "canto de baixo fica")
+	assert_eq(FeltPaint.warp(Vector2(600, 50)), Vector2(600, 50), "centro de cima fica")
+	var tl := FeltPaint.warp(Vector2(100, 50))
+	assert_almost_eq(tl.x, 100.0 + 500.0 * k, 0.01, "canto de cima vai para o centro")
+	assert_almost_eq(tl.y, 50.0, 0.01)
+	# A metade de cima fica mais baixa que a de baixo (a parte longe encolhe).
+	assert_true(FeltPaint.warp(Vector2(600, 300)).y < 300.0, "fileira de cima encolhe na altura")
+	# Ida e volta.
+	for g in [Vector2(130, 70), Vector2(600, 300), Vector2(1090, 540), Vector2(420, 180)]:
+		var back := FeltPaint.unwarp(FeltPaint.warp(g))
+		assert_almost_eq(back.x, g.x, 0.01, "ida e volta x %s" % g)
+		assert_almost_eq(back.y, g.y, 0.01, "ida e volta y %s" % g)
+	# Toque local: um controle no canto de cima responde onde aparece, não onde está.
+	var c := Control.new()
+	c.position = Vector2(100, 50)
+	c.size = Vector2(100, 100)
+	add_child_autofree(c)
+	var seen := FeltPaint.warp(Vector2(110, 60)) - c.position
+	assert_true(Rect2(Vector2.ZERO, c.size).has_point(FeltPaint.local_hit(c, seen)), "toque onde aparece")
+	assert_false(Rect2(Vector2.ZERO, c.size).has_point(FeltPaint.local_hit(c, Vector2(2, 2))), "canto que sumiu não pega")
+	FeltPaint.set_stage(Rect2())
+	assert_eq(FeltPaint.warp(Vector2(5, 5)), Vector2(5, 5), "desligada: identidade")
+
+
+func test_magias_pintadas_no_feltro_em_perspectiva():
+	var run := _run_at_duel(12)
+	var d := _duel_in_frame(run)
+	await wait_process_frames(3)
+	assert_true(FeltPaint.active(), "a luta liga a perspectiva do palco")
+	assert_eq(FeltPaint.stage, d.stage_panel.get_global_rect())
+	var c: SpellCard = d.cards[0]
+	assert_true(c.get_theme_stylebox("panel") is StyleBoxEmpty, "sem painel: o feltro aparece")
+	assert_true(c.holes[0].painted, "buracos pintados")
+	assert_true(c.material is ShaderMaterial, "o cartão é tinta no feltro")
+	assert_true(c.name_label.use_parent_material, "o texto usa a mesma tinta")
+	assert_eq(c.holes[0].paint_material, SpellCard.paint_material(0.0), "buraco com tinta nova")
+	assert_eq(c.holes[0].die_material, FeltPaint.warp_only(), "o dado posto entra na perspectiva")
+	# Saída: o efeito sai de onde o cartão aparece.
+	var shown := FeltPaint.warp(c.get_global_transform() * (c.size * 0.5)) - d.fx_layer.global_position
+	assert_eq(d._center(c), shown, "efeitos partem do cartão como ele aparece")
+	d.queue_free()
+	await wait_process_frames(1)
+	assert_false(FeltPaint.active(), "saiu da luta: sem perspectiva")
+
+
+func _mouse(p: Vector2, button: bool, held: bool, last: Vector2) -> Vector2:
+	var w := get_viewport().get_final_transform() * p
+	var ev: InputEventMouse
+	if button:
+		var b := InputEventMouseButton.new()
+		b.button_index = MOUSE_BUTTON_LEFT
+		b.pressed = held
+		ev = b
+	else:
+		var m := InputEventMouseMotion.new()
+		m.relative = w - last
+		ev = m
+	ev.position = w
+	ev.global_position = w
+	ev.button_mask = MOUSE_BUTTON_MASK_LEFT if held else 0
+	get_tree().root.push_input(ev)
+	return w
+
+
+func test_arrastar_dado_ate_o_buraco_em_perspectiva():
+	var run := _run_at_duel(12)
+	var p := run.duel.player
+	var faisca := p.inventory.ids().find("faisca")
+	var d := _duel_in_frame(run)
+	await wait_process_frames(3)
+	var fc: SpellCard = d._card_of(d.cards, faisca)
+	var hole: Hole = fc.holes[0]
+	var real := hole.get_global_rect().get_center()
+	var to := FeltPaint.warp(real)
+	assert_true(to.distance_to(real) > 3.0, "o buraco aparece fora do lugar real")
+	# Toque: vale onde o buraco aparece, não onde o controle está.
+	var r := hole.get_global_rect()
+	var inv := hole.get_global_transform().affine_inverse()
+	var seen_tl := FeltPaint.warp(r.position) + Vector2(3, 3)
+	var gone_br := r.end - Vector2(3, 3)
+	assert_false(r.has_point(seen_tl), "canto que aparece fica fora do lugar real")
+	assert_true(hole._has_point(inv * seen_tl), "toque no canto que aparece pega")
+	assert_false(hole._has_point(inv * gone_br), "toque no lugar real que sumiu não pega")
+	var tv: Hole = d.tray_views[0]
+	var from := tv.get_global_rect().get_center()
+	# A janela do GUT fica por cima de tudo: escondida durante o toque.
+	var gut_layer := get_tree().root.find_child("GutLayer", true, false) as CanvasLayer
+	if gut_layer != null:
+		gut_layer.visible = false
+	var last := _mouse(from, true, true, Vector2.ZERO)
+	await wait_process_frames(1)
+	for k in 10:
+		last = _mouse(from.lerp(to, (k + 1) / 10.0), false, true, last)
+		await wait_process_frames(1)
+	assert_true(get_viewport().gui_is_dragging(), "arrastando o dado")
+	_mouse(to, true, false, last)
+	await wait_process_frames(2)
+	if gut_layer != null:
+		gut_layer.visible = true
+	assert_true(hole.has_die, "solto onde o buraco aparece: o dado entra")
+	assert_eq(d.choice.dice_in(faisca), [0])
 
 
 func test_numeros_nao_saem_da_tela():
@@ -818,7 +977,7 @@ func test_recompensa_sem_titulo_e_com_icone_grande():
 	await wait_process_frames(2)
 	assert_false(t.title.visible, "sem \"Recompensa: escolha uma\"")
 	assert_eq(t.cards.get_child_count(), run.options.size())
-	var icon: Button = t.cards.get_child(0).get_child(0)
+	var icon: Button = t.cards.get_child(0).get_children().filter(func(x): return x is Button)[0]
 	assert_gte(icon.custom_minimum_size.x, 200.0, "o ícone é o elemento principal")
 	assert_true(icon.get_theme_stylebox("normal") is StyleBoxEmpty, "sem retângulo atrás")
 	run.phase = "shop"
@@ -944,9 +1103,9 @@ func test_status_aparecem_quando_a_acao_acontece():
 	var e := run.duel.enemy
 	var snap := func(): return {"player": p.status_state(), "enemy": e.status_state()}
 	# Estado final do turno: veneno no inimigo e esquiva já gasta.
-	p.dodge = true
+	p.dodge = 1
 	var up := {"t": "dodge_up", "side": "player", "st": snap.call()}
-	p.dodge = false
+	p.dodge = 0
 	var cast := {"t": "cast", "side": "player", "spell": "faisca", "item": 0, "dice": [], "values": [1], "st": snap.call()}
 	e.poison = 3
 	d._animate([cast], false)
@@ -1055,15 +1214,19 @@ func test_sangria_aumenta_a_coluna_e_tocar_no_original_desfaz():
 
 func test_magia_uma_vez_por_luta_usada_some_no_turno_seguinte():
 	var run := _run_at_duel(5)
+	var p := run.duel.player
+	assert_true(p.inventory.add("remendo"), "cabe o Remendo")
 	var d := DuelScreen.new().setup(run)
 	d.fast = true
 	add_child_autofree(d)
 	await wait_process_frames(2)
-	var p := run.duel.player
+	var rem := p.inventory.ids().find("remendo")
 	var bola := p.inventory.ids().find("bola")
+	p.once_used.append(rem)
 	p.once_used.append(bola)
 	d._refresh_tray()
-	assert_false(d._card_of(d.cards, bola).visible, "Bola de Fogo já usada não aparece")
+	assert_false(d._card_of(d.cards, rem).visible, "Remendo já usado não aparece")
+	assert_true(d._card_of(d.cards, bola).visible, "Bola de Fogo não tem limite por luta")
 
 
 func test_mexida_do_inimigo_anima_sem_erro():

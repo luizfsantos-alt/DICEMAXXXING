@@ -10,7 +10,7 @@
   ],
   "bola": [
    "Bola de Fogo",
-   "Dois dados iguais. Dano igual à soma ×2 e queima 3. Uma vez por luta."
+   "Dois dados iguais. Dano igual à soma ×2 e queima 3."
   ],
   "meteoro": [
    "Meteoro",
@@ -42,7 +42,7 @@
   ],
   "esquiva_mais": [
    "Esquiva Melhorada",
-   "Um 2. Anula o próximo golpe do inimigo. Sem limite por luta."
+   "Um 2. Anula o próximo golpe do inimigo. Duas vezes por luta."
   ],
   "corte": [
    "Corte Duplo",
@@ -296,7 +296,7 @@
   ],
   "Na": [
    "Sódio",
-   "Ao ser usado, queima o inimigo em 2."
+   "Num golpe que acerta, queima o inimigo em 3. Esquivado, não pega; refletido, volta para você. Em magia que não golpeia, não faz nada no inimigo."
   ],
   "Hg": [
    "Mercúrio",
@@ -324,7 +324,7 @@
   ],
   "Cs": [
    "Césio",
-   "Radiação: ao ser usado, envenena o inimigo em 1 (acumula; o veneno não cai sozinho, só sai com magia)."
+   "Radiação: num golpe que acerta, envenena o inimigo em 2 (acumula; o veneno não cai sozinho, só sai com magia). Esquivado, não pega; refletido, volta para você."
   ],
   "Li": [
    "Lítio",
@@ -440,7 +440,7 @@
  "stops": {
   "shop": [
    "Loja",
-   "Magias, dados e vida máxima."
+   "Dados e adesivos. Às vezes, cópia de dado ou vida máxima. Compre até esgotar."
   ],
   "heal": [
    "Cura",
@@ -449,7 +449,11 @@
   "heal_vampire": "Recupera metade do normal para o Vampiro: {n} de vida (17,5% da máxima). Uma vez por parada.",
   "school": [
    "Escola de Magia",
-   "Aprender uma magia ou evoluir uma que você tem."
+   "Aprenda magias novas e evolua as que você tem. Tudo pago."
+  ],
+  "sell": [
+   "Vender magias",
+   "Troque magias do grimório por moedas. Volte quantas vezes quiser."
   ],
   "well": [
    "Poço de Modificação",
@@ -505,6 +509,12 @@
   "pick_rest": "Parada: entre e volte quando quiser",
   "leave": "Seguir",
   "back_to_rest": "Voltar",
+  "market": "Mercado",
+  "reroll": "Trocar ofertas ({n} moedas)",
+  "reroll_free": "Trocar ofertas (grátis)",
+  "sold_out": "Esgotado",
+  "stock": "Restam {n}",
+  "sold": "Vendido. +{n} moedas.",
   "stop_used": "Já usada",
   "hp_full": "Vida cheia",
   "free": "Grátis",
@@ -549,6 +559,7 @@
   "fx_maxhp": "+{n} vida máx.",
   "fx_dodged": "esquivou",
   "fx_mirror": "refletido!",
+  "fx_back": "os efeitos voltam!",
   "fx_absorb": "bloqueou {n}",
   "fx_poison": "veneno −{n}",
   "fx_burn": "queima −{n}",
@@ -566,7 +577,7 @@
   "consult_bag": "Bolsa: {list}",
   "consult_spells": "Magias",
   "max_level": "Nível máximo",
-  "organize_hint": "Toque numa magia para levantá-la e numa casa para soltar. O número em cada peça é a ordem em que ela acontece na luta.",
+  "organize_hint": "Segure uma magia e arraste para mudar de casa. O (i) mostra o que ela faz. O número é a ordem na luta.",
   "shape": "Formato: {n} casa(s)",
   "fits_no": "Não cabe",
   "sell_title": "Vender magias:",
@@ -602,9 +613,23 @@
   "pv_sacrifice": "→ +{n} de dano na luta",
   "new_tag": "NOVA",
   "new_spell_title": "Nova magia: {name}. Organize o grimório",
-  "pick_piece": "Toque numa magia para ver o que ela faz",
+  "pick_piece": "Toque no (i) de uma magia para ver o que ela faz",
   "piece_meta": "Formato: {n} casa(s) · acontece em {pos}º na luta",
-  "organize_lifted": "Toque numa casa para soltar. \"Girar\" muda a posição da peça.",
+  "organize_lifted": "Arraste até outra casa. \"Girar\" gira a peça.",
+  "hold_hint": "Segure a magia para levantá-la.",
+  "place_hint": "Arraste a magia nova até um lugar livre e confirme. Segure as outras para mudá-las de casa.",
+  "place_no_room": "Ainda não cabe. Mude, gire ou venda outras magias.",
+  "place_no_room_nosell": "Ainda não cabe. Mude ou gire as outras magias.",
+  "confirm": "Confirmar",
+  "close": "Fechar",
+  "discard": "Descartar",
+  "discard_title": "Descartar {name}?",
+  "discard_warn": "Ela sai do grimório e não dá moedas.",
+  "sell_short": "Vender (+{n})",
+  "sell_grimoire": "Vender magias",
+  "sell_hint": "Segure uma magia para marcar ou desmarcar. O (i) mostra o que ela faz.",
+  "sell_n": "Vender ({n} moedas)",
+  "sell_none": "Vender",
   "enemy_rolling": "O inimigo rola e encaixa os dados",
   "twice": "2× por luta",
   "riposte": "Revide {n}",
@@ -722,6 +747,7 @@
   "mirror_up": "{who} ergue um espelho",
   "dodged": "{who} esquiva!",
   "mirrored": "O espelho de {who} devolve o golpe!",
+  "fx_back": "Os efeitos do golpe voltam para {who}!",
   "sacrifice": "{who} sacrifica um dado (+{n} de dano)",
   "lead_hand": "O Porteiro enfia um Chumbo na sua mão.",
   "lead_bag": "O Lixeiro joga um Chumbo na sua bolsa!",
@@ -988,11 +1014,11 @@
   ],
   "mirror": [
    "Espelho",
-   "Devolve o próximo golpe a quem atacou."
+   "Devolve a quem atacou um golpe por carga. As cargas acumulam."
   ],
   "dodge": [
    "Esquiva",
-   "Escapa do próximo golpe."
+   "Escapa de um golpe por carga. As cargas acumulam."
   ],
   "riposte": [
    "Revide",

@@ -40,9 +40,10 @@ As mexidas seguem os princípios do catálogo: tudo passa por dado posto em bura
 5. **Cada mexida é uma magia:** no máximo 1 uso por turno; cópias da mesma mexida são permitidas, se couberem.
 6. **Usar uma mexida não é usar o dado.** Só a magia que gasta o dado no fim conta como uso. Isso vale para os elementos que reagem ao uso (Sódio queima, Amianto fere quem usa) e para o Urânio: o Urânio mexido que termina o turno parado na mão envenena normalmente.
 7. **Face máxima ("MÁX").** Depois de uma mexida, o dado está na face máxima se o valor novo for igual à face mais alta que ele tem (com adesivos). O Pico sempre deixa o dado na face máxima.
-8. **Rolar de novo** (Segunda Chance, Tudo ou Nada) usa as faces do próprio dado, com adesivos, e os efeitos de rolagem do dado: Hidrogênio ×3 (se ligado), Carbono em cadeia e o +2 do Impulso Calculado. O Mercúrio rolado de novo fica com o valor da face, sem copiar. Os **efeitos do dado** (Sódio, Césio, Amianto, Ouro, adesivo de ouro) valem **uma vez por golpe** que o dado dá: no Corte Duplo com dados ímpares, duas vezes; na Exibição de Velocidade com dados iguais, duas vezes cada. A **cadeia do Carbono fica fixa na rolagem da mão**: o Carbono rolado de novo (ou a parte/cópia de um Carbono) soma o mesmo bônus que tinha, sem recontar; partes, cópias e dados gastos não viram elos.
-9. **Dado que não rola não aceita mexida aleatória.** As partes da Sangria e as cópias aceitam: rolam com as faces do dado de origem. Dados marcados (Pose Congelada, Recuo Estratégico, Concentrar Força), guardados (Perfeccionista) e recebidos (Roubar a Cena) só aceitam mexidas determinísticas.
-10. **Desfazer:**
+8. **Rolar de novo** (Segunda Chance, Tudo ou Nada) usa as faces do próprio dado, com adesivos, e os efeitos de rolagem do dado: Hidrogênio ×3 (se ligado), Carbono em cadeia e o +2 do Impulso Calculado. O Mercúrio rolado de novo fica com o valor da face, sem copiar. Os **efeitos do dado** (Sódio, Césio, Amianto, Ouro, adesivo de ouro) valem **uma vez por golpe** que o dado dá (Sódio e Césio, só nos golpes que acertam; ver o item seguinte): no Corte Duplo com dados ímpares, duas vezes; na Exibição de Velocidade com dados iguais, duas vezes cada. A **cadeia do Carbono fica fixa na rolagem da mão**: o Carbono rolado de novo (ou a parte/cópia de um Carbono) soma o mesmo bônus que tinha, sem recontar; partes, cópias e dados gastos não viram elos.
+9. **O que vem no golpe só pega se o golpe pegar** (0.26.1). Sódio (queima 3), Césio (veneno 2), a queima da Bola de Fogo e as mexidas que vêm num golpe (Lição de Anatomia, Expectativa Tóxica) vão para quem o golpe acertou. Bloqueio e Revestimento resistem: o golpe acertou e o efeito entra. **Esquiva** evita: nada entra. **Espelho** evita e devolve: os efeitos vão para quem atacou (o Imune a Críticas dele ainda anula; se o reflexo for esquivado, ninguém recebe). Magia que **não golpeia** (bloqueio, cura, mexidas) não põe Sódio nem Césio no inimigo. As magias que miram o inimigo sem golpear (Rasteira, Roubar a Cena, Originalidade Obrigatória) continuam como antes. Os efeitos em quem usa (Titânio, Cobre, Ouro, Amianto, Lítio) valem em qualquer magia.
+10. **Dado que não rola não aceita mexida aleatória.** As partes da Sangria e as cópias aceitam: rolam com as faces do dado de origem. Dados marcados (Pose Congelada, Recuo Estratégico, Concentrar Força), guardados (Perfeccionista) e recebidos (Roubar a Cena) só aceitam mexidas determinísticas.
+11. **Desfazer:**
     - **Mexidas determinísticas** (todas, menos Segunda Chance e Tudo ou Nada) podem ser desfeitas até "Terminar turno": toque no dado mexido e escolha "desfazer". O dado volta ao valor anterior e o cartão volta ao palco. Se o dado mexido estava noutra magia, ele sai de lá antes.
     - **Mexidas aleatórias** são **definitivas**: o dado rola na hora em que entra no buraco e o resultado fica. Sem isso, o jogador poderia ver o resultado e desfazer, e o Tudo ou Nada perderia o risco. O dado já rolado pode trocar de magia livremente.
 11. **Os inimigos usam mexidas** com as mesmas regras (§1.6).
@@ -339,3 +340,26 @@ Antes (bot novo, regras antigas): andar 10 entre 16,6% e 25,4%; 3ª luta do bloc
 - **Ajuste Fino no nível 2/3:** o passo cresce (±2 / ±3) em vez de somar +1/+2 (somar no −1 anularia o efeito).
 - **Causa do dado mexido:** aparece ao **tocar** no dado (o texto da dica), não ao segurar.
 - **Reorganização do palco:** os cartões deslizam para o lugar novo depois que o que saiu some (0,25 s cada).
+
+## 13. Mercado, Escola paga e jornada fantasma (calibração)
+
+Mudanças (decididas com o autor): a parada virou **mercado** (sempre com "Vender magias"); a Loja vende 1 dado com elemento e 1 adesivo com estoque de 1 a 3 e, em metade das visitas, cópia de dado ou +vida máxima (estoque 1), sem magias; troca de ofertas (Loja: 1ª grátis, depois 3, 5, 7...; Escola: 5, 8, 11...); a Escola cobra as 2 magias (preço da raridade) e as 2 evoluções (8 / 14, Rara e Lendária +6); a magia ganha ou comprada abre o grimório com a peça na mão. Os inimigos trocaram o orçamento solto (`ENEMY_UPGRADES_PER_FLOOR`) pela **jornada fantasma** (`EnemyFactory.journey`, SPEC_v3 §8); a porta multiplica os andares da jornada (`DOOR_JOURNEY`: 0,8 / 1 / 1,2 / 1,4).
+
+Com a jornada fantasma, o inimigo cresce muito mais do que antes (vida máxima, adesivos e magias do mercado). A vida base deixou de subir com o andar. Valores novos: `ENEMY_HP_PER_FLOOR` 5 → **1**, `ENEMY_HP_PER_FLOOR_LATE` 3 → **0**, `ENEMY_HP_MULT` 1,035 → **0,72**, `MASTER_HP_MULT` 2,6 → **3,5** (os Mestres ficam com a vida de antes, mais ou menos). Base 0.27.0 (Sódio 3, Césio 2, golpes novos).
+
+**Calibração** (bot novo com a economia nova: compra até esgotar, troca as ofertas quando nada serve, vende a magia mais fraca para caber uma melhor; 300 jornadas por personagem, semente 1). Alvo: personagem médio vence o andar 10 em 35–40% e o 30 em 5–10%.
+
+| Personagem | Meios-turnos (lutas / andares 1–3) | Andar 10 | Andar 20 | Andar 30 |
+|---|---|---|---|---|
+| Feiticeiro | 3,07 / 2,64 | 62,3% | 25,0% | 16,7% |
+| Assassino | 4,56 / 3,50 | 24,7% | 6,7% | 2,0% |
+| Minimalista | 3,02 / 3,50 | 33,7% | 5,3% | 4,0% |
+| Metalurgista | 3,27 / 2,63 | 44,0% | 17,7% | 13,0% |
+| Copista | 5,17 / 6,27 | 7,0% | 2,3% | 1,0% |
+| Perfeccionista | 3,76 / 4,59 | 23,0% | 6,7% | 3,0% |
+| Vampiro | 3,56 / 4,07 | 44,3% | 19,3% | 15,7% |
+| Bárbaro | 4,03 / 4,76 | 38,3% | 12,3% | 8,0% |
+| Xamã | 3,58 / 3,18 | 48,0% | 13,7% | 8,3% |
+| **Média** | | **36,1%** | **12,1%** | **8,0%** |
+
+Observações: as lutas dos andares 1–3 ficaram mais curtas (2,6 a 6,3 meios-turnos; antes 4,5 a 5,9). A diferença entre personagens é grande: o Copista perde 22% já no andar 1 (o bot escolhe a porta insana com vida cheia e ele não segura), e o Feiticeiro passa de 60% no andar 10. Fica para o balanceamento por personagem.

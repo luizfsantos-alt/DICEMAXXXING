@@ -2,6 +2,14 @@ class_name SpellCard
 extends PanelContainer
 ## Magia na luta: cartão de tamanho padrão no palco (o formato só importa no grimório).
 ## Ícone do tipo de efeito, nome, efeito curto, uso, um buraco por dado pedido e a prévia do resultado.
+##
+## Pintada no feltro da mesa (FeltTable), como as áreas de aposta da roleta: um traço de
+## tinta fosca na cor da família da magia, o texto e os buracos pintados também. A tinta
+## (FeltPaint) é absorvida pelo pano: um pouco mais escura, com borda serrilhada fina e
+## falhas de pigmento seguindo a fibra. Nada brilha: aceitar o dado engrossa a tinta e
+## ganha um fio de ouro fosco pintado; usada ou recusando, a tinta fica gasta.
+## Tudo no cartão (contorno, textos, ícone, buracos e o dado posto) está na perspectiva da
+## mesa (FeltPaint: homografia do palco); o toque segue a área deformada (_has_point).
 
 signal tapped(item: int)
 
@@ -9,10 +17,18 @@ const FX_COLORS := {
 	"dmg": Color(0.94, 0.44, 0.37),
 	"block": Color(0.44, 0.66, 1.0), "dodge": Color(0.5, 0.83, 0.86), "mirror": Color(0.76, 0.65, 1.0),
 	"heal": Color(0.44, 0.82, 0.55), "maxhp": Color(0.44, 0.82, 0.55), "sacrifice": Color(0.76, 0.65, 1.0),
+	"mod": Color(0.93, 0.89, 0.8), ## Mexidas: a tinta creme das linhas da roleta.
 }
+const PAINT_CREAM := Color(0.93, 0.87, 0.74) ## Pigmento claro das linhas da roleta.
+const PAINT_MIX := 0.3 ## Quanto da tinta de cada família é o creme (lê melhor no vermelho).
+const GOLD_PAINT := Color(0.9, 0.72, 0.32) ## Ouro fosco (aceita o dado; "1× por luta").
+const TEXT_PAINT := Color(0.86, 0.8, 0.7) ## Tinta do texto miúdo (efeito, sinais).
+const PAINT_FILL := Color(0.0, 0.0, 0.0, 0.05) ## O feltro só um pouco mais escuro dentro.
+const WORN := 0.45 ## Desgaste da tinta numa magia usada ou que recusa o dado.
 const CARD := Color(0.114, 0.102, 0.141)
 const CARD_HI := Color(0.149, 0.125, 0.173)
 const LINE := Color(0.227, 0.204, 0.271)
+const MUTED_INK := Color(0.72, 0.62, 0.62) ## Tinta apagada (magia usada ou que recusa o dado).
 const ICON_DIR := "res://assets/icons/"
 static var _icons := {} ## chave -> Texture2D ou null (não existe)
 
@@ -27,8 +43,11 @@ var fx_label: Label
 var preview: Label
 var count_label: Label ## Forjamento: quantos dados já foram postos (fora do buraco).
 var icon_rect: TextureRect
-var _hi := Color.TRANSPARENT ## Borda de destaque desenhada por cima da moldura (textura).
-var _hi_w := 0
+var _line := Color.WHITE ## Tinta do contorno.
+var _line_w := 3.0
+var _gold := false ## Fio de ouro pintado por dentro (aceita o dado).
+var _fill := PAINT_FILL
+var _box: StyleBoxEmpty ## Margens do cartão: crescem do lado em que o contorno inclina.
 var shown_used = null ## Durante a animação: lista de usadas exibida (null = estado real).
 
 
@@ -39,11 +58,11 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 	compact = is_compact
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	name_label = Kit.label(Texts.spell_name(id), 20 if compact else 24, Kit.TEXT)
+	name_label = Kit.label(Texts.spell_name(id), 20 if compact else 24, PAINT_CREAM)
 	name_label.add_theme_font_override("font", Kit.title_font())
-	tag_label = Kit.label("", 16, Kit.ACCENT)
-	fx_label = Kit.label(spell_fx(id, int(f.inventory.items[i].level)), 16 if compact else 19, Color(0.85, 0.83, 0.89), true)
-	preview = Kit.label("", 19, Kit.TEXT, true)
+	tag_label = Kit.label("", 16, GOLD_PAINT)
+	fx_label = Kit.label(spell_fx(id, int(f.inventory.items[i].level)), 16 if compact else 19, TEXT_PAINT, true)
+	preview = Kit.label("", 19, PAINT_CREAM, true)
 	icon_rect = TextureRect.new()
 	icon_rect.texture = icon(Spells.icon_key(id))
 	icon_rect.custom_minimum_size = Vector2.ONE * (26 if compact else 32)
@@ -52,6 +71,10 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 	icon_rect.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon_rect.visible = icon_rect.texture != null
+	for l: Label in [name_label, tag_label, fx_label, preview]:
+		_paint_text(l)
+	icon_rect.use_parent_material = true
+	material = paint_material(0.0)
 	# O cartão tem tamanho padrão no palco (FitGrid): textos longos não o esticam.
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	fx_label.max_lines_visible = 3
@@ -79,10 +102,11 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 			holes.append(h)
 	if Spells.is_flex(id):
 		# Forjamento: o buraco fica sempre vazio; o contador, ao lado, conta os dados postos.
-		count_label = Kit.label("", 26, Kit.ACCENT)
+		count_label = Kit.label("", 26, GOLD_PAINT)
 		count_label.add_theme_font_override("font", Kit.num_font())
 		count_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
 		count_label.add_theme_constant_override("outline_size", 5)
+		_paint_text(count_label)
 		count_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		count_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		hrow.add_child(count_label)
@@ -118,8 +142,19 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 		hrow.alignment = BoxContainer.ALIGNMENT_CENTER # buracos no meio do cartão
 		v.add_child(hrow)
 		v.add_child(preview)
+	_inherit_paint(self)
 	refresh([], [], -1)
 	return self
+
+
+## Textos, ícone e caixas usam a tinta do cartão; os buracos têm a sua (o dado posto
+## não é tinta).
+static func _inherit_paint(n: Node) -> void:
+	for ch in n.get_children():
+		if ch is Hole or not (ch is CanvasItem):
+			continue
+		ch.use_parent_material = true
+		_inherit_paint(ch)
 
 
 ## Buracos no cartão: um por dado pedido; o Ajuste Fino tem dois (+1 e −1), para um dado só.
@@ -143,9 +178,33 @@ func _joiner() -> Label:
 	var t := "=" if str(Spells.get_def(id).req) in ["pair", "trio"] else "›"
 	if two_slots(id):
 		t = Texts.t("ui.or")
-	var j := Kit.label(t, 20 if t.length() < 2 else 15, Hole.REQ_COLOR)
+	var j := Kit.label(t, 20 if t.length() < 2 else 15, TEXT_PAINT)
 	j.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_paint_text(j)
 	return j
+
+
+## Texto pintado no feltro: usa a tinta do cartão (o material do pai), sem sombra.
+static func _paint_text(l: Label) -> void:
+	l.use_parent_material = true
+
+
+## Material de tinta com este desgaste (0 nova, 1 gasta), em perspectiva (FeltPaint).
+static func paint_material(wear: float) -> ShaderMaterial:
+	return FeltPaint.paint(wear)
+
+
+## O toque vale onde o cartão aparece (deformado pela perspectiva da mesa).
+func _has_point(p: Vector2) -> bool:
+	return Rect2(Vector2.ZERO, size).has_point(FeltPaint.local_hit(self, p))
+
+
+## Tinta da família da magia (contorno, buracos): a cor da família, fosca e um pouco
+## dessaturada, puxada para o creme das linhas da roleta.
+static func paint_color(spell: String) -> Color:
+	var c: Color = FX_COLORS.get(Spells.color_family(spell), Kit.TEXT)
+	c = Color.from_hsv(c.h, c.s * 0.8, c.v * 0.92)
+	return c.lerp(PAINT_CREAM, PAINT_MIX)
 
 
 func _gui_input(e: InputEvent) -> void:
@@ -172,30 +231,61 @@ func used() -> bool:
 	return lim > 0 and lst.count(item) >= lim
 
 
-## Fundo do cartão. Com a moldura da raridade (assets/ui/card_<raridade>.png), o fundo é a
-## textura (escurecida se usada/recusada) e a borda de destaque é desenhada por cima.
-func _style(bg: Color, border: Color, width: int) -> StyleBox:
-	var tint := Color(0.6, 0.58, 0.62) if bg.v < CARD.v else Color.WHITE
-	var tex := Kit.nine("card_" + Spells.rarity(id), 12 if compact else 16, tint)
-	if tex:
-		_hi = border if width > 1 else Color.TRANSPARENT
-		_hi_w = width + 1
-		queue_redraw()
-		return tex
-	var sb := Kit.box(bg, 14, 10 if compact else 12)
-	sb.set_border_width_all(width)
-	sb.border_color = border
-	return sb
+## Estilo do cartão pintado: sem painel (o feltro aparece), só as margens; o traço é
+## desenhado em _draw. line: tinta; width: espessura; gold: fio de ouro pintado por
+## dentro; fill: o feltro um pouco mais escuro; wear: desgaste da tinta (0 a 1).
+func _style(line: Color, width: float, gold := false, fill := PAINT_FILL, wear := 0.0) -> StyleBox:
+	_line = line
+	_line_w = width
+	_gold = gold
+	_fill = fill
+	material = paint_material(wear)
+	queue_redraw()
+	if _box == null:
+		_box = StyleBoxEmpty.new()
+		_box.content_margin_top = 12 if compact else 16
+		_box.content_margin_bottom = 10 if compact else 14
+		_box.content_margin_left = 12 if compact else 15
+		_box.content_margin_right = 12 if compact else 15
+	return _box
+
+
+## Contorno do cartão (inset pixels para dentro), em coordenadas locais. A perspectiva
+## vem do shader (FeltPaint), como em todo o resto do cartão.
+func outline(inset: float) -> PackedVector2Array:
+	var r := Rect2(Vector2.ZERO, size).grow(-inset)
+	return PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)])
 
 
 func _draw() -> void:
-	if _hi.a > 0.0:
-		var sb := Kit.box(Color.TRANSPARENT, 10, 0)
-		sb.set_border_width_all(_hi_w)
-		sb.border_color = _hi
-		draw_style_box(sb, Rect2(Vector2(3, 3), size - Vector2(6, 6)))
+	var outer := outline(3.0)
+	draw_colored_polygon(outer, _fill)
+	paint_stroke(self, outer, _line, _line_w)
+	if _gold:
+		# Fio de ouro fosco pintado logo por dentro: "solte o dado aqui".
+		paint_stroke(self, outline(3.0 + _line_w + 3.5), GOLD_PAINT, 2.5)
+	_draw_rarity(outer)
 	if bool(Spells.get_def(id).get("self_first", false)):
 		_draw_priority()
+
+
+## Traço de tinta fechado pelos pontos pts: o miolo cheio e uma franja meio transparente
+## de cada lado, que a tinta (FeltPaint) come de forma irregular (borda serrilhada).
+static func paint_stroke(ci: CanvasItem, pts: PackedVector2Array, col: Color, w: float) -> void:
+	var closed := pts.duplicate()
+	closed.append(pts[0])
+	ci.draw_polyline(closed, Color(col, col.a * 0.45), w + 2.5, true)
+	ci.draw_polyline(closed, col, w, true)
+
+
+## Losango pintado no meio da borda de cima, na cor da raridade.
+func _draw_rarity(outer: PackedVector2Array) -> void:
+	var c := (outer[0] + outer[1]) * 0.5
+	var r := 6.0 if compact else 7.0
+	var col: Color = Kit.RARITY_COLORS.get(Spells.rarity(id), Kit.MUTED)
+	var pts := PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0)])
+	# Tinta da raridade, um pouco apagada como o resto.
+	draw_colored_polygon(pts, Color.from_hsv(col.h, col.s * 0.8, col.v * 0.9))
 
 
 ## Selo de prioridade (Antítese): o dano em quem usa vem antes de todas as magias do turno.
@@ -282,7 +372,7 @@ func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top
 	elif Spells.is_once(id):
 		tags.append(Texts.t(Spells.use_key(id)).to_upper())
 	tag_label.text = "  ".join(tags)
-	tag_label.add_theme_color_override("font_color", Kit.MUTED if is_used else Kit.ACCENT)
+	tag_label.add_theme_color_override("font_color", MUTED_INK if is_used else GOLD_PAINT)
 	var accepts := sel >= 0 and sel_ok and not is_used and Spells.accepts_partial(id, values, sel, sel_top)
 	var two := two_slots(id) ## Ajuste Fino: os dois buracos acendem.
 	var flex := Spells.is_flex(id)
@@ -304,33 +394,45 @@ func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top
 		h.queue_redraw()
 	if count_label != null:
 		count_label.text = "×%d" % values.size() if not values.is_empty() else ""
-	var col: Color = FX_COLORS.get(Spells.color_family(id), Kit.TEXT)
 	var ready := Spells.complete(id, values, tops)
 	modulate.a = 1.0
 	preview.text = ""
+	var paint := paint_color(id)
+	var hole_ink := paint
+	var wear := 0.0
 	if is_used:
-		add_theme_stylebox_override("panel", _style(Color(0.09, 0.08, 0.11), LINE, 1))
-		modulate.a = 0.6
+		wear = WORN
+		hole_ink = paint.lerp(MUTED_INK, 0.5)
+		add_theme_stylebox_override("panel", _style(paint.lerp(MUTED_INK, 0.5), 2.0, false, Color.TRANSPARENT, wear))
+		modulate.a = 0.85
 	elif sel >= 0 and not accepts and values.size() < holes.size():
-		add_theme_stylebox_override("panel", _style(Color(0.1, 0.09, 0.125), LINE, 1))
-		modulate.a = 0.5
+		wear = WORN
+		hole_ink = paint.lerp(MUTED_INK, 0.5)
+		add_theme_stylebox_override("panel", _style(paint.lerp(MUTED_INK, 0.5), 2.0, false, Color.TRANSPARENT, wear))
+		modulate.a = 0.8
 		if not compact:
 			preview.text = Texts.t("ui.no_accept", {"v": sel})
-			preview.add_theme_color_override("font_color", Kit.MUTED)
+			preview.add_theme_color_override("font_color", MUTED_INK)
 	elif accepts:
-		add_theme_stylebox_override("panel", _style(CARD_HI, Kit.ACCENT, 2))
+		add_theme_stylebox_override("panel", _style(paint, 5.0, true, Color(0, 0, 0, 0.1)))
 	elif ready:
-		add_theme_stylebox_override("panel", _style(CARD_HI, col, 2))
+		add_theme_stylebox_override("panel", _style(paint, 5.5, false, Color(0, 0, 0, 0.12)))
 	else:
-		add_theme_stylebox_override("panel", _style(CARD, LINE, 1))
+		add_theme_stylebox_override("panel", _style(paint, 3.0))
+	for h: Hole in holes:
+		h.painted = true
+		h.ink = hole_ink
+		h.paint_material = paint_material(wear)
+		h.die_material = FeltPaint.warp_only()
+		h.queue_redraw()
 	if ready and not compact:
 		preview.text = preview_text(fighter, item, values)
-		preview.add_theme_color_override("font_color", col.lightened(0.15))
+		preview.add_theme_color_override("font_color", paint.lerp(PAINT_CREAM, 0.35))
 	elif accepts and not compact and Spells.is_mod(id):
 		var all := values.duplicate()
 		all.append(sel)
 		preview.text = mod_preview(fighter, item, all, sel_die, sel_plus)
-		preview.add_theme_color_override("font_color", Kit.ACCENT)
+		preview.add_theme_color_override("font_color", GOLD_PAINT)
 
 
 ## Prévia da mexida com estes valores (o último é o dado selecionado): o resultado nas

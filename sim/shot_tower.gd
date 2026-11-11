@@ -35,12 +35,13 @@ func _run() -> void:
 	await _shot(t, "doors", "doors", doors)
 	await _shot(t, "master", "doors", [{"kind": "door", "id": "mestre", "price": 0, "needs": ""}])
 	var stops := []
-	for id in ["shop", "heal", "school", "well"]:
+	for id in ["shop", "heal", "school", "well", "sell"]:
 		stops.append({"kind": "stop", "id": id, "price": 0, "needs": ""})
-	await _shot(t, "stops", "rest", stops)
+	await _shot(t, "stops", "market", stops)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 3
 	await _shot(t, "shop", "shop", Shop.shop(run.hero, rng, 0, 3))
+	await _shot(t, "school", "school", Shop.school(run.hero, rng, 3))
 	await _shot(t, "well", "well", Shop.well(rng, 3, run.hero))
 	await _shot(t, "master_reward", "master_reward", Shop.master_reward())
 	quit()

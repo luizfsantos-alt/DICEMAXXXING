@@ -60,7 +60,7 @@ O mago físico **não muda a regra do jogo: muda o próprio dado**. Ele quebra o
 | F-O3 | **Combo Ensaiado** | 1×1 | sim | qualquer dado | Dano = valor + **o maior dado usado na magia anterior** do inventário (a peça à esquerda, no cinto). Na primeira posição, só o valor. | sempre |
 | F-O4 | **Arrancar das Mãos** | 1×2 | sim | dado ≤ 2 | Dano = valor. O **dado mais forte da bolsa do inimigo** (maior soma de faces) fica fora da bolsa dele até o fim da luta. Ósmio não pode ser arrancado. | 1× por luta |
 | F-O5 | **Elegância Marcial** | 1×1 | sim | dado ≤ 3 | Dano = valor + **o maior valor da última mão do inimigo**. Quanto mais forte ele, pior para ele. | sempre |
-| F-O6 | **Exibição de Velocidade** | 3×1 | sim | 3 dados ≤ 3 | **3 golpes separados**, cada um = valor ×2. Esquiva e Espelho só param o primeiro. Se os 3 forem iguais, são **6 golpes**. | sempre |
+| F-O6 | **Exibição de Velocidade** | 3×1 | sim | 3 dados ≤ 3 | **3 golpes separados**, cada um = valor ×2. Cada carga de Esquiva ou Espelho para um golpe. Se os 3 forem iguais, são **6 golpes**. | sempre |
 | F-O7 | **Levantar Peso Morto** | 1×1 | sim | um 1 | Dano = **4 × quantos dados de valor 1 há na sua mão** (contando este). O Chumbo do Lixeiro e do Porteiro vira peso de treino. | sempre |
 | F-O8 | **Impulso Calculado** | 1×2 | sim | qualquer dado | Dano = valor. O dado fica **marcado**: entra na sua próxima mão com **valor +2**, sem rolar. | sempre |
 | F-O9 | **Lição de Anatomia** | L (3) | não | 2 dados iguais | Dano = soma ×2. A **face mais alta de 2 dados aleatórios da bolsa do inimigo vira 1** até o fim da luta (adesivos daquela face desligados). Hélio é imune. | 1× por luta |
@@ -101,7 +101,7 @@ O mago físico **não muda a regra do jogo: muda o próprio dado**. Ele quebra o
 
 | Combo | O que acontece | Risco |
 |---|---|---|
-| Força Desnecessária (12) → 6 + 6 → Bola de Fogo | 12 de dano + par de 6 → 36 + queima | Bola continua 1× por luta |
+| Força Desnecessária (12) → 6 + 6 → Bola de Fogo | 12 de dano + par de 6 → 36 + queima | a Bola não tem mais limite por luta |
 | Força Desnecessária (6) → 3 + 3 → Física Aplicada e Armadura de Músculo | dano e bloqueio com um dado só | conferir se o Assassino fica forte demais |
 | Concentrar Força (6 + 6) → próximo turno um 12 marcado → Física Aplicada com um 3 | 12 × 3 = 36 | 2 turnos de preparo, a marca é única; um dado marcado **não** conta como face MÁX |
 | Levantar Peso Morto contra o Porteiro de Chumbo | o Chumbo dele vira dano | pode deixar o Mestre do andar 10 fácil |

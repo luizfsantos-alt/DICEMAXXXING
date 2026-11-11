@@ -13,12 +13,12 @@ toda jornada, **C** detalhe/polimento.
 | Fotos dos Mestres e das variantes (1 cada): Porteiro de Chumbo, Alquimista, Reator, Lixeiro, Piromante, Fundidor, Monge do Silêncio | `assets/portraits/<id>_1.png` |
 | Molduras das fotos (ferro; filete verde no jogador, vermelho no inimigo) | `assets/portraits/frame_player.png`, `frame_enemy.png` |
 | Logo do título no menu; logo antigo (dado com chapéu de mago) e ícone do app | `assets/title_logo.png`, `assets/logo.png`, `assets/icon.png` |
-| Fundos: luta (e reflexo dos dados 3D), menu, torre, vitória e derrota | `assets/backgrounds/tavern.jpg`, `menu.jpg`, `tower.jpg`, `victory.jpg`, `defeat.jpg` (`Kit.background`) |
+| Fundos: menu, torre, vitória e derrota (a luta é a mesa de feltro em 3D, `FeltTable`; `tavern.jpg` fica guardado) | `assets/backgrounds/tavern.jpg`, `menu.jpg`, `tower.jpg`, `victory.jpg`, `defeat.jpg` (`Kit.background`) |
 | Moeda (faixa da luta e preços da torre) | `assets/icons/coin.png` (`Kit.coin`) |
 | Interface 9-slice: painel, botão, moldura da barra de vida, moldura do cartão de magia por raridade | `assets/ui/panel.png`, `button.png`, `hp_frame.png`, `card_<raridade>.png` (`Kit.nine`, bordas em `Kit.NINE`) |
 | Ícones de status (os 12): bloqueio, veneno, queima, espelho, esquiva, revide, imune, dado guardado, fúria, sede, próxima mão, marcado (olho) | `assets/icons/status/<id>.png` (64×64) |
 | Ícones de efeito nos cartões de magia: dano, cura, vida máxima, dreno, truque de dados, sacrifício, limpeza (bloqueio, esquiva, espelho, revide, imune e mexida na mão usam os de status) | `assets/icons/fx/<id>.png` (64×64); `Spells.icon_key` escolhe |
-| Torre: portas (Fácil, Normal, Difícil, Insana, Mestre), paradas (Loja, Cura, Escola, Poço), todas as ofertas e as 3 recompensas do Mestre | `assets/tower/door_<id>.png`, `stop_<id>.png` (128×128); `assets/icons/offer/<kind>.png` (64×64) |
+| Torre: portas (Fácil, Normal, Difícil, Insana, Mestre), paradas (Loja, Cura, Escola, Poço; "Vender magias" usa a moeda até ganhar `stop_sell.png`), todas as ofertas e as 3 recompensas do Mestre | `assets/tower/door_<id>.png`, `stop_<id>.png` (128×128); `assets/icons/offer/<kind>.png` (64×64) |
 | Fontes: números (vida, dano, contagens) e títulos | `assets/fonts/Bungee-Regular.ttf`, `assets/fonts/PixelifySans.ttf` (`Kit.num_font`, `Kit.title_font`, `Kit.title`) |
 | Dados 3D e 2D | gerados em código de propósito (`ui/dice_3d.gd`, `ui/die_face.gd`, `docs/DADOS_VISUAL.md`); não precisam de arquivo |
 
