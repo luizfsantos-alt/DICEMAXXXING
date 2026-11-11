@@ -10,7 +10,7 @@ env:
 
 jobs:
   test:
-    name: Testes e simulação
+    name: Testes
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,6 +30,24 @@ jobs:
 
       - name: Testes (GUT)
         run: godot --headless -s addons/gut/gut_cmdln.gd -gexit
+
+  # A simulação demora (dezenas de minutos) e só gera um relatório: roda em paralelo,
+  # sem segurar o APK nem o release, que dependem só dos testes.
+  simulation:
+    name: Simulação de balanceamento
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Godot
+        run: |
+          wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip" -O godot.zip
+          unzip -q godot.zip
+          sudo mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" /usr/local/bin/godot
+          godot --version
+
+      - name: Importar projeto
+        run: godot --headless --import
 
       - name: Simulação de balanceamento
         run: |

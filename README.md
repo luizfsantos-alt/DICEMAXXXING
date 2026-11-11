@@ -83,7 +83,8 @@ xvfb-run godot -s res://sim/shot_grimorio.gd -- --out=/tmp   # grimório: organi
 ## APK
 
 Cada push roda o workflow `CI` no GitHub Actions: testes, simulação e um APK de debug
-(artefato `dicemaxxing-apk`, em .zip). Em pushes, o `.apk` também sai solto num
+(artefato `dicemaxxing-apk`, em .zip). A simulação roda num job à parte, em paralelo: o APK e
+o release esperam só os testes (uns 2 minutos), e o relatório da simulação sai depois. Em pushes, o `.apk` também sai solto num
 pré-lançamento por branch, mais fácil de baixar pelo celular:
 `https://github.com/luizfsantos-alt/DICEMAXXXING/releases/download/apk-<branch com / trocado por ->/dicemaxxing.apk`.
 Instale o `.apk` no celular (é preciso permitir "instalar apps desconhecidos").
