@@ -152,6 +152,7 @@ Cada magia tem **formato** (no inventário), **exigência** (quais dados aceita)
 - Se nenhuma magia aceita os dados da mão, **o turno passa em branco**.
 - **Formatos que não combinam** são o custo das magias fortes.
 - O inventário **se mantém** entre as lutas; reorganizar é opcional, antes de cada luta. Ele **só cresce pelos Mestres de Andar**.
+- **Grimório fora da luta** (`ui/organizer.gd`, `ui/grimoire_view.gd`): a borda do inventário (e dos buracos) vem desenhada, cada peça tem o nome e um (i) que mostra o que ela faz. **Tocar e segurar** (~0,35 s) levanta a peça; arrastando, ela muda de casa, e "Girar" gira a levantada. Toque curto não move nada. Fora da luta dá para **descartar** uma magia, sem recompensa. A magia nova entra "na mão": o jogador escolhe a casa e confirma (pode mover as outras e vender ali mesmo). A venda marca várias peças de uma vez. Dentro da luta nada disso muda.
 - **Evolução: 3 níveis.** Cada nível melhora uma coisa: efeito, exigência ou formato (Escola de Magia).
 - Magias podem ser **vendidas** por metade do preço.
 
@@ -271,7 +272,7 @@ Paisagem, 1280×720 (stretch `canvas_items`/`expand`). Três colunas, da esquerd
 2. **Palco compartilhado.** Mostra **as magias de quem está jogando**: no seu turno, as suas; na vez do inimigo (resolução), as dele. Não há duas fileiras ao mesmo tempo. O palco comporta **todas** as magias do lado ativo, sem limite fixo: uma grade calcula colunas e linhas pela quantidade e, quando não cabem no tamanho padrão, **todos os cartões encolhem por igual**, mantendo a proporção, **sem rolagem**. Com poucas magias, os cartões ficam no tamanho padrão (não esticam). No rodapé do palco ficam o banner do turno, a dica, o resumo, os botões **Histórico** e **Ficha** (do inimigo) e **"Terminar turno"**.
 3. **Dados.** Coluna vertical na altura toda, dados empilhados de cima para baixo: no seu turno, **a sua mão**; na vez do inimigo, **os dados dele**. Com muitos dados, eles encolhem pelo mesmo critério do palco.
 
-- **Cartões:** toda magia é um **cartão do mesmo tamanho**: nome, efeito curto, "1× por luta"/"usada" e **um buraco por dado pedido**. O formato só importa no grimório.
+- **Cartões:** toda magia é um **cartão do mesmo tamanho**: nome, efeito curto, "1× por luta"/"usada" e **um buraco por dado pedido**. O formato só importa no grimório. Na luta, o fundo é uma mesa de feltro rubro e os cartões são **pintados no feltro** (contorno na cor da família, em perspectiva leve), como as áreas de aposta da roleta (docs/DADOS_VISUAL.md).
 - **Buracos:** a exigência fica escrita no fundo do buraco vazio ("≤ 3", "1"); par = dois buracos ligados por "=". Com um dado selecionado, os buracos que o aceitam acendem e as magias que não aceitam apagam ("não aceita 6"). A mão também é uma coluna de buracos: o dado que sai deixa o buraco com o nome da magia.
 - **Encaixar:** arraste um dado da mão até a magia que quiser (ou de uma magia para outra; arrastado de volta para a coluna, ele sai da magia). Também vale tocar num dado e depois numa magia. Toque num dado encaixado para soltá-lo (ou na magia, para soltar todos).
 - **Terminar turno:** não dá com uma magia de vários dados pela metade; ela precisa estar completa ou vazia.

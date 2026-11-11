@@ -85,11 +85,11 @@ func add(id: String, level: int = 1) -> bool:
 	return true
 
 
-## Põe a peça exatamente ali (canto x, y, giro rot). false se não cabe.
+## Põe a peça exatamente em (x, y) com a rotação rot. false se não cabe ali.
 func add_at(id: String, x: int, y: int, rot: int, level := 1) -> bool:
-	if not can_place(id, posmod(rot, 4), x, y):
+	if not can_place(id, rot, x, y):
 		return false
-	items.append({"id": id, "level": level, "x": x, "y": y, "rot": posmod(rot, 4)})
+	items.append({"id": id, "level": level, "x": x, "y": y, "rot": rot})
 	return true
 
 

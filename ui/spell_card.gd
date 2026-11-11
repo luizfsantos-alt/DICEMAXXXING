@@ -2,6 +2,12 @@ class_name SpellCard
 extends PanelContainer
 ## Magia na luta: cartão de tamanho padrão no palco (o formato só importa no grimório).
 ## Ícone do tipo de efeito, nome, efeito curto, uso, um buraco por dado pedido e a prévia do resultado.
+##
+## Pintada no feltro da mesa (FeltTable), como as áreas de aposta da roleta: contorno
+## duplo na cor da família da magia, texto pintado e os buracos como quadros riscados.
+## O contorno segue uma perspectiva leve (KEYSTONE): no palco, a borda de cima encolhe
+## um pouco para o centro, como a mesa vista de frente. Só o desenho entra em
+## perspectiva; textos e buracos ficam retos (leitura e toque continuam iguais).
 
 signal tapped(item: int)
 
@@ -9,10 +15,17 @@ const FX_COLORS := {
 	"dmg": Color(0.94, 0.44, 0.37),
 	"block": Color(0.44, 0.66, 1.0), "dodge": Color(0.5, 0.83, 0.86), "mirror": Color(0.76, 0.65, 1.0),
 	"heal": Color(0.44, 0.82, 0.55), "maxhp": Color(0.44, 0.82, 0.55), "sacrifice": Color(0.76, 0.65, 1.0),
+	"mod": Color(0.93, 0.89, 0.8), ## Mexidas: a tinta creme das linhas da roleta.
 }
+## Tinta das linhas no feltro por família: FX_COLORS mais viva e clara, para ler no vermelho.
+const PAINT_LIGHTEN := 0.08
+const KEYSTONE := 0.07 ## Quanto a borda de cima do palco encolhe (fração da largura).
+const PAINT_FILL := Color(0.0, 0.0, 0.0, 0.14) ## Feltro tingido dentro do contorno.
+const TEXT_SHADOW := Color(0.08, 0.0, 0.01, 0.75)
 const CARD := Color(0.114, 0.102, 0.141)
 const CARD_HI := Color(0.149, 0.125, 0.173)
 const LINE := Color(0.227, 0.204, 0.271)
+const MUTED_INK := Color(0.72, 0.62, 0.62) ## Tinta apagada (magia usada ou que recusa o dado).
 const ICON_DIR := "res://assets/icons/"
 static var _icons := {} ## chave -> Texture2D ou null (não existe)
 
@@ -27,8 +40,11 @@ var fx_label: Label
 var preview: Label
 var count_label: Label ## Forjamento: quantos dados já foram postos (fora do buraco).
 var icon_rect: TextureRect
-var _hi := Color.TRANSPARENT ## Borda de destaque desenhada por cima da moldura (textura).
-var _hi_w := 0
+var _line := Color.WHITE ## Tinta do contorno.
+var _line_w := 2.5
+var _glow := Color.TRANSPARENT ## Halo do contorno (aceita o dado; magia pronta).
+var _fill := PAINT_FILL
+var _box: StyleBoxEmpty ## Margens do cartão: crescem do lado em que o contorno inclina.
 var shown_used = null ## Durante a animação: lista de usadas exibida (null = estado real).
 
 
@@ -52,6 +68,9 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 	icon_rect.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon_rect.visible = icon_rect.texture != null
+	for l: Label in [name_label, tag_label, fx_label, preview]:
+		_paint_text(l)
+	item_rect_changed.connect(_on_moved)
 	# O cartão tem tamanho padrão no palco (FitGrid): textos longos não o esticam.
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	fx_label.max_lines_visible = 3
@@ -83,6 +102,7 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 		count_label.add_theme_font_override("font", Kit.num_font())
 		count_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
 		count_label.add_theme_constant_override("outline_size", 5)
+		_paint_text(count_label)
 		count_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		count_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		hrow.add_child(count_label)
@@ -145,7 +165,22 @@ func _joiner() -> Label:
 		t = Texts.t("ui.or")
 	var j := Kit.label(t, 20 if t.length() < 2 else 15, Hole.REQ_COLOR)
 	j.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_paint_text(j)
 	return j
+
+
+## Texto pintado no feltro: uma sombra curta, escura, para ler sobre o vermelho.
+static func _paint_text(l: Label) -> void:
+	l.add_theme_color_override("font_shadow_color", TEXT_SHADOW)
+	l.add_theme_constant_override("shadow_offset_x", 1)
+	l.add_theme_constant_override("shadow_offset_y", 2)
+	l.add_theme_constant_override("shadow_outline_size", 3)
+
+
+## Tinta da família da magia (contorno, buracos).
+static func paint_color(spell: String) -> Color:
+	var c: Color = FX_COLORS.get(Spells.color_family(spell), Kit.TEXT)
+	return Color.from_hsv(c.h, minf(1.0, c.s * 1.25), maxf(c.v, 0.96)).lightened(PAINT_LIGHTEN)
 
 
 func _gui_input(e: InputEvent) -> void:
@@ -172,30 +207,101 @@ func used() -> bool:
 	return lim > 0 and lst.count(item) >= lim
 
 
-## Fundo do cartão. Com a moldura da raridade (assets/ui/card_<raridade>.png), o fundo é a
-## textura (escurecida se usada/recusada) e a borda de destaque é desenhada por cima.
-func _style(bg: Color, border: Color, width: int) -> StyleBox:
-	var tint := Color(0.6, 0.58, 0.62) if bg.v < CARD.v else Color.WHITE
-	var tex := Kit.nine("card_" + Spells.rarity(id), 12 if compact else 16, tint)
-	if tex:
-		_hi = border if width > 1 else Color.TRANSPARENT
-		_hi_w = width + 1
-		queue_redraw()
-		return tex
-	var sb := Kit.box(bg, 14, 10 if compact else 12)
-	sb.set_border_width_all(width)
-	sb.border_color = border
-	return sb
+## Estilo do cartão pintado: sem painel (o feltro aparece), só as margens; o contorno,
+## o halo e o feltro tingido são desenhados em _draw. line: tinta do contorno; width:
+## espessura (1 = apagado); glow: halo em volta (transparente = sem); fill: tingido.
+func _style(line: Color, width: float, glow := Color.TRANSPARENT, fill := PAINT_FILL) -> StyleBox:
+	_line = line
+	_line_w = width
+	_glow = glow
+	_fill = fill
+	queue_redraw()
+	if _box == null:
+		_box = StyleBoxEmpty.new()
+		_box.content_margin_top = 12 if compact else 16
+		_box.content_margin_bottom = 10 if compact else 14
+		_fit_margins()
+	return _box
+
+
+func _on_moved() -> void:
+	queue_redraw()
+	_fit_margins.call_deferred()
+
+
+## Margens laterais: a folga normal mais o quanto o contorno inclinado entra no cartão
+## (no alto, longe do centro do palco), para o texto nunca pisar na linha.
+func _fit_margins() -> void:
+	if _box == null:
+		return
+	var base := 12.0 if compact else 15.0
+	var l := base
+	var r := base
+	if is_inside_tree() and size.x > 0.0:
+		var o := outline(3.0)
+		l += maxf(0.0, maxf(o[0].x, o[3].x) - 3.0)
+		r += maxf(0.0, size.x - 3.0 - minf(o[1].x, o[2].x))
+	if absf(_box.content_margin_left - l) > 0.5 or absf(_box.content_margin_right - r) > 0.5:
+		_box.content_margin_left = l
+		_box.content_margin_right = r
+
+
+## Retângulo do palco (coordenadas globais) que define a perspectiva: o pai (a grade).
+func _table() -> Rect2:
+	var p := get_parent() as Control
+	return p.get_global_rect() if p != null else get_global_rect()
+
+
+## Ponto local levado à mesa em perspectiva leve: quanto mais alto no palco, mais perto
+## do centro (a borda de cima encolhe KEYSTONE da largura).
+static func keystone(g: Vector2, table: Rect2, k := KEYSTONE) -> Vector2:
+	if table.size.y <= 0.0:
+		return g
+	var t := clampf((g.y - table.position.y) / table.size.y, 0.0, 1.0)
+	var cx := table.get_center().x
+	return Vector2(cx + (g.x - cx) * (1.0 - k * (1.0 - t)), g.y)
+
+
+## Contorno do cartão (inset pixels para dentro), em perspectiva, em coordenadas locais.
+func outline(inset: float) -> PackedVector2Array:
+	var xf := get_global_transform()
+	var inv := xf.affine_inverse()
+	var t := _table()
+	var r := Rect2(Vector2.ZERO, size).grow(-inset)
+	var out := PackedVector2Array()
+	for c in [r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]:
+		out.append(inv * keystone(xf * c, t))
+	return out
 
 
 func _draw() -> void:
-	if _hi.a > 0.0:
-		var sb := Kit.box(Color.TRANSPARENT, 10, 0)
-		sb.set_border_width_all(_hi_w)
-		sb.border_color = _hi
-		draw_style_box(sb, Rect2(Vector2(3, 3), size - Vector2(6, 6)))
+	var outer := outline(3.0)
+	draw_colored_polygon(outer, _fill)
+	var closed := outer.duplicate()
+	closed.append(outer[0])
+	if _glow.a > 0.0:
+		draw_polyline(closed, _glow, _line_w + 7.0, true)
+	draw_polyline(closed, _line, _line_w, true)
+	# Segunda linha, fina, por dentro: o filete das áreas da roleta.
+	var inner := outline(3.0 + _line_w + 4.0)
+	inner.append(inner[0])
+	draw_polyline(inner, Color(_line, _line.a * 0.45), 1.0, true)
+	_draw_rarity(outer)
 	if bool(Spells.get_def(id).get("self_first", false)):
 		_draw_priority()
+
+
+## Losango pintado no meio da borda de cima, na cor da raridade.
+func _draw_rarity(outer: PackedVector2Array) -> void:
+	var c := (outer[0] + outer[1]) * 0.5
+	var r := 6.0 if compact else 7.0
+	var col: Color = Kit.RARITY_COLORS.get(Spells.rarity(id), Kit.MUTED)
+	var pts := PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0)])
+	draw_colored_polygon(pts, Color(0.12, 0.0, 0.02))
+	var inner := PackedVector2Array()
+	for q in pts:
+		inner.append(c + (q - c) * 0.62)
+	draw_colored_polygon(inner, col)
 
 
 ## Selo de prioridade (Antítese): o dano em quem usa vem antes de todas as magias do turno.
@@ -308,21 +414,28 @@ func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top
 	var ready := Spells.complete(id, values, tops)
 	modulate.a = 1.0
 	preview.text = ""
+	var paint := paint_color(id)
+	var hole_ink := paint
 	if is_used:
-		add_theme_stylebox_override("panel", _style(Color(0.09, 0.08, 0.11), LINE, 1))
+		hole_ink = Color(MUTED_INK, 0.7)
+		add_theme_stylebox_override("panel", _style(Color(MUTED_INK, 0.6), 1.5, Color.TRANSPARENT, Color(0, 0, 0, 0.1)))
 		modulate.a = 0.6
 	elif sel >= 0 and not accepts and values.size() < holes.size():
-		add_theme_stylebox_override("panel", _style(Color(0.1, 0.09, 0.125), LINE, 1))
+		hole_ink = Color(MUTED_INK, 0.7)
+		add_theme_stylebox_override("panel", _style(Color(MUTED_INK, 0.7), 1.5, Color.TRANSPARENT, Color(0, 0, 0, 0.1)))
 		modulate.a = 0.5
 		if not compact:
 			preview.text = Texts.t("ui.no_accept", {"v": sel})
 			preview.add_theme_color_override("font_color", Kit.MUTED)
 	elif accepts:
-		add_theme_stylebox_override("panel", _style(CARD_HI, Kit.ACCENT, 2))
+		add_theme_stylebox_override("panel", _style(Kit.ACCENT, 3.5, Color(Kit.ACCENT, 0.28), Color(0.1, 0.06, 0.0, 0.3)))
 	elif ready:
-		add_theme_stylebox_override("panel", _style(CARD_HI, col, 2))
+		add_theme_stylebox_override("panel", _style(paint, 3.5, Color(paint, 0.3), Color(paint.darkened(0.6), 0.32)))
 	else:
-		add_theme_stylebox_override("panel", _style(CARD, LINE, 1))
+		add_theme_stylebox_override("panel", _style(paint, 3.0))
+	for h: Hole in holes:
+		h.painted = true
+		h.ink = hole_ink
 	if ready and not compact:
 		preview.text = preview_text(fighter, item, values)
 		preview.add_theme_color_override("font_color", col.lightened(0.15))

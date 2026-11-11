@@ -249,10 +249,10 @@ Cada dado pode ter **um** elemento, que dá uma regra de uma linha a ele. No jog
 | **Hidrogênio** | Vale ×2, mas só com a bolsa de menos de 8 dados (a bolsa inicial tem 8: só funciona em bolsa enxugada). |
 | **Ósmio** | Âncora: sai sempre na primeira mão da luta. Também **não pode ser roubado nem arrancado** (Roubar a Cena e Arrancar das Mãos o pulam). O valor rola normalmente: é um dado comum que você sabe que vem. **Proposta (rodada 5): sai em toda mão** (ver 5.3). |
 | **Urânio** | Faces de 3 a 8. Se sobrar na mão sem uso, envenena **você** em 2 (o veneno não cai durante a luta). |
-| **Sódio** | Ao ser usado numa magia, queima o inimigo em 2. |
+| **Sódio** | Num golpe que acerta, queima o inimigo em 3 (era 2 até a 0.26.0). Esquivado, não pega; refletido, volta para quem atacou. Em magia que não golpeia, não faz nada. |
 | **Mercúrio** | Ao rolar, vale o maior valor entre a sua mão e a última mão do inimigo. |
 | **Ouro** | Ao ser usado numa magia, você ganha 1 moeda (no fim da luta, as moedas vão para a jornada). O inimigo não recebe Ouro. Faces comuns. Comum. |
-| **Césio** | Radiação: ao ser usado numa magia, envenena o **inimigo** em 1 por dado. O veneno é o mesmo do Urânio: dá dano todo começo de turno, acumula e não cai sozinho (só sai com magia de limpeza, como o Suor de Campeão). Faces comuns (1 a 6). Incomum. |
+| **Césio** | Radiação: num golpe que acerta, envenena o **inimigo** em 2 por dado (era 1 até a 0.26.0; esquivado não pega, refletido volta). O veneno é o mesmo do Urânio: dá dano todo começo de turno, acumula e não cai sozinho (só sai com magia de limpeza, como o Suor de Campeão). Faces comuns (1 a 6). Incomum. |
 | **Chumbo** | Lixo: três faces 1 travadas. Só vem do inimigo. |
 
 ### 5.2 Diagnóstico

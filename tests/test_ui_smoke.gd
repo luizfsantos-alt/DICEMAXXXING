@@ -141,8 +141,11 @@ func test_organizar_move_peca():
 	var o := Organizer.open(parent, inv)
 	await wait_process_frames(1)
 	var g: GrimoireView = _find(o, GrimoireView)
-	g.cell_tapped.emit(Vector2i(0, 0), 0)
-	g.cell_tapped.emit(Vector2i(3, 2), -1)
+	# Tocar e segurar levanta; arrastar e soltar muda de casa.
+	g.press_at(g.cell_center(Vector2i(0, 0)))
+	g.hold_now()
+	g.move_to(g.cell_center(Vector2i(3, 2)))
+	g.release_at(g.cell_center(Vector2i(3, 2)))
 	assert_eq([inv.items[0].x, inv.items[0].y], [3, 2])
 
 
@@ -726,8 +729,41 @@ func test_moldura_e_fonte_dos_numeros_existem():
 	assert_true(ResourceLoader.exists("res://assets/fonts/Bungee-Regular.ttf"), "fonte dos números")
 
 
-func test_fundo_da_batalha_existe():
-	assert_true(ResourceLoader.exists(DuelScreen.BACKGROUND), "fundo da taverna")
+func test_fundo_da_batalha_e_a_mesa_de_feltro():
+	var run := _run_at_duel(77)
+	var d := DuelScreen.new().setup(run)
+	d.fast = true
+	add_child_autofree(d)
+	await wait_process_frames(2)
+	assert_not_null(d.felt, "fundo é a mesa de feltro")
+	assert_eq(d.get_child(0), d.felt, "atrás de tudo")
+	assert_eq(d.felt.felt.layers, FeltTable.FELT_LAYER)
+	assert_false(d.felt.live(), "parada, a mesa não redesenha a cada quadro")
+	# A rolagem usa o mundo da mesa (sombras e luz no feltro) e não vê o feltro.
+	var r := DiceRoll3D.new().setup(Vector2(400, 300), d.felt)
+	add_child_autofree(r)
+	assert_eq(r.vp.world_3d, d.felt.vp.world_3d, "mesmo mundo 3D")
+	assert_eq(r._cam.cull_mask & FeltTable.FELT_LAYER, 0, "a câmera da rolagem não vê o feltro")
+
+
+func test_magias_pintadas_no_feltro_em_perspectiva():
+	var t := Rect2(0, 0, 1000, 500)
+	assert_eq(SpellCard.keystone(Vector2(0, 500), t), Vector2(0, 500), "embaixo: sem mudança")
+	assert_eq(SpellCard.keystone(Vector2(500, 0), t), Vector2(500, 0), "o centro não sai do lugar")
+	var top := SpellCard.keystone(Vector2(0, 0), t)
+	assert_almost_eq(top.x, 500.0 * SpellCard.KEYSTONE, 0.01, "em cima, a borda encolhe para o centro")
+	var run := _run_at_duel(12)
+	var d := _duel_in_frame(run)
+	await wait_process_frames(3)
+	var c: SpellCard = d.cards[0]
+	assert_true(c.get_theme_stylebox("panel") is StyleBoxEmpty, "sem painel: o feltro aparece")
+	assert_true(c.holes[0].painted, "buracos pintados")
+	assert_eq(c.outline(3.0).size(), 4)
+	# O contorno inclinado nunca pisa no texto: a margem cresce do lado que inclina.
+	var o := c.outline(3.0)
+	var box: StyleBox = c.get_theme_stylebox("panel")
+	assert_true(box.content_margin_left >= maxf(o[0].x, o[3].x), "margem esquerda passa da linha")
+	assert_true(box.content_margin_right >= c.size.x - minf(o[1].x, o[2].x), "margem direita passa da linha")
 
 
 func test_numeros_nao_saem_da_tela():

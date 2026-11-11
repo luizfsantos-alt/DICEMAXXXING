@@ -419,20 +419,23 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 	var times := {}
 	for h in dice:
 		times[h] = 1
+	# Quem recebe o que vem no golpe (Sódio, Césio, queima e mexida da magia): um por golpe.
+	# Golpe que acertou (mesmo absorvido pelo bloqueio): o alvo. Esquivado: ninguém (null).
+	# Refletido: quem atacou. Magia que não golpeia: lista vazia, nada vai para o inimigo.
+	var rec := []
+	var rec_of := {} ## Golpes múltiplos: quem recebeu o golpe de cada dado.
 	match str(def.fx):
 		"dmg":
 			var raw := Config.scale((total + int(def.get("plus", 0))) * mult, lvl)
 			var pierce := bool(def.get("pierce", false))
-			hit(foe, f, raw + dmg_bonus(f), ev, false, pierce)
+			rec.append(hit(foe, f, raw + dmg_bonus(f), ev, false, pierce))
 			if def.get("odd_twice", false) and values.all(func(v): return v % 2 == 1) and foe.hp > 0 and f.hp > 0:
-				hit(foe, f, raw + dmg_bonus(f), ev)
+				rec.append(hit(foe, f, raw + dmg_bonus(f), ev))
 				for h in dice:
 					times[h] = 2
-			if def.has("burn") and foe.hp > 0:
-				_burn(foe, int(def.burn), ev)
 		"riddle":
 			# Charada Fatal completa: dano que ignora as defesas; os guardados voltam à bolsa.
-			hit(foe, f, Config.scale(Config.RIDDLE_DMG, lvl) + dmg_bonus(f), ev, false, true)
+			rec.append(hit(foe, f, Config.scale(Config.RIDDLE_DMG, lvl) + dmg_bonus(f), ev, false, true))
 			for x in f.riddle.get(item, []):
 				var b := int(x.bag)
 				if b >= 0 and b < f.bag.size() and not (b in f.discard) and not (b in f.draw_pile):
@@ -440,9 +443,9 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 			f.riddle.erase(item)
 			push(ev, {"t": "riddle_done", "side": side(f)})
 		"product":
-			hit(foe, f, Config.scale(_product(values) * mult, lvl) + dmg_bonus(f), ev)
+			rec.append(hit(foe, f, Config.scale(_product(values) * mult, lvl) + dmg_bonus(f), ev))
 		"lever":
-			hit(foe, f, Config.scale(int(values.max()) * int(values.min()), lvl) + dmg_bonus(f), ev)
+			rec.append(hit(foe, f, Config.scale(int(values.max()) * int(values.min()), lvl) + dmg_bonus(f), ev))
 		"multi":
 			var blows: Array = dice.duplicate()
 			if values.size() > 1 and values.all(func(v): return v == values[0]):
@@ -451,8 +454,11 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 			for h in blows:
 				if foe.hp <= 0 or f.hp <= 0:
 					break
-				hit(foe, f, Config.scale(int(f.hand[h].value) * mult, lvl) + dmg_bonus(f), ev)
+				var r := hit(foe, f, Config.scale(int(f.hand[h].value) * mult, lvl) + dmg_bonus(f), ev)
 				n[h] = int(n.get(h, 0)) + 1
+				if not rec_of.has(h):
+					rec_of[h] = []
+				rec_of[h].append(r)
 			for h in dice:
 				times[h] = maxi(1, int(n.get(h, 0)))
 		"ones":
@@ -462,15 +468,16 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 					ones += 1
 			if def.has("cap"):
 				ones = mini(ones, int(def.cap)) ## Levantar Peso: até 3 dados contam.
-			hit(foe, f, Config.scale(int(def.get("per", 1)) * ones, lvl) + dmg_bonus(f), ev)
+			rec.append(hit(foe, f, Config.scale(int(def.get("per", 1)) * ones, lvl) + dmg_bonus(f), ev))
 		"pelt":
 			# Forjamento: cada dado de valor 1 é atirado no inimigo, 1 de dano por golpe.
-			for _v in values:
+			for h in dice:
+				rec_of[h] = []
 				if foe.hp <= 0:
-					break
-				hit(foe, f, lvl + dmg_bonus(f), ev) ## 1 / 2 / 3 por golpe, pelo nível.
+					continue
+				rec_of[h].append(hit(foe, f, lvl + dmg_bonus(f), ev)) ## 1 / 2 / 3 por golpe, pelo nível.
 		"top_x":
-			hit(foe, f, Config.scale(int(values.max()) * mult, lvl) + dmg_bonus(f), ev)
+			rec.append(hit(foe, f, Config.scale(int(values.max()) * mult, lvl) + dmg_bonus(f), ev))
 		"encore":
 			var d := f.die_of(f.hand[dice[0]])
 			var top := d.max_value()
@@ -481,15 +488,15 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 				push(ev, {"t": "encore", "side": side(f), "v": v, "again": v == top})
 				if v != top:
 					break
-			hit(foe, f, Config.scale(sum, lvl) + dmg_bonus(f), ev)
+			rec.append(hit(foe, f, Config.scale(sum, lvl) + dmg_bonus(f), ev))
 		"steal_sticker":
 			var v := _steal_sticker(f, foe, dice[0], ev)
-			hit(foe, f, Config.scale(v, lvl) + dmg_bonus(f), ev)
+			rec.append(hit(foe, f, Config.scale(v, lvl) + dmg_bonus(f), ev))
 		"bench":
-			hit(foe, f, Config.scale(total, lvl) + dmg_bonus(f), ev)
+			rec.append(hit(foe, f, Config.scale(total, lvl) + dmg_bonus(f), ev))
 			_bench_strongest(foe, ev)
 		"spawn_half":
-			hit(foe, f, Config.scale(total, lvl) + dmg_bonus(f), ev)
+			rec.append(hit(foe, f, Config.scale(total, lvl) + dmg_bonus(f), ev))
 		"spawn_copy":
 			pass ## As cópias entram na mão na alocação (TurnChoice._spawn), já com o nível.
 		"block":
@@ -533,7 +540,7 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 		"debuff":
 			# Do nível 2 em diante a mexida também machuca: dano = valor × (nível − 1).
 			if lvl > 1:
-				hit(foe, f, total * (lvl - 1) + dmg_bonus(f), ev)
+				rec.append(hit(foe, f, total * (lvl - 1) + dmg_bonus(f), ev))
 		"dodge":
 			f.dodge_lvl = maxi(f.dodge_lvl if f.dodge > 0 else 1, lvl)
 			f.dodge += 1
@@ -551,14 +558,14 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 				_heal(f, v, ev)
 				_block(f, v, ev)
 		"antithesis":
-			hit(foe, f, Config.scale(total * mult, lvl) + dmg_bonus(f), ev)
+			rec.append(hit(foe, f, Config.scale(total * mult, lvl) + dmg_bonus(f), ev))
 		"drain":
 			var raw := Config.scale(total, lvl)
-			hit(foe, f, raw + dmg_bonus(f), ev)
+			rec.append(hit(foe, f, raw + dmg_bonus(f), ev))
 			if f.hp > 0:
 				_heal(f, Config.ceil_div(raw, 2), ev)
 		"feast":
-			hit(foe, f, Config.scale(total, lvl) + dmg_bonus(f), ev)
+			rec.append(hit(foe, f, Config.scale(total, lvl) + dmg_bonus(f), ev))
 			if f.hp > 0:
 				_heal(f, Config.scale(int(values.min()), lvl), ev)
 		"maxhp":
@@ -576,36 +583,66 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 				f.hand[h].temp = null
 				f.hand[h].bag = -2
 			push(ev, {"t": "sacrifice", "side": side(f), "bonus": f.sacrifice_bonus})
-	# Mexida na próxima mão do inimigo.
-	if def.has("hand_mod") and foe.hp > 0 and negative(foe, ev):
-		foe.hand_mods.append(str(def.hand_mod))
-		push(ev, {"t": "hand_mod_up", "side": side(foe), "mod": str(def.hand_mod)})
+	# O que vem junto do golpe só pega em quem o golpe acertou (refletido: volta).
+	var back := rec.has(f)
+	for h in rec_of:
+		back = back or rec_of[h].has(f)
+	if back:
+		push(ev, {"t": "fx_back", "side": side(f)})
+	if def.has("burn"):
+		for r in rec:
+			if r != null and r.hp > 0:
+				_burn(r, int(def.burn), ev)
+	# Mexida na próxima mão: a que vem num golpe (Lição de Anatomia, Expectativa Tóxica)
+	# segue o golpe; a das magias que miram o inimigo sem golpear (mexidas, Rasteira) vai
+	# direto para ele, como antes.
+	if def.has("hand_mod"):
+		var who: Array = rec if str(def.fx) != "debuff" and not rec.is_empty() else [foe]
+		var done := []
+		for r in who:
+			if r != null and r.hp > 0 and not done.has(r):
+				done.append(r)
+				if negative(r, ev):
+					r.hand_mods.append(str(def.hand_mod))
+					push(ev, {"t": "hand_mod_up", "side": side(r), "mod": str(def.hand_mod)})
 	# Marca para a sua próxima mão.
 	if def.has("mark"):
 		_mark(f, dice, str(def.mark), total, ev)
-	# Efeitos dos dados usados, uma vez por golpe que cada um deu.
+	# Efeitos dos dados usados: os de quem usa, uma vez por golpe que cada um deu; os
+	# contra o inimigo, uma vez por golpe que acertou (em quem ele acertou).
 	for h in dice:
 		for _k in int(times.get(h, 1)):
-			_die_effects(f, foe, h, ev)
+			_die_effects(f, h, ev)
+		for r in (rec_of[h] if rec_of.has(h) else rec):
+			if r != null:
+				_die_foe_effects(f, r, h, ev)
 
 
-## Efeitos de um dado usado numa magia. Sódio: queima o inimigo. Césio: veneno
-## (radiação) no inimigo, que não cai sozinho. Amianto: machuca quem usa (não é golpe).
+## Efeitos de um dado contra quem o golpe acertou (o inimigo, ou quem atacou, se refletido).
+## Sódio: queima. Césio: veneno (radiação), que não cai sozinho.
+static func _die_foe_effects(f: Fighter, target: Fighter, h: int, ev: Array) -> void:
+	var e: Dictionary = f.hand[h]
+	var d := f.die_of(e) if int(e.bag) != -2 else null
+	if d == null or target.hp <= 0:
+		return
+	match d.element:
+		"Na":
+			_burn(target, Config.SODIUM_BURN, ev, "Na")
+		"Cs":
+			if negative(target, ev):
+				target.poison += Config.CESIUM_POISON
+				push(ev, {"t": "poison_up", "side": side(target), "n": Config.CESIUM_POISON, "total": target.poison, "src": "Cs"})
+
+
+## Efeitos de um dado em quem usa, em qualquer magia. Amianto: machuca quem usa (não é golpe).
 ## Ouro: +1 moeda. Lítio: descarrega. Titânio: bloqueio para quem usa. Cobre: cura quem usa.
 ## Adesivo de ouro na face que saiu: +1 moeda por adesivo.
-static func _die_effects(f: Fighter, foe: Fighter, h: int, ev: Array) -> void:
+static func _die_effects(f: Fighter, h: int, ev: Array) -> void:
 	var e: Dictionary = f.hand[h]
 	var d := f.die_of(e) if int(e.bag) != -2 else null
 	if d == null:
 		return
 	match d.element:
-		"Na":
-			if foe.hp > 0:
-				_burn(foe, Config.SODIUM_BURN, ev, "Na")
-		"Cs":
-			if foe.hp > 0 and negative(foe, ev):
-				foe.poison += Config.CESIUM_POISON
-				push(ev, {"t": "poison_up", "side": side(foe), "n": Config.CESIUM_POISON, "total": foe.poison, "src": "Cs"})
 		"Am":
 			if f.hp > 0:
 				f.hp -= Config.ASBESTOS_DMG
@@ -757,7 +794,9 @@ static func _mark(f: Fighter, dice: Array, kind: String, total: int, ev: Array) 
 
 ## Um golpe: Esquiva anula; Espelho devolve (cada um gasta uma carga, e as cargas acumulam) (reflexo nunca volta); bloqueio absorve;
 ## Revide devolve dano enquanto houver bloqueio. pierce: ignora todas as defesas.
-static func hit(target: Fighter, attacker: Fighter, n: int, ev: Array, reflected := false, pierce := false) -> void:
+## Retorna quem o golpe acertou (para o que vem junto dele): o alvo; null se esquivado;
+## se refletido, o resultado do reflexo (quem atacou, ou null se ele esquivou).
+static func hit(target: Fighter, attacker: Fighter, n: int, ev: Array, reflected := false, pierce := false) -> Fighter:
 	if not pierce:
 		if target.dodge > 0:
 			target.dodge -= 1
@@ -768,13 +807,12 @@ static func hit(target: Fighter, attacker: Fighter, n: int, ev: Array, reflected
 			var keep := Config.scale(n, target.dodge_lvl) - n
 			if keep > 0:
 				_block(target, keep, ev)
-			return
+			return null
 		if target.mirror > 0 and not reflected:
 			target.mirror -= 1
 			push(ev, {"t": "mirrored", "side": side(target), "n": n})
 			# Espelho evoluído devolve o golpe mais forte (×1,5 no nível 2, ×2 no 3).
-			hit(attacker, target, Config.scale(n, target.mirror_lvl), ev, true)
-			return
+			return hit(attacker, target, Config.scale(n, target.mirror_lvl), ev, true)
 	# Revestimento: cada golpe causa menos (nunca menos de 1). Golpes que ignoram defesas passam.
 	var skin := 0
 	if not pierce and target.skin > 0 and n > 1:
@@ -791,6 +829,7 @@ static func hit(target: Fighter, attacker: Fighter, n: int, ev: Array, reflected
 	if not pierce and not reflected and had_block and target.riposte > 0 and target.hp > 0 and attacker.hp > 0:
 		push(ev, {"t": "riposte", "side": side(target), "n": target.riposte})
 		hit(attacker, target, target.riposte, ev, true)
+	return target
 
 
 ## 5. Fim: dados parados (Expectativa Tóxica, Improviso Brilhante, Urânio); o
