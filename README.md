@@ -22,10 +22,12 @@ Tela em paisagem.
   A variação é sorteada uma vez por lutador e salva (`Fighter.portrait`), tanto para você quanto
   para o inimigo. A arte preenche a foto e só aparece dentro da moldura (`frame_enemy.png`
   vermelha, `frame_player.png` verde). Sem a arte, `ui/portrait.gd` desenha uma silhueta.
-- Fundos: `assets/backgrounds/` — `tavern.jpg` na luta, `menu.jpg`, `tower.jpg`, `victory.jpg` e
-  `defeat.jpg` nas outras telas (`Kit.background`: cobre a tela, escurecido; painéis por cima).
+- Fundos: na luta, a mesa de feltro rubro em 3D (`ui/felt_table.gd`, sem arquivo: shader com
+  ruído de fibra, as mesmas luzes e sombras dos dados). `assets/backgrounds/`: `menu.jpg`, `tower.jpg`,
+  `victory.jpg` e `defeat.jpg` nas outras telas (`Kit.background`: cobre a tela, escurecido; painéis
+  por cima); `tavern.jpg` fica guardado (a luta não usa mais).
 - Interface: painel, botão, moldura da barra de vida e moldura do cartão de magia por raridade em
-  `assets/ui/` (9-slice, `Kit.nine`/`Kit.NINE`); moeda em `assets/icons/coin.png` (`Kit.coin`).
+  `assets/ui/` (a luta não usa mais a moldura do cartão: pinta a magia no feltro, com a raridade num losango) (9-slice, `Kit.nine`/`Kit.NINE`); moeda em `assets/icons/coin.png` (`Kit.coin`).
 - Ícones de status: `assets/icons/status/<id>.png` (64×64), os 11 com arte; sem o arquivo, mostra a sigla colorida.
 - Cartões de magia: ícone do tipo de efeito ao lado do nome (`assets/icons/fx/`, ou o de status quando o
   efeito é o mesmo; `Spells.icon_key`).
@@ -72,6 +74,7 @@ godot --headless -s res://sim/check.gd                              # scripts se
 godot --headless -s res://sim/simulate.gd -- --runs=500 --char=all --report   # simulação (bot novo)
 godot --headless -s res://sim/telemetria.gd -- --file=jornadas.json   # resumo das jornadas copiadas do jogo
 xvfb-run godot -s res://sim/shot_duel.gd -- --out=/tmp   # capturas: menu e rolagem 3D (precisa de vídeo)
+xvfb-run godot --resolution 1280x720 -s res://sim/shot_felt.gd -- --out=/tmp   # mesa de feltro: rolagem, brilho, magias pintadas
 xvfb-run godot --fixed-fps 30 -s res://sim/shot_shake.gd -- --out=/tmp   # quadros da tremida em cada faixa de dano
 xvfb-run godot -s res://sim/shot_mexidas.gd -- --out=/tmp   # mexida antes e depois (o cartão sai do palco)
 xvfb-run godot -s res://sim/shot_grimorio.gd -- --out=/tmp   # grimório: organizar, Moldura, magia nova na mão, venda e miniaturas

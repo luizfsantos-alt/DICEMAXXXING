@@ -47,8 +47,6 @@ const FX_COLORS := {
 const BOLT_TIME := 0.34
 const CHAIN_BOLT_TIME := 0.2 ## Voo das ações seguintes da mesma magia.
 const CHAIN_DELAY := 0.1 ## Pausa entre ações da mesma magia (vários efeitos de um item).
-const BACKGROUND := "res://assets/backgrounds/tavern.jpg"
-const BACKGROUND_SHADE := 0.68 ## Escurece bastante o fundo.
 const FX_SIZE := 30 ## Números sobre as fotos.
 const FX_OUTLINE := 12
 const FX_EDGE := 6.0 ## Folga mínima dos números até a borda da tela.
@@ -111,6 +109,7 @@ var tip_icon: StatusIcon
 var stage_panel: PanelContainer
 const FLY_TO_TRAY := 0.32 ## Voo de cada dado da mesa até a coluna, em segundos.
 var roller: DiceRoll3D ## Rolagem 3D em andamento (por cima do palco).
+var felt: FeltTable ## Fundo: a mesa de feltro 3D, com as luzes e as sombras dos dados.
 var fx_src = null ## Ponto (camada de efeitos) de onde saem os efeitos: o cartão da última magia.
 var fx_bounce = null ## Golpe devolvido (Espelho, Revide): sai da foto de quem devolveu.
 var bolts := 0 ## Efeitos disparados (testes).
@@ -173,9 +172,17 @@ func _build() -> void:
 	add_child(catcher)
 
 
-## Fundo: a taverna cobrindo a tela inteira, escurecida para os painéis e textos lerem bem.
+## Fundo: a mesa de feltro rubro cobrindo a tela inteira (FeltTable). A câmera dela é
+## enquadrada no palco, onde os dados rolam, para as sombras caírem embaixo deles.
 func _build_background() -> void:
-	Kit.background(self, BACKGROUND, BACKGROUND_SHADE)
+	felt = FeltTable.new().setup()
+	add_child(felt)
+	move_child(felt, 0)
+
+
+func _frame_felt() -> void:
+	if felt != null and stage_panel != null:
+		felt.frame(Rect2(stage_panel.global_position - felt.global_position, stage_panel.size))
 
 
 ## Coluna 1: foto do inimigo + status, as duas barras, sua foto + status, moedas.
@@ -281,9 +288,13 @@ func _build_stage() -> VBoxContainer:
 		head.add_child(hb)
 	var stage := PanelContainer.new()
 	stage.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	stage.add_theme_stylebox_override("panel", Kit.box(PANEL_BG, 18, 10))
+	# Sem painel: as magias são pintadas direto no feltro (SpellCard).
+	var stage_box := StyleBoxEmpty.new()
+	stage_box.set_content_margin_all(10)
+	stage.add_theme_stylebox_override("panel", stage_box)
 	col.add_child(stage)
 	stage_panel = stage
+	stage.resized.connect(_frame_felt)
 
 	var p := duel.player
 	player_grid = FitGrid.new().setup(CARD, 10)
@@ -628,7 +639,8 @@ func _roll_tray(ev: Dictionary) -> void:
 	for d in dice:
 		DieSnapshot.prepare(int(d.value), str(d.element), float(d.heat))
 	var r := Rect2(stage_panel.global_position - fx_layer.global_position, stage_panel.size)
-	roller = DiceRoll3D.new().setup(r.size)
+	_frame_felt()
+	roller = DiceRoll3D.new().setup(r.size, felt)
 	roller.position = r.position
 	fx_layer.add_child(roller)
 	roller.skip_check = func() -> bool: return skip

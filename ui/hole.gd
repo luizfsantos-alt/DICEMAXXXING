@@ -25,6 +25,8 @@ var stickers := 0 ## Adesivos +2 na face que saiu (selo vermelho).
 var gold := 0 ## Adesivos de ouro na face que saiu (selo dourado).
 var interactive := true
 var floor_hidden := false ## Só o dado, sem o buraco (dado voando).
+var painted := false ## Nos cartões da luta: quadro riscado no feltro em vez de buraco.
+var ink := Color(0.93, 0.89, 0.8) ## Tinta do quadro pintado.
 ## Dado mexido (docs/SPEC_v3.1.md §8): valor de antes, riscado no alto, e a causa num selo.
 var orig := -1
 var badge := ""
@@ -140,18 +142,23 @@ func _draw() -> void:
 		DieFace.draw(self, dr, value, element, 0.0, heat, Time.get_ticks_msec() / 1000.0)
 		DieFace.marks(self, dr, stickers, gold)
 		return
-	# Afundado: borda de cima mais escura, fundo um pouco mais claro embaixo.
-	draw_style_box(_sb(FLOOR, rad), r)
-	var lip := maxf(3.0, s * 0.07)
-	draw_style_box(_sb(FLOOR_LO, rad), Rect2(r.position + Vector2(2, lip), r.size - Vector2(4, lip + 2)))
-	draw_line(r.position + Vector2(rad, s - 1), r.position + Vector2(s - rad, s - 1), Color(1, 1, 1, 0.07), 1.0)
+	if painted:
+		# Quadro pintado no feltro: o pano mais escuro dentro e o risco na tinta da magia.
+		var pr := int(s * 0.12)
+		draw_style_box(_sb(Color(0.05, 0.0, 0.01, 0.42), pr, 2, Color(ink, ink.a * 0.85)), r.grow(-1))
+	else:
+		# Afundado: borda de cima mais escura, fundo um pouco mais claro embaixo.
+		draw_style_box(_sb(FLOOR, rad), r)
+		var lip := maxf(3.0, s * 0.07)
+		draw_style_box(_sb(FLOOR_LO, rad), Rect2(r.position + Vector2(2, lip), r.size - Vector2(4, lip + 2)))
+		draw_line(r.position + Vector2(rad, s - 1), r.position + Vector2(s - rad, s - 1), Color(1, 1, 1, 0.07), 1.0)
 	if lit:
 		draw_style_box(_sb(Color.TRANSPARENT, rad, 3, Kit.ACCENT), r)
 	var font := ThemeDB.fallback_font
 	if not has_die:
 		if req != "":
 			var fs := int(s * 0.32)
-			draw_string(font, o + Vector2(0, s * 0.5 + fs * 0.35), req, HORIZONTAL_ALIGNMENT_CENTER, s, fs, Kit.ACCENT if lit else REQ_COLOR)
+			draw_string(font, o + Vector2(0, s * 0.5 + fs * 0.35), req, HORIZONTAL_ALIGNMENT_CENTER, s, fs, Kit.ACCENT if lit else (ink if painted else REQ_COLOR))
 		if caption != "":
 			var cs := maxi(12, int(s * 0.15))
 			draw_string(font, o + Vector2(2, s * 0.5 + cs * 0.35), caption, HORIZONTAL_ALIGNMENT_CENTER, s - 4, cs, REQ_COLOR)
