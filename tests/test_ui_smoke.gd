@@ -758,6 +758,9 @@ func test_magias_pintadas_no_feltro_em_perspectiva():
 	var c: SpellCard = d.cards[0]
 	assert_true(c.get_theme_stylebox("panel") is StyleBoxEmpty, "sem painel: o feltro aparece")
 	assert_true(c.holes[0].painted, "buracos pintados")
+	assert_true(c.material is ShaderMaterial, "o cartão é tinta no feltro")
+	assert_true(c.name_label.use_parent_material, "o texto usa a mesma tinta")
+	assert_eq(c.holes[0].paint_material, SpellCard.paint_material(0.0), "buraco com tinta nova")
 	assert_eq(c.outline(3.0).size(), 4)
 	# O contorno inclinado nunca pisa no texto: a margem cresce do lado que inclina.
 	var o := c.outline(3.0)
