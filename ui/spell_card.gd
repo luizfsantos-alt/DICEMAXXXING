@@ -5,12 +5,11 @@ extends PanelContainer
 ##
 ## Pintada no feltro da mesa (FeltTable), como as áreas de aposta da roleta: um traço de
 ## tinta fosca na cor da família da magia, o texto e os buracos pintados também. A tinta
-## (PAINT_SHADER) é absorvida pelo pano: um pouco mais escura, com borda serrilhada fina e
+## (FeltPaint) é absorvida pelo pano: um pouco mais escura, com borda serrilhada fina e
 ## falhas de pigmento seguindo a fibra. Nada brilha: aceitar o dado engrossa a tinta e
 ## ganha um fio de ouro fosco pintado; usada ou recusando, a tinta fica gasta.
-## O contorno segue uma perspectiva leve (KEYSTONE): no palco, a borda de cima encolhe
-## um pouco para o centro, como a mesa vista de frente. Só o desenho entra em
-## perspectiva; textos e buracos ficam retos (leitura e toque continuam iguais).
+## Tudo no cartão (contorno, textos, ícone, buracos e o dado posto) está na perspectiva da
+## mesa (FeltPaint: homografia do palco); o toque segue a área deformada (_has_point).
 
 signal tapped(item: int)
 
@@ -24,46 +23,8 @@ const PAINT_CREAM := Color(0.93, 0.87, 0.74) ## Pigmento claro das linhas da rol
 const PAINT_MIX := 0.3 ## Quanto da tinta de cada família é o creme (lê melhor no vermelho).
 const GOLD_PAINT := Color(0.9, 0.72, 0.32) ## Ouro fosco (aceita o dado; "1× por luta").
 const TEXT_PAINT := Color(0.86, 0.8, 0.7) ## Tinta do texto miúdo (efeito, sinais).
-const KEYSTONE := 0.07 ## Quanto a borda de cima do palco encolhe (fração da largura).
 const PAINT_FILL := Color(0.0, 0.0, 0.0, 0.05) ## O feltro só um pouco mais escuro dentro.
 const WORN := 0.45 ## Desgaste da tinta numa magia usada ou que recusa o dado.
-## Tinta no feltro: escurece um pouco a cor (absorvida pelo pano), corta a borda do traço
-## de forma irregular e abre falhas de pigmento em fios, como a fibra. O ruído é preso à
-## tela (FRAGCOORD), então o desenho e o texto de cima "pegam" a mesma trama.
-const PAINT_SHADER := """
-shader_type canvas_item;
-uniform float wear = 0.0;
-uniform float soak = 0.86;
-
-float hash(vec2 p) {
-	vec3 q = fract(vec3(p.xyx) * 0.1031);
-	q += dot(q, q.yzx + 33.33);
-	return fract((q.x + q.y) * q.z);
-}
-
-float vnoise(vec2 p) {
-	vec2 i = floor(p);
-	vec2 f = fract(p);
-	f = f * f * (3.0 - 2.0 * f);
-	return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
-}
-
-void fragment() {
-	vec4 c = COLOR;
-	vec2 p = FRAGCOORD.xy;
-	// Fios do pano: ruído esticado em duas direções, mais o grão de cada ponto.
-	float fiber = max(vnoise(p * vec2(0.9, 0.16)), vnoise(p * vec2(0.16, 0.9) + 11.0));
-	float n = fiber * 0.55 + vnoise(p * 0.45 + 3.0) * 0.25 + hash(floor(p)) * 0.2;
-	// Borda serrilhada: onde a tinta é fina (beira do traço), o ruído come o pigmento.
-	float edge = clamp((c.a - (1.0 - n) * (0.45 + wear * 0.4)) * 2.2, 0.0, 1.0);
-	// Falhas: pontos onde o pigmento não pegou (mais com o desgaste).
-	float gap = smoothstep(0.12 + wear * 0.45, 0.36 + wear * 0.45, n);
-	c.a = edge * mix(0.4, 0.97, gap) * (1.0 - wear * 0.3);
-	c.rgb *= soak * mix(0.9, 1.04, n);
-	COLOR = c;
-}
-"""
-static var _paint := {} ## desgaste -> ShaderMaterial
 const CARD := Color(0.114, 0.102, 0.141)
 const CARD_HI := Color(0.149, 0.125, 0.173)
 const LINE := Color(0.227, 0.204, 0.271)
@@ -114,7 +75,6 @@ func setup(f: Fighter, i: int, hole_px: int, is_compact := false) -> SpellCard:
 		_paint_text(l)
 	icon_rect.use_parent_material = true
 	material = paint_material(0.0)
-	item_rect_changed.connect(_on_moved)
 	# O cartão tem tamanho padrão no palco (FitGrid): textos longos não o esticam.
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	fx_label.max_lines_visible = 3
@@ -229,17 +189,14 @@ static func _paint_text(l: Label) -> void:
 	l.use_parent_material = true
 
 
-## Material de tinta com este desgaste (0 nova, 1 gasta), um por valor.
+## Material de tinta com este desgaste (0 nova, 1 gasta), em perspectiva (FeltPaint).
 static func paint_material(wear: float) -> ShaderMaterial:
-	var k := snappedf(wear, 0.05)
-	if not _paint.has(k):
-		var sh := Shader.new()
-		sh.code = PAINT_SHADER
-		var m := ShaderMaterial.new()
-		m.shader = sh
-		m.set_shader_parameter("wear", k)
-		_paint[k] = m
-	return _paint[k]
+	return FeltPaint.paint(wear)
+
+
+## O toque vale onde o cartão aparece (deformado pela perspectiva da mesa).
+func _has_point(p: Vector2) -> bool:
+	return Rect2(Vector2.ZERO, size).has_point(FeltPaint.local_hit(self, p))
 
 
 ## Tinta da família da magia (contorno, buracos): a cor da família, fosca e um pouco
@@ -288,58 +245,16 @@ func _style(line: Color, width: float, gold := false, fill := PAINT_FILL, wear :
 		_box = StyleBoxEmpty.new()
 		_box.content_margin_top = 12 if compact else 16
 		_box.content_margin_bottom = 10 if compact else 14
-		_fit_margins()
+		_box.content_margin_left = 12 if compact else 15
+		_box.content_margin_right = 12 if compact else 15
 	return _box
 
 
-func _on_moved() -> void:
-	queue_redraw()
-	_fit_margins.call_deferred()
-
-
-## Margens laterais: a folga normal mais o quanto o contorno inclinado entra no cartão
-## (no alto, longe do centro do palco), para o texto nunca pisar na linha.
-func _fit_margins() -> void:
-	if _box == null:
-		return
-	var base := 12.0 if compact else 15.0
-	var l := base
-	var r := base
-	if is_inside_tree() and size.x > 0.0:
-		var o := outline(3.0)
-		l += maxf(0.0, maxf(o[0].x, o[3].x) - 3.0)
-		r += maxf(0.0, size.x - 3.0 - minf(o[1].x, o[2].x))
-	if absf(_box.content_margin_left - l) > 0.5 or absf(_box.content_margin_right - r) > 0.5:
-		_box.content_margin_left = l
-		_box.content_margin_right = r
-
-
-## Retângulo do palco (coordenadas globais) que define a perspectiva: o pai (a grade).
-func _table() -> Rect2:
-	var p := get_parent() as Control
-	return p.get_global_rect() if p != null else get_global_rect()
-
-
-## Ponto local levado à mesa em perspectiva leve: quanto mais alto no palco, mais perto
-## do centro (a borda de cima encolhe KEYSTONE da largura).
-static func keystone(g: Vector2, table: Rect2, k := KEYSTONE) -> Vector2:
-	if table.size.y <= 0.0:
-		return g
-	var t := clampf((g.y - table.position.y) / table.size.y, 0.0, 1.0)
-	var cx := table.get_center().x
-	return Vector2(cx + (g.x - cx) * (1.0 - k * (1.0 - t)), g.y)
-
-
-## Contorno do cartão (inset pixels para dentro), em perspectiva, em coordenadas locais.
+## Contorno do cartão (inset pixels para dentro), em coordenadas locais. A perspectiva
+## vem do shader (FeltPaint), como em todo o resto do cartão.
 func outline(inset: float) -> PackedVector2Array:
-	var xf := get_global_transform()
-	var inv := xf.affine_inverse()
-	var t := _table()
 	var r := Rect2(Vector2.ZERO, size).grow(-inset)
-	var out := PackedVector2Array()
-	for c in [r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]:
-		out.append(inv * keystone(xf * c, t))
-	return out
+	return PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)])
 
 
 func _draw() -> void:
@@ -355,7 +270,7 @@ func _draw() -> void:
 
 
 ## Traço de tinta fechado pelos pontos pts: o miolo cheio e uma franja meio transparente
-## de cada lado, que a tinta (PAINT_SHADER) come de forma irregular (borda serrilhada).
+## de cada lado, que a tinta (FeltPaint) come de forma irregular (borda serrilhada).
 static func paint_stroke(ci: CanvasItem, pts: PackedVector2Array, col: Color, w: float) -> void:
 	var closed := pts.duplicate()
 	closed.append(pts[0])
@@ -508,6 +423,7 @@ func refresh(values: Array, elements: Array, sel: int, tops: Array = [], sel_top
 		h.painted = true
 		h.ink = hole_ink
 		h.paint_material = paint_material(wear)
+		h.die_material = FeltPaint.warp_only()
 		h.queue_redraw()
 	if ready and not compact:
 		preview.text = preview_text(fighter, item, values)

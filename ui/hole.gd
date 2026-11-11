@@ -28,6 +28,7 @@ var floor_hidden := false ## Só o dado, sem o buraco (dado voando).
 var painted := false ## Nos cartões da luta: quadro riscado no feltro em vez de buraco.
 var ink := Color(0.93, 0.89, 0.8) ## Tinta do quadro pintado.
 var paint_material: Material ## Tinta no feltro (SpellCard.paint_material): só no quadro vazio.
+var die_material: Material ## Com dado posto: só a perspectiva da mesa (FeltPaint.warp_only).
 ## Dado mexido (docs/SPEC_v3.1.md §8): valor de antes, riscado no alto, e a causa num selo.
 var orig := -1
 var badge := ""
@@ -116,6 +117,12 @@ func clear_die() -> void:
 	queue_redraw()
 
 
+## Nos cartões (pintado no feltro), o toque vale onde o buraco aparece na perspectiva.
+func _has_point(p: Vector2) -> bool:
+	var q := FeltPaint.local_hit(self, p) if painted else p
+	return Rect2(Vector2.ZERO, size).has_point(q)
+
+
 func _gui_input(e: InputEvent) -> void:
 	if interactive and e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT and not e.pressed:
 		tapped.emit(self)
@@ -139,7 +146,7 @@ func _draw() -> void:
 	var rad := int(s * 0.2)
 	if painted:
 		# O dado posto não é tinta: o material só vale com o quadro vazio.
-		var want: Material = null if has_die else paint_material
+		var want: Material = die_material if has_die else paint_material
 		if material != want:
 			material = want
 	if floor_hidden and has_die:

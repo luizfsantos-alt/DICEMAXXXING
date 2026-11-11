@@ -746,27 +746,111 @@ func test_fundo_da_batalha_e_a_mesa_de_feltro():
 	assert_eq(r._cam.cull_mask & FeltTable.FELT_LAYER, 0, "a câmera da rolagem não vê o feltro")
 
 
+func test_perspectiva_da_mesa_converte_coordenadas():
+	FeltPaint.set_stage(Rect2(100, 50, 1000, 500))
+	var k := FeltPaint.KEYSTONE
+	# Embaixo nada muda; em cima a borda encolhe KEYSTONE para o centro.
+	assert_eq(FeltPaint.warp(Vector2(100, 550)), Vector2(100, 550), "canto de baixo fica")
+	assert_eq(FeltPaint.warp(Vector2(600, 50)), Vector2(600, 50), "centro de cima fica")
+	var tl := FeltPaint.warp(Vector2(100, 50))
+	assert_almost_eq(tl.x, 100.0 + 500.0 * k, 0.01, "canto de cima vai para o centro")
+	assert_almost_eq(tl.y, 50.0, 0.01)
+	# A metade de cima fica mais baixa que a de baixo (a parte longe encolhe).
+	assert_true(FeltPaint.warp(Vector2(600, 300)).y < 300.0, "fileira de cima encolhe na altura")
+	# Ida e volta.
+	for g in [Vector2(130, 70), Vector2(600, 300), Vector2(1090, 540), Vector2(420, 180)]:
+		var back := FeltPaint.unwarp(FeltPaint.warp(g))
+		assert_almost_eq(back.x, g.x, 0.01, "ida e volta x %s" % g)
+		assert_almost_eq(back.y, g.y, 0.01, "ida e volta y %s" % g)
+	# Toque local: um controle no canto de cima responde onde aparece, não onde está.
+	var c := Control.new()
+	c.position = Vector2(100, 50)
+	c.size = Vector2(100, 100)
+	add_child_autofree(c)
+	var seen := FeltPaint.warp(Vector2(110, 60)) - c.position
+	assert_true(Rect2(Vector2.ZERO, c.size).has_point(FeltPaint.local_hit(c, seen)), "toque onde aparece")
+	assert_false(Rect2(Vector2.ZERO, c.size).has_point(FeltPaint.local_hit(c, Vector2(2, 2))), "canto que sumiu não pega")
+	FeltPaint.set_stage(Rect2())
+	assert_eq(FeltPaint.warp(Vector2(5, 5)), Vector2(5, 5), "desligada: identidade")
+
+
 func test_magias_pintadas_no_feltro_em_perspectiva():
-	var t := Rect2(0, 0, 1000, 500)
-	assert_eq(SpellCard.keystone(Vector2(0, 500), t), Vector2(0, 500), "embaixo: sem mudança")
-	assert_eq(SpellCard.keystone(Vector2(500, 0), t), Vector2(500, 0), "o centro não sai do lugar")
-	var top := SpellCard.keystone(Vector2(0, 0), t)
-	assert_almost_eq(top.x, 500.0 * SpellCard.KEYSTONE, 0.01, "em cima, a borda encolhe para o centro")
 	var run := _run_at_duel(12)
 	var d := _duel_in_frame(run)
 	await wait_process_frames(3)
+	assert_true(FeltPaint.active(), "a luta liga a perspectiva do palco")
+	assert_eq(FeltPaint.stage, d.stage_panel.get_global_rect())
 	var c: SpellCard = d.cards[0]
 	assert_true(c.get_theme_stylebox("panel") is StyleBoxEmpty, "sem painel: o feltro aparece")
 	assert_true(c.holes[0].painted, "buracos pintados")
 	assert_true(c.material is ShaderMaterial, "o cartão é tinta no feltro")
 	assert_true(c.name_label.use_parent_material, "o texto usa a mesma tinta")
 	assert_eq(c.holes[0].paint_material, SpellCard.paint_material(0.0), "buraco com tinta nova")
-	assert_eq(c.outline(3.0).size(), 4)
-	# O contorno inclinado nunca pisa no texto: a margem cresce do lado que inclina.
-	var o := c.outline(3.0)
-	var box: StyleBox = c.get_theme_stylebox("panel")
-	assert_true(box.content_margin_left >= maxf(o[0].x, o[3].x), "margem esquerda passa da linha")
-	assert_true(box.content_margin_right >= c.size.x - minf(o[1].x, o[2].x), "margem direita passa da linha")
+	assert_eq(c.holes[0].die_material, FeltPaint.warp_only(), "o dado posto entra na perspectiva")
+	# Saída: o efeito sai de onde o cartão aparece.
+	var shown := FeltPaint.warp(c.get_global_transform() * (c.size * 0.5)) - d.fx_layer.global_position
+	assert_eq(d._center(c), shown, "efeitos partem do cartão como ele aparece")
+	d.queue_free()
+	await wait_process_frames(1)
+	assert_false(FeltPaint.active(), "saiu da luta: sem perspectiva")
+
+
+func _mouse(p: Vector2, button: bool, held: bool, last: Vector2) -> Vector2:
+	var w := get_viewport().get_final_transform() * p
+	var ev: InputEventMouse
+	if button:
+		var b := InputEventMouseButton.new()
+		b.button_index = MOUSE_BUTTON_LEFT
+		b.pressed = held
+		ev = b
+	else:
+		var m := InputEventMouseMotion.new()
+		m.relative = w - last
+		ev = m
+	ev.position = w
+	ev.global_position = w
+	ev.button_mask = MOUSE_BUTTON_MASK_LEFT if held else 0
+	get_tree().root.push_input(ev)
+	return w
+
+
+func test_arrastar_dado_ate_o_buraco_em_perspectiva():
+	var run := _run_at_duel(12)
+	var p := run.duel.player
+	var faisca := p.inventory.ids().find("faisca")
+	var d := _duel_in_frame(run)
+	await wait_process_frames(3)
+	var fc: SpellCard = d._card_of(d.cards, faisca)
+	var hole: Hole = fc.holes[0]
+	var real := hole.get_global_rect().get_center()
+	var to := FeltPaint.warp(real)
+	assert_true(to.distance_to(real) > 3.0, "o buraco aparece fora do lugar real")
+	# Toque: vale onde o buraco aparece, não onde o controle está.
+	var r := hole.get_global_rect()
+	var inv := hole.get_global_transform().affine_inverse()
+	var seen_tl := FeltPaint.warp(r.position) + Vector2(3, 3)
+	var gone_br := r.end - Vector2(3, 3)
+	assert_false(r.has_point(seen_tl), "canto que aparece fica fora do lugar real")
+	assert_true(hole._has_point(inv * seen_tl), "toque no canto que aparece pega")
+	assert_false(hole._has_point(inv * gone_br), "toque no lugar real que sumiu não pega")
+	var tv: Hole = d.tray_views[0]
+	var from := tv.get_global_rect().get_center()
+	# A janela do GUT fica por cima de tudo: escondida durante o toque.
+	var gut_layer := get_tree().root.find_child("GutLayer", true, false) as CanvasLayer
+	if gut_layer != null:
+		gut_layer.visible = false
+	var last := _mouse(from, true, true, Vector2.ZERO)
+	await wait_process_frames(1)
+	for k in 10:
+		last = _mouse(from.lerp(to, (k + 1) / 10.0), false, true, last)
+		await wait_process_frames(1)
+	assert_true(get_viewport().gui_is_dragging(), "arrastando o dado")
+	_mouse(to, true, false, last)
+	await wait_process_frames(2)
+	if gut_layer != null:
+		gut_layer.visible = true
+	assert_true(hole.has_die, "solto onde o buraco aparece: o dado entra")
+	assert_eq(d.choice.dice_in(faisca), [0])
 
 
 func test_numeros_nao_saem_da_tela():

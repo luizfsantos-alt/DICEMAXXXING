@@ -183,6 +183,26 @@ func _build_background() -> void:
 func _frame_felt() -> void:
 	if felt != null and stage_panel != null:
 		felt.frame(Rect2(stage_panel.global_position - felt.global_position, stage_panel.size))
+	if stage_panel != null and stage_panel.is_inside_tree():
+		# As magias são pintadas na mesa: a perspectiva vale para o palco todo.
+		FeltPaint.set_stage(stage_panel.get_global_rect())
+
+
+func _exit_tree() -> void:
+	FeltPaint.set_stage(Rect2())
+
+
+func _enter_tree() -> void:
+	_frame_felt.call_deferred()
+
+
+## Ponto local de c como aparece na tela (coordenadas globais): dentro do palco, as
+## magias estão na perspectiva da mesa (FeltPaint.warp).
+func _on_screen(c: Control, local: Vector2) -> Vector2:
+	var g := c.get_global_transform() * local
+	if stage_panel != null and stage_panel.is_ancestor_of(c):
+		return FeltPaint.warp(g)
+	return g
 
 
 ## Coluna 1: foto do inimigo + status, as duas barras, sua foto + status, moedas.
@@ -738,13 +758,14 @@ func _fly(from: Hole, to: Hole) -> void:
 	var fs := _visual_px(from)
 	var g := Hole.new().set_interactive(false).setup(int(fs))
 	g.copy_die(from)
-	g.position = from.global_position - fx_layer.global_position
+	g.position = _on_screen(from, from.size * 0.5) - Vector2(fs, fs) * 0.5 - fx_layer.global_position
 	fx_layer.add_child(g)
 	from.has_die = false
 	from.queue_redraw()
 	var sc := _visual_px(to) / maxf(1.0, fs)
 	var tw := g.create_tween()
-	tw.tween_property(g, "position", to.global_position - fx_layer.global_position, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	var tp := _visual_px(to)
+	tw.tween_property(g, "position", _on_screen(to, to.size * 0.5) - Vector2(tp, tp) * 0.5 - fx_layer.global_position, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 	tw.parallel().tween_property(g, "scale", Vector2(sc, sc), 0.3)
 	await _wait(0.32)
 	g.queue_free()
@@ -1811,7 +1832,7 @@ func _impact(s: String, t: int) -> void:
 
 ## Centro de um controle na camada de efeitos.
 func _center(c: Control) -> Vector2:
-	return c.get_global_transform() * (c.size * 0.5) - fx_layer.global_position
+	return _on_screen(c, c.size * 0.5) - fx_layer.global_position
 
 
 func _portrait_point(s: String) -> Vector2:
