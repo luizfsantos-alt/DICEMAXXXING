@@ -10,3 +10,4 @@ export_credentials.cfg
 /ui/*.uid
 /tests/*.uid
 /sim/*.uid
+.claude/worktrees/
