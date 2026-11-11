@@ -143,7 +143,7 @@ func _card(i: int, o: Dictionary, px: int) -> Control:
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	var rar := offer_rarity(o)
 	var col: Color = Kit.TEXT if rar in ["", "common"] else Kit.RARITY_COLORS[rar]
-	var name := Kit.label(short_name(o), 24, col, true)
+	var name := Kit.label(short_name(o), 24 if run.options.size() < 5 else 20, col, true) ## 5 cartões (mercado): fonte menor para "Modificação" caber.
 	name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	# Sempre a altura de duas linhas: os preços ficam todos na mesma altura.
@@ -435,7 +435,7 @@ func _apply(i: int, target: Dictionary) -> void:
 
 ## Formato da peça, mostrado em cima do cartão da magia.
 static func _shape_of(id: String) -> Control:
-	var c := GrimoireView.shape_preview(id)
+	var c := GrimoireView.shape_preview(id, 0, 28)
 	c.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return c

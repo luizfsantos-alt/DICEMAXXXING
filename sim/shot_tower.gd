@@ -35,7 +35,7 @@ func _run() -> void:
 	await _shot(t, "doors", "doors", doors)
 	await _shot(t, "master", "doors", [{"kind": "door", "id": "mestre", "price": 0, "needs": ""}])
 	var stops := []
-	for id in ["shop", "heal", "school", "well"]:
+	for id in ["shop", "heal", "school", "well", "sell"]:
 		stops.append({"kind": "stop", "id": id, "price": 0, "needs": ""})
 	await _shot(t, "stops", "market", stops)
 	var rng := RandomNumberGenerator.new()
