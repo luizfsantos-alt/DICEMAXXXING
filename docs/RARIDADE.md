@@ -52,7 +52,7 @@
 
 | Magia | Por quê |
 |---|---|
-| Bola de Fogo, Meteoro, Golpe nas Sombras, Lição de Anatomia, Expectativa Tóxica | Pico forte, 1× por luta ou exigência difícil. |
+| Meteoro, Golpe nas Sombras, Lição de Anatomia, Expectativa Tóxica | Pico forte, 1× por luta ou exigência difícil. |
 | **Obra-Prima**, **Banquete**, Exibição de Velocidade | Muitos dados ou trio. |
 | Plágio, Roubar a Cena, Arrancar das Mãos | Mexem na bolsa ou na mão do inimigo. |
 | Meia Verdade, Interrupção Rude, Rasteira Humilhante | Enfraquecem a próxima mão do inimigo. |

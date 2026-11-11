@@ -97,7 +97,7 @@ O inimigo compra deste catálogo com as mesmas regras. Ele usa as magias do grup
 | 1 | **Faísca** | 1×1 | Feiticeiro | qualquer dado | Dano = valor. | sempre | base |
 | 2 | **Estocada** | 1×1 | Assassino | qualquer dado | Dano = valor + 1. | sempre | base |
 | 3 | **Corte Duplo** | 2×1 | Assassino | 2 dados | Dano = soma; se os dois forem ímpares, golpeia de novo. | sempre | base |
-| 4 | **Bola de Fogo** | 2×2 | Feiticeiro | 2 dados iguais | Dano = soma ×2 e queima 3. | 1× por luta | base |
+| 4 | **Bola de Fogo** | 2×2 | Feiticeiro | 2 dados iguais | Dano = soma ×2 e queima 3. | sempre | base |
 | 5 | **Meteoro** | L (4) | Feiticeiro | sequência de 3 | Dano = soma + 10. | 1× por luta | base |
 | 6 | **Golpe nas Sombras** | 3×1 | Assassino | um 6 | Dano = valor, ignora todas as defesas: bloqueio, Esquiva, Espelho e Revide. | 1× por luta | base (planejada) |
 | 7 | **Sacrifício** | 1×1 | Feiticeiro | um 1 | Destrói o dado para sempre; +5 de dano em todas as magias de dano nesta luta. | sempre | base |
@@ -110,7 +110,7 @@ O inimigo compra deste catálogo com as mesmas regras. Ele usa as magias do grup
 | 14 | **Força Desnecessária** | 1×1 | Assassino | dado ≥ 4 | Dano = valor. O dado se parte: voltam à mão 2 dados com metade do valor cada (arredonda para cima), para outras magias neste turno. | sempre | rodada 2 |
 | 15 | **Física Aplicada** | 3×1 | Assassino | 2 dados, um ≤ 3 | Dano = maior × menor (12 × 3 = 36). | sempre | rodada 2 |
 | 16 | **Arrancar das Mãos** | 1×2 | Assassino | dado ≤ 2 | Dano = valor. O dado mais forte da bolsa do inimigo (maior soma de faces) fica fora da bolsa dele até o fim da luta. Ósmio não sai. | 1× por luta | rodada 2 |
-| 17 | **Exibição de Velocidade** | 3×1 | Assassino | 3 dados ≤ 3 | 3 golpes separados, cada um = valor ×2. Esquiva e Espelho só param o primeiro. Se os 3 forem iguais: 6 golpes. | sempre | rodada 2 |
+| 17 | **Exibição de Velocidade** | 3×1 | Assassino | 3 dados ≤ 3 | 3 golpes separados, cada um = valor ×2. Cada carga de Esquiva ou Espelho para um golpe. Se os 3 forem iguais: 6 golpes. | sempre | rodada 2 |
 | 18 | **Levantar Peso** | 1×1 | Assassino | um 1 | Dano = 4 × quantos dados de valor 1 há na sua mão (contando este; **contam no máximo 3**, desde a 0.22.1). | **2× por luta** (desde a 0.22.1) | rodada 2 |
 | 19 | **Impulso Calculado** | 1×2 | Assassino | qualquer dado | Dano = valor. O dado volta obrigatoriamente na sua próxima mão, além da mão normal, com +2 em todas as faces, e é rolado. O +2 dura essa mão. | sempre | rodada 2 |
 | 20 | **Lição de Anatomia** | L (3) | Assassino | 2 dados iguais | Dano = soma ×2. Na próxima mão do inimigo, todo dado que cair na face mais alta vale 1. | 1× por luta | rodada 2 |

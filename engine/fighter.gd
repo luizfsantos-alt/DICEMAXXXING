@@ -24,8 +24,8 @@ var discard: Array = []
 var hand: Array = []
 var last_hand: Array = [] ## Valores da última mão (visível ao adversário).
 var block: int = 0
-var mirror: bool = false
-var dodge: bool = false
+var mirror: int = 0 ## Espelho: reflexos guardados (acumulam; cada golpe recebido gasta um).
+var dodge: int = 0 ## Esquiva: esquivas guardadas (acumulam; cada golpe recebido gasta uma).
 var poison: int = 0
 var burn: int = 0
 var coins_won: int = 0 ## Moedas ganhas nesta luta (Ouro); a jornada recebe no fim dela.
@@ -107,8 +107,8 @@ func reset_fight_state() -> void:
 	hand = []
 	last_hand = []
 	block = 0
-	mirror = false
-	dodge = false
+	mirror = 0
+	dodge = 0
 	poison = 0
 	burn = 0
 	coins_won = 0
@@ -453,8 +453,8 @@ static func from_dict(d: Dictionary) -> Fighter:
 					he[k] = bool(e[k]) if k == "orig_top" else (str(e[k]) if k == "cause" else int(e[k]))
 	f.last_hand = Die._ints(d.get("last_hand", []))
 	f.block = int(d.get("block", 0))
-	f.mirror = bool(d.get("mirror", false))
-	f.dodge = bool(d.get("dodge", false))
+	f.mirror = int(d.get("mirror", 0))
+	f.dodge = int(d.get("dodge", 0))
 	f.poison = int(d.get("poison", 0))
 	f.burn = int(d.get("burn", 0))
 	f.coins_won = int(d.get("coins_won", 0))

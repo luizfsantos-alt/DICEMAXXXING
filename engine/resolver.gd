@@ -27,8 +27,8 @@ static func side(f: Fighter) -> String:
 ## 1. Início: as proteções deste lado somem; veneno e queima causam dano.
 static func start_turn(f: Fighter, ev: Array) -> void:
 	f.block = 0
-	f.mirror = false
-	f.dodge = false
+	f.mirror = 0
+	f.dodge = 0
 	f.riposte = 0
 	f.recycle = false
 	f.mirror_lvl = 1
@@ -535,12 +535,12 @@ static func cast(f: Fighter, foe: Fighter, item: int, dice: Array, ev: Array, rn
 			if lvl > 1:
 				hit(foe, f, total * (lvl - 1) + dmg_bonus(f), ev)
 		"dodge":
-			f.dodge_lvl = maxi(f.dodge_lvl if f.dodge else 1, lvl)
-			f.dodge = true
+			f.dodge_lvl = maxi(f.dodge_lvl if f.dodge > 0 else 1, lvl)
+			f.dodge += 1
 			push(ev, {"t": "dodge_up", "side": side(f)})
 		"mirror":
-			f.mirror_lvl = maxi(f.mirror_lvl if f.mirror else 1, lvl)
-			f.mirror = true
+			f.mirror_lvl = maxi(f.mirror_lvl if f.mirror > 0 else 1, lvl)
+			f.mirror += 1
 			push(ev, {"t": "mirror_up", "side": side(f)})
 		"heal":
 			_heal(f, Config.scale(total * mult, lvl), ev)
@@ -755,12 +755,12 @@ static func _mark(f: Fighter, dice: Array, kind: String, total: int, ev: Array) 
 	push(ev, {"t": "mark", "side": side(f), "kind": kind, "v": int(m.value)})
 
 
-## Um golpe: Esquiva anula; Espelho devolve (reflexo nunca volta); bloqueio absorve;
+## Um golpe: Esquiva anula; Espelho devolve (cada um gasta uma carga, e as cargas acumulam) (reflexo nunca volta); bloqueio absorve;
 ## Revide devolve dano enquanto houver bloqueio. pierce: ignora todas as defesas.
 static func hit(target: Fighter, attacker: Fighter, n: int, ev: Array, reflected := false, pierce := false) -> void:
 	if not pierce:
-		if target.dodge:
-			target.dodge = false
+		if target.dodge > 0:
+			target.dodge -= 1
 			push(ev, {"t": "dodged", "side": side(target), "n": n})
 			if target.archetype == "assassin":
 				target.dodge_bonus += Characters.AGILE_DICE
@@ -769,8 +769,8 @@ static func hit(target: Fighter, attacker: Fighter, n: int, ev: Array, reflected
 			if keep > 0:
 				_block(target, keep, ev)
 			return
-		if target.mirror and not reflected:
-			target.mirror = false
+		if target.mirror > 0 and not reflected:
+			target.mirror -= 1
 			push(ev, {"t": "mirrored", "side": side(target), "n": n})
 			# Espelho evoluído devolve o golpe mais forte (×1,5 no nível 2, ×2 no 3).
 			hit(attacker, target, Config.scale(n, target.mirror_lvl), ev, true)

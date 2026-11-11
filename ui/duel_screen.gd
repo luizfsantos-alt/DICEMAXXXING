@@ -427,10 +427,10 @@ static func statuses(st: Dictionary) -> Array:
 		out.append(_st("poison", int(st.poison)))
 	if int(st.burn) > 0:
 		out.append(_st("burn", int(st.burn)))
-	if st.mirror:
-		out.append(_st("mirror", 1))
-	if st.dodge:
-		out.append(_st("dodge", 1))
+	if int(st.mirror) > 0:
+		out.append(_st("mirror", int(st.mirror)))
+	if int(st.dodge) > 0:
+		out.append(_st("dodge", int(st.dodge)))
 	if int(st.riposte) > 0:
 		out.append(_st("riposte", int(st.riposte)))
 	if int(st.immune) > 0:
@@ -531,7 +531,7 @@ func _refresh_bars() -> void:
 func _status(f: Fighter) -> String:
 	var p := []
 	for st in statuses(f.status_state()):
-		p.append(st.name if st.id in ["mirror", "dodge", "immune", "marked"] or str(st.id).begins_with("mod_") else "%s %d" % [st.name, st.n])
+		p.append(st.name if st.id in ["immune", "marked"] or (st.id in ["mirror", "dodge"] and int(st.n) == 1) or str(st.id).begins_with("mod_") else "%s %d" % [st.name, st.n])
 	return " · ".join(p)
 
 
@@ -1399,8 +1399,8 @@ func _apply_event(ev: Dictionary) -> void:
 			if status_view.has(s):
 				var sv: Dictionary = status_view[s]
 				sv.block = 0
-				sv.mirror = false
-				sv.dodge = false
+				sv.mirror = 0
+				sv.dodge = 0
 				sv.riposte = 0
 			fx_src = null
 			fx_bounce = null

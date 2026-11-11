@@ -944,9 +944,9 @@ func test_status_aparecem_quando_a_acao_acontece():
 	var e := run.duel.enemy
 	var snap := func(): return {"player": p.status_state(), "enemy": e.status_state()}
 	# Estado final do turno: veneno no inimigo e esquiva já gasta.
-	p.dodge = true
+	p.dodge = 1
 	var up := {"t": "dodge_up", "side": "player", "st": snap.call()}
-	p.dodge = false
+	p.dodge = 0
 	var cast := {"t": "cast", "side": "player", "spell": "faisca", "item": 0, "dice": [], "values": [1], "st": snap.call()}
 	e.poison = 3
 	d._animate([cast], false)
@@ -1055,15 +1055,19 @@ func test_sangria_aumenta_a_coluna_e_tocar_no_original_desfaz():
 
 func test_magia_uma_vez_por_luta_usada_some_no_turno_seguinte():
 	var run := _run_at_duel(5)
+	var p := run.duel.player
+	assert_true(p.inventory.add("remendo"), "cabe o Remendo")
 	var d := DuelScreen.new().setup(run)
 	d.fast = true
 	add_child_autofree(d)
 	await wait_process_frames(2)
-	var p := run.duel.player
+	var rem := p.inventory.ids().find("remendo")
 	var bola := p.inventory.ids().find("bola")
+	p.once_used.append(rem)
 	p.once_used.append(bola)
 	d._refresh_tray()
-	assert_false(d._card_of(d.cards, bola).visible, "Bola de Fogo já usada não aparece")
+	assert_false(d._card_of(d.cards, rem).visible, "Remendo já usado não aparece")
+	assert_true(d._card_of(d.cards, bola).visible, "Bola de Fogo não tem limite por luta")
 
 
 func test_mexida_do_inimigo_anima_sem_erro():

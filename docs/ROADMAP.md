@@ -56,7 +56,24 @@
 
 ---
 
-## 3. Outros itens já registrados
+## 3. Refletir e Esquiva acumulam como os outros efeitos — **feito na 0.26.0**
+
+**Ideia:** o Espelho (refletir) e a Esquiva passam a **acumular** como bloqueio, veneno ou queimadura. Lançar Espelho duas vezes guarda **dois reflexos**, e cada golpe recebido gasta um.
+
+**Como ficou:** `Fighter.mirror` e `Fighter.dodge` viraram contadores de cargas (`engine/fighter.gd`).
+
+| Tema | Decisão |
+|---|---|
+| Contador | Número de cargas, sem teto (os limites de uso das magias já seguram). |
+| Nível | Vale o maior nível entre as magias usadas (como antes). |
+| Duração | As cargas somem no início do próximo turno de quem as ergueu, como o bloqueio. |
+| Ordem | A Esquiva gasta antes do Espelho; cada golpe (cada acerto de um golpe múltiplo) gasta uma carga. |
+| Leitura | Ícone de status com o selo da quantidade. |
+| Inimigo | A IA não muda: usa Espelho e Esquiva quando a mão deixa. |
+
+---
+
+## 4. Outros itens já registrados
 
 | Item | Onde |
 |---|---|

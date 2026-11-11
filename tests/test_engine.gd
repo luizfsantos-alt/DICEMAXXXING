@@ -469,16 +469,17 @@ func test_dano_bloqueio_e_bloqueio_dura_ate_o_proximo_turno_do_dono():
 	assert_eq(b.block, 0, "some no início do próximo turno do dono")
 
 
-func test_bola_de_fogo_uma_vez_por_luta_e_queima():
+func test_bola_de_fogo_sem_limite_por_luta_e_queima():
 	var a := H.fighter("a", ["bola"])
 	var b := H.fighter("b", [], 100)
 	H.hand(a, [4, 4])
 	H.cast(a, b, {"bola": [0, 1]})
 	assert_eq(b.hp, 100 - 16, "soma ×2")
 	assert_eq(b.burn, 3)
-	assert_false(TurnChoice.can_cast(a, 0), "uso único na luta")
-	a.reset_fight_state()
-	assert_true(TurnChoice.can_cast(a, 0), "volta na próxima luta")
+	assert_true(TurnChoice.can_cast(a, 0), "pode lançar de novo no próximo turno")
+	H.hand(a, [5, 5])
+	H.cast(a, b, {"bola": [0, 1]})
+	assert_eq(b.hp, 100 - 16 - 20, "segunda Bola na mesma luta")
 
 
 
@@ -499,7 +500,41 @@ func test_espelho_devolve_e_reflexo_nao_volta():
 	H.cast(a, b, {"espelho": [0], "faisca": [1]})
 	assert_eq(b.hp, 40)
 	assert_eq(a.hp, 34, "o reflexo passa pelo espelho de quem atacou")
-	assert_true(a.mirror, "e não gasta esse espelho")
+	assert_eq(a.mirror, 1, "e não gasta esse espelho")
+
+
+func test_espelhos_acumulam_e_cada_golpe_gasta_um():
+	var a := H.fighter("a", [])
+	var b := H.fighter("b", ["espelho", "espelho"])
+	H.hand(b, [1, 1])
+	var c := TurnChoice.new()
+	c.casts[0] = [0]
+	c.casts[1] = [1]
+	var ev := []
+	Resolver.cast_all(b, a, c, ev)
+	assert_eq(b.mirror, 2, "dois Espelhos guardam dois reflexos")
+	Resolver.hit(b, a, 5, ev)
+	assert_eq(b.mirror, 1, "um golpe gasta um reflexo")
+	assert_eq(a.hp, 35)
+	Resolver.hit(b, a, 4, ev)
+	assert_eq(b.mirror, 0)
+	assert_eq(a.hp, 31)
+	Resolver.hit(b, a, 3, ev)
+	assert_eq(b.hp, 37, "sem reflexo, o golpe passa")
+
+
+func test_esquivas_acumulam_e_somem_no_turno_do_dono():
+	var a := H.fighter("a", ["faisca"])
+	var b := H.fighter("b", ["esquiva", "esquiva_mais"])
+	H.hand(b, [2, 2])
+	H.cast(b, a, {"esquiva": [0], "esquiva_mais": [1]})
+	assert_eq(b.dodge, 2, "duas esquivas guardadas")
+	var ev := []
+	Resolver.hit(b, a, 6, ev)
+	assert_eq(b.dodge, 1)
+	assert_eq(b.hp, 40)
+	Resolver.start_turn(b, ev)
+	assert_eq(b.dodge, 0, "as que sobram somem no começo do turno do dono")
 
 
 func test_esquiva_anula_o_proximo_golpe():
@@ -510,7 +545,7 @@ func test_esquiva_anula_o_proximo_golpe():
 	H.hand(a, [6])
 	H.cast(a, b, {"faisca": [0]})
 	assert_eq(b.hp, 40)
-	assert_false(b.dodge)
+	assert_eq(b.dodge, 0)
 
 
 func test_corte_duplo_golpeia_de_novo_com_impares():
@@ -754,10 +789,10 @@ func test_eventos_do_duelo_levam_os_status_do_momento():
 	ev.append_array(H.cast(b, a, {"faisca": [0]}))
 	Resolver.watch = []
 	var up: Dictionary = ev.filter(func(e): return e.t == "dodge_up")[0]
-	assert_true(up.st.player.dodge, "esquiva guardada no momento em que é criada")
+	assert_eq(int(up.st.player.dodge), 1, "esquiva guardada no momento em que é criada")
 	var used: Dictionary = ev.filter(func(e): return e.t == "dodged")[0]
-	assert_false(used.st.player.dodge, "e gasta quando anula o golpe")
-	assert_false(a.dodge)
+	assert_eq(int(used.st.player.dodge), 0, "e gasta quando anula o golpe")
+	assert_eq(a.dodge, 0)
 	assert_false(H.cast(a, b, {}).any(func(e): return e.has("st")), "fora do duelo, sem anotação")
 
 

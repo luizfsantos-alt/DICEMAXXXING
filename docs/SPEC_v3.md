@@ -139,7 +139,7 @@ Cada magia tem **formato** (no inventário), **exigência** (quais dados aceita)
 | Escudo Arcano | 1×2 | dado ≤ 3 | bloqueio = valor ×3 | sempre |
 | Esquiva | 1×1 | dado ≤ 2 | anula o **próximo golpe** do inimigo | 1× por luta |
 | Corte Duplo | 2×1 | dois dados | soma; se ambos ímpares, golpeia de novo | sempre |
-| Bola de Fogo | 2×2 | dois iguais | soma ×2 e queima | 1× por luta |
+| Bola de Fogo | 2×2 | dois iguais | soma ×2 e queima | sempre |
 | Meteoro | L (4 casas) | sequência de 3 | dano = soma + 10 | 1× por luta |
 | Espelho | 1×1 | um 1 | reflete o próximo golpe recebido | sempre |
 | Golpe nas Sombras | 3×1 | um 6 | dano ignora todas as defesas | 1× por luta |
@@ -248,7 +248,7 @@ Playtest com a telemetria ligada (menu → "Copiar dados das jornadas") para com
 - **Evolução** de magia só melhora o **efeito** (×1; ×1,5; ×2). Melhorar exigência ou formato fica para depois.
 - **Urânio**: faces 3 a 8. **Chumbo** (lixo): faces 1, 1, 1 (travadas), 2, 2, 3.
 - **Queima**: causa o valor acumulado no início do turno de quem queima e cai 1 por turno. **Veneno** não cai durante a luta.
-- **Espelho e Esquiva** valem até o início do próximo turno de quem os ergueu, como o bloqueio.
+- **Espelho e Esquiva** valem até o início do próximo turno de quem os ergueu, como o bloqueio. **Acumulam como cargas**: dois Espelhos guardam dois reflexos, e cada golpe recebido gasta uma carga (a Esquiva antes do Espelho). O nível vale o maior entre as magias usadas.
 - **Lixeiro**: no primeiro turno dele, põe 1 Chumbo na sua bolsa (permanente).
 - **Adicionar magia** reorganiza o grimório sozinho quando ela só cabe mexendo nas outras peças. "Não cabe" só aparece quando nenhum arranjo serve.
 - **Arranjo inicial** do Feiticeiro deixa um espaço em L, para o Meteoro caber.

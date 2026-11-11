@@ -20,7 +20,7 @@ func test_agil_do_assassino_ganha_dado_ao_esquivar():
 	var a := H.fighter("a", ["faisca"])
 	H.hand(s, [2])
 	H.cast(s, a, {"esquiva_mais": [0]})
-	assert_true(s.dodge)
+	assert_eq(s.dodge, 1)
 	H.hand(a, [6])
 	H.cast(a, s, {"faisca": [0]})
 	assert_eq(s.hp, s.max_hp, "esquivou")
@@ -325,7 +325,7 @@ func test_amianto_ignora_bloqueio_e_espelho():
 	var a := H.fighter("A", ["faisca"], 40, true)
 	a.bag[0] = Die.with_element("Am")
 	a.block = 20
-	a.mirror = true
+	a.mirror = 1
 	H.hand(a, [5])
 	H.cast(a, H.fighter("B", [], 50), {"faisca": [0]})
 	assert_eq(a.hp, 37)

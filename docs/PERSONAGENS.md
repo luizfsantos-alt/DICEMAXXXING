@@ -80,7 +80,7 @@ O **Vampiro** e o **Bárbaro** mexem os dois com vida, em direções opostas: o 
 
 ### 0.3 Referência de força
 
-Para comparar: o **Feiticeiro** tem 90 de vida, mão de 4 e causa uns **6 a 8 de dano por turno** com a Faísca, mais um pico de 14 a 20 com a Bola de Fogo (1× por luta). O inimigo do andar 1 tem **31 de vida** (porta normal). Os números de "por que se vira" abaixo são médias aproximadas para o andar 1, sem melhorias.
+Para comparar: o **Feiticeiro** tem 90 de vida, mão de 4 e causa uns **6 a 8 de dano por turno** com a Faísca, mais um pico de 14 a 20 com a Bola de Fogo (sem limite por luta desde a 0.26.0; antes, 1× por luta). O inimigo do andar 1 tem **31 de vida** (porta normal). Os números de "por que se vira" abaixo são médias aproximadas para o andar 1, sem melhorias.
 
 ---
 

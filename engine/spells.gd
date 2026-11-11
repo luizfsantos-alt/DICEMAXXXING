@@ -64,7 +64,7 @@ const DATA := {
 	# Base.
 	"faisca": {"shape": S1, "req": "any", "n": 1, "fx": "dmg", "use": "always", "pool": "sorcerer", "rarity": "common"},
 	"escudo": {"shape": S_V2, "req": "max", "v": 3, "fx": "block", "mult": 3, "use": "always", "pool": "sorcerer", "rarity": "common"},
-	"bola": {"shape": S_SQ, "req": "pair", "fx": "dmg", "mult": 2, "burn": 3, "use": "once", "pool": "sorcerer", "rarity": "uncommon"},
+	"bola": {"shape": S_SQ, "req": "pair", "fx": "dmg", "mult": 2, "burn": 3, "use": "always", "pool": "sorcerer", "rarity": "uncommon"},
 	"meteoro": {"shape": S_L4, "req": "seq3", "fx": "dmg", "plus": 10, "use": "once", "pool": "sorcerer", "rarity": "uncommon"},
 	"espelho": {"shape": S1, "req": "exact", "v": 1, "fx": "mirror", "use": "always", "pool": "sorcerer", "rarity": "uncommon"},
 	"sacrificio": {"shape": S1, "req": "exact", "v": 1, "fx": "sacrifice", "use": "always", "pool": "sorcerer", "rarity": "rare"},

@@ -10,7 +10,7 @@
   ],
   "bola": [
    "Bola de Fogo",
-   "Dois dados iguais. Dano igual à soma ×2 e queima 3. Uma vez por luta."
+   "Dois dados iguais. Dano igual à soma ×2 e queima 3."
   ],
   "meteoro": [
    "Meteoro",
@@ -42,7 +42,7 @@
   ],
   "esquiva_mais": [
    "Esquiva Melhorada",
-   "Um 2. Anula o próximo golpe do inimigo. Sem limite por luta."
+   "Um 2. Anula o próximo golpe do inimigo. Duas vezes por luta."
   ],
   "corte": [
    "Corte Duplo",
@@ -988,11 +988,11 @@
   ],
   "mirror": [
    "Espelho",
-   "Devolve o próximo golpe a quem atacou."
+   "Devolve a quem atacou um golpe por carga. As cargas acumulam."
   ],
   "dodge": [
    "Esquiva",
-   "Escapa do próximo golpe."
+   "Escapa de um golpe por carga. As cargas acumulam."
   ],
   "riposte": [
    "Revide",

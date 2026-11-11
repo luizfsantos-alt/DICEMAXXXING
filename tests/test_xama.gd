@@ -136,7 +136,7 @@ func test_marca_nao_quebra_com_esquiva():
 	var p := _pair()
 	var e: Fighter = p[1]
 	e.sigil = 5
-	e.dodge = true
+	e.dodge = 1
 	var a := H.fighter("a", ["faisca"])
 	H.hand(a, [6])
 	H.cast(a, e, {"faisca": [0]})

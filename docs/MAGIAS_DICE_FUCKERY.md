@@ -155,7 +155,7 @@ Uma fala curta por magia, para o balão do retrato na tela de duelo. Servem para
 
 | Combo | O que acontece | Risco |
 |---|---|---|
-| Imitação Barata + Bola de Fogo | fabrica o par de 12 → 72 de dano + queima | baixo: a Bola continua 1× por luta, e o truque gasta um dado |
+| Imitação Barata + Bola de Fogo | fabrica o par de 12 → 72 de dano + queima | médio: a Bola não tem mais limite por luta, mas o truque gasta um dado |
 | Plágio + Bis! | o adesivo roubado cai na face máxima → cada bis vale mais | limite de 5 bis |
 | Ego Inflado (dele) + Dublê (seu) | ele infla a própria mão → o menor dado dele sobe → o Dublê protege menos | interação desejada |
 | Meia Verdade + Ego Inflado | os 1 viram 4 → ele perde o Espelho | dois turnos de setup |

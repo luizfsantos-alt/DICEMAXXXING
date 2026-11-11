@@ -62,13 +62,13 @@ func test_golpe_nas_sombras_ignora_todas_as_defesas():
 	var a := H.fighter("a", ["sombras"])
 	var b := H.fighter("b", [])
 	b.block = 10
-	b.dodge = true
-	b.mirror = true
+	b.dodge = 1
+	b.mirror = 1
 	H.hand(a, [6])
 	H.cast(a, b, {"sombras": [0]})
 	assert_eq(b.hp, 34)
 	assert_eq(b.block, 10)
-	assert_true(b.dodge, "esquiva não foi gasta")
+	assert_eq(b.dodge, 1, "esquiva não foi gasta")
 
 
 func test_fisica_aplicada_maior_vezes_menor():
@@ -94,7 +94,7 @@ func test_exibicao_de_velocidade_golpes_separados():
 	H.cast(a, b, {"velocidade": [0, 1, 2]})
 	assert_eq(b.hp, 40 - 12)
 	var c := H.fighter("c", [])
-	c.dodge = true
+	c.dodge = 1
 	H.hand(a, [2, 2, 2])
 	var ev := H.cast(a, c, {"velocidade": [0, 1, 2]})
 	assert_eq(_ev_count(ev, "dodged"), 1, "a esquiva só para o primeiro")
@@ -285,7 +285,7 @@ func test_recuo_estrategico_esquiva_e_volta_valendo_6():
 	var b := H.fighter("b", [])
 	H.hand(a, [1])
 	H.cast(a, b, {"recuo": [0]})
-	assert_true(a.dodge)
+	assert_eq(a.dodge, 1)
 	assert_eq(int(a.marked.value), 6)
 
 
