@@ -330,11 +330,19 @@ static func best_dice(f: Fighter, id: String, taken: Array, item := -1) -> Array
 		if not (h in taken) and int(f.hand[h].bag) != -2 and int(f.hand[h].get("spent", -1)) < 0 \
 				and (item < 0 or TurnChoice.die_allowed(f, item, h)):
 			free.append(h)
-	# Do maior para o menor.
+	# Do maior para o menor. Empate: Sódio e Césio vão primeiro para quem golpeia (só pegam
+	# num golpe) e por último para quem não golpeia.
+	var strikes := Spells.strikes(id)
 	free.sort_custom(func(a, b):
 		var va := int(f.hand[a].value)
 		var vb := int(f.hand[b].value)
-		return va > vb or (va == vb and a < b))
+		if va != vb:
+			return va > vb
+		var ha := _harms(f, a)
+		var hb := _harms(f, b)
+		if ha != hb:
+			return ha if strikes else hb
+		return a < b)
 	var d := Spells.get_def(id)
 	var n := Spells.dice_needed(id)
 	match str(d.req):
@@ -398,6 +406,15 @@ static func best_dice(f: Fighter, id: String, taken: Array, item := -1) -> Array
 			if bool(d.get("flex", false)) and not out.is_empty():
 				return out ## Forjamento: atira quantos 1 houver.
 	return []
+
+
+## Dado da mão que machuca o inimigo no golpe (Sódio, Césio).
+static func _harms(f: Fighter, h: int) -> bool:
+	var e: Dictionary = f.hand[h]
+	if int(e.bag) == -2:
+		return false
+	var d := f.die_of(e)
+	return d != null and d.element in ["Na", "Cs"]
 
 
 static func _find(f: Fighter, free: Array, v: int) -> int:

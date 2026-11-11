@@ -233,6 +233,16 @@ static func ids_of_rarity(r: String) -> Array:
 	return DATA.keys().filter(func(x): return rarity(x) == r and not DATA[x].get("start_only", false))
 
 
+## Efeitos que golpeiam o inimigo (o que vem no golpe, como Sódio e Césio, só pega neles).
+const STRIKE_FX := ["dmg", "riddle", "product", "lever", "multi", "ones", "pelt", "top_x", "encore", "steal_sticker",
+	"bench", "spawn_half", "antithesis", "drain", "feast"]
+
+
+static func strikes(id: String) -> bool:
+	var d := get_def(id)
+	return str(d.get("fx", "")) in STRIKE_FX
+
+
 ## Família de cor do efeito na interface: dmg, block, dodge, mirror, heal, maxhp, sacrifice.
 static func color_family(id: String) -> String:
 	var fx := str(get_def(id).get("fx", "dmg"))

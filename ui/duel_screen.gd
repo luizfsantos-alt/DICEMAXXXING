@@ -1567,6 +1567,9 @@ func _apply_event(ev: Dictionary) -> void:
 			await _effect(s, Texts.t("ui.fx_mirror"), "fx")
 			fx_bounce = _portrait_point(s)
 			_note(s, Texts.t("ui.fx_mirror"))
+		"fx_back":
+			await _effect(s, Texts.t("ui.fx_back"), "fx")
+			_note(s, Texts.t("ui.fx_back"))
 		"dodge_up":
 			await _effect(s, Texts.t("status.dodge.0"), "fx")
 		"mirror_up":
@@ -1875,6 +1878,8 @@ func _describe(ev: Dictionary) -> String:
 			return Texts.t("ev.dodged", {"who": w})
 		"mirrored":
 			return Texts.t("ev.mirrored", {"who": w})
+		"fx_back":
+			return Texts.t("ev.fx_back", {"who": w})
 		"sacrifice":
 			return Texts.t("ev.sacrifice", {"who": w, "n": ev.bonus})
 		"idle_dmg":

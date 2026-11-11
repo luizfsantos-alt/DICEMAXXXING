@@ -296,7 +296,7 @@
   ],
   "Na": [
    "Sódio",
-   "Ao ser usado, queima o inimigo em 2."
+   "Num golpe que acerta, queima o inimigo em 3. Esquivado, não pega; refletido, volta para você. Em magia que não golpeia, não faz nada no inimigo."
   ],
   "Hg": [
    "Mercúrio",
@@ -324,7 +324,7 @@
   ],
   "Cs": [
    "Césio",
-   "Radiação: ao ser usado, envenena o inimigo em 1 (acumula; o veneno não cai sozinho, só sai com magia)."
+   "Radiação: num golpe que acerta, envenena o inimigo em 2 (acumula; o veneno não cai sozinho, só sai com magia). Esquivado, não pega; refletido, volta para você."
   ],
   "Li": [
    "Lítio",
@@ -549,6 +549,7 @@
   "fx_maxhp": "+{n} vida máx.",
   "fx_dodged": "esquivou",
   "fx_mirror": "refletido!",
+  "fx_back": "os efeitos voltam!",
   "fx_absorb": "bloqueou {n}",
   "fx_poison": "veneno −{n}",
   "fx_burn": "queima −{n}",
@@ -722,6 +723,7 @@
   "mirror_up": "{who} ergue um espelho",
   "dodged": "{who} esquiva!",
   "mirrored": "O espelho de {who} devolve o golpe!",
+  "fx_back": "Os efeitos do golpe voltam para {who}!",
   "sacrifice": "{who} sacrifica um dado (+{n} de dano)",
   "lead_hand": "O Porteiro enfia um Chumbo na sua mão.",
   "lead_bag": "O Lixeiro joga um Chumbo na sua bolsa!",
