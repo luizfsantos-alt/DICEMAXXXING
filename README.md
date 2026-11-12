@@ -84,8 +84,8 @@ xvfb-run godot -s res://sim/shot_grimorio.gd -- --out=/tmp   # grimório: organi
 ## APK
 
 Cada push roda o workflow `CI` no GitHub Actions: testes e um APK de debug (a simulação
-de balanceamento só roda na branch principal ou à mão, em "Run workflow"; nas outras
-branches, rode localmente, ver "Rodar") (artefato `dicemaxxing-apk`, em .zip). Em pushes, o `.apk` também sai solto num
+de balanceamento roda num job à parte, que não segura o APK nem o release, só na branch
+principal ou à mão, em "Run workflow"; nas outras branches, rode localmente, ver "Rodar") (artefato `dicemaxxing-apk`, em .zip). Em pushes, o `.apk` também sai solto num
 pré-lançamento por branch, mais fácil de baixar pelo celular:
 `https://github.com/luizfsantos-alt/DICEMAXXXING/releases/download/apk-<branch com / trocado por ->/dicemaxxing.apk`.
 Instale o `.apk` no celular (é preciso permitir "instalar apps desconhecidos").
