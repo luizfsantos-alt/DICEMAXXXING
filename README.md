@@ -72,6 +72,7 @@ godot --headless --import
 godot --headless -s addons/gut/gut_cmdln.gd -gexit                 # testes
 godot --headless -s res://sim/check.gd                              # scripts sem erro
 godot --headless -s res://sim/simulate.gd -- --runs=500 --char=all --report   # simulação (bot novo)
+godot --headless -s res://sim/enemies.gd -- --n=200 --door=normal    # inimigo médio de cada andar (vida, magias, adesivos)
 godot --headless -s res://sim/telemetria.gd -- --file=jornadas.json   # resumo das jornadas copiadas do jogo
 xvfb-run godot -s res://sim/shot_duel.gd -- --out=/tmp   # capturas: menu e rolagem 3D (precisa de vídeo)
 xvfb-run godot --resolution 1280x720 -s res://sim/shot_felt.gd -- --out=/tmp   # mesa de feltro: rolagem, brilho, magias pintadas
@@ -82,8 +83,9 @@ xvfb-run godot -s res://sim/shot_grimorio.gd -- --out=/tmp   # grimório: organi
 
 ## APK
 
-Cada push roda o workflow `CI` no GitHub Actions: testes, simulação e um APK de debug
-(artefato `dicemaxxing-apk`, em .zip). Em pushes, o `.apk` também sai solto num
+Cada push roda o workflow `CI` no GitHub Actions: testes e um APK de debug (a simulação
+de balanceamento só roda na branch principal ou à mão, em "Run workflow"; nas outras
+branches, rode localmente, ver "Rodar") (artefato `dicemaxxing-apk`, em .zip). Em pushes, o `.apk` também sai solto num
 pré-lançamento por branch, mais fácil de baixar pelo celular:
 `https://github.com/luizfsantos-alt/DICEMAXXXING/releases/download/apk-<branch com / trocado por ->/dicemaxxing.apk`.
 Instale o `.apk` no celular (é preciso permitir "instalar apps desconhecidos").
