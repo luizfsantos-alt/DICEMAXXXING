@@ -10,7 +10,7 @@ env:
 
 jobs:
   test:
-    name: Testes e simulação
+    name: Testes
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,10 +31,26 @@ jobs:
       - name: Testes (GUT)
         run: godot --headless -s addons/gut/gut_cmdln.gd -gexit
 
-      # A simulação é lenta e só informa (não bloqueia): roda na branch principal e quando
-      # pedida à mão. Nos PRs e nas outras branches, rode localmente (README, "Rodar").
+  # Simulação de balanceamento: só informa (não bloqueia nada) e é lenta, então roda em
+  # paralelo, fora do caminho do APK e do release. Na branch principal e quando pedida à
+  # mão; nos PRs e nas outras branches, rode localmente (README, "Rodar").
+  simulation:
+    name: Simulação
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Godot
+        run: |
+          wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip" -O godot.zip
+          unzip -q godot.zip
+          sudo mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" /usr/local/bin/godot
+
+      - name: Importar projeto
+        run: godot --headless --import
+
       - name: Simulação de balanceamento
-        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch))
         run: |
           # Bot antigo, uma porta fixa (compara as portas).
           for d in facil normal dificil; do
@@ -46,7 +62,6 @@ jobs:
           done
 
       - uses: actions/upload-artifact@v4
-        if: hashFiles('simulation.txt') != ''
         with:
           name: simulacao
           path: simulation.txt
