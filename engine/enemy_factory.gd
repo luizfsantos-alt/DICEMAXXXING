@@ -54,7 +54,7 @@ static func create(floor_n: int, door: String, rng: RandomNumberGenerator) -> Fi
 	if f.archetype == "minimalist":
 		f.max_hp = int(round(f.max_hp * Config.MINIMALIST_ENEMY_HP_MULT))
 	if is_master(floor_n):
-		f.max_hp = int(round(f.max_hp * Config.MASTER_HP_MULT))
+		f.max_hp = int(round(f.max_hp * float(Config.MASTER_HP_MULT[floor_n])))
 	if not is_master(floor_n):
 		journey(f, journey_floor(floor_n, door), rng, floor_n < Config.RARE_ENEMY_FLOOR)
 	f.max_hp = maxi(1, int(round(f.max_hp * Config.ENEMY_HP_MULT)))

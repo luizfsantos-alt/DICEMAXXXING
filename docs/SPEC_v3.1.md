@@ -363,3 +363,18 @@ Com a jornada fantasma, o inimigo cresce muito mais do que antes (vida máxima, 
 | **Média** | | **36,1%** | **12,1%** | **8,0%** |
 
 Observações: as lutas dos andares 1–3 ficaram mais curtas (2,6 a 6,3 meios-turnos; antes 4,5 a 5,9). A diferença entre personagens é grande: o Copista perde 22% já no andar 1 (o bot escolhe a porta insana com vida cheia e ele não segura), e o Feiticeiro passa de 60% no andar 10. Fica para o balanceamento por personagem.
+
+### 13.1 Vida que volta a crescer depois do andar 10 (0.28.1)
+
+Problema: com a vida base parada depois do andar 10, o inimigo comum ficava com uns 50 de vida no andar 25 (o herói tinha uns 120) e os três Mestres tinham a mesma vida (101). A jornada fantasma não compensava: a vida máxima é a compra de que o inimigo menos gosta, e metade dos adesivos ia para a mesma face (andar 25: 12 dos 24 numa face só). No simulador, quase ninguém morria entre o 20 e o 29.
+
+Valores novos: `ENEMY_HP_PER_FLOOR_LATE` 0 → **2,5**; `MASTER_HP_MULT` vira um multiplicador por Mestre, **{10: 3,5, 20: 2,3, 30: 2,2}** (vida 101 / 108 / 143); `ENEMY_STICKER_STACK` 0,5 → **0,2**. Os andares 1 a 10 não mudam. `sim/enemies.gd` mostra o inimigo médio de cada andar.
+
+Bot novo, 300 jornadas por personagem jogável, semente 1 (média dos 6):
+
+| Venceu o andar | 10 | 19 | 20 | 29 | 30 |
+|---|---|---|---|---|---|
+| Antes | 43,0% | 20,8% | 13,8% | 11,0% | 9,7% |
+| Depois | 44,6% | 20,8% | 12,6% | 7,0% | 5,4% |
+
+O "antes" usou 100 jornadas por personagem.

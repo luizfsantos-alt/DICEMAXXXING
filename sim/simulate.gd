@@ -80,6 +80,8 @@ func _simulate(char_id: String, runs: int, seed0: int, door_pref: String) -> voi
 	var turns_total := 0
 	var duels_total := 0
 	var hp_after := {}
+	var hero_max := {}
+	var foe_max := {}
 	var el_runs := {} ## Elemento na bolsa em alguma luta -> [jornadas, vitórias].
 	var foe_stats := {} ## Tipo de inimigo -> [lutas, derrotas].
 	var early_turns := 0 ## Meios-turnos das lutas dos andares 1 a 3.
@@ -159,6 +161,8 @@ func _simulate(char_id: String, runs: int, seed0: int, door_pref: String) -> voi
 					if run.phase != "defeat":
 						var k := run.floor_n
 						hp_after[k] = hp_after.get(k, 0) + float(run.hero.hp) / run.hero.max_hp
+						hero_max[k] = hero_max.get(k, 0) + run.hero.max_hp
+						foe_max[k] = foe_max.get(k, 0) + foe.max_hp
 				"doors":
 					var pick := 0
 					if bot_kind == "new":
@@ -209,7 +213,8 @@ func _simulate(char_id: String, runs: int, seed0: int, door_pref: String) -> voi
 	print("Portas escolhidas: " + ", ".join(dk.map(func(k): return "%s %d" % [k, doors_taken[k]])))
 	for f in range(1, Config.LAST_FLOOR + 1):
 		var w: int = reached.get(f, 0)
-		print("Venceu o andar %2d: %5.1f%%   vida média depois: %3.0f%%" % [f, 100.0 * w / runs, 100.0 * hp_after.get(f, 0.0) / maxi(1, w)])
+		print("Venceu o andar %2d: %5.1f%%   vida média depois: %3.0f%%   vida máx. herói %3.0f · inimigo %3.0f" % [f, 100.0 * w / runs,
+			100.0 * hp_after.get(f, 0.0) / maxi(1, w), hero_max.get(f, 0.0) / maxi(1, w), foe_max.get(f, 0.0) / maxi(1, w)])
 	if not report:
 		return
 	print("Magia: lutas no grimório · usada em % delas")

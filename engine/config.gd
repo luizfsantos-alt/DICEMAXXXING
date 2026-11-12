@@ -67,17 +67,21 @@ const ENEMY_HP_BASE := 31
 ## adesivos, magias). Calibrado com o mercado novo (docs/SPEC_v3.1.md §13): era 5 e ×1,035.
 const ENEMY_HP_PER_FLOOR := 1
 const ENEMY_HP_MULT := 0.72
-const MASTER_HP_MULT := 3.5 ## Calibrado: o Mestre é a luta mais difícil do ato (era 2,6).
+## Multiplicador da vida de cada Mestre, por andar. A vida base volta a crescer depois do
+## andar 10, então os Mestres de cima precisam de menos (antes era 3,5 para todos e os três
+## ficavam com a mesma vida).
+const MASTER_HP_MULT := {10: 3.5, 20: 2.3, 30: 2.2}
 const MASTER_COINS := 20
 const REACTOR_POISON := 1 ## O Reator: cada dado parado no fim do turno envenena quem o rolou.
 const MINIMALIST_ENEMY_HP_MULT := 0.8 ## Compensa o Hidrogênio.
 const MONK_FLOOR := 5 ## Monge do Silêncio: a partir deste andar.
 const VARIANT_CHANCE := 0.2
 const RARE_ENEMY_FLOOR := 4 ## Nada Raro nos inimigos antes deste andar.
-## Depois do primeiro Mestre, a vida base não cresce mais (era 3 por andar).
+## Depois do primeiro Mestre, a vida base cresce ENEMY_HP_PER_FLOOR_LATE por andar (era 0 na 0.28.0:
+## os inimigos de cima ficavam com uns 50 de vida e os três Mestres iguais).
 const LATE_FLOOR := 10
-const ENEMY_HP_PER_FLOOR_LATE := 0
-const ENEMY_STICKER_STACK := 0.5 ## Chance do adesivo do inimigo ir na face que já tem mais adesivos.
+const ENEMY_HP_PER_FLOOR_LATE := 2.5
+const ENEMY_STICKER_STACK := 0.2 ## Chance do adesivo do inimigo ir na face que já tem mais adesivos.
 const MASTER_HEAL_FRACTION := 0.3 ## Vencer um Mestre recupera esta fração da vida máxima.
 
 # Economia.
